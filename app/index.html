@@ -162,6 +162,7 @@ html[lang="ja"] .mini span{display:none}html[lang="ja"] .ph small{display:none}
 .note{font-size:11px;line-height:1.6;color:var(--ink-soft);margin:0}
 #igNote{font-size:12px;margin-top:6px}.feedcard{display:flex;align-items:center;gap:8px;margin:6px 0 0;padding:7px 12px;border-radius:12px;background:rgba(255,255,255,.75);border:2px solid var(--line);color:var(--ink);text-decoration:none;font-size:12px}.feedcard small{color:#C8463C;font-weight:900;white-space:nowrap}.feedcard b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.feedcard i{font-style:normal;color:var(--ink-soft)}.chalcard{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:linear-gradient(180deg,#FFF6DF,#FCE9C4);border:2px solid #E3B35A;box-shadow:0 2px 0 #E3B35A55}.chalcard img{width:40px;height:40px;border-radius:50%;background:#fff;flex:none}.chalcard span{display:flex;flex-direction:column;min-width:0}.chalcard small{font-size:11px;font-weight:900;color:#C8463C;letter-spacing:.04em}.chalcard b{font-family:var(--f-display);font-size:20px;line-height:1.15}
 .small-print a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.sub.danger{color:#B3352A;box-shadow:inset 0 0 0 2px #E7B3AC}.m.reset{border-top:1px dashed var(--line);margin-top:10px;padding-top:10px}
 .notelink{display:inline-block;margin-top:4px;padding:6px 12px;border-radius:999px;background:var(--ink);color:#fff;font-weight:800;text-decoration:none}
 .how{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;font-size:13px;font-weight:700}
 .how kbd{font-family:var(--f-display);font-size:13px;background:var(--cream);border-radius:8px;padding:6px 8px;text-align:center;min-width:64px}
@@ -488,7 +489,8 @@ async function xferApply(code) {
 let SAVE_DIRTY = 0;
 function save() { let playing = false; try { playing = G.mode === 'play' || G.mode === 'countdown'; } catch (e) { } if (playing) { SAVE_DIRTY = 1; return; } saveNow(); }
 function saveFlush() { if (SAVE_DIRTY) saveNow(); }
-function saveNow() { // if storage is full, give up the oldest photos one by one (never the progress)
+let RESETTING = 0; // set while the player wipes their data: nothing may write it back
+function saveNow() { if (RESETTING) return; // if storage is full, give up the oldest photos one by one (never the progress)
   SAVE_DIRTY = 0;
   for (let k = 0; k < 100; k++) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); return; } catch (e) { const ks = Object.keys(SV.album || {}); if (!ks.length) return; delete SV.album[ks[0]]; } } }
 const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true }, SV.opt || {}));
@@ -516,8 +518,8 @@ const STR = {
   story: ['<span class="stp"><b>朝</b>課長と出社</span><span class="stp"><b>道中</b>チモシー集め</span><span class="stp"><b>夜</b>東京を寄り道</span>',
     '<span class="stp"><b>AM</b>Off to work</span><span class="stp"><b>Run</b>Grab hay</span><span class="stp"><b>PM</b>See Tokyo</span>'],
   pomRole: ['新人・キンクマ・ハムスター', 'Rookie · Golden hamster'], pomPerk: ['ほお袋：60本でボーナス', 'Pouches: bonus every 60 hay'], pomUnlock: ['新人のポムで走れるようになりました！', 'You can now run as Pom, the rookie!'], worryPom: ['ポム、大丈夫か!?', 'Pom, you OK!?'],
-  mateRenH: ['レン課長、合流！', 'REN JOINS!'], mateRen: ['寝坊した課長が追いついた！ チモシー +20%', 'The sleepy boss caught up! +20% hay'],
-  mateJillH: ['ジル先輩、合流！', 'JILL JOINS!'], mateJill: ['段取り上手のジル先輩が追いついた！ パワーアップが30%長く', 'Jill caught up! Power-ups last 30% longer'],
+  mateRenH: ['レン課長、合流！', 'REN JOINS!'], mateRen: ['寝坊した課長が追いついた！', 'The sleepy boss caught up!'],
+  mateJillH: ['ジル先輩、合流！', 'JILL JOINS!'], mateJill: ['ジル先輩が追いついた！', 'Jill caught up!'],
   mateAll: ['　3人そろって出社！', ' The whole team is here!'], mateRenSay: ['ポム、早すぎるぞ…！', 'Pom, slow down...!'], mateJillSay: ['ポムくん、お待たせ！', 'Sorry I’m late, Pom!'],
   matePomSay: ['先輩！待ってたっす！', 'Senpai! I waited for you!'], matePomAll: ['全員そろったっす！', 'The whole team, let’s go!'],
   renRole: ['課長・ホーランドロップ', 'Boss · Holland Lop'], jillRole: ['部下・ネザーランド・ドワーフ', 'Assistant · Netherland Dwarf'],
@@ -600,6 +602,9 @@ const STR = {
   shareText: ['「レンとジルのチモシーダッシュ」で {0}点！ {1}まで走った（{2}）この記録、こえられる？ #レンとジル', 'I scored {0} in Ren & Jill: Hay Dash and made it to {1} ({2}). Can you beat it? #RenAndJill'],
   shareTextWon: ['挑戦状の{3}点をこえて {0}点！（{2}）次はあなたの番！ #レンとジル', 'Beat the {3} challenge with {0} ({2})! Your turn! #RenAndJill'],
   reviveFree: ['初回ボーナスで続ける', 'Continue for free'], reviveFreeNote: ['最初の3回のプレイは、1回だけ無料で続けられます', 'First-run bonus: in your first 3 runs, continue once for free'], firstFever: ['フィーバー中はぶつかっても平気！', 'You can’t crash in a fever!'],
+  resetH: ['データのリセット', 'Reset your data'], resetNote: ['スコア・チモシー・服・スタンプ・ランキングの記録をすべて消して、はじめからにします。元にはもどせません（残したいときは先に「データ引き継ぎ」のコードを作ってください）。', 'Erase every record (scores, hay, clothes, stamps and your ranking entries) and start over. This cannot be undone: make a transfer code first if you want to keep a copy.'],
+  resetBtn: ['データをリセットする', 'Reset my data'], resetAsk: ['本当にすべて消しますか？', 'Really erase everything?'], resetYes: ['消してはじめから', 'Erase all'], resetNo: ['やめる', 'Cancel'],
+  resetDoing: ['消しています…', 'Erasing...'], resetDone: ['消しました。はじめから始めます', 'Done. Starting over'],
   chalCard: ['友だちからの挑戦状', 'A FRIEND’S CHALLENGE'], chalBody: ['{0}点をこえろ！', 'Beat {0}!'], chalHud: ['挑戦 {0}', 'BEAT {0}'],
   chalWin: ['挑戦状クリア！', 'CHALLENGE BEATEN!'], chalWinSub: ['友だちの{0}点をこえた！', 'You beat your friend’s {0}!'],
   chalLeft: ['挑戦状まであと{0}点！ ', '{0} more to beat the challenge! '], chalDone: ['挑戦状クリア！（{0}点をこえた） ', 'Challenge beaten (over {0})! '],
@@ -5283,7 +5288,7 @@ function buildTitleRoom(seg) {
 function titleFrame(dt) {
   const seg = G.segs[0], me = G.char, other = me === 'ren' ? 'jill' : 'ren', third = me === 'pom' ? 'jill' : 'pom';
   const P = G.player, F = G.follow;
-  P.who = me; F.who = other; F.off = false; F.show = true; P.big = me === 'pom' ? 1.3 : 1; P.view = F.view = 'front'; P.look = F.look = 0;
+  P.who = me; F.who = other; F.off = false; F.show = true; P.big = me === 'pom' ? 1.3 : 1; // on the title, close to the camera: the smaller size P.view = F.view = 'front'; P.look = F.look = 0;
   P.ph += dt * 3; F.ph += dt * 2;
   // Ren is still half asleep (a yawn now and then); Jill is wide awake and keeps glancing at her watch
   const tt = G.t % 9, renMood = tt < 6 ? ((G.t % 3.1) < .14 ? 'blink' : 'open') : tt < 7.2 ? 'yawn' : 'sleepy';
@@ -5310,7 +5315,7 @@ function startRun() {
     fork: null, forkRest: null, rush: 0, chimed: 0, soonTold: 0, gaugeTold: 0, gainT: 0, feverMax: 6, hitStop: 0, jumpBuf: 0, tut: null, tutDid: '', fovK: 0, look: 0, lookCD: 4, photoT: 0, capture: null, rumbleT: 8, shake: 0, announce: [] });
   G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.chalWon = 0;
   G.stats = { hay: 0, dist: 0, jumps: 0, slides: 0, treats: 0, veg: 0, powers: 0, turns: 0, score: 0, fevers: 0, clean: 0, cleanCur: 0, office: 0, chime: 0, looks: 0, flights: 0, bads: [], foods: {}, spots: [], stampsNew: [] };
-  G.player.who = G.char; G.player.big = G.char === 'pom' ? 1.3 : 1; G.player.say = ''; G.follow.who = G.char === 'ren' ? 'jill' : 'ren'; G.player.view = G.follow.view = 'back'; G.player.tilt = G.follow.tilt = 0;
+  G.player.who = G.char; G.player.big = G.char === 'pom' ? POM_BIG : 1; G.player.say = ''; G.follow.who = G.char === 'ren' ? 'jill' : 'ren'; G.player.view = G.follow.view = 'back'; G.player.tilt = G.follow.tilt = 0;
   G.player.show = G.follow.show = true; G.player.look = 0;
   Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '', off: G.char === 'pom' });
   // playing as Pom: the rookie sets off first; the boss and Jill catch up one by one (in a random order), bringing their perks
@@ -5460,6 +5465,7 @@ function startFly() {
   for (let q = a; q < b; q += 1.6) { if (Math.random() < .12) lane = clamp(lane + (Math.random() < .5 ? -1 : 1), 0, 2); addItem(seg, Math.random() < .03 ? 'goldhay' : 'hay', q, lane, G.flyY + .45); }
 }
 /* ---- Pom, the sporty new hire (a golden hamster) ---- */
+const POM_BIG = 1.7; // Pom as the runner is drawn about Jill's size, so a table or a curtain reads as something to slide under
 function pomOn() { return G.pom.on && G.pom.who === 'pom'; } // the rookie runs with you (not the bunny that catches up when you play as Pom)
 function pomSay(line, mood, dur) { const M = G.pom; if (!pomOn()) return; M.look = dur || 1.3; M.mood = mood || 'happy'; M.say = line; }
 function pomPouch(n) { // Pom stuffs the hay you pass into its cheek pouches; when they are full it shares a bonus
@@ -5476,7 +5482,7 @@ function pomJoin() {
   const id = G.runId; setTimeout(() => { if (G.runId === id) pomSay(t(first ? 'pomHi' : 'pomHi2'), 'sparkle', 1.8); }, 500);
 }
 // bad food: the runner turns round looking unwell, and the partner looks back, worried
-function hasPerk(w) { return G.char === w || (G.char === 'pom' && G.mates && G.mates[w]); }
+function hasPerk(w) { return G.char === w; } // each runner has only their own perk (the bunnies who catch up Pom do not add theirs: all three are equally hard)
 function mateCheck() { // Pom mode: the next bunny dashes up from behind and joins the run
   if (G.char !== 'pom' || G.mode !== 'play') return; const n = (G.mates.ren ? 1 : 0) + (G.mates.jill ? 1 : 0); if (n >= 2 || G.t < G.mateAt[n] || G.pow.fly > 0 || G.turnT > 0) return;
   const w = G.mateOrder[n]; G.mates[w] = 1; G.stats.mates = n + 1;
@@ -6548,7 +6554,9 @@ function settingsHTML() {
     `<button class="sub" id="btnNameSet">${esc(SV.nick ? t('nameBtn', SV.nick) : t('nameNone'))}</button> <button class="sub" id="btnTut">${esc(t('resetTut'))}</button>` +
     `<div class="m xfer"><p><b>${esc(t('codeH'))}</b></p><p class="note">${esc(t('codeNote'))}</p><div class="btns" style="display:flex;gap:8px"><input id="codeIn" maxlength="24" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="${esc(t('codePh'))}" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px"><button class="sub" id="btnCode" style="width:auto">${esc(t('codeOk'))}</button></div><p class="note" id="codeMsg" aria-live="polite"></p></div>` +
     `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" readonly rows="3" hidden></textarea>` +
-    `<textarea id="xferIn" rows="3" placeholder="${esc(t('xferPaste'))}"></textarea><button class="sub" id="btnXferLoad">${esc(t('xferLoad'))}</button><p class="note" id="xferMsg" aria-live="polite"></p></div>`;
+    `<textarea id="xferIn" rows="3" placeholder="${esc(t('xferPaste'))}"></textarea><button class="sub" id="btnXferLoad">${esc(t('xferLoad'))}</button><p class="note" id="xferMsg" aria-live="polite"></p></div>` +
+    `<div class="m xfer reset"><p><b>${esc(t('resetH'))}</b></p><p class="note">${esc(t('resetNote'))}</p><button class="sub danger" id="btnReset">${esc(t('resetBtn'))}</button>` +
+    `<div id="resetAsk" hidden><p class="note"><b>${esc(t('resetAsk'))}</b></p><div style="display:flex;gap:8px"><button class="sub danger" id="btnResetYes">${esc(t('resetYes'))}</button><button class="sub" id="btnResetNo">${esc(t('resetNo'))}</button></div></div><p class="note" id="resetMsg" aria-live="polite"></p></div>`;
 }
 /* ---- the player's name for the ranking: asked before the first run, editable any time ---- */
 let nameThenStart = 0;
@@ -6569,6 +6577,14 @@ function nameDone(ok) {
   if (nameThenStart) { nameThenStart = 0; hideAll(); startRun(); } else closePanel();
 }
 function refreshNameBtn() { const b = $('#btnName'); if (b) b.textContent = SV.nick ? t('nameBtn', SV.nick) : t('nameNone'); }
+// wipe everything on this device (progress, clothes, stamps, the ranking account) and take this player off the public boards
+async function resetAll() {
+  const msg = $('#resetMsg'); $('#btnResetYes').disabled = true; $('#btnResetNo').disabled = true; msg.textContent = t('resetDoing');
+  try { if (rankOn()) await Promise.race([RANK.db.doc('ranks/' + RANK.uid).set({}), new Promise(r => setTimeout(r, 4000))]); } catch (e) { } // an empty row drops out of every ranking
+  RESETTING = 1;
+  for (const k of [SAVE_KEY, 'rjChal', 'hd_fsauth']) { try { localStorage.removeItem(k); } catch (e) { } }
+  msg.textContent = t('resetDone'); setTimeout(() => location.reload(), 700);
+}
 function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); }
 let rvTimer = null;
 function openRevive() {
@@ -6655,6 +6671,9 @@ $('#sPanel').addEventListener('click', e => {
   if (e.target.id === 'btnTut') { SV.tutDone = 0; save(); e.target.textContent = t('resetDone'); }
   if (e.target.id === 'btnXferMake') { saveNow(); xferMake().then(code => { const o = $('#xferOut'); o.hidden = false; o.value = code; o.select(); try { navigator.clipboard.writeText(code).catch(() => { }); } catch (x) { } $('#xferMsg').textContent = t('xferCopied'); }).catch(() => { $('#xferMsg').textContent = t('xferBad'); }); }
   if (e.target.id === 'btnCode') { redeemCode($('#codeIn').value); return; }
+  if (e.target.id === 'btnReset') { $('#resetAsk').hidden = false; $('#btnReset').hidden = true; $('#btnResetNo').focus(); return; }
+  if (e.target.id === 'btnResetNo') { $('#resetAsk').hidden = true; $('#btnReset').hidden = false; return; }
+  if (e.target.id === 'btnResetYes') { resetAll(); return; }
   if (e.target.id === 'btnXferLoad') { const code = $('#xferIn').value.trim(), b = e.target; if (!code) return;
     xferRead(code).then(() => { if (!b.dataset.sure) { b.dataset.sure = 1; $('#xferMsg').textContent = t('xferConfirm'); return; }
       return xferApply(code).then(() => { $('#xferMsg').textContent = t('xferDone'); LANG = SV.lang || LANG; G.char = SV.char || 'ren'; applyWear(); setTimeout(() => { closePanel(); goTitle(); }, 900); }); })
