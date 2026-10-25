@@ -12,6 +12,10 @@ on:
       mode: { description: 'quick か full', default: 'quick' }
 permissions:
   contents: write
+# a newer push to the same branch replaces a run still in progress (so an older upload never publishes over a newer one)
+concurrency:
+  group: qa-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
 jobs:
   qa:
     runs-on: ubuntu-latest
@@ -87,3 +91,10 @@ jobs:
           fi
           export CLOUDFLARE_API_TOKEN="$T"
           python3 build.py && npx --yes wrangler@3 pages deploy app --project-name renjill-hay-dash --branch main --commit-dirty=true
+      - name: 検索エンジンに更新を知らせる（IndexNow・アカウント不要）
+        if: steps.chk.outputs.ok == 'true'
+        run: |
+          KEY=$(python3 -c "import seo; print(seo.INDEXNOW_KEY)"); S=https://renjill-hay-dash.pages.dev
+          curl -s -X POST https://api.indexnow.org/indexnow -H 'content-type: application/json; charset=utf-8' \
+            -d "{\"host\":\"renjill-hay-dash.pages.dev\",\"key\":\"$KEY\",\"keyLocation\":\"$S/$KEY.txt\",\"urlList\":[\"$S/\",\"$S/guide\",\"$S/guide-en\",\"$S/ranking\"]}" \
+            -o /dev/null -w "IndexNow %{http_code}\n" || true
