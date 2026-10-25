@@ -1,0 +1,68 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>みんなのランキング｜レンとジルのチモシーダッシュ</title>
+<meta name="description" content="うさぎの課長レンと部下ジルのランゲーム「チモシーダッシュ」の、みんなのランキング（今月・歴代）。だれでも見られます。">
+<meta property="og:type" content="website"><meta property="og:title" content="みんなのランキング｜レンとジルのチモシーダッシュ"><meta property="og:description" content="今月の1位はだれ？ 無料で遊んで、ランキングにのろう。Ren & Jill: Hay Dash — public leaderboard.">
+<meta property="og:url" content="https://renjill-hay-dash.pages.dev/ranking.html"><meta property="og:image" content="https://renjill-hay-dash.pages.dev/og.png"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="./favicon.png"><meta name="theme-color" content="#3B2A20">
+<style>
+:root{--ink:#3B2A20;--soft:#7A6550;--paper:#FFF7E8;--line:#E3D3BC;--gold:#C9962F}
+*{box-sizing:border-box}body{margin:0;background:#F4ECE0;color:var(--ink);font-family:"Zen Maru Gothic","Hiragino Sans","Noto Sans CJK JP","Noto Sans JP",system-ui,sans-serif}
+main{max-width:560px;margin:0 auto;padding:16px 16px 40px}
+header{text-align:center;padding:14px 0 6px}header small{letter-spacing:.2em;color:var(--soft);font-weight:800}header h1{margin:4px 0 0;font-size:28px}
+.tabs{display:flex;gap:8px;justify-content:center;margin:14px 0}.tabs button{border:0;border-radius:999px;padding:9px 18px;font:inherit;font-weight:900;background:#fff;color:var(--ink);box-shadow:inset 0 0 0 2px var(--line);cursor:pointer}.tabs button.on{background:var(--ink);color:#fff;box-shadow:none}
+.list{background:#fff;border-radius:16px;box-shadow:0 2px 0 var(--line);overflow:hidden}
+.rk{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid #F1E8DA}.rk:first-child{border-top:0}
+.rk b{font-size:18px;text-align:center}.rk span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}.rk span i{font-style:normal;font-size:11px;color:var(--soft);font-weight:700;margin-left:6px}.rk em{font-style:normal;font-weight:900;font-variant-numeric:tabular-nums}
+.rk.t1 b{color:#C9962F}.rk.t2 b{color:#8E9AA6}.rk.t3 b{color:#B0764A}.rk.me{background:#FFF3D6}
+.note{font-size:12px;color:var(--soft);line-height:1.6;text-align:center}.play{display:block;margin:18px auto 0;max-width:320px;text-align:center;text-decoration:none;background:var(--ink);color:#fff;font-weight:900;font-size:18px;padding:14px;border-radius:14px}
+.stat{text-align:center;font-weight:800;color:var(--soft);font-size:13px;margin:6px 0}
+</style></head><body><main>
+<header><small>REN &amp; JILL ・ HAY DASH</small><h1 id="h">みんなのランキング</h1></header>
+<div class="tabs"><button id="tM" class="on"></button><button id="tA"></button></div>
+<p class="stat" id="stat"></p>
+<div class="list" id="list"><p class="note" style="padding:20px">…</p></div>
+<a class="play" id="play" href="./">遊んでランキングにのる ▶</a>
+<p class="note" id="foot"></p>
+</main>
+<script src="config.js"></script>
+<script>
+(() => {
+const JA = !/^en/i.test(navigator.language || 'ja') || /[?&]lang=ja/.test(location.search); const L = (j, e) => JA ? j : e;
+document.documentElement.lang = JA ? 'ja' : 'en';
+const NG_NAME = ['死ね', 'しね', '殺す', 'ころす', 'きちがい', 'キチガイ', 'ガイジ', 'ちんこ', 'ちんぽ', 'まんこ', 'セックス', 'エロ', 'レイプ', 'fuck', 'shit', 'bitch', 'nigg', 'cunt', 'dick', 'pussy', 'porn', 'sex', 'rape', 'kill', 'nazi', 'hitler', 'faggot', 'retard'];
+const cleanName = v => String(v || '').replace(/[\u0000-\u001f\u007f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 12);
+const nameBad = v => { const s = String(v).toLowerCase().replace(/[\s._\-*]/g, ''); return NG_NAME.some(w => s.includes(w.toLowerCase())) || /https?:|www\.|@|\d{3,}-?\d{3,}/.test(s); };
+const anon = id => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return L('うさぎ', 'Bunny') + '#' + String(h % 10000).padStart(4, '0'); };
+const j9 = new Date(Date.now() + 9 * 3600e3), MK = 'm' + j9.getUTCFullYear() + String(j9.getUTCMonth() + 1).padStart(2, '0');
+const monthLbl = L(`${j9.getUTCFullYear()}年${j9.getUTCMonth() + 1}月`, new Date(j9.getUTCFullYear(), j9.getUTCMonth(), 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }));
+const fmt = n => Math.floor(n).toLocaleString(JA ? 'ja-JP' : 'en-US');
+document.getElementById('h').textContent = L('みんなのランキング', 'Leaderboard');
+document.getElementById('tM').textContent = monthLbl; document.getElementById('tA').textContent = L('歴代', 'All time');
+document.getElementById('play').textContent = L('遊んでランキングにのる ▶', 'Play free and get on the board ▶');
+document.getElementById('foot').textContent = L('アプリ版（このサイト）で遊んだ記録がのります。月間ランキングは毎月1日（日本時間）に新しくなります。名前を決めていない人は「うさぎ#番号」で表示されます。', 'Scores from the web/app version appear here. The monthly board starts fresh on the 1st (Japan time). Players without a name show as "Bunny#number".');
+const cfg = (window.HAYDASH_CONFIG || {}).firebase || {};
+let me = ''; try { const a = JSON.parse(localStorage.getItem('hd_fsauth') || 'null'); me = (a && a.u) || ''; } catch (e) { }
+async function top(field) {
+  const url = `https://firestore.googleapis.com/v1/projects/${cfg.projectId}/databases/(default)/documents:runQuery` + (cfg.apiKey ? `?key=${cfg.apiKey}` : '');
+  const q = { structuredQuery: { from: [{ collectionId: 'ranks' }], where: { fieldFilter: { field: { fieldPath: field }, op: 'GREATER_THAN', value: { integerValue: '0' } } }, orderBy: [{ field: { fieldPath: field }, direction: 'DESCENDING' }], limit: 100 } };
+  const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q) }); if (!r.ok) throw new Error(r.status);
+  const v = x => x && (x.integerValue != null ? +x.integerValue : x.stringValue != null ? x.stringValue : null);
+  return (await r.json()).filter(x => x.document).map(x => { const f = x.document.fields || {}, id = x.document.name.split('/').pop(); return { id, score: v(f[field]), ch: v(f[field + 'c']) || v(f.allc), nick: v(f.nick) }; });
+}
+async function show(field) {
+  document.getElementById('tM').className = field === MK ? 'on' : ''; document.getElementById('tA').className = field === 'all' ? 'on' : '';
+  const el = document.getElementById('list'); el.textContent = '';
+  if (!cfg.projectId) { el.innerHTML = '<p class="note" style="padding:20px"></p>'; el.firstChild.textContent = L('ランキングは準備中です。', 'The leaderboard is coming soon.'); return; }
+  let rows; try { rows = await top(field); } catch (e) { el.innerHTML = '<p class="note" style="padding:20px"></p>'; el.firstChild.textContent = L('読み込めませんでした。少しあとでもう一度開いてください。', 'Could not load. Please try again later.'); return; }
+  document.getElementById('stat').textContent = rows.length ? L(`${rows.length}人がランクイン`, `${rows.length} players ranked`) : '';
+  if (!rows.length) { el.innerHTML = '<p class="note" style="padding:20px"></p>'; el.firstChild.textContent = L('まだ記録がありません。最初の1位になろう！', 'No scores yet. Be the first!'); return; }
+  rows.forEach((r, i) => { const d = document.createElement('div'); d.className = 'rk' + (i < 3 ? ' t' + (i + 1) : '') + (r.id === me ? ' me' : '');
+    const b = document.createElement('b'); b.textContent = i + 1; const s = document.createElement('span'); const n = cleanName(r.nick); s.textContent = (n && !nameBad(n) ? n : anon(r.id)) + (r.id === me ? L('（あなた）', ' (you)') : '');
+    const c = document.createElement('i'); c.textContent = r.ch === 'jill' ? L('ジル', 'Jill') : L('レン', 'Ren'); s.appendChild(c);
+    const e = document.createElement('em'); e.textContent = fmt(r.score); d.append(b, s, e); el.appendChild(d); });
+}
+document.getElementById('tM').onclick = () => show(MK); document.getElementById('tA').onclick = () => show('all');
+show(/[?&]tab=all/.test(location.search) ? 'all' : MK);
+})();
+</script>
+</body></html>
