@@ -424,8 +424,18 @@ Object.assign(THEMES, {
   kachidoki:{ ja: '勝どき橋', en: 'Kachidoki Bridge', kind: 'deck', len: [100, 112], road: ['#6E6F74', '#68696E'], rpat: 'road', side: ['#2E6E99', '#2A6690'], spat: 'water', view: 'river', rail: '#7F95A8', bridge: 1,
     props: [], obs: ['cone', 'kick', 'car', 'bike', 'barrier'], lm: [{ t: 'cyl', sc: .8, off: .2 }],
     stamp: ST('勝鬨', '勝どき橋', 'Kachidoki Bridge', '昔は真ん中が開いて船を通した、鉄の跳ね橋。', 'An iron drawbridge whose middle once opened to let ships through.') },
+  monorail: { ja: '空港へのモノレール（車内）', lbl: 'モノレール', en: 'Airport monorail', kind: 'train', len: [92, 104], road: ['#9AA6B2', '#93A0AC'], rpat: 'train', side: ['#93A0AC', '#8C99A5'], spat: 'train',
+    wall: '#EEF2F5', base: '#2D86C4', wallH: 2.8, ceil: '#E4E9ED', cpat: 'plain', light: 'strip', wdeco: ['seatwin', 'seatwin', 'door', 'seatwin', 'trainmap'], props: [['nakazuri', 2], ['seat', 4], ['strapS', 2]], obs: ['pole', 'suitcase', 'suitcase', 'bag'], lc: '#2D86C4',
+    stamp: ST('モノ', '空港へのモノレール', 'Airport monorail', '運河や倉庫の上を走って空港へむかう、一本のレールの電車。', 'A one-rail train gliding over canals and warehouses out to the airport.') },
+  kuko:     { ja: '羽田・空港の出発ロビー', lbl: '空港の出発ロビー', en: 'Airport departure hall', kind: 'room', len: [92, 104], road: ['#DAD7D0', '#D0CCC4'], rpat: 'grid', side: ['#D0CCC4', '#C6C2BA'], spat: 'grid',
+    wall: '#EEF1F4', base: '#5E6B78', wallH: 4.6, ceil: '#E6EAEE', cpat: 'beams', light: 'panel', wdeco: ['flightboard', 'planewin', 'planewin', 'flightboard', 'planewin'], props: [['checkin', 3], ['cartS', 1], ['plant', 1], ['benchS', 1]], obs: ['suitcase', 'cart', 'cart', 'bags', 'cone', 'plant'],
+    stamp: ST('出発', '空港の出発ロビー', 'Departure hall', '大きな窓の向こうに飛行機。案内板の行き先がパタパタ変わる。', 'Planes beyond the tall windows, and a board flipping to new destinations.') },
+  kukodeck: { ja: '羽田・空港の展望デッキ', lbl: '空港の展望デッキ', en: 'Airport observation deck', kind: 'deck', len: [100, 112], road: ['#B9895A', '#AF8052'], rpat: 'planks', side: ['#2B5F86', '#285A80'], spat: 'water', view: 'sea', rail: '#E9EEF2',
+    props: [['benchS', 1], ['scopeS', 1]], obs: ['bench', 'suitcase', 'cart', 'cone', 'stroller'], lm: [{ t: 'airport', sc: 1, off: .06 }, { t: 'fuji', sc: .7, off: -.5 }],
+    stamp: ST('空港', '空港の展望デッキ', 'Airport deck', '海ぞいの空港の屋上。目の前の滑走路から飛行機が次々に飛び立つ。', 'A rooftop by the bay where planes take off one after another right in front of you.') },
 });
 Object.assign(ARRIVE, {
+  monorail: { ja: '一本のレールで空港へ', en: 'One rail out to the airport' }, kuko: { ja: '飛行機の見える出発ロビー', en: 'A departure hall with planes outside' }, kukodeck: { ja: '飛び立つ飛行機を見送る', en: 'Watch the planes take off' },
   chikagai: { ja: 'おみやげ屋がならぶ地下街', en: 'A subterranean street of souvenir shops' }, ochanomizu: { ja: 'ギターの店がならぶ坂', en: 'Up the slope of guitar shops' }, koishikawa: { ja: '江戸の大名の庭', en: "An Edo lord's garden" },
   akasaka: { ja: '料亭と焼肉のにおい', en: 'Restaurants and barbecue smoke' }, okachimachi: { ja: '高架下の問屋街', en: 'Wholesalers under the tracks' }, monzen: { ja: '縁日の門前町', en: 'A temple town on fair day' },
   kiba: { ja: '運河と大きな公園', en: 'Canals and a big park' }, ebisu: { ja: '坂の上のレストラン街', en: 'Restaurants up the slope' }, nakano: { ja: '屋根つきの長い商店街', en: 'A long covered arcade' },
@@ -441,7 +451,7 @@ NIGHT.west.push('sangenjaya', 'ebisu', 'akasaka'); NIGHT.east.push('okachimachi'
 const HOME_MID = ['hall', 'living', 'kitchen', 'senmen', 'washitsu', 'kaidanH'];
 const MORNING_ST = ['street', 'shotengai', 'riverside'];
 const STATION_EN = { '千駄木': 'Sendagi', '根津': 'Nezu', '湯島': 'Yushima', '新御茶ノ水': 'Shin-Ochanomizu', '大手町': 'Otemachi', '二重橋前': 'Nijubashimae', '町屋駅前': 'Machiya', '荒川車庫前': 'Arakawa-shako', '王子駅前': 'Oji', '飛鳥山': 'Asukayama', '庚申塚': 'Koshinzuka', '大塚駅前': 'Otsuka',
-  '竹芝': 'Takeshiba', '末広町': 'Suehirocho', '上野広小路': 'Ueno-hirokoji', '日比谷': 'Hibiya', '虎ノ門': 'Toranomon', '神谷町': 'Kamiyacho', '芝浦ふ頭': 'Shibaura-futo', '台場': 'Daiba', '豊洲': 'Toyosu', '汐留': 'Shiodome' };
+  '竹芝': 'Takeshiba', '末広町': 'Suehirocho', '上野広小路': 'Ueno-hirokoji', '日比谷': 'Hibiya', '虎ノ門': 'Toranomon', '神谷町': 'Kamiyacho', '芝浦ふ頭': 'Shibaura-futo', '台場': 'Daiba', '豊洲': 'Toyosu', '汐留': 'Shiodome', '天王洲アイル': 'Tennozu Isle', '大井競馬場前': 'Oi Keibajo-mae', '流通センター': 'Ryutsu Center', '羽田空港': 'Haneda Airport' };
 const stEn = st => YAMANOTE_EN[YAMANOTE.indexOf(st)] || STATION_EN[st] || st;
 function seenAt(tid) { return (SV.seen && SV.seen[tid]) || 0; }
 function markSeen(tid) { if (!SV.seen) SV.seen = {}; SV.seenN = (SV.seenN || 0) + 1; SV.seen[tid] = SV.seenN; }
@@ -500,8 +510,11 @@ function dayPlan(day) {
     bay: () => { const by = pk(AREA.bay, Math.random() < .5 ? 1 : 2, null, NB.bay), n3 = night(NIGHT.bay, [NIGHT.west, NIGHT.east]);
       return { steps: [{ t: 'yamanote', d: 10, line: ['有楽町', '新橋'] }, { t: 'bayline', d: 20, line: ['汐留', '竹芝', '芝浦ふ頭'] }, ...(notRecent('odaiba', 280) ? [{ t: 'odaiba', d: 30 }] : []), { t: by[0], d: 35 }, ...(by[1] ? [{ t: by[1], d: 30 }] : []), ...(n3 ? [{ t: n3, d: 35 }] : []), { t: 'yamanote', d: 30, line: ['新橋', '東京', '上野', '田端'], last: 1 }],
         lbl: { ja: 'お台場・' + lblOf(by[0]).ja, en: 'Odaiba & ' + lblOf(by[0]).en } }; },
+    // out to the airport by monorail: the departure hall, then the rooftop deck to watch the planes take off
+    sky: () => ({ steps: [{ t: 'yamanote', d: 10, line: ['有楽町', '新橋', '浜松町'] }, { t: 'monorail', d: 18, line: ['浜松町', '天王洲アイル', '大井競馬場前', '流通センター', '羽田空港'] }, { t: 'kuko', d: 35 }, { t: 'kukodeck', d: 40 },
+      { t: 'monorail', d: 15, line: ['羽田空港', '流通センター', '天王洲アイル', '浜松町'] }, { t: 'yamanote', d: 25, line: ['浜松町', '東京', '上野', '田端'], last: 1 }], lbl: { ja: '空港の展望デッキ', en: 'Airport deck' } }),
   };
-  const ways = ['east', 'west', 'bay'].map(k => [k, seenAt('way_' + k) + Math.random() + (k === 'bay' ? 25 : 0)]).sort((a, b) => a[1] - b[1]).slice(0, 2).map(x => x[0]);
+  const ways = ['east', 'west', 'bay', 'sky'].map(k => [k, seenAt('way_' + k) + Math.random() + (k === 'bay' ? 25 : 0)]).sort((a, b) => a[1] - b[1]).slice(0, 2).map(x => x[0]);
   if (Math.random() < .5) ways.reverse();
   ways.forEach(k => markSeen('way_' + k));
   const W1 = tmpl[ways[0]](), W2 = tmpl[ways[1]]();

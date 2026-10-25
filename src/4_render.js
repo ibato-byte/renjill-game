@@ -419,7 +419,7 @@ function objShadows(sg) {
 function drawShadows(seg) {
   ctx.fillStyle = 'rgba(30,22,16,.22)';
   const sh = (s, lat, r, a) => { const p = segPos(seg, s, lat); const sp = spriteAt(p[0], p[2], p[1]); if (!sp) return; ctx.globalAlpha = a; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, r * sp.k, r * sp.k * .3, 0, 0, Math.PI * 2); ctx.fill(); };
-  if (G.player.show && G.mode !== 'title') { sh(G.s, G.lat, .55, clamp(1 - G.y * .3, .25, 1)); if (G.follow.show) sh(G.s - G.follow.back, G.follow.lat, .46, .8); if (G.pom.on && G.pom.show) sh(G.s - G.pom.back, G.pom.lat, .32, .75); }
+  if (G.player.show && G.mode !== 'title') { sh(G.s, G.lat, .55, clamp(1 - G.y * .3, .25, 1)); if (G.follow.show) sh(G.s - G.follow.back, G.follow.lat, .46, .8); if (G.pom.on && G.pom.show) sh(G.s - G.pom.back, G.pom.lat, G.pom.who === 'pom' ? .32 : .46, .75); }
   ctx.globalAlpha = 1;
 }
 function drawBunnyWorld(b) {

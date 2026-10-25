@@ -82,7 +82,7 @@ function chatFacts() {
   return [
     `GAME: ${T('gameTitle')}. ${T('tagline')}.`,
     `STORY: ${T('story').replace(/<[^>]+>/g, '')}`,
-    `CHARACTERS: Ren (${T('renRole')}; ${T('renPerk')}), Jill (${T('jillRole')}; ${T('jillPerk')}). Ren is the boss (課長), Jill his assistant (部下). Both are rabbits in a Tokyo office comedy.`,
+    `CHARACTERS: Ren (${T('renRole')}; ${T('renPerk')}), Jill (${T('jillRole')}; ${T('jillPerk')}). Ren is the boss (課長), Jill his assistant (部下).${SV.pomMet ? ` After you have met Pom, you can also run as Pom (${T('pomRole')}; ${T('pomPerk')}); pick him on the title screen.` : ' A third runner can be unlocked by meeting someone on the road (do not reveal who).'} Both are rabbits in a Tokyo office comedy.`,
     `CONTROLS: ${T('howSwipeLR')} ${T('howUp')} ${T('howDown')} ${T('howKeys')} Settings has a tap-control mode and swipe sensitivity.`,
     `GOAL & DAY: ${T('howGoal')} Seasons change by day: day 1 spring (cherry blossoms), day 2 summer rain, day 3 autumn ginkgo, day 4 winter snow. At forks, swipe toward a destination; if you don't, the bunny goes the way of its lane.`,
     `BUMPS & LIVES: ${T('howBump')} After a crash you can continue with a lucky charm or hay.`,

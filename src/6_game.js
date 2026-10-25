@@ -66,24 +66,25 @@ function buildTitleRoom(seg) {
   seg.spr.push({ lat: -4.0, s: .5, y: 0, w: .9, h: 1.9, img: artKey('andon', '0'), pn: 1, keep: 1, gnd: .3 });
 }
 function titleFrame(dt) {
-  const seg = G.segs[0], me = G.char, other = me === 'ren' ? 'jill' : 'ren';
+  const seg = G.segs[0], me = G.char, other = me === 'ren' ? 'jill' : 'ren', third = me === 'pom' ? 'jill' : 'pom';
   const P = G.player, F = G.follow;
-  P.who = me; F.who = other; P.view = F.view = 'front'; P.look = F.look = 0;
+  P.who = me; F.who = other; F.off = false; F.show = true; P.big = me === 'pom' ? 1.3 : 1; P.view = F.view = 'front'; P.look = F.look = 0;
   P.ph += dt * 3; F.ph += dt * 2;
   // Ren is still half asleep (a yawn now and then); Jill is wide awake and keeps glancing at her watch
   const tt = G.t % 9, renMood = tt < 6 ? ((G.t % 3.1) < .14 ? 'blink' : 'open') : tt < 7.2 ? 'yawn' : 'sleepy';
   const jillMood = ((G.t + 1.7) % 4.6) < .14 ? 'blink' : (G.t % 7) > 5.6 ? 'happy' : 'open';
-  if (me === 'ren') { P.mood = renMood; F.mood = jillMood; } else { P.mood = jillMood; F.mood = renMood; }
-  const pR = segPos(seg, 3.2, me === 'ren' ? -.75 : .75), pJ = segPos(seg, 3.5, me === 'ren' ? .8 : -.8);
-  [P.wx, P.wz] = pR; P.wy = pR[2] + Math.abs(Math.sin(P.ph)) * .05; [F.wx, F.wz] = pJ; F.wy = pJ[2] + (me === 'ren' ? Math.abs(Math.sin(G.t * 6)) * .03 * ((G.t % 7) > 5.6) : 0);
+  const pomMood = (G.t % 5) < .16 ? 'blink' : (G.t % 11) > 9.5 ? 'puff' : 'open';
+  if (me === 'ren') { P.mood = renMood; F.mood = jillMood; } else if (me === 'jill') { P.mood = jillMood; F.mood = renMood; } else { P.mood = pomMood; F.mood = renMood; }
+  const pR = me === 'pom' ? segPos(seg, 2.6, -1.85) : segPos(seg, 3.2, me === 'ren' ? -.75 : .75), pJ = me === 'pom' ? segPos(seg, 3.2, -.75) : segPos(seg, 3.5, me === 'ren' ? .8 : -.8); // with Pom picked, the rookie bounces in front, the boss beside him
+  [P.wx, P.wz] = pR; P.wy = pR[2] + (me === 'pom' ? Math.abs(Math.sin(G.t * 5)) * .07 : Math.abs(Math.sin(P.ph)) * .05); [F.wx, F.wz] = pJ; F.wy = pJ[2] + (me === 'ren' ? Math.abs(Math.sin(G.t * 6)) * .03 * ((G.t % 7) > 5.6) : 0);
   P.air = F.air = P.slide = F.slide = false; P.tilt = F.tilt = 0; P.fly = F.fly = 0;
   const cp = segPos(seg, 6.6 - Math.sin(G.t * .11) * .2, Math.sin(G.t * .23) * .3);
   CAM.x = cp[0]; CAM.z = cp[1]; CAM.y = 1.1 + cp[2] + Math.sin(G.t * .7) * .015; CAM.yaw = Math.PI + Math.sin(G.t * .17) * .02; CAM.pitch = .06;
-  camPrep(); P.depth = 4.2; F.depth = 3.9;
+  camPrep(); P.depth = me === 'pom' ? 4.8 : 4.2; F.depth = me === 'pom' ? 4.2 : 3.9;
   // once you have met Pom, the rookie peeks out on the title screen too, bouncing with excitement
   const M = G.pom; M.title = !!SV.pomMet; M.show = M.title;
-  if (M.title) { const pm = segPos(seg, 2.6, me === 'ren' ? 1.85 : -1.85); M.view = 'front'; M.who = 'pom'; M.ph += dt * 4; M.wx = pm[0]; M.wz = pm[1]; M.wy = pm[2] + Math.abs(Math.sin(G.t * 5)) * .07; M.depth = 4.8; M.tilt = 0; M.air = M.slide = false;
-    M.mood = (G.t % 5) < .16 ? 'blink' : (G.t % 11) > 9.5 ? 'puff' : 'open'; M.look = 0; }
+  if (M.title) { const pm = me === 'pom' ? segPos(seg, 3.5, .8) : segPos(seg, 2.6, me === 'ren' ? 1.85 : -1.85); M.view = 'front'; M.who = third; M.ph += dt * 4; M.wx = pm[0]; M.wz = pm[1]; M.wy = pm[2] + Math.abs(Math.sin(G.t * 5)) * .07; M.depth = me === 'pom' ? 3.9 : 4.8; M.tilt = 0; M.air = M.slide = false;
+    M.mood = third === 'pom' ? pomMood : jillMood; M.look = 0; }
 }
 
 /* ---------- run lifecycle ---------- */
@@ -92,12 +93,14 @@ function startRun() {
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
     fork: null, forkRest: null, rush: 0, chimed: 0, soonTold: 0, gaugeTold: 0, gainT: 0, feverMax: 6, hitStop: 0, jumpBuf: 0, tut: null, tutDid: '', fovK: 0, look: 0, lookCD: 4, photoT: 0, capture: null, rumbleT: 8, shake: 0, announce: [] });
-  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 };
+  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.chalWon = 0;
   G.stats = { hay: 0, dist: 0, jumps: 0, slides: 0, treats: 0, veg: 0, powers: 0, turns: 0, score: 0, fevers: 0, clean: 0, cleanCur: 0, office: 0, chime: 0, looks: 0, flights: 0, bads: [], foods: {}, spots: [], stampsNew: [] };
-  G.player.who = G.char; G.follow.who = G.char === 'ren' ? 'jill' : 'ren'; G.player.view = G.follow.view = 'back'; G.player.tilt = G.follow.tilt = 0;
+  G.player.who = G.char; G.player.big = G.char === 'pom' ? 1.3 : 1; G.player.say = ''; G.follow.who = G.char === 'ren' ? 'jill' : 'ren'; G.player.view = G.follow.view = 'back'; G.player.tilt = G.follow.tilt = 0;
   G.player.show = G.follow.show = true; G.player.look = 0;
-  Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '' });
-  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0;
+  Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '', off: G.char === 'pom' });
+  // playing as Pom: the rookie sets off first; the boss and Jill catch up one by one (in a random order), bringing their perks
+  G.mates = { ren: 0, jill: 0 }; G.mateOrder = Math.random() < .5 ? ['ren', 'jill'] : ['jill', 'ren']; G.mateAt = [rand(20, 28), rand(52, 64)];
+  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
   resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
@@ -142,11 +145,13 @@ function die(cause) {
   if (cause === 'papers') G.chaseVis = 1;
 }
 // retry as many times as your charms or hay allow (the price rises a little each time)
-function canRevive() { const c = reviveCost(); return SV.clovers >= c.clover || SV.bank + Math.floor(G.hay) >= c.hay; }
+function freeRevive() { return SV.runs <= 3 && G.reviveN === 0 && G.cause !== 'quit'; } // the first fail of your first three runs: one free retry
+function canRevive() { if (freeRevive()) return true; const c = reviveCost(); return SV.clovers >= c.clover || SV.bank + Math.floor(G.hay) >= c.hay; }
 function reviveCost() { return { clover: G.reviveN + 1, hay: 400 * (G.reviveN + 1) }; }
 function doRevive(kind) {
   const c = reviveCost();
-  if (kind === 'clover') { if (SV.clovers < c.clover) return; SV.clovers -= c.clover; }
+  if (kind === 'free') { if (!freeRevive()) return; }
+  else if (kind === 'clover') { if (SV.clovers < c.clover) return; SV.clovers -= c.clover; }
   else { const have = SV.bank + Math.floor(G.hay); if (have < c.hay) return; let need = c.hay; const fromRun = Math.min(Math.floor(G.hay), need); G.hay -= fromRun; need -= fromRun; SV.bank -= need; }
   save(); G.reviveN++;
   const seg = curSeg();
@@ -240,10 +245,11 @@ function startFly() {
   for (let q = a; q < b; q += 1.6) { if (Math.random() < .12) lane = clamp(lane + (Math.random() < .5 ? -1 : 1), 0, 2); addItem(seg, Math.random() < .03 ? 'goldhay' : 'hay', q, lane, G.flyY + .45); }
 }
 /* ---- Pom, the sporty new hire (a golden hamster) ---- */
-function pomSay(line, mood, dur) { const M = G.pom; if (!M.on) return; M.look = dur || 1.3; M.mood = mood || 'happy'; M.say = line; }
+function pomOn() { return G.pom.on && G.pom.who === 'pom'; } // the rookie runs with you (not the bunny that catches up when you play as Pom)
+function pomSay(line, mood, dur) { const M = G.pom; if (!pomOn()) return; M.look = dur || 1.3; M.mood = mood || 'happy'; M.say = line; }
 function pomPouch(n) { // Pom stuffs the hay you pass into its cheek pouches; when they are full it shares a bonus
-  const M = G.pom; M.pouch = (M.pouch || 0) + n; if (M.pouch < 80) return; M.pouch = 0; G.stats.pomPuff = (G.stats.pomPuff || 0) + 1;
-  const b = 600 * SV.mlevel; G.score += b; pomSay(t('pomPuff'), 'puff', 1.5); floatText(W / 2, H * .36, (LANG === 'ja' ? 'ほお袋ボーナス +' : 'POUCH BONUS +') + fmt(b), '#F2C230'); SFX.treat();
+  const M = G.pom, me = G.char === 'pom'; M.pouch = (M.pouch || 0) + n; if (M.pouch < (me ? 60 : 80)) return; M.pouch = 0; G.stats.pomPuff = (G.stats.pomPuff || 0) + 1;
+  const b = 600 * SV.mlevel; G.score += b; if (me) { const P = G.player; P.look = 1.2; P.mood = 'puff'; P.say = t('pomPuff'); G.lookCD = Math.max(G.lookCD, 2); } else pomSay(t('pomPuff'), 'puff', 1.5); floatText(W / 2, H * .36, (LANG === 'ja' ? 'ほお袋ボーナス +' : 'POUCH BONUS +') + fmt(b), '#F2C230'); SFX.treat();
   const seg = curSeg(), a = G.s + 8, e = Math.min(seg.len - 14, a + 16); let lane = G.lane; for (let q = a; q < e; q += 1.6) addItem(seg, Math.random() < .12 ? 'goldhay' : 'hay', q, lane, .45);
 }
 function pomJoin() {
@@ -255,12 +261,25 @@ function pomJoin() {
   const id = G.runId; setTimeout(() => { if (G.runId === id) pomSay(t(first ? 'pomHi' : 'pomHi2'), 'sparkle', 1.8); }, 500);
 }
 // bad food: the runner turns round looking unwell, and the partner looks back, worried
+function hasPerk(w) { return G.char === w || (G.char === 'pom' && G.mates && G.mates[w]); }
+function mateCheck() { // Pom mode: the next bunny dashes up from behind and joins the run
+  if (G.char !== 'pom' || G.mode !== 'play') return; const n = (G.mates.ren ? 1 : 0) + (G.mates.jill ? 1 : 0); if (n >= 2 || G.t < G.mateAt[n] || G.pow.fly > 0 || G.turnT > 0) return;
+  const w = G.mateOrder[n]; G.mates[w] = 1; G.stats.mates = n + 1;
+  const B = n === 0 ? G.follow : G.pom;
+  if (n === 0) { Object.assign(B, { who: w, off: false, back: 7, lat: G.lat + 1.25, y: 0, vy: 0, air: false, look: 0, say: '' }); }
+  else { Object.assign(B, { who: w, on: 1, show: true, back: 7, lat: G.lat - G.follow.side * 1.2, y: 0, vy: 0, air: false, look: 0, say: '', big: 1 }); }
+  SFX.mission(); burst(W / 2, H * .55, '#F2C230', 22); buzz(30);
+  bannerNow(t(w === 'ren' ? 'mateRenH' : 'mateJillH'), t(w === 'ren' ? 'mateRen' : 'mateJill') + (n ? t('mateAll') : ''), 'good');
+  const id = G.runId; setTimeout(() => { if (G.runId !== id || G.mode !== 'play') return; B.look = 1.5; B.mood = 'happy'; B.say = t(w === 'ren' ? 'mateRenSay' : 'mateJillSay');
+    setTimeout(() => { if (G.runId !== id || G.mode !== 'play') return; const P = G.player; P.look = 1.3; P.mood = 'sparkle'; P.say = t(n ? 'matePomAll' : 'matePomSay'); }, 1500); }, 700);
+}
 function feelSick() {
   if (G.mode !== 'play') return;
   const P = G.player, F = G.follow; P.look = 1.5; P.mood = 'sick'; G.lookCD = 3; G.stats.looks++;
   if (F.show) { F.look = 1.6; F.mood = 'worry'; G.worryT = 1.6;
-    F.say = P.who === 'jill' ? t('worryRen') : t('worryJill'); }
-  if (G.pom.on && G.pom.show) pomSay(t('pomWorry'), 'worry', 1.7);
+    F.say = P.who === 'jill' ? t('worryRen') : P.who === 'pom' ? t('worryPom') : t('worryJill'); }
+  if (pomOn() && G.pom.show) pomSay(t('pomWorry'), 'worry', 1.7);
+  if (G.char === 'pom' && G.pom.on && G.pom.show && !pomOn()) { const M = G.pom; M.look = 1.6; M.mood = 'worry'; M.say = t('worryPom'); }
   tone(392, .16, 'triangle', .08); tone(330, .2, 'triangle', .07, AU.ctx && AU.ctx.currentTime + .14);
 }
 // the bunny turns around with a cute face
@@ -268,7 +287,7 @@ function react(mood, both) {
   if (G.mode !== 'play') return;
   if (G.lookCD > 0 && !both) return;
   { const seg = curSeg(), ahead = G.speed * 1.3; if (!both && seg.obs.some(o => !o.dead && o.k !== 'deco' && o.s0 + (o.ds || 0) > G.s - 1 && o.s0 + (o.ds || 0) < G.s + ahead)) return; }
-  G.lookCD = both ? 2.5 : 10; G.player.look = 1.05; G.player.mood = mood; G.stats.looks++;
+  G.lookCD = both ? 2.5 : 10; G.player.look = 1.05; G.player.mood = mood; G.player.say = ''; G.stats.looks++;
   if (both) { G.follow.look = 1.05; G.follow.mood = pick(['happy', 'sparkle', 'open']); }
   tone(1175, .08, 'sine', .08); tone(1568, .12, 'sine', .06, AU.ctx && AU.ctx.currentTime + .08);
 }
@@ -286,7 +305,8 @@ function setupTutorial(seg) {
     pre: { ja: R ? 'この先は右に曲がる。矢印が出たら右へスワイプ' : 'この先は左に曲がる。矢印が出たら左へスワイプ', en: R ? 'The path turns right ahead. Swipe right when the arrow appears' : 'The path turns left ahead. Swipe left when the arrow appears' } };
   G.tut = TUT.concat([turnStep]).map(x => Object.assign({ done: 0 }, x)); G.tutSeg = seg;
 }
-function tutFinish(cue) { if (G.tutEnd) return; G.tutEnd = 1; SV.tutDone = 1; save(); cue.className = ''; banner('GOOD!', LANG === 'ja' ? 'その調子！ チモシーを集めながら進もう' : 'Nice! Keep going and grab the hay', 'good'); }
+function tutFinish(cue) { if (G.tutEnd) return; G.tutEnd = 1; SV.tutDone = 1; save(); cue.className = ''; banner('GOOD!', LANG === 'ja' ? 'その調子！ チモシーを集めながら進もう' : 'Nice! Keep going and grab the hay', 'good');
+  if (SV.runs <= 1) { const id = G.runId; setTimeout(() => { if (G.runId !== id || G.mode !== 'play' || G.fever > 0) return; startFever(5); G.stats.fevers--; bannerNow(lab('FIRST-RUN BONUS!'), t('firstFever'), 'good'); burst(W / 2, H * .45, '#F2C230', 30); }, 2200); } } // a first taste of the fever, right after the lesson
 function tutorialScale(seg, dt) {
   if (!G.tut) return 1;
   const cur = G.tut.find(x => !x.done); const cue = $('#tutCue');
@@ -340,7 +360,7 @@ function update(dt) {
   G.speed = lerp(G.speed, target, 1 - Math.exp(-dt * 2.5));
   const step = G.speed * dt, prevS = G.s, prevY = G.y;
   G.s += step; G.dist += step; G.stats.cleanCur += step; G.stats.clean = Math.max(G.stats.clean, G.stats.cleanCur);
-  const mult = SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (G.pom.on ? 1.2 : 1);
+  const mult = SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
   G.score += step * mult * (3 + G.speed * .12); // distance is the backbone: about 4-6 points per metre, more when fast
   const tl = LANES[G.lane]; const dl = tl - G.lat; G.lat += Math.sign(dl) * Math.min(Math.abs(dl), dt * 15);
   if (G.laneT > 0) G.laneT -= dt;
@@ -419,7 +439,7 @@ function update(dt) {
   if (G.capture) { G.capture.t -= dt; }
   // timers
   for (const k in G.pow) if (G.pow[k] > 0) { G.pow[k] = Math.max(0, G.pow[k] - dt); if (k === 'fly' && G.pow.fly === 0) { G.invT = Math.max(G.invT, 1.2); G.vy = 0; } }
-  if (G.fever > 0) { G.fever = Math.max(0, G.fever - dt); if (G.fever === 0) banner('', t('feverEnd'), ''); }
+  if (G.fever > 0) { G.fever = Math.max(0, G.fever - dt); if (G.fever === 0) { banner('', t('feverEnd'), ''); G.invT = Math.max(G.invT, 1); } } // a moment's grace as the fever ends, so it never ends in a crash
   if (G.gainT > 0) G.gainT -= dt;
   if (G.invT > 0) G.invT -= dt;
   if (G.turnT > 0) G.turnT -= dt;
@@ -437,6 +457,7 @@ function update(dt) {
   P.air = G.air && !flying; P.slide = sliding; P.fly = flying; P.flash = G.invT > 0 && G.invT < 2.4 && !flying; P.glow = G.shield ? '#5FB05A' : G.pow.dash > 0 ? '#F08A2E' : null;
   if (P.look > 0) P.look = Math.max(0, P.look - dt);
   if (G.follow.look > 0) G.follow.look = Math.max(0, G.follow.look - dt);
+  mateCheck();
   buddy(dt, seg);
   placeCamera(dt);
   G.missionCheck -= dt; if (G.missionCheck <= 0) { G.missionCheck = .5; checkMissions(true); checkAch(true); dailyCheck(true); }
@@ -448,10 +469,10 @@ function placeCamera(dt) {
   const k = G.turnT > 0 ? 1 - Math.exp(-dt * 14) : 1;
   G.rx = lerp(G.rx, p[0], k); G.rz = lerp(G.rz, p[1], k);
   const eP = segE(seg, G.s); G.ey = G.ey == null || G.turnT <= 0 && Math.abs(G.ey - eP) > 3 ? eP : lerp(G.ey, eP, Math.min(1, dt * 18));
-  P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * .06);
+  P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * .06); P.vy = P.who === 'pom' ? G.vy : null;
   const fp = segPos(seg, G.s - F.back, F.lat); F.wx = fp[0]; F.wz = fp[1]; F.wy = fp[2] + (F.y || 0) + (F.air ? 0 : Math.abs(Math.sin(F.ph)) * .06);
   F.fly = P.fly; if (P.fly) { F.wy = G.ey + G.y - .3; }
-  F.show = G.s - F.back > (seg.first ? -14 : HW + .3);
+  F.show = !F.off && G.s - F.back > (seg.first ? -14 : HW + .3);
   { const M = G.pom; if (M.on) { const mp = segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * .05); if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
   const ty = seg.dir * Math.PI / 2; let dy = ty - G.camYaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
   G.camYaw += dy * Math.min(1, dt * 9);
@@ -481,8 +502,8 @@ function placeCamera(dt) {
 function buddy(dt, seg) {
   const F = G.follow;
   if (G.lane === 0) F.side = 1; else if (G.lane === 2) F.side = -1;
-  buddyMove(F, dt, seg, clamp(G.lat + F.side * 1.25, -ROAD + .45, ROAD - .45), .9);
-  const M = G.pom; if (M.on) { buddyMove(M, dt, seg, clamp(G.lat - F.side * 1.2, -ROAD + .35, ROAD - .35), .25); if (M.look > 0) M.look = Math.max(0, M.look - dt); if (M.look <= 0) M.say = ''; }
+  buddyMove(F, dt, seg, clamp(G.lat + F.side * 1.25, -ROAD + .45, ROAD - .45), G.char === 'pom' ? -.35 : .9); // with Pom running, the senpai leads half a step ahead (and stays out of the way of the camera)
+  const M = G.pom; if (M.on) { buddyMove(M, dt, seg, clamp(G.lat - F.side * 1.2, -ROAD + .35, ROAD - .35), M.who === 'pom' ? .25 : -.15); if (M.look > 0) M.look = Math.max(0, M.look - dt); if (M.look <= 0) M.say = ''; }
 }
 function buddyMove(F, dt, seg, tlat0, back0) {
   let tlat = tlat0, tback = back0, tuck = false;
@@ -506,7 +527,7 @@ function buddyMove(F, dt, seg, tlat0, back0) {
   F.ph += dt * (F.who === 'pom' ? 9 + G.speed * .7 : 6.4 + G.speed * .55);
 }
 function collect(it, seg) {
-  it.got = 1; const def = ITEMS[it.type]; const mult = SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (G.pom.on ? 1.2 : 1);
+  it.got = 1; const def = ITEMS[it.type]; const mult = SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
   const sp = spriteAt(G.player.wx, G.player.wy + .6, G.player.wz); const sx = sp ? sp.sx : W / 2, sy = sp ? sp.sy : H * .6;
   if (def.kind === 'stamp') {
     const tid = seg.tid, isNew = !SV.stamps[tid]; SV.stamps[tid] = (SV.stamps[tid] || 0) + 1; save();
@@ -525,10 +546,10 @@ function collect(it, seg) {
   }
   G.combo++; G.comboT = 1.3; G.stats.maxCombo = Math.max(G.stats.maxCombo || 0, G.combo);
   if (G.combo > 0 && G.combo % 30 === 0) react(pick(['happy', 'sparkle', 'wink']), 0);
-  if (G.pom.on && G.combo > 0 && G.combo % 50 === 0) pomSay(pick([t('pomNice'), t('pomNice2')]), 'happy', 1.2);
+  if (pomOn() && G.combo > 0 && G.combo % 50 === 0) pomSay(pick([t('pomNice'), t('pomNice2')]), 'happy', 1.2);
   G.stats.foods[it.type] = (G.stats.foods[it.type] || 0) + 1;
   G.score += (def.pts + (G.fever > 0 ? 0 : Math.min(G.combo, 20) * 1.5)) * (G.fever > 0 ? mult * .75 : mult);
-  if (def.kind === 'hay' && G.pom.on) pomPouch(def.gold ? 5 : 1);
+  if (def.kind === 'hay' && (pomOn() || G.char === 'pom')) pomPouch(def.gold ? 5 : 1);
   if (def.kind === 'hay') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; G.feverG += (def.gold ? 25 : .55) * feverK(); SFX.hay(G.combo % 13); burst(sx, sy, def.gold ? '#F2C230' : '#9BB85A', def.gold ? 16 : 3); if (def.gold) { floatText(sx, sy - 20, '+30', '#F2C230'); react('sparkle', 0); } }
   else if (def.kind === 'food') { G.feverG += 3 * feverK(); SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#F6EBDC'); }
   else if (def.kind === 'veg') { G.feverG += 5 * feverK(); G.stats.veg++; SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#B8D98A'); burst(sx, sy, '#5F9E5A', 6); }
@@ -549,6 +570,7 @@ function setCls(id, c, on) { const k = id + '.' + c; on = !!on; if (HUDC[k] !== 
 function setStyle(id, prop, v) { const k = id + '#' + prop; if (HUDC[k] !== v) { HUDC[k] = v; const e = el(id); if (e) e.style[prop] = v; } }
 function setText(id, v) { if (HUDC[id] !== v) { HUDC[id] = v; const e = document.getElementById(id); if (e) e.textContent = v; } }
 function hud() {
+  chalTick(); setText('hChal', CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
   setText('hScore', fmt(G.score)); setText('hHay', String(Math.floor(G.hay)));
   setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
   setText('hClock', clockStr(G.clock)); setText('hDay', LANG === 'ja' ? G.day + t('dayLbl') : t('dayLbl') + ' ' + G.day);
@@ -639,15 +661,16 @@ function takePhoto(tid) {
 
 /* ---------- end of run ---------- */
 const CAPS = {
-  obstacle: { ren: ['EYES FRONT, BOSS.', '課長、前です'], jill: ['NOBODY’S PERFECT.', 'ジルにも、たまには'] },
-  papers: { ren: ['BURIED IN PAPERS.', '書類に埋もれた'], jill: ['BURIED IN PAPERS.', '書類に埋もれた'] },
-  wall: { ren: ['THAT’S A WALL.', 'そっちは壁です'], jill: ['THAT’S A WALL.', 'そっちは壁です'] },
-  quit: { ren: ['LEFT EARLY.', '早退しました'], jill: ['LEFT EARLY.', '早退しました'] },
+  obstacle: { ren: ['EYES FRONT, BOSS.', '課長、前です'], jill: ['NOBODY’S PERFECT.', 'ジルにも、たまには'], pom: ['ROOKIE MISTAKE!', '新人、まだまだっす'] },
+  papers: { ren: ['BURIED IN PAPERS.', '書類に埋もれた'], jill: ['BURIED IN PAPERS.', '書類に埋もれた'], pom: ['BURIED IN PAPERS.', '書類に埋もれた'] },
+  wall: { ren: ['THAT’S A WALL.', 'そっちは壁です'], jill: ['THAT’S A WALL.', 'そっちは壁です'], pom: ['THAT’S A WALL.', 'そっちは壁です'] },
+  quit: { ren: ['LEFT EARLY.', '早退しました'], jill: ['LEFT EARLY.', '早退しました'], pom: ['LEFT EARLY.', '早退しました'] },
 };
 function endRun() {
+  chalSave();
   if (!SV.tutDone && (!G.tut || G.tut.every(x => x.done) || G.dist > 150)) { SV.tutDone = 1; } // the lesson is done once it was played through
   G.mode = 'result'; musicStop();
-  const bonus = G.char === 'ren' ? Math.floor(G.hay * .2) : 0, gained = Math.floor(G.hay) + bonus;
+  const bonus = hasPerk('ren') ? Math.floor(G.hay * .2) : 0, gained = Math.floor(G.hay) + bonus;
   SV.bank += gained;
   const st = G.stats; st.score = G.score; st.dist = G.dist;
   checkMissions(true);
@@ -669,13 +692,13 @@ function endRun() {
     $('#resHi').innerHTML = st.stampsNew.map(tid => `<span class="new">${esc(t('hiNew', L(THEMES[tid].stamp)))}</span>`).join('') + hi.map(x => `<span>${esc(x)}</span>`).join(''); }
   SV.last = { score: Math.floor(G.score), place: L(curSeg().th) }; save(); $('#resClock').textContent = (G.day > 1 ? (LANG === 'ja' ? G.day + '日目 ' : 'D' + G.day + ' ') : '') + clockStr(G.clock); $('#resHay').textContent = fmt(gained);
   const vsBest = prevBest > 0 ? (newBest ? t('bestUp', fmt(Math.floor(G.score) - prevBest)) : t('bestShort', fmt(prevBest - Math.floor(G.score)))) : '';
-  $('#resNote').textContent = (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '');
+  $('#resNote').textContent = (CHAL ? (G.chalWon ? t('chalDone', fmt(CHAL.s)) : t('chalLeft', fmt(Math.ceil(CHAL.s - G.score) + 1))) : '') + (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '');
   $('#resSpots').innerHTML = st.spots.length ? st.spots.map(tid => `<span class="spot${st.stampsNew.includes(tid) ? ' new' : ''}"><img src="${stampSprite(tid).toDataURL()}" alt="">${esc(L(THEMES[tid].stamp))}</span>`).join('') : '';
   $('#resMissions').innerHTML = missionHTML();
   const seen = st.bads.length ? st.bads[st.bads.length - 1] : pick(Object.keys(st.foods).length ? Object.keys(st.foods) : ['hay']);
   const d = ITEMS[seen]; $('#resTip').innerHTML = `<b>${d.kind === 'bad' ? (LANG === 'ja' ? lab('NG FOOD') : "DON'T FEED") : lab('BUNNY FOOD NOTE')}${LANG === 'ja' ? '｜' : ' · '}${esc(L(d))}</b>${esc(L(d.tip).split('\n')[0])}`;
   const place = L(curSeg().th);
-  G.lastShare = t('shareText', fmt(G.score), (G.day > 1 ? 'DAY ' + G.day + ' ' : '') + clockStr(G.clock), place);
+  G.lastShare = t(G.chalWon ? 'shareTextWon' : 'shareText', fmt(G.score), (G.day > 1 ? 'DAY ' + G.day + ' ' : '') + clockStr(G.clock), place, CHAL ? fmt(CHAL.s) : '');
   buildShareCard(cap, place, gained);
   const kb = $('#kujiBox'); kb.hidden = G.dist < 300; $('#kujiRes').innerHTML = ''; $('#btnKuji').disabled = false; $('#btnKuji').textContent = LANG === 'ja' ? 'おみくじを引く' : 'Draw a fortune slip';
   $('#resCareer').innerHTML = careerHTML();
@@ -687,10 +710,17 @@ function endRun() {
    Facebook and Instagram take no text from a web link, so on phones they go through the phone's share sheet
    (Facebook gets the link, Instagram gets the picture) with the caption already copied; elsewhere the picture is saved
    and a plain link to the site is shown. Every step falls back to something the player can tap. */
+// a friend's challenge link: ?beat=12345&c=jill (kept for two weeks, until you beat it)
+const CHAL = (() => { try { const q = new URLSearchParams(location.search), n = parseInt(q.get('beat'), 10);
+  if (n > 0 && n < 50000000) { const c = { s: n, c: ['ren', 'jill', 'pom'].includes(q.get('c')) ? q.get('c') : 'ren', at: Date.now() }; try { localStorage.setItem('rjChal', JSON.stringify(c)); history.replaceState(null, '', location.pathname + location.hash); } catch (e) { } return c; }
+  const o = JSON.parse(localStorage.getItem('rjChal') || 'null'); if (o && o.s > 0 && o.s < 50000000 && Date.now() - o.at < 14 * 864e5 && !o.won) return o; } catch (e) { } return null; })();
+function chalTick() { if (!CHAL || G.chalWon || G.mode !== 'play' || G.score <= CHAL.s) return; G.chalWon = 1; G.stats.chal = 1;
+  bannerNow(t('chalWin'), t('chalWinSub', fmt(CHAL.s)), 'good'); SFX.mission(); burst(W / 2, H * .4, '#F2C230', 36); burst(W / 2, H * .4, '#E86A75', 18); buzz([30, 30, 60]); }
+function chalSave() { if (CHAL && G.chalWon) { CHAL.won = 1; try { localStorage.setItem('rjChal', JSON.stringify(CHAL)); } catch (e) { } } }
 const SHARE = {
   phone: () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)),
   canSheet: () => typeof navigator.share === 'function',
-  text: () => G.lastShare || '', url: () => GAME_URL,
+  text: () => G.lastShare || '', url: () => G.score > 0 ? GAME_URL + (GAME_URL.includes('?') ? '&' : '?') + 'beat=' + Math.floor(G.score) + '&c=' + G.char : GAME_URL, // the link carries your score: whoever opens it gets a challenge to beat it
 };
 const encU = encodeURIComponent;
 function shareLinks() {

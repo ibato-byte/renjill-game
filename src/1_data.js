@@ -18,8 +18,8 @@ const defSave = () => ({ best: 0, bank: 0, closet: {}, wear: { ren: { tie: 'gold
   mlevel: 1, missions: null, totals: {}, zukan: {}, seenZukan: 0, daily: '', streak: 0, mute: false, runs: 0, bestClock: 480,
   lang: '', stamps: {}, album: {}, bestDay: 1, seenStamps: 0 });
 let SV = defSave();
-function svFrom(o) { const SVp = SV; SV = Object.assign(defSave(), o); try { const D = defSave(); SV.upg = Object.assign(D.upg, o.upg || {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (SV.char !== 'ren' && SV.char !== 'jill') SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}) }; SV.closet = o.closet || {}; } catch (e) { SV = SVp; throw e; } }
-try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { const o = JSON.parse(raw); SV = Object.assign(defSave(), o); const D = defSave(); SV.upg = Object.assign(D.upg, o.upg || {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (SV.char !== 'ren' && SV.char !== 'jill') SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}) }; SV.closet = o.closet || {}; } } catch (e) { }
+function svFrom(o) { const SVp = SV; SV = Object.assign(defSave(), o); try { const D = defSave(); SV.upg = Object.assign(D.upg, o.upg || {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (!(SV.char === 'ren' || SV.char === 'jill' || (SV.char === 'pom' && SV.pomMet))) SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}) }; SV.closet = o.closet || {}; } catch (e) { SV = SVp; throw e; } }
+try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { const o = JSON.parse(raw); SV = Object.assign(defSave(), o); const D = defSave(); SV.upg = Object.assign(D.upg, o.upg || {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (!(SV.char === 'ren' || SV.char === 'jill' || (SV.char === 'pom' && SV.pomMet))) SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}) }; SV.closet = o.closet || {}; } } catch (e) { }
 // one stable player id per save: it travels with a transfer code, so a future app (iOS/Android) can take the same account over
 if (!SV.pid) { try { SV.pid = (crypto.randomUUID ? crypto.randomUUID() : 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2)); } catch (e) { SV.pid = 'p' + Date.now().toString(36); } }
 /* ---- account transfer: the whole save (without photos) as a code, readable by any build of the game ----
@@ -57,7 +57,8 @@ function saveNow() { // if storage is full, give up the oldest photos one by one
   SAVE_DIRTY = 0;
   for (let k = 0; k < 100; k++) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); return; } catch (e) { const ks = Object.keys(SV.album || {}); if (!ks.length) return; delete SV.album[ks[0]]; } } }
 const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true }, SV.opt || {}));
-let LANG = SV.lang || ((navigator.language || 'ja').toLowerCase().startsWith('ja') ? 'ja' : 'en');
+const QLANG = (/[?&]lang=(ja|en)\b/.exec(location.search) || [])[1]; // ?lang=en opens the English version (links from the English guide)
+let LANG = QLANG || SV.lang || ((navigator.language || 'ja').toLowerCase().startsWith('ja') ? 'ja' : 'en');
 const L = o => o == null ? '' : typeof o === 'string' ? o : (o[LANG] ?? o.ja ?? o.en ?? '');
 
 /* ================= interface text ================= */
@@ -79,8 +80,13 @@ const STR = {
   pause: ['ひと休み', 'Taking a break'],
   story: ['<span class="stp"><b>朝</b>課長と出社</span><span class="stp"><b>道中</b>チモシー集め</span><span class="stp"><b>夜</b>東京を寄り道</span>',
     '<span class="stp"><b>AM</b>Off to work</span><span class="stp"><b>Run</b>Grab hay</span><span class="stp"><b>PM</b>See Tokyo</span>'],
-  renRole: ['課長・ホーランドロップ', 'Boss · Holland Lop'], jillRole: ['部下・ネザーランドドワーフ', 'Assistant · Netherland Dwarf'],
-  renPerk: ['牧草好き：チモシー +20%', 'Hay lover: +20% hay'], jillPerk: ['段取り上手：パワーアップの効果時間 +30%', 'Organized: power-ups last 30% longer'],
+  pomRole: ['新人・キンクマ・ハムスター', 'Rookie · Golden hamster'], pomPerk: ['ほお袋：60本でボーナス', 'Pouches: bonus every 60 hay'], pomUnlock: ['新人のポムで走れるようになりました！', 'You can now run as Pom, the rookie!'], worryPom: ['ポム、大丈夫か!?', 'Pom, you OK!?'],
+  mateRenH: ['レン課長、合流！', 'REN JOINS!'], mateRen: ['寝坊した課長が追いついた！ チモシー +20%', 'The sleepy boss caught up! +20% hay'],
+  mateJillH: ['ジル先輩、合流！', 'JILL JOINS!'], mateJill: ['段取り上手のジル先輩が追いついた！ パワーアップが30%長く', 'Jill caught up! Power-ups last 30% longer'],
+  mateAll: ['　3人そろって出社！', ' The whole team is here!'], mateRenSay: ['ポム、早すぎるぞ…！', 'Pom, slow down...!'], mateJillSay: ['ポムくん、お待たせ！', 'Sorry I’m late, Pom!'],
+  matePomSay: ['先輩！待ってたっす！', 'Senpai! I waited for you!'], matePomAll: ['全員そろったっす！', 'The whole team, let’s go!'],
+  renRole: ['課長・ホーランドロップ', 'Boss · Holland Lop'], jillRole: ['部下・ネザーランド・ドワーフ', 'Assistant · Netherland Dwarf'],
+  renPerk: ['牧草好き：チモシー +20%', 'Hay lover: +20% hay'], jillPerk: ['段取り上手：パワーアップ 30%長く', 'Organized: power-ups +30%'],
   hintMove: ['左右スワイプでレーン移動・上でジャンプ・下でスライディング', 'Swipe left/right to change lanes, up to jump, down to slide'],
   hintTurn: ['矢印が出たら、その向きにスワイプして曲がる', 'When an arrow appears, swipe that way to turn'],
   hintFork: ['分かれ道！ 行きたい方へスワイプ', 'A fork! Swipe toward where you want to go'],
@@ -156,7 +162,12 @@ const STR = {
   howDown: ['下スワイプでスライディング。ちゃぶ台・テーブル・のれん・提灯の下をくぐる', 'Swipe down to slide under tables, curtains and lanterns'],
   howKeys: ['パソコンは矢印キー・WASD・スペースでも遊べる。P か ESC で一時停止', 'On a computer: arrow keys, WASD or Space. P or Esc to pause'],
   howNG: ['チョコ・玉ねぎ・ポテチはうさぎにダメ。よけよう', 'Chocolate, onions and chips are bad for bunnies. Dodge them'],
-  shareText: ['「レンとジルのチモシーダッシュ」で {0}点！ {1}まで走った（{2}） #レンとジル', 'I scored {0} in Ren & Jill: Hay Dash and made it to {1} ({2})! #RenAndJill'],
+  shareText: ['「レンとジルのチモシーダッシュ」で {0}点！ {1}まで走った（{2}）この記録、こえられる？ #レンとジル', 'I scored {0} in Ren & Jill: Hay Dash and made it to {1} ({2}). Can you beat it? #RenAndJill'],
+  shareTextWon: ['挑戦状の{3}点をこえて {0}点！（{2}）次はあなたの番！ #レンとジル', 'Beat the {3} challenge with {0} ({2})! Your turn! #RenAndJill'],
+  reviveFree: ['初回ボーナスで続ける', 'Continue for free'], reviveFreeNote: ['最初の3回のプレイは、1回だけ無料で続けられます', 'First-run bonus: in your first 3 runs, continue once for free'], firstFever: ['フィーバー中はぶつかっても平気！', 'You can’t crash in a fever!'],
+  chalCard: ['友だちからの挑戦状', 'A FRIEND’S CHALLENGE'], chalBody: ['{0}点をこえろ！', 'Beat {0}!'], chalHud: ['挑戦 {0}', 'BEAT {0}'],
+  chalWin: ['挑戦状クリア！', 'CHALLENGE BEATEN!'], chalWinSub: ['友だちの{0}点をこえた！', 'You beat your friend’s {0}!'],
+  chalLeft: ['挑戦状まであと{0}点！ ', '{0} more to beat the challenge! '], chalDone: ['挑戦状クリア！（{0}点をこえた） ', 'Challenge beaten (over {0})! '],
   daily: ['おはよう！ {0}日連続出社ボーナス：チモシー{1}本', 'GOOD MORNING! {0}-day streak bonus: {1} hay'],
   dayLbl: ['日目', 'DAY'],
   settings: ['設定', 'Settings'], ctrl: ['操作', 'Controls'], ctrlSwipe: ['スワイプ', 'Swipe'], ctrlTap: ['タップ', 'Tap'],
@@ -217,7 +228,7 @@ const POW = {
   fly:    { ico: 'plane', ja: '紙ひこうき', en: 'Paper plane', base: 5.0 },
 };
 const UPG_COST = [150, 400, 900, 1800, 3500];
-function powDur(k) { return (POW[k].base + (SV.upg[k] || 0) * 1.4) * (G.char === 'jill' ? 1.3 : 1); }
+function powDur(k) { return (POW[k].base + (SV.upg[k] || 0) * 1.4) * (hasPerk('jill') ? 1.3 : 1); }
 
 /* ================= missions ================= */
 const MT = [
@@ -294,7 +305,7 @@ const EVENT_INFO = (() => {
 })();
 const EVENT = EVENT_INFO.id || '';
 /* ---- in Japanese mode the English labels give way to Japanese ones ---- */
-const JA_LBL = { 'LUNCH?': 'お昼休み', 'WHICH WAY?': '分かれ道', 'JUMP': 'ジャンプ', 'SLIDE': 'スライディング', 'DODGE': 'よける', 'NEW TITLE!': '称号ゲット！', 'ALMOST!': 'もう少し！', 'DAILY CLEAR!': '今日のチャレンジ達成！', 'GOOD!': 'いいね！', 'KEEP GOING!': 'まだまだ！', 'LAST TRAIN': '終電', 'LUCKY!': 'ラッキー！',
+const JA_LBL = { 'LUNCH?': 'お昼休み', 'WHICH WAY?': '分かれ道', 'JUMP': 'ジャンプ', 'SLIDE': 'スライディング', 'DODGE': 'よける', 'NEW TITLE!': '称号ゲット！', 'ALMOST!': 'もう少し！', 'DAILY CLEAR!': '今日のチャレンジ達成！', 'GOOD!': 'いいね！', 'FIRST-RUN BONUS!': '初回ボーナス！', 'KEEP GOING!': 'まだまだ！', 'LAST TRAIN': '終電', 'LUCKY!': 'ラッキー！',
   'MISSION CLEAR': 'ミッション達成', 'PHOTO': '記念写真', 'SAVED!': 'セーフ！', 'STAMP!': 'スタンプ！', 'BUMP!': 'ぶつかった！', 'MUNCH MUNCH FEVER!': 'もぐもぐフィーバー！', "IT'S 6 PM! FEVER": '定時！ フィーバー',
   'NEW BEST!': '自己ベスト！', '8:00 AM': '朝 8:00', '9:00 ON TIME!': '9:00 出社！', '← LEFT': '← 左へ', 'RIGHT →': '右へ →', 'FEVER!': 'フィーバー！', 'NICE JUMP!': 'ナイスジャンプ！', 'NICE SLIDE!': 'ナイススライド！',
   'CLOSE!': 'ギリギリ！', '← SWIPE →': '← スワイプ →', '↑ JUMP': '↑ ジャンプ', '↓ SLIDE': '↓ スライディング', 'TURN →': '右へ曲がる →', '← TURN': '← 左へ曲がる', '450 m!': '地上450m！', '150 m DECK!': '地上150m！',

@@ -4,7 +4,7 @@
   <div id="hud" hidden>
     <div id="feverGlow"></div>
     <div class="hud-top">
-      <div class="score chip"><b id="hScore">0</b><small id="hMult">×1</small><small id="combo"></small></div>
+      <div class="score chip"><b id="hScore">0</b><small id="hMult">×1</small><small id="combo"></small><small id="hChal"></small></div>
       <div class="clock chip"><span class="day" id="hDay">DAY 1</span><b id="hClock">8:00</b><span class="room" id="hRoom"></span></div>
       <div class="hay chip"><img id="hHayIco" alt=""><b id="hHay">0</b></div>
     </div>
@@ -32,6 +32,7 @@
       <div class="chars" role="group">
         <button class="char" id="pickRen" aria-pressed="true"><canvas width="220" height="200" id="cvRen"></canvas><span class="nm" id="nmRen">REN</span><span class="role" id="tRenRole"></span><span class="perk" id="tRenPerk"></span></button>
         <button class="char" id="pickJill" aria-pressed="false"><canvas width="220" height="200" id="cvJill"></canvas><span class="nm" id="nmJill">JILL</span><span class="role" id="tJillRole"></span><span class="perk" id="tJillPerk"></span></button>
+        <button class="char" id="pickPom" aria-pressed="false"><canvas width="220" height="200" id="cvPom"></canvas><span class="nm" id="nmPom">POM</span><span class="role" id="tPomRole"></span><span class="perk" id="tPomPerk"></span></button>
       </div>
       <button class="big" id="btnStart">START</button>
       <p class="daily" id="tDaily"></p>
@@ -47,7 +48,7 @@
       <div class="bank"><span><span id="tBestL"></span> <b id="tBest">0</b></span><span><img id="tHayIco" alt=""> <b id="tBank">0</b></span>
         <span class="tog"><button class="sub small" id="btnLang">English</button><button class="sub small" id="btnMute">音：ON</button><button class="sub small" id="btnSet" aria-label="Settings">⚙</button></span></div>
     </div>
-    <p class="small-print">Ren &amp; Jill · COANA TOKYO</p>
+    <p class="small-print"><a id="tGuide" href="https://renjill-hay-dash.pages.dev/guide" target="_blank" rel="noopener">遊び方・キャラクター紹介</a> · Ren &amp; Jill · COANA TOKYO</p>
   </section>
 
   <section id="sChat" class="screen center" hidden aria-modal="true" role="dialog" aria-labelledby="chatTitle">

@@ -4,24 +4,28 @@ function hideAll() { SCREENS.forEach(id => { $('#' + id).hidden = true; }); }
 function show(id) { $('#' + id).hidden = false; }
 function goTitle() { hideAll(); setupTitle(); show('sTitle'); refreshTitle(); }
 function applyLang() {
+  { const a = $('#tGuide'); if (a) { a.textContent = LANG === 'ja' ? '遊び方・キャラクター紹介' : 'How to play & characters'; a.href = window.HAYDASH_APP ? (LANG === 'ja' ? './guide.html' : './guide-en.html') : 'https://renjill-hay-dash.pages.dev/' + (LANG === 'ja' ? 'guide' : 'guide-en'); if (window.HAYDASH_APP) a.removeAttribute('target'); } }
   document.documentElement.lang = LANG; $('#cv').setAttribute('aria-label', LANG === 'ja' ? 'レンとジルのチモシーダッシュ' : 'Ren & Jill: Hay Dash');
   $('#tStory').innerHTML = t('story'); $('#tStory').hidden = false; const lr = $('#tLast'); if (SV.runs > 0 && SV.last) { lr.hidden = false; lr.textContent = t('lastRun', fmt(SV.last.score), SV.last.place) + (SV.best ? (LANG === 'ja' ? '　' : ' · ') + t('lastBest', fmt(SV.best)) : ''); } else lr.hidden = true; $('#tSub').textContent = LANG === 'ja' ? 'レンとジル　チモシーダッシュ' : 'Two office bunnies, one mad dash across Tokyo';
-  $('#tRenRole').textContent = t('renRole'); $('#tRenPerk').textContent = t('renPerk'); $('#tJillRole').textContent = t('jillRole'); $('#tJillPerk').textContent = t('jillPerk');
+  cardTxt('#tRenRole', t('renRole')); cardTxt('#tRenPerk', t('renPerk')); cardTxt('#tJillRole', t('jillRole')); cardTxt('#tJillPerk', t('jillPerk')); { const met = !!SV.pomMet; cardTxt('#tPomRole', t('pomRole')); cardTxt('#tPomPerk', t('pomPerk')); $('#pickPom').hidden = !met; $('#pickPom').parentNode.classList.toggle('three', met); } // the rookie stays a secret until you have met him on the road
   $('#tMis').textContent = t('missions'); $('#tSta').textContent = t('stamps'); $('#tBook').textContent = t('book'); $('#tShop').textContent = t('shop'); $('#tHow').textContent = t('how');
   $('#tBestL').textContent = t('best'); $('#btnRank').textContent = LANG === 'ja' ? 'ランキング' : 'Ranking'; $('#btnRank2').textContent = LANG === 'ja' ? 'ランキングをもっと見る' : 'See the full ranking'; $('#btnLang').textContent = t('lang'); $('#tPause').textContent = t('pause'); $('#btnQuit').textContent = t('quit');
-  $('#btnRvNo').textContent = t('seeResult'); $('#btnMenu').textContent = t('menu'); { const m = $('#tResMore'); if (m) m.textContent = t('resMore'); } $('#tCopy').textContent = t('copy'); { const sb = $('#tShareBar'); if (sb) sb.textContent = LANG === 'ja' ? '結果をシェアしよう' : 'Share your run';} $('#tShare').textContent = t('share'); $('#tShareImg').textContent = t('shareImg');
+  $('#btnRvNo').textContent = t('seeResult'); $('#btnMenu').textContent = t('menu'); { const m = $('#tResMore'); if (m) m.textContent = t('resMore'); } $('#tCopy').textContent = t('copy'); { const sb = $('#tShareBar'); if (sb) sb.textContent = LANG === 'ja' ? '友だちに挑戦状を送ろう' : 'Challenge a friend';} $('#tShare').textContent = t('share'); $('#tShareImg').textContent = t('shareImg');
   $('#tKick').textContent = LANG === 'ja' ? 'レンとジルの' : 'REN & JILL'; $('#tLogo').innerHTML = LANG === 'ja' ? 'チモシー<br><em>ダッシュ！</em>' : 'HAY<br><em>DASH!</em>'; $('#tSub').textContent = t('tagline'); document.title = t('gameTitle');
-  $('#nmRen').textContent = LANG === 'ja' ? 'レン' : 'REN'; $('#nmJill').textContent = LANG === 'ja' ? 'ジル' : 'JILL'; $('#btnStart').textContent = t('start'); $('#btnAgain').textContent = t('again'); $('#btnResume').textContent = t('resume'); $('#tPauseH').textContent = lab('PAUSE');
+  $('#nmRen').textContent = LANG === 'ja' ? 'レン' : 'REN'; $('#nmJill').textContent = LANG === 'ja' ? 'ジル' : 'JILL'; $('#nmPom').textContent = LANG === 'ja' ? 'ポム' : 'POM'; $('#btnStart').textContent = t('start'); $('#btnAgain').textContent = t('again'); $('#btnResume').textContent = t('resume'); $('#tPauseH').textContent = lab('PAUSE');
   $('#lbScore').textContent = LANG === 'ja' ? 'スコア' : 'SCORE'; $('#lbTime').textContent = LANG === 'ja' ? '時刻' : 'TIME'; $('#lbHay').textContent = LANG === 'ja' ? 'チモシー' : 'HAY'; $('#resBest').textContent = lab('NEW BEST!');
   $('#btnChat').textContent = $('#btnChat2').textContent = LANG === 'ja' ? 'ジルに聞く' : 'Ask Jill';
   ['btnMute', 'btnMute2'].forEach(id => $('#' + id).textContent = SV.mute ? t('soundOff') : t('soundOn'));
 }
+// the character cards are narrow: put each part ("課長" / "ホーランドロップ") on its own line, never split a word
+function cardTxt(sel, txt) { const el = $(sel); el.textContent = ''; String(txt).split(/\s*[・：:·]\s*/).forEach((p, i) => { if (i) el.appendChild(document.createElement('br')); const s = document.createElement('span'); s.textContent = p; el.appendChild(s); }); }
 function refreshTitle() {
   refreshNameBtn();
   applyLang();
-  $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); $('#tCareer').innerHTML = careerHTML(); feedCard();
+  $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
   { const dly = dailyToday(), done = SV.dailyDone === dly.key; $('#tDaily').textContent = (LANG === 'ja' ? '今日のチャレンジ：' : 'Today: ') + L(dly.c.t(dly.n)) + (done ? ' ✓' : (LANG === 'ja' ? '（チモシー300本＋お守り）' : ' (300 hay + charm)')); }
-  $('#pickRen').setAttribute('aria-pressed', G.char === 'ren'); $('#pickJill').setAttribute('aria-pressed', G.char === 'jill');
+  $('#pickRen').setAttribute('aria-pressed', G.char === 'ren'); $('#pickJill').setAttribute('aria-pressed', G.char === 'jill'); $('#pickPom').setAttribute('aria-pressed', G.char === 'pom');
+  if (SV.pomMet && !SV.pomTold) { SV.pomTold = 1; save(); setTimeout(() => { if (G.mode === 'title') toastTitle(t('pomUnlock')); }, 600); }
   $('#dotZukan').hidden = Object.keys(SV.zukan).length <= (SV.seenZukan || 0);
   $('#dotStamps').hidden = Object.keys(SV.stamps).length + Object.keys(SV.album).length <= (SV.seenStamps || 0);
   $('#dotMissions').hidden = !(SV.missions && SV.missions.slots.some(s => s.done));
@@ -125,9 +129,10 @@ function openRevive() {
   const c = reviveCost(), cap = (CAPS[G.cause] || CAPS.obstacle)[G.char];
   $('#rvEn').textContent = LANG === 'ja' ? cap[1] : cap[0]; $('#rvJa').textContent = '';
   const bc = $('#btnRvClover'), bh = $('#btnRvHay');
-  bc.textContent = t('reviveClover', c.clover); bc.disabled = SV.clovers < c.clover; bc.style.opacity = bc.disabled ? .45 : 1;
-  bh.textContent = t('reviveHay', c.hay); bh.disabled = SV.bank + Math.floor(G.hay) < c.hay; bh.style.opacity = bh.disabled ? .45 : 1;
-  $('#rvHave').textContent = t('reviveHave', SV.clovers, fmt(SV.bank + Math.floor(G.hay)));
+  const free = freeRevive(); bc.dataset.free = free ? '1' : '';
+  bc.textContent = free ? t('reviveFree') : t('reviveClover', c.clover); bc.disabled = !free && SV.clovers < c.clover; bc.style.opacity = bc.disabled ? .45 : 1;
+  bh.textContent = t('reviveHay', c.hay); bh.disabled = SV.bank + Math.floor(G.hay) < c.hay; bh.style.opacity = bh.disabled ? .45 : 1; bh.hidden = free;
+  $('#rvHave').textContent = free ? t('reviveFreeNote') : t('reviveHave', SV.clovers, fmt(SV.bank + Math.floor(G.hay)));
   if (bc.disabled && bh.disabled) { endRun(); return; }
   hideAll(); show('sRevive');
   const ring = $('#rvRing'), num = $('#rvNum'), t0 = performance.now();
@@ -178,6 +183,7 @@ $('#resNameOk').onclick = () => { $('#resNameToggle').hidden = true; const v = c
 $('#resNameIn').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('#resNameOk').click(); } };
 $('#pickRen').onclick = () => { G.char = 'ren'; SV.char = 'ren'; save(); refreshTitle(); audioInit(); SFX.ui(); };
 $('#pickJill').onclick = () => { G.char = 'jill'; SV.char = 'jill'; save(); refreshTitle(); audioInit(); SFX.ui(); };
+$('#pickPom').onclick = () => { audioInit(); if (!SV.pomMet) return; G.char = 'pom'; SV.char = 'pom'; save(); refreshTitle(); SFX.ui(); };
 $('#btnMissions').onclick = openMissions; $('#btnShop').onclick = openShop; $('#btnZukan').onclick = openZukan; $('#btnHow').onclick = openHow; $('#btnStamps').onclick = openStamps;
 $('#btnSet').onclick = openSettings;
 $('#btnRank').onclick = () => openRanking('month'); $('#btnRank2').onclick = () => { hideAll(); show('sTitle'); setupTitle(); refreshTitle(); openRanking('month'); };
@@ -212,7 +218,7 @@ const toggleMute = () => { audioInit(); setMute(!SV.mute); applyLang(); };
 $('#btnMute').onclick = toggleMute; $('#btnMute2').onclick = toggleMute;
 $('#pauseBtn').onclick = pause; $('#btnResume').onclick = resume;
 $('#btnQuit').onclick = () => { G.mode = 'dead'; G.cause = 'quit'; endRun(); };
-$('#btnRvClover').onclick = () => { clearInterval(rvTimer); doRevive('clover'); };
+$('#btnRvClover').onclick = () => { clearInterval(rvTimer); doRevive($('#btnRvClover').dataset.free ? 'free' : 'clover'); };
 $('#btnRvHay').onclick = () => { clearInterval(rvTimer); doRevive('hay'); };
 $('#btnRvNo').onclick = () => { clearInterval(rvTimer); hideAll(); endRun(); };
 $('#btnAgain').onclick = () => { hideAll(); startRun(); };
@@ -243,7 +249,7 @@ function frameBody(now) {
   render();
   if (G.mode === 'play') texWarm(Math.max(0, Math.min(3, TEXB - performance.now())));
   if (G.capture && G.capture.t <= 0) { takePhoto(G.capture.tid); G.capture = null; }
-  if (G.mode === 'title') { drawCharCard($('#cvRen'), 'ren', G.t); drawCharCard($('#cvJill'), 'jill', G.t + 1.3); }
+  if (G.mode === 'title') { drawCharCard($('#cvRen'), 'ren', G.t); drawCharCard($('#cvJill'), 'jill', G.t + 1.3); if (SV.pomMet) drawCharCard($('#cvPom'), 'pom', G.t + .6); }
   if (SAVE_DIRTY && G.mode !== 'play' && G.mode !== 'countdown') saveNow();
   musicTick();
 }
@@ -267,6 +273,11 @@ function boot() {
 const FEED_URL = (window.HAYDASH_APP ? './' : 'https://renjill-hay-dash.pages.dev/') + 'feed.json';
 let FEED = null; try { FEED = JSON.parse(localStorage.getItem('rjFeed') || 'null'); } catch (e) { }
 function loadFeed() { try { fetch(FEED_URL + '?t=' + Math.floor(Date.now() / 36e5), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (!j || typeof j !== 'object') return; FEED = j; try { localStorage.setItem('rjFeed', JSON.stringify(j)); } catch (e) { } feedCard(); }).catch(() => { }); } catch (e) { } }
+function chalCard() { // a friend sent you their score: show it right above the START button
+  let el = $('#tChal'); const on = CHAL && !CHAL.won; if (!on) { if (el) el.hidden = true; return; }
+  if (!el) { el = document.createElement('div'); el.id = 'tChal'; el.className = 'chalcard'; el.setAttribute('role', 'note'); const b = $('#btnStart'); b.parentNode.insertBefore(el, b); }
+  el.hidden = false; const ic = RANK_ICON[CHAL.c] || ''; el.innerHTML = `${ic ? `<img src="${ic}" alt="">` : ''}<span><small>${esc(t('chalCard'))}</small><b>${esc(t('chalBody', fmt(CHAL.s)))}</b></span>`;
+}
 function feedCard() {
   let el = $('#tFeed'); const e = FEED && FEED.latest; if (!e || !e.url || !/^https:\/\//.test(e.url)) { if (el) el.hidden = true; return; }
   if (!el) { el = document.createElement('a'); el.id = 'tFeed'; el.target = '_blank'; el.rel = 'noopener'; el.className = 'feedcard'; const c = $('#tCareer'); if (!c) return; c.parentNode.insertBefore(el, c.nextSibling); }

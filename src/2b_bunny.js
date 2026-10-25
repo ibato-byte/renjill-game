@@ -423,7 +423,7 @@ function drawCharCard(cv, who, t) {
   const g = cv.getContext('2d'); g.clearRect(0, 0, cv.width, cv.height);
   const mood = (t % 3.4) < .14 ? 'blink' : ((t % 9) > 7.4 ? 'happy' : 'open');
   const img = bunFrame(who, 'front_' + mood, SV.mugOn);
-  const s = cv.width / BS * 1.05, bob = Math.sin(t * 2.2) * 2;
+  const s = cv.width / BS * 1.05 * (who === 'pom' ? 1.25 : 1), bob = Math.sin(t * 2.2) * 2;
   g.save(); g.translate(cv.width / 2, cv.height * .98 + bob * 0); g.scale(s, s * (1 + Math.sin(t * 2.2) * .012));
   g.fillStyle = 'rgba(59,42,32,.14)'; g.beginPath(); g.ellipse(0, -14, 100, 14, 0, 0, Math.PI * 2); g.fill();
   g.drawImage(img, -BS / 2, -GROUND_Y - 4 - BTOP); g.restore();

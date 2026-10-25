@@ -315,6 +315,7 @@ function landmark(seg, lm, yb) {
   else if (lm.t === 'kokugikan') drawKokugikan(x, yb, FOCAL * .12 * s, N);
   else if (lm.t === 'cyl') drawCyl(x, yb, FOCAL * .3 * s, N);
   else if (lm.t === 'gallery') drawGallery(x, yb, FOCAL * .16 * s, N);
+  else if (lm.t === 'airport') drawAirport(x, yb, FOCAL * .3 * s, N);
 }
 function drawTokyoTower(x, yb, h, N) {
   ctx.save(); if (N > .4) { ctx.shadowColor = '#FF9A4D'; ctx.shadowBlur = 18; }

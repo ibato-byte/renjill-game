@@ -52,14 +52,14 @@ function rankList(el, rows, field, nameOf) {
   rows.forEach((r, i) => {
     const li = document.createElement('div'); li.className = 'rk' + (r.id === RANK.uid ? ' me' : '') + (i < 3 ? ' top' + (i + 1) : '');
     const n = document.createElement('b'); n.textContent = i + 1;
-    const im = document.createElement('img'); im.alt = ''; im.src = (r[field + 'c'] || r.allc) === 'jill' ? RANK_ICON.jill : RANK_ICON.ren;
+    const im = document.createElement('img'); im.alt = ''; im.src = (r[field + 'c'] || r.allc) === 'jill' ? RANK_ICON.jill : (r[field + 'c'] || r.allc) === 'pom' ? RANK_ICON.pom : RANK_ICON.ren;
     const nm = document.createElement('span'); nm.textContent = nameOf(r.id) + (r.id === RANK.uid ? (LANG === 'ja' ? '（あなた）' : ' (you)') : '');
     const sc = document.createElement('em'); sc.textContent = fmt(r[field]);
     li.append(n, im, nm, sc); el.appendChild(li);
   });
 }
 const RANK_ICON = {};
-function rankIcons() { for (const w of ['ren', 'jill']) { const c = mk(64), g = c.getContext('2d'); g.drawImage(bunFrame(w, 'front_open'), 40, 10 + BTOP, 220, 220, 0, 0, 64, 64); try { RANK_ICON[w] = c.toDataURL(); } catch (e) { RANK_ICON[w] = ''; } } }
+function rankIcons() { for (const w of ['ren', 'jill', 'pom']) { const c = mk(64), g = c.getContext('2d'); if (w === 'pom') g.drawImage(bunFrame(w, 'front_open'), 70, 70 + BTOP, 160, 160, 0, 0, 64, 64); else g.drawImage(bunFrame(w, 'front_open'), 40, 10 + BTOP, 220, 220, 0, 0, 64, 64); try { RANK_ICON[w] = c.toDataURL(); } catch (e) { RANK_ICON[w] = ''; } } }
 // after a run: submit, then show this month's position and the top five
 async function rankAfterRun(score) {
   const box = $('#resRank'); if (!box) return;

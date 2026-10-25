@@ -630,7 +630,7 @@ function populate(seg) {
       const open = (Math.random() * 3) | 0, open2 = diff < .4 && Math.random() < .5 ? (open + 1) % 3 : -1;
       for (let l = 0; l < 3; l++) { const closed = l !== open && l !== open2; makeObs(seg, gates[0][0], s, l, closed); row.lanes[l] = closed ? 'block' : null; }
     } else if (lane3.length) {
-      let cnt = diff < .2 ? 1 : Math.random() < .55 ? 1 : 2; if (diff > .5 && Math.random() < .25) cnt = 3;
+      let cnt = diff < .2 || (SV.runs <= 2 && G.t < 40) ? 1 : Math.random() < .55 ? 1 : 2; if (diff > .5 && Math.random() < .25) cnt = 3;
       const ls = [0, 1, 2].sort(() => Math.random() - .5).slice(0, cnt);
       let blocks = 0;
       for (const l of ls) {
@@ -640,7 +640,7 @@ function populate(seg) {
       }
     }
     rows.push(row); n++;
-    const gapT = lerp(1.3, .78, clamp(diff, 0, 1)) * rand(.95, 1.3);
+    const gapT = lerp(1.3, .78, clamp(diff, 0, 1)) * rand(.95, 1.3) * (SV.runs <= 2 && G.t < 40 ? 1.45 : 1); // new players get a little more room for their first runs
     s += Math.max(9, gapT * spd);
   }
   seg.rows = rows;
@@ -671,16 +671,16 @@ function populate(seg) {
   // specials between rows
   for (let i = 0; i < rows.length - 1; i++) {
     const a = rows[i].s + 3, b = rows[i + 1].s - 3; if (b - a < 3) continue;
-    const at = rand(a, b), r = Math.random(), pBoost = G.char === 'jill' ? 1.3 : 1;
+    const at = rand(a, b), r = Math.random(), pBoost = hasPerk('jill') ? 1.3 : 1;
     const freeLane = () => { const ls = [0, 1, 2].filter(l => !seg.items.some(it => it.lane === l && Math.abs(it.s - at) < 2)); return ls.length ? pick(ls) : -1; };
     if (r < .07 * pBoost) { const l = freeLane(); if (l >= 0) addItem(seg, wpick(POWERS), at, l, .55); }
     else if (r < .17) { const l = freeLane(); if (l >= 0) addItem(seg, pick(TREATS), at, l, .5); }
     else if (r < .25 + diff * .05) { const l = freeLane(); if (l >= 0) addItem(seg, pick(BADS), at, l, .5); }
   }
   // before you have ever met Pom: one quick glimpse of a hamster dashing across the road ahead
-  if (!G.pomPeek && !G.pom.on && (G.planDay >= 2 || G.t > 52) && th.kind !== 'room' && th.kind !== 'train' && th.kind !== 'glass' && L > 80) G.pomPeek = { seg, s: L * .6, dir: Math.random() < .5 ? 1 : -1, b: { who: 'pom', view: 'back', ph: 0, look: 0, show: false, depth: 0 } };
+  if (!G.pomPeek && !G.pom.on && G.char !== 'pom' && (G.planDay >= 2 || G.t > 52) && th.kind !== 'room' && th.kind !== 'train' && th.kind !== 'glass' && L > 80) G.pomPeek = { seg, s: L * .6, dir: Math.random() < .5 ? 1 : -1, b: { who: 'pom', view: 'back', ph: 0, look: 0, show: false, depth: 0 } };
   // Pom's sunflower seeds: once the run is well under way (day 2, or a long day 1), until Pom has joined
-  if (!G.pom.on && !(G.pomSeedAt > 0 && G.dist - G.pomSeedAt < 600) && (G.planDay >= 2 || G.t > 78) && ((G.pomPeek && G.pomPeek.ph) || G.t > 110) && rows.length >= 1 && L > 50 && Math.random() < .7) {
+  if (!G.pom.on && G.char !== 'pom' && !(G.pomSeedAt > 0 && G.dist - G.pomSeedAt < 600) && (G.planDay >= 2 || G.t > 78) && ((G.pomPeek && G.pomPeek.ph) || G.t > 110) && rows.length >= 1 && L > 50 && Math.random() < .7) {
     // just past a row of obstacles, in a lane that the next row leaves open
     const i = Math.max(0, ((rows.length - 1) / 2) | 0), at = rows[i].s + 4.5, nx = rows[i + 1], free = [0, 1, 2].filter(l => !nx || nx.s - at > 7 || !nx.lanes[l]);
     if (free.length && at < L - 20) { seg.items = seg.items.filter(it => !(Math.abs(it.s - at) < 2.5)); addItem(seg, 'pomseed', at, pick(free), .6); G.pomSeedAt = G.dist; G.pomSeedN = (G.pomSeedN || 0) + 1; } }
