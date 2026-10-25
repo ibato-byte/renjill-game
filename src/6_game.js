@@ -68,7 +68,7 @@ function buildTitleRoom(seg) {
 function titleFrame(dt) {
   const seg = G.segs[0], me = G.char, other = me === 'ren' ? 'jill' : 'ren', third = me === 'pom' ? 'jill' : 'pom';
   const P = G.player, F = G.follow;
-  P.who = me; F.who = other; F.off = false; F.show = true; P.big = me === 'pom' ? 1.3 : 1; P.view = F.view = 'front'; P.look = F.look = 0;
+  P.who = me; F.who = other; F.off = false; F.show = true; P.big = me === 'pom' ? 1.3 : 1; // on the title, close to the camera: the smaller size P.view = F.view = 'front'; P.look = F.look = 0;
   P.ph += dt * 3; F.ph += dt * 2;
   // Ren is still half asleep (a yawn now and then); Jill is wide awake and keeps glancing at her watch
   const tt = G.t % 9, renMood = tt < 6 ? ((G.t % 3.1) < .14 ? 'blink' : 'open') : tt < 7.2 ? 'yawn' : 'sleepy';
@@ -95,7 +95,7 @@ function startRun() {
     fork: null, forkRest: null, rush: 0, chimed: 0, soonTold: 0, gaugeTold: 0, gainT: 0, feverMax: 6, hitStop: 0, jumpBuf: 0, tut: null, tutDid: '', fovK: 0, look: 0, lookCD: 4, photoT: 0, capture: null, rumbleT: 8, shake: 0, announce: [] });
   G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.chalWon = 0;
   G.stats = { hay: 0, dist: 0, jumps: 0, slides: 0, treats: 0, veg: 0, powers: 0, turns: 0, score: 0, fevers: 0, clean: 0, cleanCur: 0, office: 0, chime: 0, looks: 0, flights: 0, bads: [], foods: {}, spots: [], stampsNew: [] };
-  G.player.who = G.char; G.player.big = G.char === 'pom' ? 1.3 : 1; G.player.say = ''; G.follow.who = G.char === 'ren' ? 'jill' : 'ren'; G.player.view = G.follow.view = 'back'; G.player.tilt = G.follow.tilt = 0;
+  G.player.who = G.char; G.player.big = G.char === 'pom' ? POM_BIG : 1; G.player.say = ''; G.follow.who = G.char === 'ren' ? 'jill' : 'ren'; G.player.view = G.follow.view = 'back'; G.player.tilt = G.follow.tilt = 0;
   G.player.show = G.follow.show = true; G.player.look = 0;
   Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '', off: G.char === 'pom' });
   // playing as Pom: the rookie sets off first; the boss and Jill catch up one by one (in a random order), bringing their perks
@@ -245,6 +245,7 @@ function startFly() {
   for (let q = a; q < b; q += 1.6) { if (Math.random() < .12) lane = clamp(lane + (Math.random() < .5 ? -1 : 1), 0, 2); addItem(seg, Math.random() < .03 ? 'goldhay' : 'hay', q, lane, G.flyY + .45); }
 }
 /* ---- Pom, the sporty new hire (a golden hamster) ---- */
+const POM_BIG = 1.7; // Pom as the runner is drawn about Jill's size, so a table or a curtain reads as something to slide under
 function pomOn() { return G.pom.on && G.pom.who === 'pom'; } // the rookie runs with you (not the bunny that catches up when you play as Pom)
 function pomSay(line, mood, dur) { const M = G.pom; if (!pomOn()) return; M.look = dur || 1.3; M.mood = mood || 'happy'; M.say = line; }
 function pomPouch(n) { // Pom stuffs the hay you pass into its cheek pouches; when they are full it shares a bonus
@@ -261,7 +262,7 @@ function pomJoin() {
   const id = G.runId; setTimeout(() => { if (G.runId === id) pomSay(t(first ? 'pomHi' : 'pomHi2'), 'sparkle', 1.8); }, 500);
 }
 // bad food: the runner turns round looking unwell, and the partner looks back, worried
-function hasPerk(w) { return G.char === w || (G.char === 'pom' && G.mates && G.mates[w]); }
+function hasPerk(w) { return G.char === w; } // each runner has only their own perk (the bunnies who catch up Pom do not add theirs: all three are equally hard)
 function mateCheck() { // Pom mode: the next bunny dashes up from behind and joins the run
   if (G.char !== 'pom' || G.mode !== 'play') return; const n = (G.mates.ren ? 1 : 0) + (G.mates.jill ? 1 : 0); if (n >= 2 || G.t < G.mateAt[n] || G.pow.fly > 0 || G.turnT > 0) return;
   const w = G.mateOrder[n]; G.mates[w] = 1; G.stats.mates = n + 1;

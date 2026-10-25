@@ -102,7 +102,9 @@ function settingsHTML() {
     `<button class="sub" id="btnNameSet">${esc(SV.nick ? t('nameBtn', SV.nick) : t('nameNone'))}</button> <button class="sub" id="btnTut">${esc(t('resetTut'))}</button>` +
     `<div class="m xfer"><p><b>${esc(t('codeH'))}</b></p><p class="note">${esc(t('codeNote'))}</p><div class="btns" style="display:flex;gap:8px"><input id="codeIn" maxlength="24" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="${esc(t('codePh'))}" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px"><button class="sub" id="btnCode" style="width:auto">${esc(t('codeOk'))}</button></div><p class="note" id="codeMsg" aria-live="polite"></p></div>` +
     `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" readonly rows="3" hidden></textarea>` +
-    `<textarea id="xferIn" rows="3" placeholder="${esc(t('xferPaste'))}"></textarea><button class="sub" id="btnXferLoad">${esc(t('xferLoad'))}</button><p class="note" id="xferMsg" aria-live="polite"></p></div>`;
+    `<textarea id="xferIn" rows="3" placeholder="${esc(t('xferPaste'))}"></textarea><button class="sub" id="btnXferLoad">${esc(t('xferLoad'))}</button><p class="note" id="xferMsg" aria-live="polite"></p></div>` +
+    `<div class="m xfer reset"><p><b>${esc(t('resetH'))}</b></p><p class="note">${esc(t('resetNote'))}</p><button class="sub danger" id="btnReset">${esc(t('resetBtn'))}</button>` +
+    `<div id="resetAsk" hidden><p class="note"><b>${esc(t('resetAsk'))}</b></p><div style="display:flex;gap:8px"><button class="sub danger" id="btnResetYes">${esc(t('resetYes'))}</button><button class="sub" id="btnResetNo">${esc(t('resetNo'))}</button></div></div><p class="note" id="resetMsg" aria-live="polite"></p></div>`;
 }
 /* ---- the player's name for the ranking: asked before the first run, editable any time ---- */
 let nameThenStart = 0;
@@ -123,6 +125,14 @@ function nameDone(ok) {
   if (nameThenStart) { nameThenStart = 0; hideAll(); startRun(); } else closePanel();
 }
 function refreshNameBtn() { const b = $('#btnName'); if (b) b.textContent = SV.nick ? t('nameBtn', SV.nick) : t('nameNone'); }
+// wipe everything on this device (progress, clothes, stamps, the ranking account) and take this player off the public boards
+async function resetAll() {
+  const msg = $('#resetMsg'); $('#btnResetYes').disabled = true; $('#btnResetNo').disabled = true; msg.textContent = t('resetDoing');
+  try { if (rankOn()) await Promise.race([RANK.db.doc('ranks/' + RANK.uid).set({}), new Promise(r => setTimeout(r, 4000))]); } catch (e) { } // an empty row drops out of every ranking
+  RESETTING = 1;
+  for (const k of [SAVE_KEY, 'rjChal', 'hd_fsauth']) { try { localStorage.removeItem(k); } catch (e) { } }
+  msg.textContent = t('resetDone'); setTimeout(() => location.reload(), 700);
+}
 function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); }
 let rvTimer = null;
 function openRevive() {
@@ -209,6 +219,9 @@ $('#sPanel').addEventListener('click', e => {
   if (e.target.id === 'btnTut') { SV.tutDone = 0; save(); e.target.textContent = t('resetDone'); }
   if (e.target.id === 'btnXferMake') { saveNow(); xferMake().then(code => { const o = $('#xferOut'); o.hidden = false; o.value = code; o.select(); try { navigator.clipboard.writeText(code).catch(() => { }); } catch (x) { } $('#xferMsg').textContent = t('xferCopied'); }).catch(() => { $('#xferMsg').textContent = t('xferBad'); }); }
   if (e.target.id === 'btnCode') { redeemCode($('#codeIn').value); return; }
+  if (e.target.id === 'btnReset') { $('#resetAsk').hidden = false; $('#btnReset').hidden = true; $('#btnResetNo').focus(); return; }
+  if (e.target.id === 'btnResetNo') { $('#resetAsk').hidden = true; $('#btnReset').hidden = false; return; }
+  if (e.target.id === 'btnResetYes') { resetAll(); return; }
   if (e.target.id === 'btnXferLoad') { const code = $('#xferIn').value.trim(), b = e.target; if (!code) return;
     xferRead(code).then(() => { if (!b.dataset.sure) { b.dataset.sure = 1; $('#xferMsg').textContent = t('xferConfirm'); return; }
       return xferApply(code).then(() => { $('#xferMsg').textContent = t('xferDone'); LANG = SV.lang || LANG; G.char = SV.char || 'ren'; applyWear(); setTimeout(() => { closePanel(); goTitle(); }, 900); }); })
