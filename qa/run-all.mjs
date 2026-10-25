@@ -16,6 +16,7 @@ const MODE = process.argv[2] || 'quick';
 const has = (...w) => o => w.every(x => o.includes(x));
 const noErr = o => /no errors|no issues/.test(o) && !/pageerror|FAIL|Uncaught/.test(o);
 const T = [
+  { n: 'dupcheck', why: '同じ名前の関数の二重定義（上書き事故）', ok: noErr },
   { n: 'qa', why: '画面の流れ・言語切替', ok: noErr },
   { n: 'reltest', why: '公開版で起動して遊べる', ok: noErr },
   { n: 'tut', why: 'チュートリアル', ok: noErr },
