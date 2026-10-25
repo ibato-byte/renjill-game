@@ -369,9 +369,9 @@ function bicycle(g, x, y, s, col) { g.strokeStyle = '#1C1C1E'; g.lineWidth = 3; 
   g.fillStyle = '#B9C3CC'; rrect(g, x + .3 * s, y - .44 * s, .16 * s, .12 * s, 2); g.fill(); }
 function paintBikes(g, W, H) { SH(g, W, H, .22); const cs = ['#3A6FB0', '#C8463C', '#5F9E5A', '#E9E9E9']; for (let k = 0; k < 3; k++) bicycle(g, W * (.2 + k * .3), H * .72 - k * 2, W * .34, cs[k % 4]); }
 function seasonShadow(g, W, H, k) { g.fillStyle = `rgba(40,25,10,${k || .28})`; g.beginPath(); g.ellipse(W / 2, H - 6, W * .4, 7, 0, 0, Math.PI * 2); g.fill(); }
-function paintPot(g, cx, y, w, h, c0, c1) { const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, c0); gr.addColorStop(1, c1); g.fillStyle = gr; g.beginPath(); g.moveTo(cx - w / 2, y); g.lineTo(cx + w / 2, y); g.lineTo(cx + w * .38, y + h); g.lineTo(cx - w * .38, y + h); g.closePath(); g.fill(); g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(cx - w / 2, y, w, h * .14); }
+function seasonPot(g, cx, y, w, h, c0, c1) { const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, c0); gr.addColorStop(1, c1); g.fillStyle = gr; g.beginPath(); g.moveTo(cx - w / 2, y); g.lineTo(cx + w / 2, y); g.lineTo(cx + w * .38, y + h); g.lineTo(cx - w * .38, y + h); g.closePath(); g.fill(); g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(cx - w / 2, y, w, h * .14); }
 function paintXmasTree(g, W, H, night) { // a small decorated fir in a pot; the lights glow after dark
-  seasonShadow(g, W, H); paintPot(g, W / 2, H * .8, W * .42, H * .17, '#B5552E', '#7A3418');
+  seasonShadow(g, W, H); seasonPot(g, W / 2, H * .8, W * .42, H * .17, '#B5552E', '#7A3418');
   for (const [y0, y1, w] of [[.5, .82, .9], [.3, .62, .72], [.1, .42, .52]]) { const gr = g.createLinearGradient(0, H * y0, 0, H * y1); gr.addColorStop(0, '#3F8A5E'); gr.addColorStop(1, '#245C3C'); g.fillStyle = gr; g.beginPath(); g.moveTo(W / 2, H * y0); g.quadraticCurveTo(W * (.5 + w * .2), H * (y0 + y1) / 2, W * (.5 + w / 2), H * y1); g.quadraticCurveTo(W / 2, H * (y1 + .03), W * (.5 - w / 2), H * y1); g.quadraticCurveTo(W * (.5 - w * .2), H * (y0 + y1) / 2, W / 2, H * y0); g.fill(); }
   g.strokeStyle = 'rgba(242,194,48,.8)'; g.lineWidth = 3; for (const [y, w] of [[.4, .34], [.6, .5], [.76, .62]]) { g.beginPath(); g.moveTo(W * (.5 - w / 2), H * (y - .03)); g.quadraticCurveTo(W / 2, H * (y + .04), W * (.5 + w / 2), H * (y - .05)); g.stroke(); }
   const r = rnd(4); if (night) { g.save(); g.shadowColor = 'rgba(255,220,120,.9)'; g.shadowBlur = 10; }
@@ -394,7 +394,7 @@ function paintHeartBox(g, W, H) { // a heart-shaped gift box with a ribbon
   g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.ellipse(W * .32, cy - H * .12, W * .07, H * .05, -.6, 0, Math.PI * 2); g.fill();
 }
 function paintSakuraPot(g, W, H) { // a potted cherry branch in bloom
-  seasonShadow(g, W, H); paintPot(g, W / 2, H * .78, W * .4, H * .19, '#E9E2D2', '#BFB39A');
+  seasonShadow(g, W, H); seasonPot(g, W / 2, H * .78, W * .4, H * .19, '#E9E2D2', '#BFB39A');
   g.strokeStyle = '#6B4631'; g.lineCap = 'round'; for (const [x1, y1, w] of [[.3, .2, 7], [.66, .12, 6], [.5, .32, 5]]) { g.lineWidth = w; g.beginPath(); g.moveTo(W / 2, H * .78); g.quadraticCurveTo(W * (x1 + .5) / 2, H * .5, W * x1, H * y1); g.stroke(); }
   const r = rnd(8); for (let k = 0; k < 70; k++) { const a = r() * Math.PI * 2, d = r(); const x = W * (.5 + Math.cos(a) * .36 * d), y = H * (.3 + Math.sin(a) * .2 * d); g.fillStyle = r() < .3 ? '#F2A8BC' : '#F9D3DE'; g.beginPath(); g.arc(x, y, 6 + r() * 4, 0, Math.PI * 2); g.fill(); }
 }
