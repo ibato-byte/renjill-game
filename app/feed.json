@@ -1,5 +1,28 @@
 {
- "updated": "2026-10-25T20:00:00+09:00",
- "latest": { "date": "2026-10-25", "ja": "定時のよろこび", "en": "IT'S 6 PM!", "url": "https://www.instagram.com/renjill_office/" },
- "codes": [ { "h": "2fc9efec05b27ca72bde7a842c0cca7e707fd37f1a74ea50940150f6fcf05991", "hay": 500, "until": "2026-11-01", "note": "10/26 ハロウィン告知の投稿で発表" } ]
+ "updated": "2026-10-25T21:00:00+09:00",
+ "latest": {
+  "date": "2026-10-25",
+  "ja": "定時のよろこび",
+  "en": "IT'S 6 PM!",
+  "url": "https://www.instagram.com/renjill_office/"
+ },
+ "codes": [
+  {
+   "h": "2fc9efec05b27ca72bde7a842c0cca7e707fd37f1a74ea50940150f6fcf05991",
+   "hay": 500,
+   "until": "2026-11-01",
+   "note": "10/26 ハロウィン告知の投稿で発表"
+  }
+ ],
+ "events": [
+  {
+   "id": "xmas",
+   "from": "2026-11-25",
+   "to": "2026-12-25",
+   "gift": {
+    "ja": "クリスマスの準備がはじまりました！ 期間中にサンタぼうしをプレゼント",
+    "en": "Christmas is coming! A free Santa hat is waiting for you."
+   }
+  }
+ ]
 }
