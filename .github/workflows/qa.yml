@@ -5,8 +5,8 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    - cron: '17 20 * * *'   # 毎朝 5:17（日本時間）quick
-    - cron: '27 18 * * 0'   # 毎週月曜 3:27（日本時間）full
+    - cron: '17 20 * * *' # 毎朝 5:17（日本時間）quick
+    - cron: '27 18 * * 0' # 毎週月曜 3:27（日本時間）full
   workflow_dispatch:
     inputs:
       mode: { description: 'quick か full', default: 'quick' }
@@ -59,7 +59,7 @@ jobs:
           [ -d "$RUNNER_TEMP/hub" ] || exit 0
           extra=()
           if [ -f kpi.json ]; then
-            extra+=(--kpi "遊んだ人=$(node -p "require('./kpi.json').players_total")" --kpi "今月遊んだ人=$(node -p "require('./kpi.json').players_this_month")")
+            extra+=(--kpi "遊んだ人=$(node -p "require('./kpi.json').players_total")" --kpi "今月遊んだ人=$(node -p "require('./kpi.json').players_this_month")" --kpi "直近7日に遊んだ人=$(node -p "require('./kpi.json').active_7d")")
           fi
           bash "$RUNNER_TEMP/hub/scripts/gha.sh" report renjill-game "$JOB_STATUS" "$PAUSED" "ゲームの自動チェックが全部合格しました。" \
             --outcome done --does "ゲームの自動チェックを動かし、遊んだ人の数を数えた" \
@@ -73,8 +73,17 @@ jobs:
       - name: トークンがあるときだけ公開
         id: chk
         run: echo "ok=${{ secrets.CLOUDFLARE_API_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
-      - if: steps.chk.outputs.ok == 'true'
-        run: python3 build.py && npx --yes wrangler@3 pages deploy app --project-name renjill-hay-dash --branch main --commit-dirty=true
+      - name: 公開（Cloudflare Pages）
+        if: steps.chk.outputs.ok == 'true'
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          RAW_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: b3563f7747cafbc81a977a3b4edbfca3
+        run: |
+          # 貼り付けたときに入りやすい改行・空白・「Bearer 」を取り除く
+          T="$(printf '%s' "$RAW_TOKEN" | tr -d '[:space:]')"; T="${T#Bearer}"
+          if ! printf '%s' "$T" | LC_ALL=C grep -qE '^[A-Za-z0-9_-]{20,}$'; then
+            echo "::error::CLOUDFLARE_API_TOKEN の形がちがいます（英数字だけの長い文字列のはず）。Cloudflare で作ったトークンの値を、そのまま貼り直してください。"
+            exit 1
+          fi
+          export CLOUDFLARE_API_TOKEN="$T"
+          python3 build.py && npx --yes wrangler@3 pages deploy app --project-name renjill-hay-dash --branch main --commit-dirty=true
