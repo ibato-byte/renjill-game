@@ -1,0 +1,71 @@
+// QA の全部を順に動かし、合否を qa-report.json と qa-report.md に書く。
+// 使い方: node qa/run-all.mjs [quick|full]   （先に python3 build.py を実行しておく）
+// quick = 毎日（約10分） / full = 毎週（約25分。全ステージ×5場面、長時間プレイ、車ジャンプなど）
+// 終了コード: 全部合格 0 / どれか不合格 1
+import { spawn } from 'node:child_process';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import http from 'node:http';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const MODE = process.argv[2] || 'quick';
+
+// テストごとの合格の条件（出力の文字で判定）
+const has = (...w) => o => w.every(x => o.includes(x));
+const noErr = o => /no errors|no issues/.test(o) && !/pageerror|FAIL|Uncaught/.test(o);
+const T = [
+  { n: 'qa', why: '画面の流れ・言語切替', ok: noErr },
+  { n: 'reltest', why: '公開版で起動して遊べる', ok: noErr },
+  { n: 'tut', why: 'チュートリアル', ok: noErr },
+  { n: 'tut2', why: 'チュートリアルの続き', ok: noErr },
+  { n: 'fever2', why: 'フィーバーの取りこぼし', ok: o => noErr(o) && /"missedBehind":0/.test(o) },
+  { n: 'ranktest', why: 'ランキング表示', ok: noErr },
+  { n: 'saves', why: '壊れたセーブからの復旧', ok: noErr },
+  { n: 'forktest', why: '分かれ道の操作', ok: o => !/FAIL|pageerror/.test(o) && /-> play/.test(o) },
+  { n: 'ui', why: 'スマホの表示崩れ', ok: o => noErr(o) && /overflow false/.test(o) },
+  { n: 'jumpbug', why: 'ジャンプの不具合', ok: o => /fails 0/.test(o) && noErr(o) },
+  { n: 'sharetest', why: 'SNSシェア（8パターン）', ok: has('ALL SHARE TESTS PASSED') },
+  { n: 'feedtest', why: 'SNSの新作カード・あいことば', ok: o => has('受け取りました', 'Got it!')(o) && !/errors \[ '/.test(o) },
+  { n: 'en_audit', why: '英語版の日本語混入・はみ出し', ok: has('EN_ISSUES 0') },
+  { n: 'sizes', why: '画面サイズ4種', ok: o => (o.match(/ ok/g) || []).length >= 4 },
+  { n: 'xfer', why: 'データ引き継ぎ', ok: noErr },
+  { n: 'apptest', why: 'アプリ版（ランキング・オフライン）', ok: has('"offlinePlay": true') },
+];
+if (MODE === 'full') {
+  for (let i = 0; i < 6; i++) T.push({ n: 'qa_stage', env: { NP: '6', PI: String(i) }, label: 'qa_stage#' + i, why: '全ステージ×5場面の表示（' + (i + 1) + '/6）', ok: has('bad 0'), timeout: 700 });
+  T.push({ n: 'carjump', why: '車を飛び越えられる', ok: o => (o.match(/HIT/g) || []).length <= 3 && /ok\(/.test(o), timeout: 500 });
+  T.push({ n: 'longrun', args: ['24'], why: 'スマホで長時間プレイ（止まり・メモリ）', ok: o => /"mode":"play"/.test(o) && !/pageerror|Uncaught/.test(o), timeout: 500 });
+  T.push({ n: 'en_play', why: '英語版のプレイ中の文字', ok: o => /JP strings seen in EN play: 0/.test(o), timeout: 900 });
+}
+
+// テスト用の小さなサーバー（dist と app）
+function serve(dir, port) {
+  const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
+  return new Promise(res => { const s = http.createServer(async (q, r) => { try { let p = decodeURIComponent(q.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html'; const b = await readFile(path.join(dir, p)); r.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); r.end(b); } catch (e) { r.writeHead(404); r.end(); } }); s.listen(port, '127.0.0.1', () => res(s)); });
+}
+function run(t) {
+  return new Promise(res => {
+    const p = spawn(process.execPath, [path.join(ROOT, 'qa', t.n + '.js'), ...(t.args || [])], { cwd: ROOT, env: { ...process.env, ...(t.env || {}) } });
+    let out = ''; p.stdout.on('data', d => out += d); p.stderr.on('data', d => out += d);
+    const k = setTimeout(() => { out += '\nTIMEOUT'; p.kill('SIGKILL'); }, (t.timeout || 300) * 1000);
+    p.on('close', code => { clearTimeout(k); res({ code, out }); });
+  });
+}
+const servers = [await serve(path.join(ROOT, 'dist'), 8765), await serve(path.join(ROOT, 'app'), 8790)];
+mkdirSync(process.env.SHOTS || '/tmp/rj-shots', { recursive: true });
+const results = []; const t0 = Date.now();
+for (const t of T) {
+  const s = Date.now(); const { code, out } = await run(t);
+  const pass = !/TIMEOUT/.test(out) && t.ok(out);
+  results.push({ name: t.label || t.n, why: t.why, pass, sec: Math.round((Date.now() - s) / 1000), tail: out.trim().split('\n').slice(-6).join('\n').slice(-900) });
+  console.log((pass ? 'PASS ' : 'FAIL ') + (t.label || t.n) + ' (' + Math.round((Date.now() - s) / 1000) + 's)');
+}
+servers.forEach(s => s.close());
+const failed = results.filter(r => !r.pass);
+const report = { mode: MODE, at: new Date().toISOString(), sec: Math.round((Date.now() - t0) / 1000), passed: results.length - failed.length, total: results.length, failed: failed.map(f => f.name), results };
+writeFileSync(path.join(ROOT, 'qa-report.json'), JSON.stringify(report, null, 1));
+writeFileSync(path.join(ROOT, 'qa-report.md'), `# QA（${MODE}）${failed.length ? '不合格 ' + failed.length + '件' : '全部合格'}\n\n${results.map(r => `- ${r.pass ? '✅' : '❌'} ${r.why}（${r.name}・${r.sec}秒）`).join('\n')}\n\n${failed.map(f => `## ❌ ${f.name}\n\`\`\`\n${f.tail}\n\`\`\``).join('\n\n')}\n`);
+console.log(failed.length ? 'QA FAILED: ' + failed.map(f => f.name).join(', ') : 'QA ALL PASSED ' + results.length);
+process.exit(failed.length ? 1 : 0);

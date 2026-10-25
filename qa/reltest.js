@@ -1,0 +1,10 @@
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined }); const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errs = []; p.on('pageerror', e => errs.push(e.message)); await p.route('**/fonts.googleapis.com/**', r => r.abort());
+  const fs = require('fs'); fs.writeFileSync('dist/rel_view.html', '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>' + fs.readFileSync('dist/hay-dash.html', 'utf8') + '</body></html>');
+  await p.goto('file://' + process.cwd() + '/dist/rel_view.html'); await p.waitForTimeout(800);
+  const story = await p.evaluate(() => document.querySelector('#tStory').textContent.length); if (!story) errs.push('TITLE NOT INITIALISED');
+  await p.click('#btnStart'); await p.waitForTimeout(4000);
+  const st = await p.evaluate(() => { const c = document.querySelector('#cv'), g = c.getContext('2d'), d = g.getImageData(c.width / 2, c.height / 2, 1, 1).data; return { hooks: typeof window.__hayDash, die: typeof window.__die, title: document.title, hud: !document.querySelector('#hud').hidden, score: document.querySelector('#hScore').textContent, clock: document.querySelector('#hClock').textContent, px: [...d].join(',') }; });
+  if (!(+st.score.replace(/,/g, '') > 0)) errs.push('RUN DID NOT START (score ' + st.score + ')');
+  await p.screenshot({ path: 'shots/rel.png' }); console.log(JSON.stringify(st), errs.join('|') || 'no errors'); await b.close(); })();
