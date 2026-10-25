@@ -18,6 +18,16 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - name: Automation Hub：一時停止の確認
+        id: hub
+        if: github.event_name != 'pull_request'
+        env:
+          HUB_TOKEN: ${{ secrets.HUB_TOKEN }}
+        run: |
+          if [ -z "$HUB_TOKEN" ] || ! git clone -q --depth 1 "https://x-access-token:${HUB_TOKEN}@github.com/ibato-byte/automation-hub.git" "$RUNNER_TEMP/hub"; then
+            echo "paused=false" >> "$GITHUB_OUTPUT"; echo "Automation Hub を使わずに続ける"; exit 0
+          fi
+          bash "$RUNNER_TEMP/hub/scripts/gha.sh" check renjill-game
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
       - run: npm i --no-save playwright@1 && npx playwright install --with-deps chromium
@@ -34,6 +44,21 @@ jobs:
       - name: 結果をまとめに出す
         if: always()
         run: cat qa-report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Automation Hub に記録（失敗したら「修正」の依頼・遊んだ人の数を表示）
+        if: always() && github.event_name != 'pull_request'
+        env:
+          HUB_TOKEN: ${{ secrets.HUB_TOKEN }}
+          JOB_STATUS: ${{ job.status }}
+          PAUSED: ${{ steps.hub.outputs.paused }}
+        run: |
+          [ -d "$RUNNER_TEMP/hub" ] || exit 0
+          extra=()
+          if [ -f kpi.json ]; then
+            extra+=(--kpi "遊んだ人=$(node -p "require('./kpi.json').players_total")" --kpi "今月遊んだ人=$(node -p "require('./kpi.json').players_this_month")")
+          fi
+          bash "$RUNNER_TEMP/hub/scripts/gha.sh" report renjill-game "$JOB_STATUS" "$PAUSED" "ゲームの自動チェックが全部合格しました。" \
+            --outcome done --does "ゲームの自動チェックを動かし、遊んだ人の数を数えた" \
+            --next-run-at "$(bash "$RUNNER_TEMP/hub/scripts/gha.sh" next-daily 20:17)" "${extra[@]}"
   deploy:
     needs: qa
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
