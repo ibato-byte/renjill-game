@@ -1,0 +1,120 @@
+<div id="app">
+  <canvas id="cv" aria-label="レンとジルのチモシーダッシュ"></canvas>
+
+  <div id="hud" hidden>
+    <div id="feverGlow"></div>
+    <div class="hud-top">
+      <div class="score chip"><b id="hScore">0</b><small id="hMult">×1</small><small id="combo"></small></div>
+      <div class="clock chip"><span class="day" id="hDay">DAY 1</span><b id="hClock">8:00</b><span class="room" id="hRoom"></span></div>
+      <div class="hay chip"><img id="hHayIco" alt=""><b id="hHay">0</b></div>
+    </div>
+    <div id="routeBar" aria-hidden="true"><div id="routeFill"></div><i style="left:6.7%">9:00</i><i style="left:66.7%">18:00</i></div>
+    <div id="feverBar"><div id="feverFill"></div><span id="feverLbl"></span><b id="feverPct"></b></div>
+    <div id="lives" aria-live="polite"><span class="hs"><i></i><i></i></span><em id="livesTxt"></em></div>
+    <div id="pows"></div>
+    <div id="banner"><span class="en"></span><span class="ja"></span></div>
+    <div id="turnCue">→</div>
+    <div id="forkCards" hidden><button class="fc l" id="fcL"><i>←</i><b></b><small></small></button><button class="fc r" id="fcR"><i>→</i><b></b><small></small></button></div>
+    <div id="tutCue"></div>
+    <div id="hint"></div>
+    <button id="pauseBtn" aria-label="Pause">II</button>
+  </div>
+
+  <section id="sTitle" class="screen">
+    <div class="logo">
+      <div class="k" id="tKick">REN &amp; JILL</div>
+      <h1 id="tLogo">HAY<br><em>DASH!</em></h1>
+      <span class="ja" id="tSub"></span>
+    </div>
+    <div class="card">
+      <p class="story" id="tStory"></p>
+      <p class="last" id="tLast" hidden></p>
+      <div class="chars" role="group">
+        <button class="char" id="pickRen" aria-pressed="true"><canvas width="220" height="200" id="cvRen"></canvas><span class="nm" id="nmRen">REN</span><span class="role" id="tRenRole"></span><span class="perk" id="tRenPerk"></span></button>
+        <button class="char" id="pickJill" aria-pressed="false"><canvas width="220" height="200" id="cvJill"></canvas><span class="nm" id="nmJill">JILL</span><span class="role" id="tJillRole"></span><span class="perk" id="tJillPerk"></span></button>
+      </div>
+      <button class="big" id="btnStart">START</button>
+      <p class="daily" id="tDaily"></p>
+      <div class="row2"><button class="sub" id="btnRank"></button><button class="sub" id="btnName"></button><button class="sub" id="btnChat"></button></div>
+      <div class="row">
+        <button class="mini" id="btnMissions"><span>MISSION</span><em id="tMis"></em><i class="dot" id="dotMissions" hidden></i></button>
+        <button class="mini" id="btnStamps"><span>TOKYO</span><em id="tSta"></em><i class="dot" id="dotStamps" hidden></i></button>
+        <button class="mini" id="btnZukan"><span>BOOK</span><em id="tBook"></em><i class="dot" id="dotZukan" hidden></i></button>
+        <button class="mini" id="btnShop"><span>SHOP</span><em id="tShop"></em></button>
+        <button class="mini" id="btnHow"><span>HOW</span><em id="tHow"></em></button>
+      </div>
+      <div id="tCareer"></div>
+      <div class="bank"><span><span id="tBestL"></span> <b id="tBest">0</b></span><span><img id="tHayIco" alt=""> <b id="tBank">0</b></span>
+        <span class="tog"><button class="sub small" id="btnLang">English</button><button class="sub small" id="btnMute">音：ON</button><button class="sub small" id="btnSet" aria-label="Settings">⚙</button></span></div>
+    </div>
+    <p class="small-print">Ren &amp; Jill · COANA TOKYO</p>
+  </section>
+
+  <section id="sChat" class="screen center" hidden aria-modal="true" role="dialog" aria-labelledby="chatTitle">
+    <div class="panel chat">
+      <header><h2 id="chatTitle"></h2><button class="x" id="chatClose" aria-label="Close">✕</button></header>
+      <div class="chatlog" id="chatLog" aria-live="polite"></div>
+      <div class="chatsug" id="chatSug"></div>
+      <form class="chatform" id="chatForm" autocomplete="off"><input id="chatIn" maxlength="300" enterkeyhint="send"><button class="big" id="chatSend" type="submit"></button><button class="sub" id="chatStop" type="button" hidden></button></form>
+      <p class="note" id="chatNote"></p>
+    </div>
+  </section>
+  <section id="sPanel" class="screen center" hidden>
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+      <header><h2 id="pTitle"></h2><button class="x" id="pClose" aria-label="Close">✕</button></header>
+      <div class="body" id="pBody"></div>
+    </div>
+  </section>
+
+  <section id="sPause" class="screen center" hidden>
+    <div class="card">
+      <h2 class="ph"><span id="tPauseH">PAUSE</span><small id="tPause"></small></h2>
+      <div id="pauseMissions" class="stack"></div>
+      <button class="big" id="btnResume">RESUME</button>
+      <div class="btns"><button class="sub" id="btnQuit"></button><button class="sub" id="btnMute2"></button><button class="sub" id="btnChat2"></button></div>
+    </div>
+  </section>
+
+  <section id="sRevive" class="screen center" hidden>
+    <div class="card revive">
+      <div class="res-cap"><span class="en" id="rvEn">OOPS.</span><span class="ja" id="rvJa"></span></div>
+      <div class="ring" id="rvRing"><span id="rvNum">5</span></div>
+      <button class="big" id="btnRvClover" style="width:100%"></button>
+      <button class="sub" id="btnRvHay" style="width:100%"></button>
+      <p class="note" id="rvHave" style="margin:0;font-weight:900"></p>
+      <button class="sub" id="btnRvNo" style="width:100%;background:transparent"></button>
+    </div>
+  </section>
+
+  <section id="sResult" class="screen center" hidden>
+    <div class="card result">
+      <div class="res-cap"><span class="en" id="resEn"></span><span class="ja" id="resJa"></span></div>
+      <span class="newbest" id="resBest" hidden>NEW BEST!</span><span class="newbest promo" id="resPromo" hidden></span>
+      <div class="res-score"><small id="lbScore">SCORE</small><b id="resScore">0</b></div>
+      <div class="res-sub"><span><small id="lbTime">TIME</small> <b id="resClock">8:00</b></span><span><small id="lbHay">HAY</small> <b id="resHay">0</b></span></div>
+      <div class="hi" id="resHi"></div>
+      <button class="big" id="btnAgain">ONE MORE RUN</button>
+      <div class="sharebar"><b id="tShareBar"></b>
+        <div class="shbtns">
+          <a id="shX" target="_blank" rel="noopener" aria-label="X"><i>𝕏</i>X</a><a id="shLine" target="_blank" rel="noopener"><i>L</i>LINE</a><a id="shFb" target="_blank" rel="noopener"><i>f</i>Facebook</a><a id="shIg" href="https://www.instagram.com/" target="_blank" rel="noopener"><i>◎</i>Instagram</a><button id="btnShare" type="button"><i>🔗</i><span id="tCopy"></span></button>
+        </div>
+        <p class="note" id="igNote" aria-live="polite"></p>
+      </div>
+      <div id="resCareer"></div><div class="rank-box" id="resRank"><div class="rk-top"><b class="rk-h"></b><p class="rk-me"></p></div><div class="rk-list"></div><div class="rk-foot"><button class="linkbtn" id="resNameToggle" type="button"></button><button class="sub small" id="btnRank2"></button></div><div class="rk-name namebox" hidden><label for="resNameIn"></label><div class="btns"><input id="resNameIn" maxlength="12" autocomplete="off" enterkeyhint="done"><button class="sub" id="resNameOk"></button></div></div></div>
+      <details class="more" id="resMore">
+        <summary id="tResMore"></summary>
+        <div class="spots" id="resSpots"></div>
+        <p class="note" id="resNote" style="text-align:center;font-weight:700"></p>
+        <div id="resMissions" class="stack"></div>
+        <div class="zdetail" id="resTip"></div>
+        <div class="kuji" id="kujiBox" hidden><button class="sub" id="btnKuji"></button><div id="kujiRes"></div></div>
+        <details class="share" id="shareBox">
+          <summary id="tShare"></summary>
+          <img id="shareImg" alt="Result card">
+          <p class="note" id="tShareImg"></p>
+        </details>
+      </details>
+      <div class="btns"><button class="sub" id="btnMenu"></button></div>
+    </div>
+  </section>
+</div>
