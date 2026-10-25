@@ -1,5 +1,6 @@
 /* ================= monthly ranking (shared through the page's database) =================
    ranks/<viewer id> = { m202610: best score this month, m202610c: character, m202610d: day reached, all: best ever, nick } */
+const RANK_PAGE = (window.HAYDASH_APP ? './' : 'https://renjill-hay-dash.pages.dev/') + 'ranking.html';
 const RANK = { db: null, user: null, uid: null, ready: false, last: null };
 function monthKey(d) { const j = new Date((d || new Date()).getTime() + 9 * 3600e3); return 'm' + j.getUTCFullYear() + String(j.getUTCMonth() + 1).padStart(2, '0'); }
 function monthLabel(k) { const y = k.slice(1, 5), m = +k.slice(5); return LANG === 'ja' ? `${y}年${m}月` : new Date(+y, m - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }); }
@@ -30,6 +31,7 @@ async function rankSubmit(score, info) {
   if (!(cur[mk] >= sc)) { cur[mk] = sc; cur[mk + 'c'] = info.char; cur[mk + 'd'] = info.day; changed = true; }
   if (!(cur.all >= sc)) { cur.all = sc; cur.allc = info.char; changed = true; }
   if (SV.nick && !nameBad(SV.nick) && cur.nick !== SV.nick) { cur.nick = SV.nick; changed = true; }
+  { const j = new Date(Date.now() + 9 * 3600e3), day = +j.toISOString().slice(0, 10).replace(/-/g, ''); if (cur.last !== day) { cur.last = day; changed = true; } cur.runs = Math.min(1e6, (cur.runs | 0) + 1); changed = true; } // when this player last played (Japan date) and how many runs: the automation reads daily/weekly active players from these
   if (changed) { try { await ref.set(cur); } catch (e) { return { err: 1, best: cur[mk] } } }
   return { best: cur[mk] };
 }
@@ -83,6 +85,7 @@ async function openRanking(tab) {
   const mkey = monthKey(), field = tab === 'all' ? 'all' : mkey;
   openPanel('RANKING', LANG === 'ja' ? 'ランキング' : 'Ranking', `<div class="tabs"><button class="buy${tab === 'month' ? '' : ' off'}" data-rt="month">${esc(monthLabel(mkey))}</button><button class="buy${tab === 'all' ? '' : ' off'}" data-rt="all">${LANG === 'ja' ? '歴代' : 'All time'}</button></div>
     <div class="nick"><label for="nickIn">${LANG === 'ja' ? 'ランキングでの名前' : 'Your name on the ranking'}</label><input id="nickIn" maxlength="12" autocomplete="off"><button class="buy" id="nickSave">${LANG === 'ja' ? '保存' : 'Save'}</button></div>
+    <p class="note" style="margin:4px 0 8px"><a class="notelink" href="${RANK_PAGE}" target="_blank" rel="noopener">${LANG === 'ja' ? 'みんなのランキングのページを開く（だれでも見られます）' : 'Open the public ranking page (anyone can view)'}</a></p>
     <div class="rk-list" id="rkFull"><p class="note">${LANG === 'ja' ? '読み込み中…' : 'Loading…'}</p></div><p class="note">${LANG === 'ja' ? '毎月1日（日本時間）に月間ランキングが新しくなります。名前を決めないときは「うさぎ#番号」の匿名で表示されます。' : 'The monthly board starts fresh on the 1st (Japan time). Without a name you appear as an anonymous bunny.'}</p>`);
   $('#nickIn').value = SV.nick || '';
   const el = $('#rkFull');
