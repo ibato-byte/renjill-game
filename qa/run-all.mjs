@@ -32,6 +32,7 @@ const T = [
   { n: 'en_audit', why: '英語版の日本語混入・はみ出し', ok: has('EN_ISSUES 0') },
   { n: 'sizes', why: '画面サイズ4種', ok: o => (o.match(/ ok/g) || []).length >= 4 },
   { n: 'xfer', why: 'データ引き継ぎ', ok: noErr },
+  { n: 'rankpage', why: 'だれでも見られるランキングのページ', ok: noErr },
   { n: 'apptest', why: 'アプリ版（ランキング・オフライン）', ok: has('"offlinePlay": true') },
 ];
 if (MODE === 'full') {
