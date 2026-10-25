@@ -11,7 +11,7 @@ on:
     inputs:
       mode: { description: 'quick か full', default: 'quick' }
 permissions:
-  contents: read
+  contents: write
 jobs:
   qa:
     runs-on: ubuntu-latest
@@ -25,9 +25,14 @@ jobs:
       - run: python3 build.py && cp app/feed.json dist/feed.json
       - name: QA
         run: node qa/run-all.mjs ${{ github.event.schedule == '27 18 * * 0' && 'full' || (github.event.inputs.mode || 'quick') }}
-      - name: 遊んだ人の数（KPI）
+      - name: 遊んだ人の数（KPI）と毎日の記録（data/kpi.csv）
         if: always()
-        run: node qa/kpi.mjs || true
+        run: |
+          node qa/kpi.mjs || true
+          if [ "${{ github.event_name }}" = "schedule" ] && [ -f data/kpi.csv ]; then
+            git config user.name "renjill-bot"; git config user.email "renjill-bot@users.noreply.github.com"
+            git add data/kpi.csv && git commit -m "KPI: $(date +%F)" && git push || true
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: qa-report, path: "qa-report.*\nkpi.json\n/tmp/rj-shots/**" }
