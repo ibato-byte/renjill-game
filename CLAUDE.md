@@ -11,6 +11,7 @@
 - ソースは src/（番号順に連結される）。`python3 build.py` で dist/（claude.ai 版・テスト版）と app/（公開するアプリ）を作る。
 - app/config.js（Firebase の公開設定）と app/feed.json（SNS の新作・あいことば・季節の企画）は build.py が上書きしない。
 - テスト用のフック（/*TEST-ONLY*/〜/*END-TEST-ONLY*/）は公開版から自動で消える。
+- seo.py：公開ページのタイトル・説明・構造化データ、ガイド（app/guide.html・guide-en.html）、robots.txt、sitemap.xml を build.py が作る。
 
 ## 変えたら必ず
 1. `python3 build.py && cp app/feed.json dist/` → `node qa/run-all.mjs quick`（大きな変更は full）。全部合格するまで直す。テストを弱めない・飛ばさない。

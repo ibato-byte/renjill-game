@@ -13,14 +13,14 @@ open('dist/test.html','w').write('<!doctype html><html lang="ja"><head><meta cha
 print(len(head+body+script))
 
 # ---- the app (PWA): a folder to put on any static host; installable, plays offline ----
-import os, json, hashlib
+import os, json, hashlib, seo
 pass
 ver = hashlib.sha1((head + body + rel_js).encode()).hexdigest()[:10]
 app_head = ('<!doctype html><html lang="ja"><head><meta charset="utf-8">'
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
   '<meta name="theme-color" content="#3B2A20"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">'
   '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="チモシーダッシュ">'
-  '<meta name="description" content="うさぎの課長レンと部下ジルが、チモシーを集めながら東京をかけぬけるランゲーム">'
+  '<meta name="description" content="' + seo.DESC_JA + '">' + seo.head_tags() +
   '<meta property="og:type" content="website"><meta property="og:site_name" content="レンとジル Ren &amp; Jill">'
   '<meta property="og:title" content="レンとジルのチモシーダッシュ｜Ren &amp; Jill: Hay Dash">'
   '<meta property="og:description" content="うさぎの課長レンと部下ジルが、チモシーを集めながら東京をかけぬける無料のランゲーム。Two office bunnies, one mad dash across Tokyo. Free to play.">'
@@ -30,7 +30,8 @@ app_head = ('<!doctype html><html lang="ja"><head><meta charset="utf-8">'
   '<style>html,body{margin:0;height:100%;background:#3B2A20;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}</style>'
   '<script>window.HAYDASH_APP=1</script><script src="config.js"></script>')
 app_sw_reg = ('<script>if("serviceWorker" in navigator&&location.protocol!=="file:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>')
-open('app/index.html','w').write(app_head + head + '</head><body>' + body + rel_script + app_sw_reg + '</body></html>')
+open('app/index.html','w').write(app_head + head.replace('<title>レンとジルのチモシーダッシュ</title>', '') + '</head><body>' + seo.noscript() + body + rel_script + app_sw_reg + '</body></html>')
+seo.write('app')
 manifest = { "name": "レンとジルのチモシーダッシュ", "short_name": "チモシーダッシュ", "description": "うさぎの課長レンと部下ジルが、チモシーを集めながら東京をかけぬけるランゲーム",
   "lang": "ja", "start_url": "./", "scope": "./", "display": "standalone", "orientation": "any", "background_color": "#3B2A20", "theme_color": "#3B2A20",
   "icons": [{ "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" }, { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" },
