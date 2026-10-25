@@ -34,6 +34,11 @@ const T = [
   { n: 'xfer', why: 'データ引き継ぎ', ok: noErr },
   { n: 'rankpage', why: 'だれでも見られるランキングのページ', ok: noErr },
   { n: 'apptest', why: 'アプリ版（ランキング・オフライン）', ok: has('"offlinePlay": true') },
+  { n: 'pomplay', why: 'ポムで走れる（会う前は出ない・3人そろう）', ok: has('POM PLAY OK'), timeout: 400 },
+  { n: 'chaltest', why: '友だちへの挑戦リンク', ok: has('CHALLENGE OK'), timeout: 400 },
+  { n: 'firstrun', why: 'はじめての30秒（ごほうび・初回ボーナス）', ok: has('FIRST RUN OK'), timeout: 300 },
+  { n: 'resettest', why: 'データのリセット（ランキングの記録も消える）', ok: has('RESET OK'), timeout: 200 },
+  { n: 'seo', why: '検索で見つけてもらう（タイトル・説明・ガイド・地図）', ok: has('SEO OK'), timeout: 200 },
 ];
 if (MODE === 'full') {
   for (let i = 0; i < 6; i++) T.push({ n: 'qa_stage', env: { NP: '6', PI: String(i) }, label: 'qa_stage#' + i, why: '全ステージ×5場面の表示（' + (i + 1) + '/6）', ok: has('bad 0'), timeout: 700 });
