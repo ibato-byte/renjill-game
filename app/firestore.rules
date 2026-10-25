@@ -1,0 +1,13 @@
+rules_version = '2';
+// ranking rules: anyone can read the board; each device (an anonymous account) can only write its own row, with sane values
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /ranks/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().size() <= 60
+        && (!('nick' in request.resource.data) || (request.resource.data.nick is string && request.resource.data.nick.size() <= 12))
+        && (!('all' in request.resource.data) || (request.resource.data.all is int && request.resource.data.all >= 0 && request.resource.data.all < 50000000));
+    }
+  }
+}
