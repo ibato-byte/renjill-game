@@ -15,7 +15,7 @@ print(len(head+body+script))
 # ---- the app (PWA): a folder to put on any static host; installable, plays offline ----
 import os, json, hashlib
 pass
-ver = hashlib.sha1(rel_js.encode()).hexdigest()[:10]
+ver = hashlib.sha1((head + body + rel_js).encode()).hexdigest()[:10]
 app_head = ('<!doctype html><html lang="ja"><head><meta charset="utf-8">'
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
   '<meta name="theme-color" content="#3B2A20"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">'
