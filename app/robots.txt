@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /feed.json
+
+Sitemap: https://renjill-hay-dash.pages.dev/sitemap.xml
