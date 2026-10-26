@@ -89,7 +89,7 @@ function titleFrame(dt) {
 
 /* ---------- run lifecycle ---------- */
 function startRun() {
-  audioInit(); SFX.ui();
+  audioInit(); SFX.ui(); { const f = document.getElementById('tFresh'); if (f) f.remove(); }
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
     fork: null, forkRest: null, rush: 0, chimed: 0, soonTold: 0, gaugeTold: 0, gainT: 0, feverMax: 6, hitStop: 0, jumpBuf: 0, tut: null, tutDid: '', fovK: 0, look: 0, lookCD: 4, photoT: 0, capture: null, rumbleT: 8, shake: 0, announce: [] });
@@ -727,10 +727,11 @@ const SHARE = {
   text: () => G.lastShare || '', url: () => G.score > 0 ? GAME_URL + (GAME_URL.includes('?') ? '&' : '?') + 'beat=' + Math.floor(G.score) + '&c=' + G.char : GAME_URL, // the link carries your score: whoever opens it gets a challenge to beat it
 };
 const encU = encodeURIComponent;
+const extOpen = u => u + (u.includes('?') ? '&' : '?') + 'openExternalBrowser=1'; // LINE opens such a link in the phone's own browser (one account, not a second one inside LINE)
 function shareLinks() {
   const txt = SHARE.text(), u = SHARE.url();
   return { x: `https://x.com/intent/post?text=${encU(txt)}&url=${encU(u)}`,
-    line: SHARE.phone() ? `https://line.me/R/share?text=${encU(txt + '\n' + u)}` : `https://social-plugins.line.me/lineit/share?url=${encU(u)}&text=${encU(txt)}`,
+    line: SHARE.phone() ? `https://line.me/R/share?text=${encU(txt + '\n' + extOpen(u))}` : `https://social-plugins.line.me/lineit/share?url=${encU(u)}&text=${encU(txt)}`,
     fb: `https://www.facebook.com/sharer/sharer.php?u=${encU(u)}` };
 }
 async function copyText(s) { try { await navigator.clipboard.writeText(s); return true; } catch (e) { }

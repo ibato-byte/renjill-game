@@ -27,6 +27,7 @@ function fsdbMake(cfg) {
     return {
       async get() { const r = await call(url); if (r.status === 404) return { exists: false, data: () => ({}) }; if (!r.ok) throw new Error('get ' + r.status); const d = await r.json(); return { exists: true, data: () => dataOf(d) }; },
       async set(o) { const r = await call(url, { method: 'PATCH', body: JSON.stringify({ fields: fieldsOf(o) }) }); if (!r.ok) throw new Error('set ' + r.status); },
+      async delete() { const r = await call(url, { method: 'DELETE' }); if (!r.ok && r.status !== 404) throw new Error('delete ' + r.status); },
       async update(o) { const q = Object.keys(o).map(k => 'updateMask.fieldPaths=' + encodeURIComponent(k)).join('&'); const r = await call(url + '?' + q + '&currentDocument.exists=true', { method: 'PATCH', body: JSON.stringify({ fields: fieldsOf(o) }) }); if (!r.ok) throw new Error('update ' + r.status); },
     };
   }

@@ -101,7 +101,7 @@ function settingsHTML() {
     row(t('calm'), 'calm', [[true, t('on')], [false, t('off')]]) + row(t('music'), 'music', [[true, t('on')], [false, t('off')]]) + row(t('sfx'), 'sfx', [[true, t('on')], [false, t('off')]]) +
     `<button class="sub" id="btnNameSet">${esc(SV.nick ? t('nameBtn', SV.nick) : t('nameNone'))}</button> <button class="sub" id="btnTut">${esc(t('resetTut'))}</button>` +
     `<div class="m xfer"><p><b>${esc(t('codeH'))}</b></p><p class="note">${esc(t('codeNote'))}</p><div class="btns" style="display:flex;gap:8px"><input id="codeIn" maxlength="24" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="${esc(t('codePh'))}" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px"><button class="sub" id="btnCode" style="width:auto">${esc(t('codeOk'))}</button></div><p class="note" id="codeMsg" aria-live="polite"></p></div>` +
-    `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" readonly rows="3" hidden></textarea>` +
+    linkHTML() + `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" readonly rows="3" hidden></textarea>` +
     `<textarea id="xferIn" rows="3" placeholder="${esc(t('xferPaste'))}"></textarea><button class="sub" id="btnXferLoad">${esc(t('xferLoad'))}</button><p class="note" id="xferMsg" aria-live="polite"></p></div>` +
     `<div class="m xfer reset"><p><b>${esc(t('resetH'))}</b></p><p class="note">${esc(t('resetNote'))}</p><button class="sub danger" id="btnReset">${esc(t('resetBtn'))}</button>` +
     `<div id="resetAsk" hidden><p class="note"><b>${esc(t('resetAsk'))}</b></p><div style="display:flex;gap:8px"><button class="sub danger" id="btnResetYes">${esc(t('resetYes'))}</button><button class="sub" id="btnResetNo">${esc(t('resetNo'))}</button></div></div><p class="note" id="resetMsg" aria-live="polite"></p></div>`;
@@ -133,6 +133,52 @@ async function resetAll() {
   for (const k of [SAVE_KEY, 'rjChal', 'hd_fsauth']) { try { localStorage.removeItem(k); } catch (e) { } }
   msg.textContent = t('resetDone'); setTimeout(() => location.reload(), 700);
 }
+/* ---- one account across browsers and devices: a short code (15 minutes) instead of a long transfer code ----
+   links/<CODE> = { d: the transfer code of the device that made it, exp, by }. The code is the secret; it is deleted once used. */
+const LINK_ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', LINK_MIN = 15;
+const linkOn = () => !!(RANK.own && rankOn());
+const linkFmt = c => c.slice(0, 4) + '-' + c.slice(4);
+const linkClean = v => String(v || '').normalize('NFKC').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+function linkHTML() {
+  if (!linkOn()) return '';
+  return `<div class="m xfer link"><p><b>${esc(t('linkH'))}</b></p><p class="note">${esc(t('linkNote'))}</p>` +
+    `<button class="sub" id="btnLinkMake">${esc(t('linkMake'))}</button><div id="linkOut" hidden></div>` +
+    `<div class="btns" style="display:flex;gap:8px;margin-top:8px"><input id="linkIn" maxlength="9" autocomplete="off" autocapitalize="characters" enterkeyhint="go" placeholder="${esc(t('linkPh'))}" style="flex:1;min-width:0;font:inherit;font-size:18px;letter-spacing:.12em;text-transform:uppercase;padding:8px 10px;border-radius:10px;border:2px solid var(--line)"><button class="sub" id="btnLinkGo" style="flex:none;width:auto;padding-left:18px;padding-right:18px">${esc(t('linkGo'))}</button></div>` +
+    `<div id="linkAsk" hidden></div><p class="note" id="linkMsg" aria-live="polite"></p></div>`;
+}
+async function linkMake() {
+  const msg = $('#linkMsg'), out = $('#linkOut'); msg.textContent = t('linkWait');
+  try { saveNow(); const d = await xferMake(); let code = ''; const r = new Uint32Array(8); crypto.getRandomValues(r); for (const x of r) code += LINK_ABC[x % LINK_ABC.length];
+    await RANK.db.doc('links/' + code).set({ d, exp: Date.now() + LINK_MIN * 60e3, by: RANK.uid });
+    const url = (window.HAYDASH_APP && /^https?:/.test(location.href) ? location.href.split('#')[0].split('?')[0] : GAME_URL) + '?link=' + code;
+    out.hidden = false; out.innerHTML = `<p class="linkcode">${esc(linkFmt(code))}</p><p class="note">${esc(t('linkShow', LINK_MIN))}</p><button class="sub" id="btnLinkCopy">${esc(t('linkCopy'))}</button>`; out.dataset.url = url;
+    msg.textContent = '';
+  } catch (e) { msg.textContent = t('linkFail'); }
+}
+async function linkLook(raw) {
+  const code = linkClean(raw), msg = $('#linkMsg'), ask = $('#linkAsk'); ask.hidden = true; if (code.length !== 8) { msg.textContent = t('linkBad'); return; }
+  msg.textContent = t('linkWait');
+  try { const sn = await RANK.db.doc('links/' + code).get(); const o = sn.exists ? sn.data() : null;
+    if (!o || !o.d || !(o.exp > Date.now())) { msg.textContent = t('linkBad'); return; }
+    if (o.by === RANK.uid) { msg.textContent = t('linkSelf'); return; }
+    const them = await xferRead(o.d); msg.textContent = '';
+    ask.hidden = false; ask.dataset.code = code; ask.dataset.d = o.d;
+    const mine = (SV.best || 0) > (them.best || 0);
+    ask.innerHTML = `<p class="note"><b>${esc(t('linkAsk', fmt(them.best || 0), fmt(them.bank || 0)))}</b></p>` + (mine ? `<p class="note" style="color:#B3352A">${esc(t('linkMine', fmt(SV.best || 0)))}</p>` : '') +
+      `<div style="display:flex;gap:8px"><button class="sub" id="btnLinkYes">${esc(t('linkYes'))}</button><button class="sub" id="btnLinkNo">${esc(t('resetNo'))}</button></div>`;
+  } catch (e) { msg.textContent = t('linkFail'); }
+}
+async function linkApply() {
+  const ask = $('#linkAsk'), msg = $('#linkMsg'), code = ask.dataset.code, d = ask.dataset.d; if (!code || !d) return;
+  $('#btnLinkYes').disabled = true; msg.textContent = t('linkWait');
+  try { if (rankOn()) await Promise.race([RANK.db.doc('ranks/' + RANK.uid).set({}), new Promise(r => setTimeout(r, 4000))]); } catch (e) { } // this browser's own entry leaves the boards: one player, one row
+  try { await RANK.db.doc('links/' + code).delete(); } catch (e) { }
+  try { await xferApply(d); } catch (e) { msg.textContent = t('linkFail'); return; }
+  RESETTING = 1; msg.textContent = t('linkDone'); setTimeout(() => location.reload(), 800);
+}
+// opened from a "connect" link (?link=CODE): open the settings with the code filled in
+const LINK_Q = (() => { try { const m = /[?&]link=([A-Za-z0-9-]{8,9})\b/.exec(location.search); if (m) { history.replaceState(null, '', location.pathname + location.hash); return linkClean(m[1]); } } catch (e) { } return ''; })();
+function linkFromUrl() { if (!LINK_Q) return; const go = (n) => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn()) return; openSettings(); const i = $('#linkIn'); if (i) { i.value = linkFmt(LINK_Q); i.scrollIntoView({ block: 'center' }); linkLook(LINK_Q); } }; go(0); }
 function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); }
 let rvTimer = null;
 function openRevive() {
@@ -222,6 +268,11 @@ $('#sPanel').addEventListener('click', e => {
   if (e.target.id === 'btnTut') { SV.tutDone = 0; save(); e.target.textContent = t('resetDone'); }
   if (e.target.id === 'btnXferMake') { saveNow(); xferMake().then(code => { const o = $('#xferOut'); o.hidden = false; o.value = code; o.select(); try { navigator.clipboard.writeText(code).catch(() => { }); } catch (x) { } $('#xferMsg').textContent = t('xferCopied'); }).catch(() => { $('#xferMsg').textContent = t('xferBad'); }); }
   if (e.target.id === 'btnCode') { redeemCode($('#codeIn').value); return; }
+  if (e.target.id === 'btnLinkMake') { linkMake(); return; }
+  if (e.target.id === 'btnLinkCopy') { const u = $('#linkOut').dataset.url; copyText(u).then(ok => { $('#linkMsg').textContent = ok ? t('linkCopied') : u; }); if (navigator.share && SHARE.phone()) navigator.share({ url: u }).catch(() => { }); return; }
+  if (e.target.id === 'btnLinkGo') { linkLook($('#linkIn').value); return; }
+  if (e.target.id === 'btnLinkYes') { linkApply(); return; }
+  if (e.target.id === 'btnLinkNo') { $('#linkAsk').hidden = true; return; }
   if (e.target.id === 'btnReset') { $('#resetAsk').hidden = false; $('#btnReset').hidden = true; $('#btnResetNo').focus(); return; }
   if (e.target.id === 'btnResetNo') { $('#resetAsk').hidden = true; $('#btnReset').hidden = false; return; }
   if (e.target.id === 'btnResetYes') { resetAll(); return; }
@@ -279,7 +330,7 @@ function boot() {
   const td = todayStr();
   if (SV.daily !== td) { const y = new Date(Date.now() - 864e5); const ys = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate(); SV.streak = SV.daily === ys ? Math.min(7, SV.streak + 1) : 1; SV.daily = td; const b = 30 + SV.streak * 20; SV.bank += b; save(); refreshTitle(); toastTitle(t('daily', SV.streak, b)); }
   if (EVENT) { const gifts = CLOSET.filter(c => c.ev === EVENT && !SV.closet[c.id]); if (gifts.length) { for (const c of gifts) SV.closet[c.id] = 1; save(); const g = (EVENT_INFO.gift || EV_KITS[EVENT].gift), until = EVENT_INFO.to ? (LANG === 'ja' ? `（〜${+EVENT_INFO.to.slice(5, 7)}/${+EVENT_INFO.to.slice(8, 10)}）` : ` (to ${EVENT_INFO.to.slice(5).replace('-', '/')})`) : ''; setTimeout(() => toastTitle(L(g) + until), document.querySelector('.toast') ? 4300 : 300); } }
-  loadFeed();
+  loadFeed(); linkFromUrl(); inAppCard(); freshCard();
   setTimeout(() => { try { if (!CLOUD_SPR.length) buildCloudSprites(); if (!FTEX.asphalt) buildFloorTex(); } catch (e) { } }, 1200); // ready before the first street
   requestAnimationFrame(frame);
 }
@@ -289,6 +340,26 @@ function boot() {
 const FEED_URL = (window.HAYDASH_APP ? './' : 'https://renjill-hay-dash.pages.dev/') + 'feed.json';
 let FEED = null; try { FEED = JSON.parse(localStorage.getItem('rjFeed') || 'null'); } catch (e) { }
 function loadFeed() { try { fetch(FEED_URL + '?t=' + Math.floor(Date.now() / 36e5), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (!j || typeof j !== 'object') return; FEED = j; try { localStorage.setItem('rjFeed', JSON.stringify(j)); } catch (e) { } feedCard(); }).catch(() => { }); } catch (e) { } }
+function inAppCard() { // inside an app's built-in browser the game would start a second account: offer the phone's own browser
+  if (!window.HAYDASH_APP || !/^https?:/.test(location.href)) return; const ua = navigator.userAgent || '', line = /\bLine\//i.test(ua), other = /Instagram|FBAN|FBAV|FB_IAB|Twitter|TwitterAndroid|\bKAKAOTALK/i.test(ua);
+  if (!line && !other) return; let dis = 0; try { dis = +sessionStorage.getItem('rjInApp') || 0; } catch (e) { } if (dis) return;
+  // the way out of each app's browser: LINE takes a flag; on Android any app hands the page to Chrome; on iPhone (iOS 17+) Safari opens from its own link form
+  const here = location.href.split('#')[0], android = /Android/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua);
+  const go = line ? extOpen(here) : android ? 'intent://' + here.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end' : ios ? 'x-safari-' + here : '';
+  const el = document.createElement('div'); el.className = 'inapp'; el.id = 'tInApp';
+  el.innerHTML = `<p><b>${esc(t(line ? 'inAppLine' : 'inAppOther'))}</b><br><span>${esc(t('inAppNote'))}</span></p>` + (go ? `<a class="notelink" id="inAppGo" href="${esc(go)}">${esc(t('inAppGo'))}</a>` : '') + (line ? '' : `<p class="note" style="margin-top:6px">${esc(t('inAppHow'))}</p>`) + `<button class="x" id="inAppX" aria-label="${esc(t('close'))}">×</button>`;
+  const card = $('#btnStart').closest('.card'); card.insertBefore(el, card.firstChild);
+  $('#inAppX').onclick = () => { el.remove(); try { sessionStorage.setItem('rjInApp', '1'); } catch (e) { } };
+}
+function freshCard() { // a brand-new browser or home-screen app: if they played somewhere else, one tap to bring that account here
+  const go = n => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn() || (SV.runs || 0) > 0 || LINK_Q || G.mode !== 'title' || $('#tFresh')) return; let dis = 0; try { dis = +localStorage.getItem('rjFreshX') || 0; } catch (e) { } if (dis) return;
+    const el = document.createElement('div'); el.className = 'inapp fresh'; el.id = 'tFresh';
+    el.innerHTML = `<p><b>${esc(t('freshH'))}</b><br><span>${esc(t('freshNote'))}</span></p><button class="notelink" id="freshGo" style="border:0;cursor:pointer;font:inherit;font-weight:800">${esc(t('freshGo'))}</button><button class="x" id="freshX" aria-label="${esc(t('close'))}">×</button>`;
+    const card = $('#btnStart').closest('.card'), after = $('#tInApp'); card.insertBefore(el, after ? after.nextSibling : card.firstChild);
+    $('#freshX').onclick = () => { el.remove(); try { localStorage.setItem('rjFreshX', '1'); } catch (e) { } };
+    $('#freshGo').onclick = () => { openSettings(); const i = $('#linkIn'); if (i) { i.scrollIntoView({ block: 'center' }); setTimeout(() => i.focus(), 300); } };
+  }; go(0);
+}
 function chalCard() { // a friend sent you their score: show it right above the START button
   let el = $('#tChal'); const on = CHAL && !CHAL.won; if (!on) { if (el) el.hidden = true; return; }
   if (!el) { el = document.createElement('div'); el.id = 'tChal'; el.className = 'chalcard'; el.setAttribute('role', 'note'); const b = $('#btnStart'); b.parentNode.insertBefore(el, b); }
