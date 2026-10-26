@@ -568,9 +568,17 @@ const EL = {}; const el = id => EL[id] || (EL[id] = document.getElementById(id))
 function setCls(id, c, on) { const k = id + '.' + c; on = !!on; if (HUDC[k] !== on) { HUDC[k] = on; const e = el(id); if (e) e.classList.toggle(c, on); } }
 function setStyle(id, prop, v) { const k = id + '#' + prop; if (HUDC[k] !== v) { HUDC[k] = v; const e = el(id); if (e) e.style[prop] = v; } }
 function setText(id, v) { if (HUDC[id] !== v) { HUDC[id] = v; const e = document.getElementById(id); if (e) e.textContent = v; } }
+// the score box shares the top row with the clock and the hay: when the number gets long (7 digits and up) or the place name is long, its digits shrink to fit
+let FIT = { k: '', n: 0 };
+function fitScore() {
+  if ((FIT.n = (FIT.n + 1) % 12) && FIT.k) return; const sc = el('hScore'), hy = el('hHay'), top = sc && sc.closest('.hud-top'); if (!top || !hy) return;
+  const clock = top.querySelector('.clock'), k = sc.textContent.length + '|' + hy.textContent.length + '|' + clock.offsetWidth + '|' + top.clientWidth; if (k === FIT.k) return; FIT.k = k;
+  const gap = parseFloat(getComputedStyle(top).columnGap) || 8, half = (top.clientWidth - clock.offsetWidth) / 2 - gap;
+  for (const [e, pad] of [[sc, 22], [hy, 22 + 32]]) { e.style.fontSize = ''; const base = parseFloat(getComputedStyle(e).fontSize), avail = half - pad; if (e.scrollWidth > avail) e.style.fontSize = Math.max(10, Math.floor(base * avail / e.scrollWidth)) + 'px'; }
+}
 function hud() {
   chalTick(); setText('hChal', CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
-  setText('hScore', fmt(G.score)); setText('hHay', String(Math.floor(G.hay)));
+  setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay)));
   setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
   setText('hClock', clockStr(G.clock)); setText('hDay', LANG === 'ja' ? G.day + t('dayLbl') : t('dayLbl') + ' ' + G.day);
   { const sg = curSeg(); setText('hRoom', sg.th.climb ? `${L(sg.th)} ${altitude(sg, G.s)}m` : L(sg.th)); }
