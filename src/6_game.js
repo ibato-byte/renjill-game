@@ -175,9 +175,11 @@ function act(a) {
     const nl = clamp(G.lane + d, 0, 2); if (nl !== G.lane) { G.prevLane = G.lane; G.lane = nl; G.laneT = .35; G.tutDid = 'side'; tone(520 + d * 40, .04, 'triangle', .06); }
   } else if (a === 'up') {
     if (G.pow.fly > 0) return;
-    if (!G.air) { G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up';
+    if (!G.air) { G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up';
       { const seg = curSeg(), pl = G.lat, reach = (G.speed + 10) * .7; // a car coming in this lane: a big vault that clears its roof
-        const car = seg.obs.find(o => o.car && !o.dead && pl + .3 > o.l0 && pl - .3 < o.l1 && o.s0 + (o.ds || 0) - G.s > -1 && o.s0 + (o.ds || 0) - G.s < reach); if (car) { G.vy = capV(vaultV(car.vault || 1.6), G.y, VAULT_G); G.vault = 1; } } } // a long leap just over its roof
+        // a low thing ahead in this lane (a chair, a bench, a suitcase, the low sports car): the leap stretches a little (floats, no higher) so a slightly early jump still clears it
+        const low = seg.obs.filter(o => o.k === 'low' && !o.dead && !o.full && pl + .3 > o.l0 && pl - .3 < o.l1 && o.s1 + (o.ds || 0) - G.s > -.5 && o.s0 + (o.ds || 0) - G.s < reach).sort((a, b) => a.s0 + (a.ds || 0) - b.s0 - (b.ds || 0))[0];
+        if (low && !(G.pow.jump > 0)) { G.vault = LOW_G; G.vaultDown = 1; } } } // a normal take-off; it only drifts down more slowly (same height)
     else G.jumpBuf = .16;
   } else if (a === 'down') {
     if (G.pow.fly > 0) return;
@@ -378,11 +380,11 @@ function update(dt) {
   // vertical
   if (flying) { G.y = lerp(G.y, G.flyY, 1 - Math.exp(-dt * 4)); G.vy = 0; G.air = true; }
   else {
-    if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault ? VAULT_G : 1); G.y += G.vy * dt; G.air = true; }
+    if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault ? (G.vaultDown && G.vy > 0 ? 1 : G.vault) : 1); G.y += G.vy * dt; G.air = true; }
     if (G.y <= ground) {
       if (G.air && G.vy < -4) { const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
       G.y = ground; G.vy = 0;
-      if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; } else { G.air = false; G.vault = 0; }
+      if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; G.vaultDown = 0; } else { G.air = false; G.vault = 0; G.vaultDown = 0; }
     }
   }
   if (G.slideT > 0) G.slideT -= dt;

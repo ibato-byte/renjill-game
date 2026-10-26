@@ -546,7 +546,7 @@ const OBS = {
   picnic: L => ({ k: 'low', bx: [OB(L, 0, 1.7, 1.5, 0, .04, '#3A73C2'), OB(L - .4, .3, .5, .38, .04, .42, '#E9EDF0'), OB(L - .4, .3, .52, .4, .42, .48, '#3A73C2'), OB(L + .35, .5, .5, .4, .04, .16, '#2B2B2B'), OB(L + .35, .5, .5, .4, .16, .2, '#C8463C'), OB(L + .3, .05, .2, .2, .04, .32, '#5F9E5A')] }),
   // a photographer's tripod, set up to shoot the blossoms
   tripod: L => ({ k: 'block', bx: [OB(L - .3, .1, .06, .06, 0, 1.35, '#2B2B2B'), OB(L + .3, .1, .06, .06, 0, 1.35, '#2B2B2B'), OB(L, .5, .06, .06, 0, 1.35, '#2B2B2B'), OB(L, .2, .4, .3, 1.35, 1.62, '#1E1E22'), OB(L, .05, .16, .2, 1.4, 1.56, '#46525E'), OB(L, .15, .8, .45, 0, .72, '#3B4650'), OB(L, .14, .82, .1, .72, .8, '#2B2B2B')] }),
-  stroller: L => ({ k: 'block', mv: 1.6, bx: [OB(L - .3, 0, .08, .08, 0, .2, '#2B2B2B'), OB(L + .3, 0, .08, .08, 0, .2, '#2B2B2B'), OB(L - .3, .7, .08, .08, 0, .2, '#2B2B2B'), OB(L + .3, .7, .08, .08, 0, .2, '#2B2B2B'), OB(L, .35, .66, .8, .22, .75, '#B9C7D6'), OB(L, .55, .7, .45, .75, 1.15, '#8DA2B8'), OB(L, -.15, .5, .06, .9, 1.1, '#46525E')] }),
+  stroller: L => ({ k: 'low', hitTop: .9, mv: 1.6, bx: [OB(L - .3, 0, .08, .08, 0, .2, '#2B2B2B'), OB(L + .3, 0, .08, .08, 0, .2, '#2B2B2B'), OB(L - .3, .7, .08, .08, 0, .2, '#2B2B2B'), OB(L + .3, .7, .08, .08, 0, .2, '#2B2B2B'), OB(L, .35, .66, .8, .22, .75, '#B9C7D6'), OB(L, .55, .7, .45, .75, 1.15, '#8DA2B8'), OB(L, -.15, .5, .06, .9, 1.1, '#46525E')] }),
   leafpile: L => ({ k: 'low', bx: [OB(L, 0, 1.3, 1.1, 0, .32, '#E8B923'), OB(L, .2, .9, .7, .32, .55, '#F2CD45')] }),
   stoneLanternO: L => ({ k: 'block', bx: [OB(L, 0, .8, .8, 0, .3, '#8F8A80'), OB(L, .25, .3, .3, .3, 1.3, '#8F8A80'), OB(L, 0, .8, .8, 1.3, 1.7, '#A09B90', 1), OB(L, -.1, 1.0, 1.0, 1.7, 1.9, '#7A756D')] }),
   bridge: () => { const c = pick([['#C0392B', '吾妻橋'], ['#3A6FB0', '駒形橋'], ['#5F9E5A', '厩橋'], ['#E9D9BF', '蔵前橋']]);
@@ -565,8 +565,8 @@ const OBS = {
       OB(L - w * .38, -.02, .24, .02, .55, .72, '#FFF6DC', 2), OB(L + w * .38, -.02, .24, .02, .55, .72, '#FFF6DC', 2), OB(L, -.02, w * .5, .02, .35, .45, '#3B3B3B'),
       OB(L - w * .42, .5, .14, .62, 0, .62, '#1C1919'), OB(L + w * .42, .5, .14, .62, 0, .62, '#1C1919'), OB(L - w * .42, len - 1.1, .14, .62, 0, .62, '#1C1919'), OB(L + w * .42, len - 1.1, .14, .62, 0, .62, '#1C1919')];
     if (t === 'taxi') bx.push(Object.assign(OB(L, cabinS + .9, .6, .3, roof, roof + .22, '#FBF6EE', 2), { txt: 'TAXI', tc: '#2B2B2B' }));
-    const tall = roof >= 1.7; // an SUV, a kei car or a van: too tall to hop over, so it is dodged
-    return { k: tall ? 'block' : 'low', car: tall ? 0 : 1, vault: roof + .2, mv: 6.5, bx, art: 'car', av: { t, c }, artW: w * 1.04, artH: roof + (t === 'taxi' ? .24 : .02) }; },
+    // every ordinary car is taller than the runners: dodged, never jumped (one simple rule: low things you hop, tall things you go round). Only the low sports car is hopped
+    return { k: 'block', car: 0, mv: 6.5, bx, art: 'car', av: { t, c }, artW: w * 1.04, artH: roof + (t === 'taxi' ? .24 : .02) }; },
   // a low red supercar (generic shape, no badge); like every car, something to dodge
   supercar: L => { const c = pick(['#D42A1E', '#D42A1E', '#F2C230', '#F3F3F3']);
     return { k: 'low', car: 1, vault: 1.4, mv: 10, roar: 1, bx: [OB(L, 0, 1.95, 4.5, .14, .62, c), OB(L, 1.3, 1.7, 1.9, .62, 1.0, c), OB(L, 1.28, 1.5, .02, .66, .96, '#1C2630'), OB(L, 3.9, 1.9, .25, .62, .78, '#2B2B2B'),

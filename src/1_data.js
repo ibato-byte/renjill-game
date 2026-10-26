@@ -199,6 +199,7 @@ const LANES = [-LANE, 0, LANE];
 const DIRS = [[0, 1], [1, 0], [0, -1], [-1, 0]];
 const GRAV = 24, JUMPV = 8.0, SUPERV = 9.6, VAULT_G = .5; // a car vault is a long, floaty leap (half the gravity) just over the roof, not a big high jump. Tall cars are dodged, not jumped
 const vaultV = h => Math.sqrt(2 * GRAV * VAULT_G * h);
+const LOW_G = .3; // a jump toward a low obstacle: a bit less gravity, so it lasts longer without going higher
 const MAX_JUMP = 2.1; // no jump ever goes higher than this above the floor (standing on a box, super jump or not)
 const capV = (v, y, g) => Math.min(v, Math.sqrt(2 * GRAV * (g || 1) * Math.max(.25, MAX_JUMP - (y || 0))));
 const STAND_H = 0.92, SLIDE_H = 0.42;
