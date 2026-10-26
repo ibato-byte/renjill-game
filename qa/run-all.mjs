@@ -46,7 +46,7 @@ const T = [
 if (MODE === 'full') {
   for (let i = 0; i < 6; i++) T.push({ n: 'qa_stage', env: { NP: '6', PI: String(i) }, label: 'qa_stage#' + i, why: '全ステージ×5場面の表示（' + (i + 1) + '/6）', ok: has('bad 0'), timeout: 700 });
   T.push({ n: 'stuck', args: ['300'], env: { LATE: '0' }, label: 'stuck-long', why: 'とても長く走っても動けなくならない（5分×3人）', ok: has('NO STUCK'), timeout: 1200 });
-  T.push({ n: 'carjump', why: '低い物は少し早めでも跳べる・車はよける（高く飛びすぎない）', ok: o => !/HIT/.test(o) && !/TOOHIGH/.test(o) && /CARBLOCK ok/.test(o), timeout: 600 });
+  T.push({ n: 'carjump', why: '低い物は跳べる・車はよける（高く飛びすぎない）', ok: o => !/HIT/.test(o) && !/TOOHIGH/.test(o) && /CARBLOCK ok/.test(o), timeout: 600 });
   T.push({ n: 'longrun', args: ['24'], why: 'スマホで長時間プレイ（止まり・メモリ）', ok: o => /"mode":"play"/.test(o) && !/pageerror|Uncaught/.test(o), timeout: 500 });
   T.push({ n: 'en_play', why: '英語版のプレイ中の文字', ok: o => /JP strings seen in EN play: 0/.test(o), timeout: 900 });
 }
