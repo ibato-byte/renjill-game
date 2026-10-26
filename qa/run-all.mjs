@@ -1,6 +1,6 @@
 // QA の全部を順に動かし、合否を qa-report.json と qa-report.md に書く。
 // 使い方: node qa/run-all.mjs [quick|full]   （先に python3 build.py を実行しておく）
-// quick = 毎日（約10分） / full = 毎週（約25分。全ステージ×5場面、長時間プレイ、車ジャンプなど）
+// smoke = main への変更ごと（約1分。公開前の最低限。変更前に手元で quick を通しておく） / quick = 週3回（約20分） / full = 毎週（全ステージ×5場面、長時間プレイ、車ジャンプなど）
 // 終了コード: 全部合格 0 / どれか不合格 1
 import { spawn } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -44,6 +44,7 @@ const T = [
   { n: 'hudfit', why: '上の3つの枠がスマホではみ出さない（スコア7〜9桁）', ok: has('HUD FIT OK'), timeout: 300 },
   { n: 'seo', why: '検索で見つけてもらう（タイトル・説明・ガイド・地図）', ok: has('SEO OK'), timeout: 200 },
 ];
+if (MODE === 'smoke') { const keep = new Set(['dupcheck', 'qa', 'reltest', 'apptest', 'seo']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
 if (MODE === 'full') {
   for (let i = 0; i < 6; i++) T.push({ n: 'qa_stage', env: { NP: '6', PI: String(i) }, label: 'qa_stage#' + i, why: '全ステージ×5場面の表示（' + (i + 1) + '/6）', ok: has('bad 0'), timeout: 700 });
   T.push({ n: 'stuck', args: ['300'], env: { LATE: '0' }, label: 'stuck-long', why: 'とても長く走っても動けなくならない（5分×3人）', ok: has('NO STUCK'), timeout: 1200 });
