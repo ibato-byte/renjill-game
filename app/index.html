@@ -166,6 +166,7 @@ html[lang="ja"] .mini span{display:none}html[lang="ja"] .ph small{display:none}
 .booting #app>:not(#cv):not(#bootMsg):not(script){visibility:hidden}#bootMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#FBF6EE;font-weight:900;font-size:18px;letter-spacing:.08em;z-index:50;pointer-events:none}html:not(.booting) #bootMsg{display:none}
 .inapp{position:relative;padding:10px 34px 10px 12px;border-radius:14px;background:#EAF3E3;border:2px solid #9CC9A8;font-size:13px;line-height:1.5}.inapp p{margin:0 0 6px}.inapp span{color:var(--ink-soft)}.inapp .x{position:absolute;right:6px;top:6px;border:0;background:transparent;font-size:18px;color:var(--ink-soft);cursor:pointer}
 .m.xfer p.linkcode{font-family:var(--f-display);font-size:32px;letter-spacing:.14em;text-align:center;margin:8px 0 2px;user-select:all;-webkit-user-select:all}
+.quiet{margin:6px 0 0;text-align:center;font-size:12px;line-height:1.5;color:var(--ink-soft)}.quiet a{color:var(--ink);font-weight:800;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}.quiet small{display:block;margin-top:2px;font-size:11px}
 .notelink{display:inline-block;margin-top:4px;padding:6px 12px;border-radius:999px;background:var(--ink);color:#fff;font-weight:800;text-decoration:none}
 .how{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;font-size:13px;font-weight:700}
 .how kbd{font-family:var(--f-display);font-size:13px;background:var(--cream);border-radius:8px;padding:6px 8px;text-align:center;min-width:64px}
@@ -616,9 +617,9 @@ const STR = {
   linkBad: ['コードが見つかりません（まちがい・15分が過ぎた・使用ずみ）', 'Code not found (typo, expired after 15 minutes, or already used)'], linkSelf: ['これはこの端末で出したコードです。もう一方の端末で入れてください', 'This code was made here. Enter it on the other device.'],
   linkAsk: ['つなぐ先の記録（ベスト {0}点・チモシー {1}本）にそろえますか？', 'Switch to that account (best {0}, hay {1})?'], linkMine: ['この端末のほうが記録が上です（ベスト {0}点）。この端末でコードを出して、もう一方で入れるのがおすすめです', 'This device has the better record (best {0}). Better: make the code here and enter it on the other one.'],
   linkYes: ['そろえる', 'Switch'], linkDone: ['つなぎました。同じアカウントで始めます', 'Connected. Starting with the same account'], linkFail: ['うまくいきませんでした。少しあとでもう一度ためしてください', 'That did not work. Please try again in a moment.'],
-  inAppLine: ['LINEの中で開いています', 'You are inside LINE'], inAppOther: ['アプリの中のブラウザで開いています', 'You are in an in-app browser'], inAppNote: ['いつものブラウザで開くと、記録が1つのアカウントで続きます', 'Open it in your usual browser so your progress stays in one account'],
+  inAppLine: ['LINEの中で開いています', 'Opened inside LINE'], inAppOther: ['アプリの中で開いています', 'Opened inside an app'], inAppNote: ['いつものブラウザで開くと、記録が1つのアカウントで続きます', 'Open it in your usual browser so your progress stays in one account'],
   inAppGo: ['いつものブラウザで開く', 'Open in my browser'], inAppHow: ['開かないときは、右上の「…」や共有ボタンから「ブラウザで開く」を選んでください', 'If it does not open, tap ⋯ or the share button and choose “Open in browser”'], close: ['閉じる', 'Close'],
-  freshH: ['ほかの端末やブラウザで遊んだことがある？', 'Played before on another device or browser?'], freshNote: ['その記録をここにつなげば、アカウントが1つのまま続きます（ログイン不要）', 'Connect that progress here and keep one account (no sign-in)'], freshGo: ['記録をつなぐ', 'Connect my progress'],
+  freshH: ['前に別の端末で遊んだ？', 'Played on another device?'], freshNote: ['その記録をここにつなげば、アカウントが1つのまま続きます（ログイン不要）', 'Connect that progress here and keep one account (no sign-in)'], freshGo: ['記録をつなぐ', 'Bring my progress'],
   chalCard: ['友だちからの挑戦状', 'A FRIEND’S CHALLENGE'], chalBody: ['{0}点をこえろ！', 'Beat {0}!'], chalHud: ['挑戦 {0}', 'BEAT {0}'],
   chalWin: ['挑戦状クリア！', 'CHALLENGE BEATEN!'], chalWinSub: ['友だちの{0}点をこえた！', 'You beat your friend’s {0}!'],
   chalLeft: ['挑戦状まであと{0}点！ ', '{0} more to beat the challenge! '], chalDone: ['挑戦状クリア！（{0}点をこえた） ', 'Challenge beaten (over {0})! '],
@@ -6819,24 +6820,24 @@ function boot() {
 const FEED_URL = (window.HAYDASH_APP ? './' : 'https://renjill-hay-dash.pages.dev/') + 'feed.json';
 let FEED = null; try { FEED = JSON.parse(localStorage.getItem('rjFeed') || 'null'); } catch (e) { }
 function loadFeed() { try { fetch(FEED_URL + '?t=' + Math.floor(Date.now() / 36e5), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (!j || typeof j !== 'object') return; FEED = j; try { localStorage.setItem('rjFeed', JSON.stringify(j)); } catch (e) { } feedCard(); }).catch(() => { }); } catch (e) { } }
-function inAppCard() { // inside an app's built-in browser the game would start a second account: offer the phone's own browser
+function quietLine(id, html) { // one small line under START: a first-time player sees the game first, never a wall of notices
+  let el = $('#' + id); if (el) return el; el = document.createElement('p'); el.className = 'quiet'; el.id = id; el.innerHTML = html;
+  const after = $('#tDaily') || $('#btnStart'); after.parentNode.insertBefore(el, after.nextSibling); return el;
+}
+function inAppCard() { // inside an app's built-in browser the game would start a second account: offer the phone's own browser, quietly
   if (!window.HAYDASH_APP || !/^https?:/.test(location.href)) return; const ua = navigator.userAgent || '', line = /\bLine\//i.test(ua), other = /Instagram|FBAN|FBAV|FB_IAB|Twitter|TwitterAndroid|\bKAKAOTALK/i.test(ua);
-  if (!line && !other) return; let dis = 0; try { dis = +sessionStorage.getItem('rjInApp') || 0; } catch (e) { } if (dis) return;
+  if (!line && !other) return;
   // the way out of each app's browser: LINE takes a flag; on Android any app hands the page to Chrome; on iPhone (iOS 17+) Safari opens from its own link form
   const here = location.href.split('#')[0], android = /Android/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua);
   const go = line ? extOpen(here) : android ? 'intent://' + here.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end' : ios ? 'x-safari-' + here : '';
-  const el = document.createElement('div'); el.className = 'inapp'; el.id = 'tInApp';
-  el.innerHTML = `<p><b>${esc(t(line ? 'inAppLine' : 'inAppOther'))}</b><br><span>${esc(t('inAppNote'))}</span></p>` + (go ? `<a class="notelink" id="inAppGo" href="${esc(go)}">${esc(t('inAppGo'))}</a>` : '') + (line ? '' : `<p class="note" style="margin-top:6px">${esc(t('inAppHow'))}</p>`) + `<button class="x" id="inAppX" aria-label="${esc(t('close'))}">×</button>`;
-  const card = $('#btnStart').closest('.card'); card.insertBefore(el, card.firstChild);
-  $('#inAppX').onclick = () => { el.remove(); try { sessionStorage.setItem('rjInApp', '1'); } catch (e) { } };
+  const el = quietLine('tInApp', `<span>${esc(t(line ? 'inAppLine' : 'inAppOther'))}</span> <a id="inAppGo" href="${esc(go || '#')}" title="${esc(t('inAppNote'))}">${esc(t('inAppGo'))} ›</a><small id="inAppHow" hidden>${esc(t('inAppNote'))}${line ? '' : ' ' + esc(t('inAppHow'))}</small>`);
+  // if the app keeps the page (the link did nothing), explain once, still small
+  $('#inAppGo').addEventListener('click', e => { if (!go) e.preventDefault(); setTimeout(() => { const h = $('#inAppHow'); if (h && document.visibilityState === 'visible') h.hidden = false; }, go ? 1500 : 0); });
 }
 function freshCard() { // a brand-new browser or home-screen app: if they played somewhere else, one tap to bring that account here
-  const go = n => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn() || (SV.runs || 0) > 0 || LINK_Q || G.mode !== 'title' || $('#tFresh')) return; let dis = 0; try { dis = +localStorage.getItem('rjFreshX') || 0; } catch (e) { } if (dis) return;
-    const el = document.createElement('div'); el.className = 'inapp fresh'; el.id = 'tFresh';
-    el.innerHTML = `<p><b>${esc(t('freshH'))}</b><br><span>${esc(t('freshNote'))}</span></p><button class="notelink" id="freshGo" style="border:0;cursor:pointer;font:inherit;font-weight:800">${esc(t('freshGo'))}</button><button class="x" id="freshX" aria-label="${esc(t('close'))}">×</button>`;
-    const card = $('#btnStart').closest('.card'), after = $('#tInApp'); card.insertBefore(el, after ? after.nextSibling : card.firstChild);
-    $('#freshX').onclick = () => { el.remove(); try { localStorage.setItem('rjFreshX', '1'); } catch (e) { } };
-    $('#freshGo').onclick = () => { openSettings(); const i = $('#linkIn'); if (i) { i.scrollIntoView({ block: 'center' }); setTimeout(() => i.focus(), 300); } };
+  const go = n => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn() || (SV.runs || 0) > 0 || LINK_Q || G.mode !== 'title' || $('#tFresh') || $('#tInApp')) return;
+    quietLine('tFresh', `<span>${esc(t('freshH'))}</span> <a id="freshGo" href="#" title="${esc(t('freshNote'))}">${esc(t('freshGo'))} ›</a>`);
+    $('#freshGo').onclick = e => { e.preventDefault(); openSettings(); const i = $('#linkIn'); if (i) { i.scrollIntoView({ block: 'center' }); setTimeout(() => i.focus(), 300); } };
   }; go(0);
 }
 function chalCard() { // a friend sent you their score: show it right above the START button
