@@ -1,5 +1,5 @@
 // offline play: the game and its icons are kept on the device; fonts are cached the first time they load
-const CACHE = 'haydash-0dde32646f';
+const CACHE = 'haydash-6ff4049c24';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'config.js', './icon-192.png', './icon-512.png', './maskable-512.png', './apple-touch-icon.png', './favicon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('haydash-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

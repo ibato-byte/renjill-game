@@ -166,7 +166,8 @@ html[lang="ja"] .mini span{display:none}html[lang="ja"] .ph small{display:none}
 .booting #app>:not(#cv):not(#bootMsg):not(script){visibility:hidden}#bootMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#FBF6EE;font-weight:900;font-size:18px;letter-spacing:.08em;z-index:50;pointer-events:none}html:not(.booting) #bootMsg{display:none}
 .inapp{position:relative;padding:10px 34px 10px 12px;border-radius:14px;background:#EAF3E3;border:2px solid #9CC9A8;font-size:13px;line-height:1.5}.inapp p{margin:0 0 6px}.inapp span{color:var(--ink-soft)}.inapp .x{position:absolute;right:6px;top:6px;border:0;background:transparent;font-size:18px;color:var(--ink-soft);cursor:pointer}
 .m.xfer p.linkcode{font-family:var(--f-display);font-size:32px;letter-spacing:.14em;text-align:center;margin:8px 0 2px;user-select:all;-webkit-user-select:all}
-.quiet{margin:6px 0 0;text-align:center;font-size:12px;line-height:1.5;color:var(--ink-soft)}.quiet a{color:var(--ink);font-weight:800;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}.quiet small{display:block;margin-top:2px;font-size:11px}
+.quiet{margin:6px 0 0;text-align:center;font-size:12px;line-height:1.5;color:var(--ink-soft)}.quiet a{color:var(--ink);font-weight:800;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}.linkstep{margin:16px 0 0;font-weight:800;font-size:13px}.linkstep.hl{background:#FFF3C4;border-radius:8px;padding:4px 8px;margin-left:-8px;margin-right:-8px}
+.quiet small{display:block;margin-top:2px;font-size:11px}
 .notelink{display:inline-block;margin-top:4px;padding:6px 12px;border-radius:999px;background:var(--ink);color:#fff;font-weight:800;text-decoration:none}
 .how{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;font-size:13px;font-weight:700}
 .how kbd{font-family:var(--f-display);font-size:13px;background:var(--cream);border-radius:8px;padding:6px 8px;text-align:center;min-width:64px}
@@ -608,18 +609,18 @@ const STR = {
   shareText: ['「レンとジルのチモシーダッシュ」で {0}点！ {1}まで走った（{2}）この記録、こえられる？ #レンとジル', 'I scored {0} in Ren & Jill: Hay Dash and made it to {1} ({2}). Can you beat it? #RenAndJill'],
   shareTextWon: ['挑戦状の{3}点をこえて {0}点！（{2}）次はあなたの番！ #レンとジル', 'Beat the {3} challenge with {0} ({2})! Your turn! #RenAndJill'],
   reviveFree: ['初回ボーナスで続ける', 'Continue for free'], reviveFreeNote: ['最初の3回のプレイは、1回だけ無料で続けられます', 'First-run bonus: in your first 3 runs, continue once for free'], firstFever: ['フィーバー中はぶつかっても平気！', 'You can’t crash in a fever!'],
-  resetH: ['データのリセット', 'Reset your data'], resetNote: ['スコア・チモシー・服・スタンプ・ランキングの記録をすべて消して、はじめからにします。元にはもどせません（残したいときは先に「データ引き継ぎ」のコードを作ってください）。', 'Erase every record (scores, hay, clothes, stamps and your ranking entries) and start over. This cannot be undone: make a transfer code first if you want to keep a copy.'],
+  resetH: ['データのリセット', 'Reset your data'], resetNote: ['スコア・チモシー・服・スタンプ・ランキングの記録をすべて消して、はじめからにします。元にはもどせません（残したいときは先に「記録のバックアップ」のコードを作ってください）。', 'Erase every record (scores, hay, clothes, stamps and your ranking entries) and start over. This cannot be undone: make a backup code first if you want to keep a copy.'],
   resetBtn: ['データをリセットする', 'Reset my data'], resetAsk: ['本当にすべて消しますか？', 'Really erase everything?'], resetYes: ['消してはじめから', 'Erase all'], resetNo: ['やめる', 'Cancel'],
   resetDoing: ['消しています…', 'Erasing...'], resetDone: ['消しました。はじめから始めます', 'Done. Starting over'],
-  linkH: ['ほかの端末・ブラウザとつなぐ', 'Use one account everywhere'], linkNote: ['LINEの中といつものブラウザ、スマホとパソコンなどで、同じ記録を使えます。今の記録がある方で「コードを出す」→ もう一方で入れるだけ（ログイン不要）。', 'Use the same progress in LINE and your browser, or on a phone and a PC. Make a code where your progress is, then enter it on the other one. No sign-in.'],
-  linkMake: ['つなぐコードを出す', 'Make a connect code'], linkPh: ['コード（8文字）', 'Code (8 letters)'], linkGo: ['つなぐ', 'Connect'], linkWait: ['少し待ってください…', 'One moment...'],
-  linkShow: ['もう一方の端末で、このコードを入れてください（{0}分有効）。リンクを送って開いてもOK。', 'Enter this code on the other device within {0} minutes, or send yourself the link and open it there.'], linkCopy: ['つなぐリンクをコピー・送る', 'Copy / send the connect link'], linkCopied: ['リンクをコピーしました', 'Link copied'],
-  linkBad: ['コードが見つかりません（まちがい・15分が過ぎた・使用ずみ）', 'Code not found (typo, expired after 15 minutes, or already used)'], linkSelf: ['これはこの端末で出したコードです。もう一方の端末で入れてください', 'This code was made here. Enter it on the other device.'],
-  linkAsk: ['つなぐ先の記録（ベスト {0}点・チモシー {1}本）にそろえますか？', 'Switch to that account (best {0}, hay {1})?'], linkMine: ['この端末のほうが記録が上です（ベスト {0}点）。この端末でコードを出して、もう一方で入れるのがおすすめです', 'This device has the better record (best {0}). Better: make the code here and enter it on the other one.'],
-  linkYes: ['そろえる', 'Switch'], linkDone: ['つなぎました。同じアカウントで始めます', 'Connected. Starting with the same account'], linkFail: ['うまくいきませんでした。少しあとでもう一度ためしてください', 'That did not work. Please try again in a moment.'],
-  inAppLine: ['LINEの中で開いています', 'Opened inside LINE'], inAppOther: ['アプリの中で開いています', 'Opened inside an app'], inAppNote: ['いつものブラウザで開くと、記録が1つのアカウントで続きます', 'Open it in your usual browser so your progress stays in one account'],
-  inAppGo: ['いつものブラウザで開く', 'Open in my browser'], inAppHow: ['開かないときは、右上の「…」や共有ボタンから「ブラウザで開く」を選んでください', 'If it does not open, tap ⋯ or the share button and choose “Open in browser”'], close: ['閉じる', 'Close'],
-  freshH: ['前に別の端末で遊んだ？', 'Played on another device?'], freshNote: ['その記録をここにつなげば、アカウントが1つのまま続きます（ログイン不要）', 'Connect that progress here and keep one account (no sign-in)'], freshGo: ['記録をつなぐ', 'Bring my progress'],
+  linkH: ['記録の引き継ぎ（ログイン不要）', 'Move your progress (no sign-in)'], linkNote: ['スマホを変えたとき、LINE とブラウザ、スマホとパソコンなど、どこでも同じ記録で遊べます。', 'New phone, LINE and your browser, phone and PC: keep playing with the same progress anywhere.'],
+  linkMake: ['引き継ぎコードを出す', 'Get a transfer code'], linkPh: ['コード（8文字）', '8 letters'], linkInH: ['この端末に引き継ぐ：前の端末で出したコードを入れる', 'Move progress here: enter the code from your other device'], linkInHow: ['前に遊んだ端末でこのゲームを開き、⚙ →「引き継ぎコードを出す」を押すと、8文字のコードが出ます。', 'On the device you played before, open the game, tap ⚙ and “Get a transfer code”.'], linkOutH: ['ほかの端末へ引き継ぐ', 'Move progress to another device'], linkGo: ['引き継ぐ', 'Transfer'], linkWait: ['少し待ってください…', 'One moment...'],
+  linkShow: ['引き継ぎたい端末で、このゲームを開いて ⚙ →「この端末に引き継ぐ」にこの8文字を入れてください（{0}分有効）。リンクを送って開いてもOKです。', 'On the other device, open the game, tap ⚙ and enter these 8 letters under “Move progress here” (valid {0} minutes). Or send yourself the link and open it there.'], linkCopy: ['引き継ぎリンクをコピー・送る', 'Copy / send the transfer link'], linkCopied: ['リンクをコピーしました', 'Link copied'],
+  linkBad: ['コードが見つかりません（まちがい・15分が過ぎた・使用ずみ）', 'Code not found (typo, expired after 15 minutes, or already used)'], linkSelf: ['これはこの端末で出したコードです。引き継ぎたい端末のほうで入れてください', 'This code was made here. Enter it on the device you want to move to.'],
+  linkAsk: ['この記録（ベスト {0}点・チモシー {1}本）を引き継ぎますか？', 'Bring over this progress (best {0}, hay {1})?'], linkMine: ['この端末のほうが記録が上です（ベスト {0}点）。この端末でコードを出して、もう一方で入れるのがおすすめです', 'This device has the better record (best {0}). Better: get the code here and enter it on the other one.'],
+  linkYes: ['引き継ぐ', 'Bring it over'], linkDone: ['引き継ぎました。前の記録で続けます', 'Done! Continuing with your progress'], linkFail: ['うまくいきませんでした。少しあとでもう一度ためしてください', 'That did not work. Please try again in a moment.'],
+  inAppLine: ['前に遊んだ記録で続けるなら', 'To keep your progress'], inAppOther: ['前に遊んだ記録で続けるなら', 'To keep your progress'], inAppNote: ['LINEやアプリの中では、ブラウザで遊んだ記録が見えません。ブラウザで開くと、前の記録の続きから遊べます', 'Inside LINE or another app, your browser progress is not visible. Open the game in your browser to pick up where you left off.'],
+  inAppGo: ['ブラウザで開く', 'Open in your browser'], inAppHow: ['開かないときは、右上の「…」や共有ボタンから「ブラウザで開く」を選んでください', 'If it does not open, tap ⋯ or the share button and choose “Open in browser”'], close: ['閉じる', 'Close'],
+  freshH: ['前に遊んだことがある？', 'Played before?'], freshNote: ['別のスマホやブラウザで遊んだ記録を、この端末に引き継げます（ログイン不要）', 'Bring progress from another phone or browser to this one (no sign-in)'], freshGo: ['記録を引き継ぐ', 'Bring my progress'],
   chalCard: ['友だちからの挑戦状', 'A FRIEND’S CHALLENGE'], chalBody: ['{0}点をこえろ！', 'Beat {0}!'], chalHud: ['挑戦 {0}', 'BEAT {0}'],
   chalWin: ['挑戦状クリア！', 'CHALLENGE BEATEN!'], chalWinSub: ['友だちの{0}点をこえた！', 'You beat your friend’s {0}!'],
   chalLeft: ['挑戦状まであと{0}点！ ', '{0} more to beat the challenge! '], chalDone: ['挑戦状クリア！（{0}点をこえた） ', 'Challenge beaten (over {0})! '],
@@ -629,7 +630,7 @@ const STR = {
   ctrlNote: ['タップ：画面の左右をタップでレーン移動、真ん中の上半分でジャンプ、下半分でスライディング。', 'Tap: tap the left or right side to change lanes, the upper middle to jump, the lower middle to slide.'],
   sens: ['スワイプの感度', 'Swipe sensitivity'], sensN: ['ふつう', 'Normal'], sensH: ['敏感', 'High'],
   vib: ['振動', 'Vibration'], calm: ['画面の揺れ・演出をひかえめに', 'Reduce screen shake and flashes'], music: ['音楽', 'Music'], sfx: ['効果音', 'Sound effects'], on: ['オン', 'On'], off: ['オフ', 'Off'],
-  resetTut: ['チュートリアルをもう一度', 'Replay the tutorial'], xfer: ['データ引き継ぎ', 'Transfer your data'], xferNote: ['機種変更や、将来のアプリ版に記録を引き継げます。「引き継ぎコードを作る」でコードをコピーし、新しい端末の同じ画面に貼り付けてください。（写真アルバムは引き継がれません）', 'Move your progress to a new device or a future app: make a code here, then paste it on the new device. (Photos stay on this device.)'], xferMake: ['引き継ぎコードを作る', 'Make a transfer code'], xferCopied: ['コードをコピーしました。メモ帳などに保存しておいてください', 'Code copied. Keep it somewhere safe'], xferPaste: ['ここに引き継ぎコードを貼り付け', 'Paste a transfer code here'], xferLoad: ['このコードで復元', 'Restore from this code'], xferDone: ['引き継ぎました！', 'Transferred!'], xferBad: ['コードが正しくありません。最後まで貼り付けられているか確認してください', 'That code does not look right. Check it was pasted in full'], xferConfirm: ['今の記録はこのコードの記録で上書きされます。もう一度押すと復元します', 'Your current progress will be replaced. Tap again to restore'], resetDone: ['次のスタートでチュートリアルが始まります', 'The tutorial will play on your next run'],
+  resetTut: ['チュートリアルをもう一度', 'Replay the tutorial'], xfer: ['記録のバックアップ（予備）', 'Backup of your progress (spare)'], xferNote: ['ネットにつながらないときなどの予備です。長いコードをメモ帳などに保存しておけば、あとで記録をもどせます。ふだんの引き継ぎは上の「記録の引き継ぎ」が簡単です。（写真アルバムは入りません）', 'A spare for when you are offline: save the long code somewhere and restore it later. For everyday moves, “Move your progress” above is easier. (Photos are not included.)'], xferMake: ['バックアップのコードを作る', 'Make a backup code'], xferCopied: ['コードをコピーしました。メモ帳などに保存しておいてください', 'Code copied. Keep it somewhere safe'], xferPaste: ['ここにバックアップのコードを貼り付け', 'Paste a backup code here'], xferLoad: ['このコードで復元', 'Restore from this code'], xferDone: ['記録をもどしました！', 'Restored!'], xferBad: ['コードが正しくありません。最後まで貼り付けられているか確認してください', 'That code does not look right. Check it was pasted in full'], xferConfirm: ['今の記録はこのコードの記録で上書きされます。もう一度押すと復元します', 'Your current progress will be replaced. Tap again to restore'], resetDone: ['次のスタートでチュートリアルが始まります', 'The tutorial will play on your next run'],
 };
 const t = (k, ...a) => { const s = STR[k] ? STR[k][LANG === 'ja' ? 0 : 1] : k; return s.replace(/\{(\d)\}/g, (_, i) => a[i] ?? ''); };
 
@@ -5616,7 +5617,7 @@ function update(dt) {
   if (flying) { G.y = lerp(G.y, G.flyY, 1 - Math.exp(-dt * 4)); G.vy = 0; G.air = true; }
   else {
     if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault || 1); G.y += G.vy * dt; G.air = true; }
-    if (G.y <= ground) {
+    if (G.y <= ground + .001 && G.vy <= 0) { // land: also when the fall stops a hair above the floor (a height of 0.0005 used to leave the runner 'in the air' forever: no gravity, no landing, no jump)
       if (G.air && G.vy < -4) { const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
       G.y = ground; G.vy = 0;
       if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; G.vaultDown = 0; } else { G.air = false; G.vault = 0; G.vaultDown = 0; }
@@ -5810,7 +5811,8 @@ function setText(id, v) { if (HUDC[id] !== v) { HUDC[id] = v; const e = document
 // the score box shares the top row with the clock and the hay: when the number gets long (7 digits and up) or the place name is long, its digits shrink to fit
 let FIT = { k: '', n: 0 };
 function fitScore() {
-  if ((FIT.n = (FIT.n + 1) % 12) && FIT.k) return; const sc = el('hScore'), hy = el('hHay'), top = sc && sc.closest('.hud-top'); if (!top || !hy) return;
+  const sc = el('hScore'), hy = el('hHay'), top = sc && sc.closest('.hud-top'); if (!top || !hy) return;
+  const lk = sc.textContent.length + '|' + hy.textContent.length; if ((FIT.n = (FIT.n + 1) % 12) && FIT.k && lk === FIT.lk) return; FIT.lk = lk; // a new digit refits at once (no frame where the boxes overlap); the rest is checked every 12 frames
   const clock = top.querySelector('.clock'), k = sc.textContent.length + '|' + hy.textContent.length + '|' + clock.offsetWidth + '|' + top.clientWidth; if (k === FIT.k) return; FIT.k = k;
   const gap = parseFloat(getComputedStyle(top).columnGap) || 8, half = (top.clientWidth - clock.offsetWidth) / 2 - gap;
   for (const [e, pad] of [[sc, 22], [hy, 22 + 32]]) { e.style.fontSize = ''; const base = parseFloat(getComputedStyle(e).fontSize), avail = half - pad; if (e.scrollWidth > avail) e.style.fontSize = Math.max(10, Math.floor(base * avail / e.scrollWidth)) + 'px'; }
@@ -6208,6 +6210,7 @@ async function rankSubmit(score, info) {
   if (!(cur[mk] >= sc)) { cur[mk] = sc; cur[mk + 'c'] = info.char; cur[mk + 'd'] = info.day; changed = true; }
   if (!(cur.all >= sc)) { cur.all = sc; cur.allc = info.char; changed = true; }
   if (SV.nick && !nameBad(SV.nick) && cur.nick !== SV.nick) { cur.nick = SV.nick; changed = true; }
+  for (const [f, who] of [['wr', 'ren'], ['wj', 'jill']]) { const w = wearCode(who); if (cur[f] !== w) { cur[f] = w; changed = true; } } // the outfit each bunny wears now: the board draws this player's own bunny
   { const j = new Date(Date.now() + 9 * 3600e3), day = +j.toISOString().slice(0, 10).replace(/-/g, ''); if (cur.last !== day) { cur.last = day; changed = true; } cur.runs = Math.min(1e6, (cur.runs | 0) + 1); changed = true; } // when this player last played (Japan date) and how many runs: the automation reads daily/weekly active players from these
   if (changed) { try { await ref.set(cur); } catch (e) { return { err: 1, best: cur[mk] } } }
   return { best: cur[mk] };
@@ -6229,14 +6232,34 @@ function rankList(el, rows, field, nameOf) {
   rows.forEach((r, i) => {
     const li = document.createElement('div'); li.className = 'rk' + (r.id === RANK.uid ? ' me' : '') + (i < 3 ? ' top' + (i + 1) : '');
     const n = document.createElement('b'); n.textContent = i + 1;
-    const im = document.createElement('img'); im.alt = ''; im.src = (r[field + 'c'] || r.allc) === 'jill' ? RANK_ICON.jill : (r[field + 'c'] || r.allc) === 'pom' ? RANK_ICON.pom : RANK_ICON.ren;
+    const im = document.createElement('img'); im.alt = ''; im.src = rankIconFor(r, r[field + 'c'] || r.allc);
     const nm = document.createElement('span'); nm.textContent = nameOf(r.id) + (r.id === RANK.uid ? (LANG === 'ja' ? '（あなた）' : ' (you)') : '');
     const sc = document.createElement('em'); sc.textContent = fmt(r[field]);
     li.append(n, im, nm, sc); el.appendChild(li);
   });
 }
 const RANK_ICON = {};
-function rankIcons() { for (const w of ['ren', 'jill', 'pom']) { const c = mk(64), g = c.getContext('2d'); if (w === 'pom') g.drawImage(bunFrame(w, 'front_open'), 70, 70 + BTOP, 160, 160, 0, 0, 64, 64); else g.drawImage(bunFrame(w, 'front_open'), 40, 10 + BTOP, 220, 220, 0, 0, 64, 64); try { RANK_ICON[w] = c.toDataURL(); } catch (e) { RANK_ICON[w] = ''; } } }
+function iconCrop(g, fr, who) { if (who === 'jill') g.drawImage(fr, 62, 42 + BTOP, 176, 176, 0, 0, 64, 64); else g.drawImage(fr, 40, 10 + BTOP, 220, 220, 0, 0, 64, 64); } // jill is smaller: a tighter frame so both faces read the same size
+/* each player's own bunny on the board: the outfit is kept as a short code (ren: tie.hat.suit.mug / jill: frame.hat.suit) and only known items are drawn */
+const WEAR_SLOTS = { ren: ['tie', 'hat', 'suit'], jill: ['frame', 'hat', 'suit'] };
+function wearCode(who) { const w = (SV.wear || {})[who] || {}; return WEAR_SLOTS[who].map(k => w[k] || '').join('.') + (who === 'ren' ? '.' + (SV.mugOn ? 1 : 0) : ''); }
+function wearParse(who, code) {
+  if (typeof code !== 'string' || code.length > 60 || !WEAR_SLOTS[who]) return null; const parts = code.split('.'), base = { ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' } }[who], out = Object.assign({}, base);
+  WEAR_SLOTS[who].forEach((k, i) => { const v = parts[i] || ''; if (v === base[k] || (v === '' && k !== 'tie' && k !== 'frame') || CLOSET.some(c => c.who === who && c.slot === k && c.v === v)) out[k] = v; });
+  return { w: out, mug: who === 'ren' && parts[3] === '1' && !out.hat };
+}
+const RANK_ICON_W = {};
+function rankIconFor(r, ch) {
+  const who = ch === 'jill' ? 'jill' : ch === 'pom' ? 'pom' : 'ren'; if (who === 'pom') return RANK_ICON.pom;
+  const code = r.id === RANK.uid ? wearCode(who) : r[who === 'ren' ? 'wr' : 'wj']; const pw = wearParse(who, code); if (!pw) return RANK_ICON[who];
+  const key = who + ':' + JSON.stringify(pw); if (RANK_ICON_W[key] !== undefined) return RANK_ICON_W[key] || RANK_ICON[who];
+  const keep = Object.assign({}, WEAR[who]), seed = SEED; let url = '';
+  try { Object.assign(WEAR[who], pw.w); SEED = 6; const fr = paint(g => drawBody(g, who, { lift: 0, sq: 1, feet: 0, ear: 0, view: 'front', mood: 'open', mug: pw.mug ? 1 : 0 }));
+    const c = mk(64); iconCrop(c.getContext('2d'), fr, who); url = c.toDataURL(); } catch (e) { url = ''; }
+  finally { Object.assign(WEAR[who], keep); SEED = seed; }
+  RANK_ICON_W[key] = url; return url || RANK_ICON[who];
+}
+function rankIcons() { for (const w of ['ren', 'jill', 'pom']) { const c = mk(64), g = c.getContext('2d'); if (w === 'pom') g.drawImage(bunFrame(w, 'front_open'), 70, 70 + BTOP, 160, 160, 0, 0, 64, 64); else iconCrop(g, bunFrame(w, 'front_open'), w); try { RANK_ICON[w] = c.toDataURL(); } catch (e) { RANK_ICON[w] = ''; } } }
 // after a run: submit, then show this month's position and the top five
 async function rankAfterRun(score) {
   const box = $('#resRank'); if (!box) return;
@@ -6327,7 +6350,7 @@ function chatScoring() {
     'Hay: 10 points + up to 30 combo bonus each (no combo bonus during fever). Golden hay: 300. Vegetables and fruit give points and fill the fever meter faster (fruit fills it most).',
     'NICE! chain: near-misses, jumping over a low obstacle or sliding under a high one within about 1.4 s of each other: 40, 70, 100... points per step.',
     'CAREER: experience comes from hay (0.5 each), vegetables (2), runs (40), stamps (120), achievements (150), food book entries (40) and your best score. 16 office ranks from Trainee to Legendary bunny (新入社員, 主任, 係長, 課長代理, 課長, 次長, 部長, 本部長, 常務, 専務, 副社長, 社長, 会長...). Each promotion pays 200 hay + 100 per level and one charm. Shown on the title and result screens.',
-    'DATA TRANSFER: Settings (gear) → データ引き継ぎ. "引き継ぎコードを作る" copies a code holding all progress (not the photo album); paste it on the new device in the same place and tap restore twice. The same code will work in a future app version.',
+    'MOVING PROGRESS (new phone, LINE vs browser, phone vs PC): Settings (gear) → 記録の引き継ぎ. On the device that has the progress tap "引き継ぎコードを出す" (8 letters, valid 15 minutes); on the new device tap gear → "この端末に引き継ぐ", enter the code, tap 引き継ぐ. No sign-in. If they opened the game inside LINE, tell them to tap "ブラウザで開く" under START. A spare offline backup is "記録のバックアップ（予備）": a long code to save in a memo and paste back later (not the photo album).',
     'SHOP costumes: Ren\'s honeybee costume and Jill\'s zebra costume (3,000 hay each) change their look everywhere; hats, ties and glasses can be combined with them.',
     'Bonuses: 9:00 on time +500, 18:00 chime +1000, each tower deck +800, a new Tokyo stamp, look-backs.',
     'Fever: fills from hay (slowly), food, vegetables, fruit; each fever makes the next one take a bit longer to earn. During fever you are invincible, faster, score ×2, and hay is pulled to you from all three lanes. Bad foods (chocolate, onions, chips) drain the meter by 25 and count as a bump.',
@@ -6621,8 +6644,9 @@ const linkClean = v => String(v || '').normalize('NFKC').toUpperCase().replace(/
 function linkHTML() {
   if (!linkOn()) return '';
   return `<div class="m xfer link"><p><b>${esc(t('linkH'))}</b></p><p class="note">${esc(t('linkNote'))}</p>` +
-    `<button class="sub" id="btnLinkMake">${esc(t('linkMake'))}</button><div id="linkOut" hidden></div>` +
-    `<div class="btns" style="display:flex;gap:8px;margin-top:8px"><input id="linkIn" maxlength="9" autocomplete="off" autocapitalize="characters" enterkeyhint="go" placeholder="${esc(t('linkPh'))}" style="flex:1;min-width:0;font:inherit;font-size:18px;letter-spacing:.12em;text-transform:uppercase;padding:8px 10px;border-radius:10px;border:2px solid var(--line)"><button class="sub" id="btnLinkGo" style="flex:none;width:auto;padding-left:18px;padding-right:18px">${esc(t('linkGo'))}</button></div>` +
+    `<p class="linkstep" id="linkInH">${esc(t('linkInH'))}</p><p class="note">${esc(t('linkInHow'))}</p>` +
+    `<div class="btns" style="display:flex;gap:8px;margin-top:6px"><input id="linkIn" maxlength="9" autocomplete="off" autocapitalize="characters" enterkeyhint="go" placeholder="${esc(t('linkPh'))}" style="flex:1;min-width:0;font:inherit;font-size:18px;letter-spacing:.12em;text-transform:uppercase;padding:8px 10px;border-radius:10px;border:2px solid var(--line)"><button class="sub" id="btnLinkGo" style="flex:none;width:auto;padding-left:18px;padding-right:18px">${esc(t('linkGo'))}</button></div>` +
+    `<p class="linkstep" style="margin-top:18px">${esc(t('linkOutH'))}</p><button class="sub" id="btnLinkMake">${esc(t('linkMake'))}</button><div id="linkOut" hidden></div>` +
     `<div id="linkAsk" hidden></div><p class="note" id="linkMsg" aria-live="polite"></p></div>`;
 }
 async function linkMake() {
@@ -6807,8 +6831,7 @@ function boot() {
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren';
   goTitle(); document.documentElement.classList.remove('booting'); // the page shows only once its words are in the player's language
-  const td = todayStr();
-  if (SV.daily !== td) { const y = new Date(Date.now() - 864e5); const ys = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate(); SV.streak = SV.daily === ys ? Math.min(7, SV.streak + 1) : 1; SV.daily = td; const b = 30 + SV.streak * 20; SV.bank += b; save(); refreshTitle(); toastTitle(t('daily', SV.streak, b)); }
+  dailyBonus(); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && G.mode === 'title') dailyBonus(); }); // a phone that keeps the app open past midnight gets the next day's bonus when it comes back
   if (EVENT) { const gifts = CLOSET.filter(c => c.ev === EVENT && !SV.closet[c.id]); if (gifts.length) { for (const c of gifts) SV.closet[c.id] = 1; save(); const g = (EVENT_INFO.gift || EV_KITS[EVENT].gift), until = EVENT_INFO.to ? (LANG === 'ja' ? `（〜${+EVENT_INFO.to.slice(5, 7)}/${+EVENT_INFO.to.slice(8, 10)}）` : ` (to ${EVENT_INFO.to.slice(5).replace('-', '/')})`) : ''; setTimeout(() => toastTitle(L(g) + until), document.querySelector('.toast') ? 4300 : 300); } }
   loadFeed(); linkFromUrl(); inAppCard(); freshCard();
   setTimeout(() => { try { if (!CLOUD_SPR.length) buildCloudSprites(); if (!FTEX.asphalt) buildFloorTex(); } catch (e) { } }, 1200); // ready before the first street
@@ -6824,6 +6847,10 @@ function quietLine(id, html) { // one small line under START: a first-time playe
   let el = $('#' + id); if (el) return el; el = document.createElement('p'); el.className = 'quiet'; el.id = id; el.innerHTML = html;
   const after = $('#tDaily') || $('#btnStart'); after.parentNode.insertBefore(el, after.nextSibling); return el;
 }
+function dailyBonus() { // once a day: hay for coming to work, more for each day in a row (up to 7)
+  const td = todayStr();
+  if (SV.daily !== td) { const y = new Date(Date.now() - 864e5); const ys = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate(); SV.streak = SV.daily === ys ? Math.min(7, SV.streak + 1) : 1; SV.daily = td; const b = 30 + SV.streak * 20; SV.bank += b; save(); refreshTitle(); toastTitle(t('daily', SV.streak, b)); }
+}
 function inAppCard() { // inside an app's built-in browser the game would start a second account: offer the phone's own browser, quietly
   if (!window.HAYDASH_APP || !/^https?:/.test(location.href)) return; const ua = navigator.userAgent || '', line = /\bLine\//i.test(ua), other = /Instagram|FBAN|FBAV|FB_IAB|Twitter|TwitterAndroid|\bKAKAOTALK/i.test(ua);
   if (!line && !other) return;
@@ -6836,8 +6863,8 @@ function inAppCard() { // inside an app's built-in browser the game would start 
 }
 function freshCard() { // a brand-new browser or home-screen app: if they played somewhere else, one tap to bring that account here
   const go = n => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn() || (SV.runs || 0) > 0 || LINK_Q || G.mode !== 'title' || $('#tFresh') || $('#tInApp')) return;
-    quietLine('tFresh', `<span>${esc(t('freshH'))}</span> <a id="freshGo" href="#" title="${esc(t('freshNote'))}">${esc(t('freshGo'))} ›</a>`);
-    $('#freshGo').onclick = e => { e.preventDefault(); openSettings(); const i = $('#linkIn'); if (i) { i.scrollIntoView({ block: 'center' }); setTimeout(() => i.focus(), 300); } };
+    quietLine('tFresh', `<span>${esc(t('freshH'))}</span> <a id="freshGo" href="#">${esc(t('freshGo'))} ›</a>`);
+    $('#freshGo').onclick = e => { e.preventDefault(); openSettings(); const h = $('#linkInH'), i = $('#linkIn'); if (h) { h.classList.add('hl'); (h.closest('.link') || h).scrollIntoView({ block: 'start' }); } if (i) setTimeout(() => i.focus({ preventScroll: true }), 300); };
   }; go(0);
 }
 function chalCard() { // a friend sent you their score: show it right above the START button
