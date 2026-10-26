@@ -22,7 +22,7 @@ const SEC = +(process.argv[2] || process.env.SEC || 120), LATE = +(process.env.L
         if ((window.__frameErr || 0) > lastErr) { lastErr = window.__frameErr; note('FRAME ERROR', { msg: window.__frameErrMsg, n: window.__frameErr }); }
         // the run must keep moving: the running cycle advances unless in the air / sliding / looking back
         const ph = G.player.ph; if (Math.abs(ph - lastPh) < 1e-6 && !G.air && G.slideT <= 0 && !(G.player.look > 0)) { if (++still === 20) note('RUN FROZEN'); } else still = 0; lastPh = ph;
-        if (G.air && G.y < .02 && Math.abs(G.vy) < .01 && G.pow.fly <= 0) { if (++airGround === 15) note('STUCK IN AIR ON GROUND'); } else airGround = 0;
+        if (G.air && G.pow.fly <= 0 && Math.abs(G.y - (window.__lastY ?? -1)) < 1e-7) { if (++airGround === 15) note('STUCK IN AIR (height frozen)'); } else airGround = 0; window.__lastY = G.y; // frozen in the air at any height or speed
         if (G.pow.fly > 0) lastFly = now; if (G.pow.fly <= 0 && now - lastFly > 2500) { if (G.y > maxY) maxY = G.y; if (G.y > 2.3 && !tooHigh) { tooHigh = 1; note('TOO HIGH', { maxY: +G.y.toFixed(2) }); } } if (G.y < .5) tooHigh = 0; // gliding down after a flight is fine
         // the player: mostly jumps, some slides and lane changes; now and then a power-up or a car right ahead
         if (now - lastAct > 140) { lastAct = now; const r = Math.random();

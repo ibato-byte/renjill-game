@@ -34,6 +34,12 @@ const { chromium } = require('playwright');
   out.peakSuper = await peak(() => { window.__hayDash.G.pow.jump = 5; });
   out.peakFromBox = await peak(() => { const G = window.__hayDash.G; G.pow.jump = 5; G.y = 1.5; G.air = false; });
   for (const k of ['peakNormal', 'peakSuper', 'peakFromBox']) if (out[k] > 2.2) errs.push(k + ' too high ' + out[k]);
+  // 4) a landing that stops a hair above the floor (0.0005) must still land: it used to freeze the runner 'in the air' so no jump worked again (found after a super jump, 10/26)
+  for (const [y0, vy0, pj] of [[.0005, -8.4, 0], [.0009, -3, 0], [.0002, -11, 3], [1.5005, -6, 0]]) {
+    await p.waitForTimeout(1300); await prep();
+    const r = await p.evaluate(async ([y0, vy0, pj]) => { const G = window.__hayDash.G; G.pow.jump = pj; if (y0 > 1) { G.y = y0; G.vy = vy0; G.air = true; return { skip: 1 }; } G.y = y0; G.vy = vy0; G.air = true; await new Promise(r => setTimeout(r, 120)); const landed = !G.air; window.__hayDash.act('up'); return { landed, jumped: G.air && G.vy > 0, y: G.y }; }, [y0, vy0, pj]);
+    if (!r.skip && (!r.landed || !r.jumped)) errs.push('hair-above-floor landing froze ' + JSON.stringify({ y0, vy0, pj, r }));
+  }
   if (out.peakNormal < 1.1) errs.push('normal jump too low ' + out.peakNormal);
   console.log(JSON.stringify(out)); console.log(errs.length ? 'FAIL ' + errs.join(' || ') : 'INPUT OK no errors'); await b.close();
 })();
