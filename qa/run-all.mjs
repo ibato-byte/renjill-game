@@ -41,6 +41,7 @@ const T = [
   { n: 'inputtest', why: '操作が効かなくならない（速いフリック・高く跳びすぎない）', ok: has('INPUT OK'), timeout: 200 },
   { n: 'stuck', args: ['60'], why: '長く走っても動けなくならない（3人・夕方/2日目へ）', ok: has('NO STUCK'), timeout: 400 },
   { n: 'linktest', why: 'アカウントが2つにならない（つなぐコード・LINEから外のブラウザへ）', ok: has('LINK OK'), timeout: 300 },
+  { n: 'hudfit', why: '上の3つの枠がスマホではみ出さない（スコア7〜9桁）', ok: has('HUD FIT OK'), timeout: 300 },
   { n: 'seo', why: '検索で見つけてもらう（タイトル・説明・ガイド・地図）', ok: has('SEO OK'), timeout: 200 },
 ];
 if (MODE === 'full') {
