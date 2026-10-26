@@ -55,7 +55,7 @@ def page(lang):
     (L('無料で遊べますか？', 'Is it free?'), L('はい。すべて無料で遊べます。課金や広告はありません。', 'Yes. Everything is free to play, with no in-app purchases or ads.')),
     (L('登録やダウンロードは必要ですか？', 'Do I need to sign up or download anything?'), L('いりません。ブラウザでページを開くだけで遊べます。ホーム画面に追加すると、アプリのように起動でき、電波がなくても遊べます。', 'No. Just open the page in your browser. Add it to your home screen to launch it like an app, even offline.')),
     (L('スマホでもPCでも遊べますか？', 'Can I play on a phone and a PC?'), L('はい。スマホはスワイプ、PCは矢印キー（またはWASD）で操作します。', 'Yes. Swipe on a phone; use the arrow keys (or WASD) on a PC.')),
-    (L('機種変更したらデータはどうなりますか？', 'What happens to my progress if I change phones?'), L('設定の「データ引き継ぎ」で表示されるコードを新しい端末で入力すると、続きから遊べます。', 'Use the transfer code in Settings: enter it on the new device to carry on where you left off.')),
+    (L('機種変更したらデータはどうなりますか？', 'What happens to my progress if I change phones?'), L('前の端末で ⚙ →「引き継ぎコードを出す」を押し、新しい端末で ⚙ →「この端末に引き継ぐ」に8文字のコードを入れると、続きから遊べます（ログイン不要）。', 'On the old device tap ⚙ → “Get a transfer code”, then on the new one tap ⚙ → “Move progress here” and enter the 8 letters. No sign-in needed.')),
     (L('ランキングはありますか？', 'Is there a leaderboard?'), L('あります。アプリ版で遊ぶと記録がのり、だれでも「みんなのランキング」で見られます（今月・歴代）。名前は12文字までで、決めていない人は番号で表示されます。', 'Yes. Runs in the app version go on the public leaderboard (this month and all time). Names are up to 12 characters; unnamed players show as a number.')),
     (L('友だちと競えますか？', 'Can I challenge friends?'), L('結果をシェアすると、リンクにあなたの点数が入ります。開いた人に「挑戦状」が届き、こえるとクリアです。', 'When you share a result, the link carries your score. Whoever opens it gets a challenge to beat it.')),
   ]
