@@ -1,11 +1,12 @@
-# 毎朝の自動チェック（AI なし・無料）と、main への変更ごとのチェック。合格したら公開（Cloudflare Pages）。
+# 自動チェック（AI なし・無料）。GitHub の無料時間（月2000分）に収まるよう：main への変更ごとは短いチェック（smoke・約1分）だけで公開、
+# くわしいチェック（quick）は週3回、全部（full）は週1回。変更する前に手元で quick を全部通すのが約束（CLAUDE.md）。
 name: qa
 on:
   push:
     branches: [main]
   pull_request:
   schedule:
-    - cron: '17 20 * * *' # 毎朝 5:17（日本時間）quick
+    - cron: '17 20 * * 0,2,4' # 月・水・金の朝 5:17（日本時間）quick
     - cron: '27 18 * * 0' # 毎週月曜 3:27（日本時間）full
   workflow_dispatch:
     inputs:
@@ -38,7 +39,7 @@ jobs:
       - run: sudo apt-get install -y fonts-noto-cjk ffmpeg >/dev/null
       - run: python3 build.py && cp app/feed.json dist/feed.json
       - name: QA
-        run: node qa/run-all.mjs ${{ github.event.schedule == '27 18 * * 0' && 'full' || (github.event.inputs.mode || 'quick') }}
+        run: node qa/run-all.mjs ${{ github.event.schedule == '27 18 * * 0' && 'full' || (github.event_name == 'push' && 'smoke') || (github.event.inputs.mode || 'quick') }}
       - name: 遊んだ人の数（KPI）と毎日の記録（data/kpi.csv）
         if: always()
         run: |
