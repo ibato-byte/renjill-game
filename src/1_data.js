@@ -169,6 +169,7 @@ const STR = {
   resetH: ['データのリセット', 'Reset your data'], resetNote: ['スコア・チモシー・服・スタンプ・ランキングの記録をすべて消して、はじめからにします。元にはもどせません（残したいときは先に「データ引き継ぎ」のコードを作ってください）。', 'Erase every record (scores, hay, clothes, stamps and your ranking entries) and start over. This cannot be undone: make a transfer code first if you want to keep a copy.'],
   resetBtn: ['データをリセットする', 'Reset my data'], resetAsk: ['本当にすべて消しますか？', 'Really erase everything?'], resetYes: ['消してはじめから', 'Erase all'], resetNo: ['やめる', 'Cancel'],
   resetDoing: ['消しています…', 'Erasing...'], resetDone: ['消しました。はじめから始めます', 'Done. Starting over'],
+  flyHint: ['紙ひこうき中：左右で動けます（あと{0}秒）', 'On the plane: swipe left/right ({0}s left)'],
   chalCard: ['友だちからの挑戦状', 'A FRIEND’S CHALLENGE'], chalBody: ['{0}点をこえろ！', 'Beat {0}!'], chalHud: ['挑戦 {0}', 'BEAT {0}'],
   chalWin: ['挑戦状クリア！', 'CHALLENGE BEATEN!'], chalWinSub: ['友だちの{0}点をこえた！', 'You beat your friend’s {0}!'],
   chalLeft: ['挑戦状まであと{0}点！ ', '{0} more to beat the challenge! '], chalDone: ['挑戦状クリア！（{0}点をこえた） ', 'Challenge beaten (over {0})! '],
@@ -188,7 +189,10 @@ const ROAD = 2.6;             // playable half width
 const LANE = 1.5;
 const LANES = [-LANE, 0, LANE];
 const DIRS = [[0, 1], [1, 0], [0, -1], [-1, 0]];
-const GRAV = 24, JUMPV = 8.0, SUPERV = 12.4, CARV = 10.8; // CARV: the vault over a car (clears a van's roof)
+const GRAV = 24, JUMPV = 8.0, SUPERV = 9.6, VAULT_G = .5; // a car vault is a long, floaty leap (half the gravity) just over the roof, not a big high jump. Tall cars are dodged, not jumped
+const vaultV = h => Math.sqrt(2 * GRAV * VAULT_G * h);
+const MAX_JUMP = 2.1; // no jump ever goes higher than this above the floor (standing on a box, super jump or not)
+const capV = (v, y, g) => Math.min(v, Math.sqrt(2 * GRAV * (g || 1) * Math.max(.25, MAX_JUMP - (y || 0))));
 const STAND_H = 0.92, SLIDE_H = 0.42;
 
 /* ================= items ================= */

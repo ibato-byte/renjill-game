@@ -565,10 +565,11 @@ const OBS = {
       OB(L - w * .38, -.02, .24, .02, .55, .72, '#FFF6DC', 2), OB(L + w * .38, -.02, .24, .02, .55, .72, '#FFF6DC', 2), OB(L, -.02, w * .5, .02, .35, .45, '#3B3B3B'),
       OB(L - w * .42, .5, .14, .62, 0, .62, '#1C1919'), OB(L + w * .42, .5, .14, .62, 0, .62, '#1C1919'), OB(L - w * .42, len - 1.1, .14, .62, 0, .62, '#1C1919'), OB(L + w * .42, len - 1.1, .14, .62, 0, .62, '#1C1919')];
     if (t === 'taxi') bx.push(Object.assign(OB(L, cabinS + .9, .6, .3, roof, roof + .22, '#FBF6EE', 2), { txt: 'TAXI', tc: '#2B2B2B' }));
-    return { k: 'low', car: 1, mv: 6.5, bx, art: 'car', av: { t, c }, artW: w * 1.04, artH: roof + (t === 'taxi' ? .24 : .02) }; },
+    const tall = roof >= 1.7; // an SUV, a kei car or a van: too tall to hop over, so it is dodged
+    return { k: tall ? 'block' : 'low', car: tall ? 0 : 1, vault: roof + .2, mv: 6.5, bx, art: 'car', av: { t, c }, artW: w * 1.04, artH: roof + (t === 'taxi' ? .24 : .02) }; },
   // a low red supercar (generic shape, no badge); like every car, something to dodge
   supercar: L => { const c = pick(['#D42A1E', '#D42A1E', '#F2C230', '#F3F3F3']);
-    return { k: 'low', car: 1, mv: 10, roar: 1, bx: [OB(L, 0, 1.95, 4.5, .14, .62, c), OB(L, 1.3, 1.7, 1.9, .62, 1.0, c), OB(L, 1.28, 1.5, .02, .66, .96, '#1C2630'), OB(L, 3.9, 1.9, .25, .62, .78, '#2B2B2B'),
+    return { k: 'low', car: 1, vault: 1.4, mv: 10, roar: 1, bx: [OB(L, 0, 1.95, 4.5, .14, .62, c), OB(L, 1.3, 1.7, 1.9, .62, 1.0, c), OB(L, 1.28, 1.5, .02, .66, .96, '#1C2630'), OB(L, 3.9, 1.9, .25, .62, .78, '#2B2B2B'),
       OB(L - .7, -.02, .34, .02, .4, .5, '#FFF6DC', 2), OB(L + .7, -.02, .34, .02, .4, .5, '#FFF6DC', 2), OB(L, -.02, 1.1, .02, .2, .3, '#2B2B2B'),
       OB(L - .9, .55, .16, .66, 0, .6, '#1C1919'), OB(L + .9, .55, .16, .66, 0, .6, '#1C1919'), OB(L - .9, 3.2, .18, .7, 0, .62, '#1C1919'), OB(L + .9, 3.2, .18, .7, 0, .62, '#1C1919')], art: 'supercar', av: { c }, artW: 2.0, artH: 1.08 }; },
   gates: null, ogates: null,

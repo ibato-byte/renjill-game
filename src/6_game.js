@@ -164,6 +164,9 @@ function doRevive(kind) {
 
 /* ---------- input actions ---------- */
 function turnWindow(seg) { return seg.len - Math.max(13, G.speed * 1.0); }
+function flyHint() { // on the paper plane jumping and sliding wait: say so, so it never feels like the controls stopped
+  if (G.t - (G.flyHintT || -9) < 2.2) return; G.flyHintT = G.t; bannerNow('', t('flyHint', Math.ceil(G.pow.fly)), 'room');
+}
 function act(a) {
   if (G.mode !== 'play') return;
   const seg = curSeg();
@@ -174,13 +177,13 @@ function act(a) {
       G.turnQueued = d; G.turnAuto = 0; G.turnQT = seg.len - G.s; SFX.turn(); flashChoice(seg, d); return; }
     const nl = clamp(G.lane + d, 0, 2); if (nl !== G.lane) { G.prevLane = G.lane; G.lane = nl; G.laneT = .35; G.tutDid = 'side'; tone(520 + d * 40, .04, 'triangle', .06); }
   } else if (a === 'up') {
-    if (G.pow.fly > 0) return;
-    if (!G.air) { G.vy = G.pow.jump > 0 ? SUPERV : JUMPV; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up';
+    if (G.pow.fly > 0) { flyHint(); return; }
+    if (!G.air) { G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up';
       { const seg = curSeg(), pl = G.lat, reach = (G.speed + 10) * .7; // a car coming in this lane: a big vault that clears its roof
-        if (seg.obs.some(o => o.car && !o.dead && pl + .3 > o.l0 && pl - .3 < o.l1 && o.s0 + (o.ds || 0) - G.s > -1 && o.s0 + (o.ds || 0) - G.s < reach)) G.vy = Math.max(G.vy, CARV); } }
+        const car = seg.obs.find(o => o.car && !o.dead && pl + .3 > o.l0 && pl - .3 < o.l1 && o.s0 + (o.ds || 0) - G.s > -1 && o.s0 + (o.ds || 0) - G.s < reach); if (car) { G.vy = capV(vaultV(car.vault || 1.6), G.y, VAULT_G); G.vault = 1; } } } // a long leap just over its roof
     else G.jumpBuf = .16;
   } else if (a === 'down') {
-    if (G.pow.fly > 0) return;
+    if (G.pow.fly > 0) { flyHint(); return; }
     if (G.air) { G.vy = -22; G.slideT = .62; G.jumpBuf = 0; } else { if (G.slideT <= 0) { G.stats.slides++; SFX.slide(); } G.slideT = .68; }
     G.tutDid = 'down';
   }
@@ -378,11 +381,11 @@ function update(dt) {
   // vertical
   if (flying) { G.y = lerp(G.y, G.flyY, 1 - Math.exp(-dt * 4)); G.vy = 0; G.air = true; }
   else {
-    if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1); G.y += G.vy * dt; G.air = true; }
+    if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault ? VAULT_G : 1); G.y += G.vy * dt; G.air = true; }
     if (G.y <= ground) {
       if (G.air && G.vy < -4) { const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
       G.y = ground; G.vy = 0;
-      if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = G.pow.jump > 0 ? SUPERV : JUMPV; G.stats.jumps++; SFX.jump(); G.y += .01; } else G.air = false;
+      if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; } else { G.air = false; G.vault = 0; }
     }
   }
   if (G.slideT > 0) G.slideT -= dt;
@@ -514,7 +517,7 @@ function buddyMove(F, dt, seg, tlat0, back0) {
     const a = o.s0 + (o.ds || 0) - fs; if (a < -.6 || a > 3.4) continue;
     if (tlat + .3 > o.l0 && tlat - .3 < o.l1) {
       if (o.k === 'block' && !o.full) tuck = true;
-      else if (o.k === 'low' && a < (o.car ? 5 : 1.7) && !F.air) { F.vy = o.car ? CARV : JUMPV; F.air = true; }
+      else if (o.k === 'low' && a < (o.car ? 5 : 1.7) && !F.air) { F.vy = o.car ? vaultV(o.vault || 1.6) : JUMPV; F.vault = !!o.car; F.air = true; }
       else if (o.k === 'high' && a < 1.9) F.slideT = .6;
     }
   }
@@ -522,7 +525,7 @@ function buddyMove(F, dt, seg, tlat0, back0) {
   F.lat += clamp(tlat - F.lat, -dt * 9, dt * 9);
   F.back = lerp(F.back, tback, 1 - Math.exp(-dt * 8));
   F.tuck = tuck && Math.abs(F.lat - G.lat) < .6;
-  if (F.air) { F.vy -= GRAV * dt * (F.vy < 0 ? 1.25 : 1); F.y += F.vy * dt; if (F.y <= 0) { F.y = 0; F.vy = 0; F.air = false; } }
+  if (F.air) { F.vy -= GRAV * dt * (F.vy < 0 ? 1.25 : 1) * (F.vault ? VAULT_G : 1); F.y += F.vy * dt; if (F.y <= 0) { F.y = 0; F.vy = 0; F.air = false; } }
   if (F.slideT > 0) F.slideT -= dt;
   F.slide = F.slideT > 0 && !F.air;
   F.ph += dt * (F.who === 'pom' ? 9 + G.speed * .7 : 6.4 + G.speed * .55);

@@ -168,14 +168,17 @@ const stage = $('#app');
 stage.addEventListener('pointerdown', e => {
   if (G.mode !== 'play') return; if (e.target.closest('button')) return;
   if (OPT().ctrl === 'tap') { const fx = e.clientX / W, fy = e.clientY / H; act(fx < .33 ? 'left' : fx > .67 ? 'right' : fy < .62 ? 'up' : 'down'); return; }
-  tp = { x: e.clientX, y: e.clientY, id: e.pointerId, fired: false };
+  tp = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, id: e.pointerId, fired: false };
 });
 stage.addEventListener('pointermove', e => {
   if (!tp || tp.id !== e.pointerId) return;
   const dx = e.clientX - tp.x, dy = e.clientY - tp.y, th = OPT().sens === 'high' ? 14 : Math.max(20, Math.min(W, H) * .04);
-  if (Math.abs(dx) > th || Math.abs(dy) > th) { const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'); if (dir !== tp.last || performance.now() - tp.t > 160) { act(dir); tp.last = dir; tp.t = performance.now(); } tp.x = e.clientX; tp.y = e.clientY; }
+  if (Math.abs(dx) > th || Math.abs(dy) > th) { const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'); if (dir !== tp.last || performance.now() - tp.t > 160) { act(dir); tp.last = dir; tp.t = performance.now(); tp.fired = true; } tp.x = e.clientX; tp.y = e.clientY; }
 });
-const endTouch = e => { if (tp && tp.id === e.pointerId) tp = null; };
+const endTouch = e => { if (!tp || tp.id !== e.pointerId) return; // a fast flick on a busy frame may arrive as just down + up: read it from the whole stroke
+  if (!tp.fired && e.type === 'pointerup' && G.mode === 'play') { const dx = e.clientX - tp.sx, dy = e.clientY - tp.sy, th = OPT().sens === 'high' ? 10 : Math.max(14, Math.min(W, H) * .028);
+    if (Math.abs(dx) > th || Math.abs(dy) > th) act(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')); }
+  tp = null; };
 stage.addEventListener('pointerup', endTouch); stage.addEventListener('pointercancel', endTouch);
 document.addEventListener('visibilitychange', () => { if (document.hidden) { saveNow(); if (G.mode === 'countdown') { G.mode = 'play'; $('#tutCue').className = ''; } pause(); } });
 
@@ -272,7 +275,7 @@ function boot() {
   buildItemSprites(); buildWorldSprites(); buildBunnies(); applyWear(); rankIcons(); rankInit(); chatInit(); resize(); addEventListener('resize', resize);
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren';
-  goTitle();
+  goTitle(); document.documentElement.classList.remove('booting'); // the page shows only once its words are in the player's language
   const td = todayStr();
   if (SV.daily !== td) { const y = new Date(Date.now() - 864e5); const ys = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate(); SV.streak = SV.daily === ys ? Math.min(7, SV.streak + 1) : 1; SV.daily = td; const b = 30 + SV.streak * 20; SV.bank += b; save(); refreshTitle(); toastTitle(t('daily', SV.streak, b)); }
   if (EVENT) { const gifts = CLOSET.filter(c => c.ev === EVENT && !SV.closet[c.id]); if (gifts.length) { for (const c of gifts) SV.closet[c.id] = 1; save(); const g = (EVENT_INFO.gift || EV_KITS[EVENT].gift), until = EVENT_INFO.to ? (LANG === 'ja' ? `（〜${+EVENT_INFO.to.slice(5, 7)}/${+EVENT_INFO.to.slice(8, 10)}）` : ` (to ${EVENT_INFO.to.slice(5).replace('-', '/')})`) : ''; setTimeout(() => toastTitle(L(g) + until), document.querySelector('.toast') ? 4300 : 300); } }
