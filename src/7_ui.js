@@ -341,24 +341,24 @@ function boot() {
 const FEED_URL = (window.HAYDASH_APP ? './' : 'https://renjill-hay-dash.pages.dev/') + 'feed.json';
 let FEED = null; try { FEED = JSON.parse(localStorage.getItem('rjFeed') || 'null'); } catch (e) { }
 function loadFeed() { try { fetch(FEED_URL + '?t=' + Math.floor(Date.now() / 36e5), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (!j || typeof j !== 'object') return; FEED = j; try { localStorage.setItem('rjFeed', JSON.stringify(j)); } catch (e) { } feedCard(); }).catch(() => { }); } catch (e) { } }
-function inAppCard() { // inside an app's built-in browser the game would start a second account: offer the phone's own browser
+function quietLine(id, html) { // one small line under START: a first-time player sees the game first, never a wall of notices
+  let el = $('#' + id); if (el) return el; el = document.createElement('p'); el.className = 'quiet'; el.id = id; el.innerHTML = html;
+  const after = $('#tDaily') || $('#btnStart'); after.parentNode.insertBefore(el, after.nextSibling); return el;
+}
+function inAppCard() { // inside an app's built-in browser the game would start a second account: offer the phone's own browser, quietly
   if (!window.HAYDASH_APP || !/^https?:/.test(location.href)) return; const ua = navigator.userAgent || '', line = /\bLine\//i.test(ua), other = /Instagram|FBAN|FBAV|FB_IAB|Twitter|TwitterAndroid|\bKAKAOTALK/i.test(ua);
-  if (!line && !other) return; let dis = 0; try { dis = +sessionStorage.getItem('rjInApp') || 0; } catch (e) { } if (dis) return;
+  if (!line && !other) return;
   // the way out of each app's browser: LINE takes a flag; on Android any app hands the page to Chrome; on iPhone (iOS 17+) Safari opens from its own link form
   const here = location.href.split('#')[0], android = /Android/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua);
   const go = line ? extOpen(here) : android ? 'intent://' + here.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end' : ios ? 'x-safari-' + here : '';
-  const el = document.createElement('div'); el.className = 'inapp'; el.id = 'tInApp';
-  el.innerHTML = `<p><b>${esc(t(line ? 'inAppLine' : 'inAppOther'))}</b><br><span>${esc(t('inAppNote'))}</span></p>` + (go ? `<a class="notelink" id="inAppGo" href="${esc(go)}">${esc(t('inAppGo'))}</a>` : '') + (line ? '' : `<p class="note" style="margin-top:6px">${esc(t('inAppHow'))}</p>`) + `<button class="x" id="inAppX" aria-label="${esc(t('close'))}">×</button>`;
-  const card = $('#btnStart').closest('.card'); card.insertBefore(el, card.firstChild);
-  $('#inAppX').onclick = () => { el.remove(); try { sessionStorage.setItem('rjInApp', '1'); } catch (e) { } };
+  const el = quietLine('tInApp', `<span>${esc(t(line ? 'inAppLine' : 'inAppOther'))}</span> <a id="inAppGo" href="${esc(go || '#')}" title="${esc(t('inAppNote'))}">${esc(t('inAppGo'))} ›</a><small id="inAppHow" hidden>${esc(t('inAppNote'))}${line ? '' : ' ' + esc(t('inAppHow'))}</small>`);
+  // if the app keeps the page (the link did nothing), explain once, still small
+  $('#inAppGo').addEventListener('click', e => { if (!go) e.preventDefault(); setTimeout(() => { const h = $('#inAppHow'); if (h && document.visibilityState === 'visible') h.hidden = false; }, go ? 1500 : 0); });
 }
 function freshCard() { // a brand-new browser or home-screen app: if they played somewhere else, one tap to bring that account here
-  const go = n => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn() || (SV.runs || 0) > 0 || LINK_Q || G.mode !== 'title' || $('#tFresh')) return; let dis = 0; try { dis = +localStorage.getItem('rjFreshX') || 0; } catch (e) { } if (dis) return;
-    const el = document.createElement('div'); el.className = 'inapp fresh'; el.id = 'tFresh';
-    el.innerHTML = `<p><b>${esc(t('freshH'))}</b><br><span>${esc(t('freshNote'))}</span></p><button class="notelink" id="freshGo" style="border:0;cursor:pointer;font:inherit;font-weight:800">${esc(t('freshGo'))}</button><button class="x" id="freshX" aria-label="${esc(t('close'))}">×</button>`;
-    const card = $('#btnStart').closest('.card'), after = $('#tInApp'); card.insertBefore(el, after ? after.nextSibling : card.firstChild);
-    $('#freshX').onclick = () => { el.remove(); try { localStorage.setItem('rjFreshX', '1'); } catch (e) { } };
-    $('#freshGo').onclick = () => { openSettings(); const i = $('#linkIn'); if (i) { i.scrollIntoView({ block: 'center' }); setTimeout(() => i.focus(), 300); } };
+  const go = n => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn() || (SV.runs || 0) > 0 || LINK_Q || G.mode !== 'title' || $('#tFresh') || $('#tInApp')) return;
+    quietLine('tFresh', `<span>${esc(t('freshH'))}</span> <a id="freshGo" href="#" title="${esc(t('freshNote'))}">${esc(t('freshGo'))} ›</a>`);
+    $('#freshGo').onclick = e => { e.preventDefault(); openSettings(); const i = $('#linkIn'); if (i) { i.scrollIntoView({ block: 'center' }); setTimeout(() => i.focus(), 300); } };
   }; go(0);
 }
 function chalCard() { // a friend sent you their score: show it right above the START button
