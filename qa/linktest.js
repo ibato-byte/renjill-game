@@ -41,6 +41,8 @@ const { chromium } = require('playwright');
     // browser B: a fresh browser (it got its own new account uid11 and played once)
     const B = await context(lang); await B.p.goto('http://127.0.0.1:8790/'); await B.p.waitForTimeout(1500);
     if (!(await B.p.$('#tFresh'))) errs.push(lang + ' fresh browser: no connect offer');
+    { const fb = await B.p.evaluate(() => { const s = document.querySelector('#btnStart').getBoundingClientRect(), n = document.querySelector('#tFresh'); return n ? { h: Math.round(n.getBoundingClientRect().height), below: n.getBoundingClientRect().top >= s.bottom - 1, startBottom: Math.round(s.bottom), vh: innerHeight } : null; });
+      if (fb && (fb.h > 44 || !fb.below || fb.startBottom > fb.vh)) errs.push(lang + ' fresh first impression ' + JSON.stringify(fb)); }
     if (await A.p.evaluate(() => !!document.querySelector('#tFresh'))) errs.push(lang + ' connect offer shown to a player with progress');
     await B.p.screenshot({ path: (process.env.SHOTS || 'shots') + `/link_fresh_${lang}.png` });
     const bUid = await B.p.evaluate(() => JSON.parse(localStorage.getItem('hd_fsauth') || '{}').u); DB.ranks[bUid] = { [mk]: { integerValue: '120' }, all: { integerValue: '120' } };
@@ -72,6 +74,9 @@ const { chromium } = require('playwright');
     const L = await context(lang, 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari Line/13.20.0'); await L.p.goto('http://127.0.0.1:8790/?beat=500&c=ren'); await L.p.waitForTimeout(1300);
     const li = await L.p.evaluate(() => ({ card: !!document.querySelector('#tInApp'), href: (document.querySelector('#inAppGo') || {}).href || '', over: (() => { const e = document.querySelector('#tInApp'); return e ? e.scrollWidth > e.clientWidth + 1 : false; })() }));
     if (!li.card || !/openExternalBrowser=1/.test(li.href) || li.over) errs.push(lang + ' LINE card ' + JSON.stringify(li));
+    // first impression: the notice is one quiet line under START, START is fully on the first screen, and no second notice piles up
+    const fi = await L.p.evaluate(() => { const s = document.querySelector('#btnStart').getBoundingClientRect(), n = document.querySelector('#tInApp').getBoundingClientRect(); return { startBottom: Math.round(s.bottom), h: Math.round(n.height), below: n.top >= s.bottom - 1, fresh: !!document.querySelector('#tFresh'), vh: innerHeight }; });
+    if (fi.startBottom > fi.vh || fi.h > 44 || !fi.below || fi.fresh) errs.push(lang + ' LINE first impression ' + JSON.stringify(fi));
     await L.p.screenshot({ path: (process.env.SHOTS || 'shots') + `/link_line_${lang}.png` }); await L.ctx.close();
     for (const [ua, want] of [['Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36 Instagram 330.0.0', /^intent:\/\/127\.0\.0\.1:8790\/#Intent;scheme=https;package=com\.android\.chrome;end$/],
       ['Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBAV/450.0]', /^x-safari-http:\/\/127\.0\.0\.1:8790\/$/]]) {
