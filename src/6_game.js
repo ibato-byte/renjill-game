@@ -377,7 +377,7 @@ function update(dt) {
   if (flying) { G.y = lerp(G.y, G.flyY, 1 - Math.exp(-dt * 4)); G.vy = 0; G.air = true; }
   else {
     if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault || 1); G.y += G.vy * dt; G.air = true; }
-    if (G.y <= ground) {
+    if (G.y <= ground + .001 && G.vy <= 0) { // land: also when the fall stops a hair above the floor (a height of 0.0005 used to leave the runner 'in the air' forever: no gravity, no landing, no jump)
       if (G.air && G.vy < -4) { const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
       G.y = ground; G.vy = 0;
       if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; G.vaultDown = 0; } else { G.air = false; G.vault = 0; G.vaultDown = 0; }
@@ -571,7 +571,8 @@ function setText(id, v) { if (HUDC[id] !== v) { HUDC[id] = v; const e = document
 // the score box shares the top row with the clock and the hay: when the number gets long (7 digits and up) or the place name is long, its digits shrink to fit
 let FIT = { k: '', n: 0 };
 function fitScore() {
-  if ((FIT.n = (FIT.n + 1) % 12) && FIT.k) return; const sc = el('hScore'), hy = el('hHay'), top = sc && sc.closest('.hud-top'); if (!top || !hy) return;
+  const sc = el('hScore'), hy = el('hHay'), top = sc && sc.closest('.hud-top'); if (!top || !hy) return;
+  const lk = sc.textContent.length + '|' + hy.textContent.length; if ((FIT.n = (FIT.n + 1) % 12) && FIT.k && lk === FIT.lk) return; FIT.lk = lk; // a new digit refits at once (no frame where the boxes overlap); the rest is checked every 12 frames
   const clock = top.querySelector('.clock'), k = sc.textContent.length + '|' + hy.textContent.length + '|' + clock.offsetWidth + '|' + top.clientWidth; if (k === FIT.k) return; FIT.k = k;
   const gap = parseFloat(getComputedStyle(top).columnGap) || 8, half = (top.clientWidth - clock.offsetWidth) / 2 - gap;
   for (const [e, pad] of [[sc, 22], [hy, 22 + 32]]) { e.style.fontSize = ''; const base = parseFloat(getComputedStyle(e).fontSize), avail = half - pad; if (e.scrollWidth > avail) e.style.fontSize = Math.max(10, Math.floor(base * avail / e.scrollWidth)) + 'px'; }

@@ -142,8 +142,9 @@ const linkClean = v => String(v || '').normalize('NFKC').toUpperCase().replace(/
 function linkHTML() {
   if (!linkOn()) return '';
   return `<div class="m xfer link"><p><b>${esc(t('linkH'))}</b></p><p class="note">${esc(t('linkNote'))}</p>` +
-    `<button class="sub" id="btnLinkMake">${esc(t('linkMake'))}</button><div id="linkOut" hidden></div>` +
-    `<div class="btns" style="display:flex;gap:8px;margin-top:8px"><input id="linkIn" maxlength="9" autocomplete="off" autocapitalize="characters" enterkeyhint="go" placeholder="${esc(t('linkPh'))}" style="flex:1;min-width:0;font:inherit;font-size:18px;letter-spacing:.12em;text-transform:uppercase;padding:8px 10px;border-radius:10px;border:2px solid var(--line)"><button class="sub" id="btnLinkGo" style="flex:none;width:auto;padding-left:18px;padding-right:18px">${esc(t('linkGo'))}</button></div>` +
+    `<p class="linkstep" id="linkInH">${esc(t('linkInH'))}</p><p class="note">${esc(t('linkInHow'))}</p>` +
+    `<div class="btns" style="display:flex;gap:8px;margin-top:6px"><input id="linkIn" maxlength="9" autocomplete="off" autocapitalize="characters" enterkeyhint="go" placeholder="${esc(t('linkPh'))}" style="flex:1;min-width:0;font:inherit;font-size:18px;letter-spacing:.12em;text-transform:uppercase;padding:8px 10px;border-radius:10px;border:2px solid var(--line)"><button class="sub" id="btnLinkGo" style="flex:none;width:auto;padding-left:18px;padding-right:18px">${esc(t('linkGo'))}</button></div>` +
+    `<p class="linkstep" style="margin-top:18px">${esc(t('linkOutH'))}</p><button class="sub" id="btnLinkMake">${esc(t('linkMake'))}</button><div id="linkOut" hidden></div>` +
     `<div id="linkAsk" hidden></div><p class="note" id="linkMsg" aria-live="polite"></p></div>`;
 }
 async function linkMake() {
@@ -328,8 +329,7 @@ function boot() {
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren';
   goTitle(); document.documentElement.classList.remove('booting'); // the page shows only once its words are in the player's language
-  const td = todayStr();
-  if (SV.daily !== td) { const y = new Date(Date.now() - 864e5); const ys = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate(); SV.streak = SV.daily === ys ? Math.min(7, SV.streak + 1) : 1; SV.daily = td; const b = 30 + SV.streak * 20; SV.bank += b; save(); refreshTitle(); toastTitle(t('daily', SV.streak, b)); }
+  dailyBonus(); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && G.mode === 'title') dailyBonus(); }); // a phone that keeps the app open past midnight gets the next day's bonus when it comes back
   if (EVENT) { const gifts = CLOSET.filter(c => c.ev === EVENT && !SV.closet[c.id]); if (gifts.length) { for (const c of gifts) SV.closet[c.id] = 1; save(); const g = (EVENT_INFO.gift || EV_KITS[EVENT].gift), until = EVENT_INFO.to ? (LANG === 'ja' ? `（〜${+EVENT_INFO.to.slice(5, 7)}/${+EVENT_INFO.to.slice(8, 10)}）` : ` (to ${EVENT_INFO.to.slice(5).replace('-', '/')})`) : ''; setTimeout(() => toastTitle(L(g) + until), document.querySelector('.toast') ? 4300 : 300); } }
   loadFeed(); linkFromUrl(); inAppCard(); freshCard();
   setTimeout(() => { try { if (!CLOUD_SPR.length) buildCloudSprites(); if (!FTEX.asphalt) buildFloorTex(); } catch (e) { } }, 1200); // ready before the first street
@@ -345,6 +345,10 @@ function quietLine(id, html) { // one small line under START: a first-time playe
   let el = $('#' + id); if (el) return el; el = document.createElement('p'); el.className = 'quiet'; el.id = id; el.innerHTML = html;
   const after = $('#tDaily') || $('#btnStart'); after.parentNode.insertBefore(el, after.nextSibling); return el;
 }
+function dailyBonus() { // once a day: hay for coming to work, more for each day in a row (up to 7)
+  const td = todayStr();
+  if (SV.daily !== td) { const y = new Date(Date.now() - 864e5); const ys = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate(); SV.streak = SV.daily === ys ? Math.min(7, SV.streak + 1) : 1; SV.daily = td; const b = 30 + SV.streak * 20; SV.bank += b; save(); refreshTitle(); toastTitle(t('daily', SV.streak, b)); }
+}
 function inAppCard() { // inside an app's built-in browser the game would start a second account: offer the phone's own browser, quietly
   if (!window.HAYDASH_APP || !/^https?:/.test(location.href)) return; const ua = navigator.userAgent || '', line = /\bLine\//i.test(ua), other = /Instagram|FBAN|FBAV|FB_IAB|Twitter|TwitterAndroid|\bKAKAOTALK/i.test(ua);
   if (!line && !other) return;
@@ -357,8 +361,8 @@ function inAppCard() { // inside an app's built-in browser the game would start 
 }
 function freshCard() { // a brand-new browser or home-screen app: if they played somewhere else, one tap to bring that account here
   const go = n => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn() || (SV.runs || 0) > 0 || LINK_Q || G.mode !== 'title' || $('#tFresh') || $('#tInApp')) return;
-    quietLine('tFresh', `<span>${esc(t('freshH'))}</span> <a id="freshGo" href="#" title="${esc(t('freshNote'))}">${esc(t('freshGo'))} ›</a>`);
-    $('#freshGo').onclick = e => { e.preventDefault(); openSettings(); const i = $('#linkIn'); if (i) { i.scrollIntoView({ block: 'center' }); setTimeout(() => i.focus(), 300); } };
+    quietLine('tFresh', `<span>${esc(t('freshH'))}</span> <a id="freshGo" href="#">${esc(t('freshGo'))} ›</a>`);
+    $('#freshGo').onclick = e => { e.preventDefault(); openSettings(); const h = $('#linkInH'), i = $('#linkIn'); if (h) { h.classList.add('hl'); (h.closest('.link') || h).scrollIntoView({ block: 'start' }); } if (i) setTimeout(() => i.focus({ preventScroll: true }), 300); };
   }; go(0);
 }
 function chalCard() { // a friend sent you their score: show it right above the START button

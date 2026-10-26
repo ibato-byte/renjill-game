@@ -31,6 +31,7 @@ async function rankSubmit(score, info) {
   if (!(cur[mk] >= sc)) { cur[mk] = sc; cur[mk + 'c'] = info.char; cur[mk + 'd'] = info.day; changed = true; }
   if (!(cur.all >= sc)) { cur.all = sc; cur.allc = info.char; changed = true; }
   if (SV.nick && !nameBad(SV.nick) && cur.nick !== SV.nick) { cur.nick = SV.nick; changed = true; }
+  for (const [f, who] of [['wr', 'ren'], ['wj', 'jill']]) { const w = wearCode(who); if (cur[f] !== w) { cur[f] = w; changed = true; } } // the outfit each bunny wears now: the board draws this player's own bunny
   { const j = new Date(Date.now() + 9 * 3600e3), day = +j.toISOString().slice(0, 10).replace(/-/g, ''); if (cur.last !== day) { cur.last = day; changed = true; } cur.runs = Math.min(1e6, (cur.runs | 0) + 1); changed = true; } // when this player last played (Japan date) and how many runs: the automation reads daily/weekly active players from these
   if (changed) { try { await ref.set(cur); } catch (e) { return { err: 1, best: cur[mk] } } }
   return { best: cur[mk] };
@@ -52,14 +53,34 @@ function rankList(el, rows, field, nameOf) {
   rows.forEach((r, i) => {
     const li = document.createElement('div'); li.className = 'rk' + (r.id === RANK.uid ? ' me' : '') + (i < 3 ? ' top' + (i + 1) : '');
     const n = document.createElement('b'); n.textContent = i + 1;
-    const im = document.createElement('img'); im.alt = ''; im.src = (r[field + 'c'] || r.allc) === 'jill' ? RANK_ICON.jill : (r[field + 'c'] || r.allc) === 'pom' ? RANK_ICON.pom : RANK_ICON.ren;
+    const im = document.createElement('img'); im.alt = ''; im.src = rankIconFor(r, r[field + 'c'] || r.allc);
     const nm = document.createElement('span'); nm.textContent = nameOf(r.id) + (r.id === RANK.uid ? (LANG === 'ja' ? '（あなた）' : ' (you)') : '');
     const sc = document.createElement('em'); sc.textContent = fmt(r[field]);
     li.append(n, im, nm, sc); el.appendChild(li);
   });
 }
 const RANK_ICON = {};
-function rankIcons() { for (const w of ['ren', 'jill', 'pom']) { const c = mk(64), g = c.getContext('2d'); if (w === 'pom') g.drawImage(bunFrame(w, 'front_open'), 70, 70 + BTOP, 160, 160, 0, 0, 64, 64); else g.drawImage(bunFrame(w, 'front_open'), 40, 10 + BTOP, 220, 220, 0, 0, 64, 64); try { RANK_ICON[w] = c.toDataURL(); } catch (e) { RANK_ICON[w] = ''; } } }
+function iconCrop(g, fr, who) { if (who === 'jill') g.drawImage(fr, 62, 42 + BTOP, 176, 176, 0, 0, 64, 64); else g.drawImage(fr, 40, 10 + BTOP, 220, 220, 0, 0, 64, 64); } // jill is smaller: a tighter frame so both faces read the same size
+/* each player's own bunny on the board: the outfit is kept as a short code (ren: tie.hat.suit.mug / jill: frame.hat.suit) and only known items are drawn */
+const WEAR_SLOTS = { ren: ['tie', 'hat', 'suit'], jill: ['frame', 'hat', 'suit'] };
+function wearCode(who) { const w = (SV.wear || {})[who] || {}; return WEAR_SLOTS[who].map(k => w[k] || '').join('.') + (who === 'ren' ? '.' + (SV.mugOn ? 1 : 0) : ''); }
+function wearParse(who, code) {
+  if (typeof code !== 'string' || code.length > 60 || !WEAR_SLOTS[who]) return null; const parts = code.split('.'), base = { ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' } }[who], out = Object.assign({}, base);
+  WEAR_SLOTS[who].forEach((k, i) => { const v = parts[i] || ''; if (v === base[k] || (v === '' && k !== 'tie' && k !== 'frame') || CLOSET.some(c => c.who === who && c.slot === k && c.v === v)) out[k] = v; });
+  return { w: out, mug: who === 'ren' && parts[3] === '1' && !out.hat };
+}
+const RANK_ICON_W = {};
+function rankIconFor(r, ch) {
+  const who = ch === 'jill' ? 'jill' : ch === 'pom' ? 'pom' : 'ren'; if (who === 'pom') return RANK_ICON.pom;
+  const code = r.id === RANK.uid ? wearCode(who) : r[who === 'ren' ? 'wr' : 'wj']; const pw = wearParse(who, code); if (!pw) return RANK_ICON[who];
+  const key = who + ':' + JSON.stringify(pw); if (RANK_ICON_W[key] !== undefined) return RANK_ICON_W[key] || RANK_ICON[who];
+  const keep = Object.assign({}, WEAR[who]), seed = SEED; let url = '';
+  try { Object.assign(WEAR[who], pw.w); SEED = 6; const fr = paint(g => drawBody(g, who, { lift: 0, sq: 1, feet: 0, ear: 0, view: 'front', mood: 'open', mug: pw.mug ? 1 : 0 }));
+    const c = mk(64); iconCrop(c.getContext('2d'), fr, who); url = c.toDataURL(); } catch (e) { url = ''; }
+  finally { Object.assign(WEAR[who], keep); SEED = seed; }
+  RANK_ICON_W[key] = url; return url || RANK_ICON[who];
+}
+function rankIcons() { for (const w of ['ren', 'jill', 'pom']) { const c = mk(64), g = c.getContext('2d'); if (w === 'pom') g.drawImage(bunFrame(w, 'front_open'), 70, 70 + BTOP, 160, 160, 0, 0, 64, 64); else iconCrop(g, bunFrame(w, 'front_open'), w); try { RANK_ICON[w] = c.toDataURL(); } catch (e) { RANK_ICON[w] = ''; } } }
 // after a run: submit, then show this month's position and the top five
 async function rankAfterRun(score) {
   const box = $('#resRank'); if (!box) return;
