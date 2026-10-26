@@ -9,5 +9,16 @@ service cloud.firestore {
         && (!('nick' in request.resource.data) || (request.resource.data.nick is string && request.resource.data.nick.size() <= 12))
         && (!('all' in request.resource.data) || (request.resource.data.all is int && request.resource.data.all >= 0 && request.resource.data.all < 50000000));
     }
+    // one account across browsers: a short code (the document name, 8 random letters) holds a transfer code for 15 minutes
+    match /links/{code} {
+      allow get: if code.size() == 8;
+      allow list, update: if false;
+      allow create: if request.auth != null && code.size() == 8
+        && request.resource.data.keys().hasOnly(['d', 'exp', 'by'])
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.d is string && request.resource.data.d.size() < 60000
+        && request.resource.data.exp is int && request.resource.data.exp < request.time.toMillis() + 1000 * 60 * 20;
+      allow delete: if request.auth != null;
+    }
   }
 }
