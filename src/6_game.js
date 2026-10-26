@@ -164,9 +164,6 @@ function doRevive(kind) {
 
 /* ---------- input actions ---------- */
 function turnWindow(seg) { return seg.len - Math.max(13, G.speed * 1.0); }
-function flyHint() { // on the paper plane jumping and sliding wait: say so, so it never feels like the controls stopped
-  if (G.t - (G.flyHintT || -9) < 2.2) return; G.flyHintT = G.t; bannerNow('', t('flyHint', Math.ceil(G.pow.fly)), 'room');
-}
 function act(a) {
   if (G.mode !== 'play') return;
   const seg = curSeg();
@@ -177,13 +174,13 @@ function act(a) {
       G.turnQueued = d; G.turnAuto = 0; G.turnQT = seg.len - G.s; SFX.turn(); flashChoice(seg, d); return; }
     const nl = clamp(G.lane + d, 0, 2); if (nl !== G.lane) { G.prevLane = G.lane; G.lane = nl; G.laneT = .35; G.tutDid = 'side'; tone(520 + d * 40, .04, 'triangle', .06); }
   } else if (a === 'up') {
-    if (G.pow.fly > 0) { flyHint(); return; }
+    if (G.pow.fly > 0) return;
     if (!G.air) { G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up';
       { const seg = curSeg(), pl = G.lat, reach = (G.speed + 10) * .7; // a car coming in this lane: a big vault that clears its roof
         const car = seg.obs.find(o => o.car && !o.dead && pl + .3 > o.l0 && pl - .3 < o.l1 && o.s0 + (o.ds || 0) - G.s > -1 && o.s0 + (o.ds || 0) - G.s < reach); if (car) { G.vy = capV(vaultV(car.vault || 1.6), G.y, VAULT_G); G.vault = 1; } } } // a long leap just over its roof
     else G.jumpBuf = .16;
   } else if (a === 'down') {
-    if (G.pow.fly > 0) { flyHint(); return; }
+    if (G.pow.fly > 0) return;
     if (G.air) { G.vy = -22; G.slideT = .62; G.jumpBuf = 0; } else { if (G.slideT <= 0) { G.stats.slides++; SFX.slide(); } G.slideT = .68; }
     G.tutDid = 'down';
   }

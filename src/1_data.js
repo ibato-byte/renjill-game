@@ -169,7 +169,6 @@ const STR = {
   resetH: ['データのリセット', 'Reset your data'], resetNote: ['スコア・チモシー・服・スタンプ・ランキングの記録をすべて消して、はじめからにします。元にはもどせません（残したいときは先に「データ引き継ぎ」のコードを作ってください）。', 'Erase every record (scores, hay, clothes, stamps and your ranking entries) and start over. This cannot be undone: make a transfer code first if you want to keep a copy.'],
   resetBtn: ['データをリセットする', 'Reset my data'], resetAsk: ['本当にすべて消しますか？', 'Really erase everything?'], resetYes: ['消してはじめから', 'Erase all'], resetNo: ['やめる', 'Cancel'],
   resetDoing: ['消しています…', 'Erasing...'], resetDone: ['消しました。はじめから始めます', 'Done. Starting over'],
-  flyHint: ['紙ひこうき中：左右で動けます（あと{0}秒）', 'On the plane: swipe left/right ({0}s left)'],
   linkH: ['ほかの端末・ブラウザとつなぐ', 'Use one account everywhere'], linkNote: ['LINEの中といつものブラウザ、スマホとパソコンなどで、同じ記録を使えます。今の記録がある方で「コードを出す」→ もう一方で入れるだけ（ログイン不要）。', 'Use the same progress in LINE and your browser, or on a phone and a PC. Make a code where your progress is, then enter it on the other one. No sign-in.'],
   linkMake: ['つなぐコードを出す', 'Make a connect code'], linkPh: ['コード（8文字）', 'Code (8 letters)'], linkGo: ['つなぐ', 'Connect'], linkWait: ['少し待ってください…', 'One moment...'],
   linkShow: ['もう一方の端末で、このコードを入れてください（{0}分有効）。リンクを送って開いてもOK。', 'Enter this code on the other device within {0} minutes, or send yourself the link and open it there.'], linkCopy: ['つなぐリンクをコピー・送る', 'Copy / send the connect link'], linkCopied: ['リンクをコピーしました', 'Link copied'],
