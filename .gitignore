@@ -2,3 +2,5 @@ node_modules/
 dist/
 qa-report.*
 kpi.json
+__pycache__/
+shots/
