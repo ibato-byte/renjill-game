@@ -37,10 +37,10 @@ let fails = 0; const F = (s, m) => { fails++; console.log('  FAIL', s, m); };
     await fr.evaluate(() => window.__hayDash.ev('G.invT = 0; G.lives = 0; endRun()')); await page.waitForTimeout(2000);
     const info = await fr.evaluate(() => ({ x: document.getElementById('shX').href, line: document.getElementById('shLine').href, fb: document.getElementById('shFb').href, more: document.getElementById('tCopy').textContent, files: !!window.__hayDash.ev('G.shareFiles'), txt: window.__hayDash.ev('G.lastShare') }));
     console.log('==', S.n, '| more-label:', info.more, '| files ready:', info.files);
-    const xq = new URL(info.x); if (xq.host !== 'x.com' || xq.searchParams.get('text') !== info.txt || !/^https:\/\/renjill-hay-dash\.pages\.dev\/\?beat=\d+&c=(ren|jill|pom)$/.test(xq.searchParams.get('url'))) F(S.n, 'x link ' + info.x);
+    const xq = new URL(info.x); if (xq.host !== 'x.com' || xq.searchParams.get('text') !== info.txt || !/^https:\/\/hay-dash\.coana\.co\.jp\/\?beat=\d+&c=(ren|jill|pom)$/.test(xq.searchParams.get('url'))) F(S.n, 'x link ' + info.x);
     const lq = new URL(info.line); const phone = !!S.dev;
-    if (phone ? !(lq.host === 'line.me' && lq.searchParams.get('text').includes(info.txt) && lq.searchParams.get('text').includes('pages.dev')) : !(lq.host === 'social-plugins.line.me' && lq.searchParams.get('url'))) F(S.n, 'line link ' + info.line);
-    if (!/sharer\.php\?u=https%3A%2F%2Frenjill-hay-dash/.test(info.fb)) F(S.n, 'fb link ' + info.fb);
+    if (phone ? !(lq.host === 'line.me' && lq.searchParams.get('text').includes(info.txt) && lq.searchParams.get('text').includes('hay-dash.coana.co.jp')) : !(lq.host === 'social-plugins.line.me' && lq.searchParams.get('url'))) F(S.n, 'line link ' + info.line);
+    if (!/sharer\.php\?u=https%3A%2F%2Fhay-dash\.coana\.co\.jp/.test(info.fb)) F(S.n, 'fb link ' + info.fb);
     // X: tapping opens a new page with the intent URL
     const clickNew = async sel => { await page.waitForTimeout(700); const pr = ctx.waitForEvent('page', { timeout: 7000 }).catch(() => null); await fr.click(sel); const np = await pr; if (!np) return null; await np.waitForLoadState().catch(() => { }); const u = np.url(); await np.close(); return u; };
     for (const [sel, host] of [['#shX', 'x.com'], ['#shLine', phone ? 'line.me' : 'social-plugins.line.me']]) { const u = await clickNew(sel); if (!u || !u.includes(host)) F(S.n, sel + ' did not open ' + host + ' (got ' + u + ')'); }
@@ -67,8 +67,8 @@ let fails = 0; const F = (s, m) => { fails++; console.log('  FAIL', s, m); };
     r = await fr.evaluate(() => ({ s: window.__shares.slice(-1)[0], n: window.__shares.length, note: document.getElementById('igNote').innerText }));
     const c = await clip();
     if (S.share === 'ok') { if (!r.s || !r.s.url || !r.s.text) F(S.n, 'more: sheet data ' + JSON.stringify(r.s)); }
-    else if (S.share !== 'abort' && !(c.includes('pages.dev') && c.includes(info.txt.slice(0, 10)))) F(S.n, 'more: copy failed ' + c);
-    console.log('   more:', r.note.slice(0, 60), '| clipboard ok:', c.includes('pages.dev'));
+    else if (S.share !== 'abort' && !(c.includes('hay-dash.coana.co.jp') && c.includes(info.txt.slice(0, 10)))) F(S.n, 'more: copy failed ' + c);
+    console.log('   more:', r.note.slice(0, 60), '| clipboard ok:', c.includes('hay-dash.coana.co.jp'));
     if (errs.length) F(S.n, 'page errors ' + errs.join(' / '));
     await ctx.close();
   }
