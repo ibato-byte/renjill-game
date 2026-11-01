@@ -1,0 +1,44 @@
+# feed.json の「新作」を、公式サイトと同じ renjill-media/episodes.json に合わせて公開する（AI なし・無料・数十秒）。
+# 投稿（12:00・19:00）のあと 12:40・19:40（日本時間）に動く。変わらなければ何もしない。
+# GITHUB_TOKEN の push では qa.yml の公開が動かないので、変わったときはここで公開まで行う（feed.json だけの変更なので QA は省く）
+name: feed-sync
+on:
+  schedule:
+    - cron: '40 3,10 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: feed-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Automation Hub：一時停止の確認
+        id: hub
+        env:
+          HUB_TOKEN: ${{ secrets.HUB_TOKEN }}
+        run: |
+          if [ -z "$HUB_TOKEN" ] || ! git clone -q --depth 1 "https://x-access-token:${HUB_TOKEN}@github.com/ibato-byte/automation-hub.git" "$RUNNER_TEMP/hub"; then
+            echo "paused=false" >> "$GITHUB_OUTPUT"; echo "Automation Hub を使わずに続ける"; exit 0
+          fi
+          bash "$RUNNER_TEMP/hub/scripts/gha.sh" check renjill-game
+      - name: 新作を合わせる
+        id: sync
+        if: steps.hub.outputs.paused != 'true'
+        run: python3 tools/feed_sync.py
+      - name: 記録して公開
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          RAW_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: b3563f7747cafbc81a977a3b4edbfca3
+        run: |
+          git config user.name "renjill-bot"; git config user.email "renjill-bot@users.noreply.github.com"
+          git add app/feed.json && git commit -m "feed: 新作を最新の回に（episodes.json）" && git push
+          T="$(printf '%s' "$RAW_TOKEN" | tr -d '[:space:]')"; T="${T#Bearer}"
+          if [ -z "$T" ]; then echo "CLOUDFLARE_API_TOKEN がないので公開は次の main の公開のときに"; exit 0; fi
+          export CLOUDFLARE_API_TOKEN="$T"
+          python3 build.py && npx --yes wrangler@3 pages deploy app --project-name renjill-hay-dash --branch main --commit-dirty=true
