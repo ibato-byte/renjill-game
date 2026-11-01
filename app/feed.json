@@ -13,5 +13,22 @@
    "until": "2026-11-01",
    "note": "10/26 ハロウィン告知の投稿で発表"
   }
- ]
+ ],
+ "events": [
+  {
+   "id": "xmas",
+   "from": "2026-11-20",
+   "to": "2026-12-25",
+   "gift": {
+    "ja": "街がイルミネーションの季節に。ツリーの飾りと、冬の帽子をプレゼント！",
+    "en": "The city is lighting up for winter. A tree and a festive hat are waiting for you!"
+   }
+  }
+ ],
+ "news": {
+  "ja": "11/20から冬のイルミネーション企画がスタート！",
+  "en": "Winter lights event starts Nov 20!",
+  "zh": "11/20 冬季燈飾活動開跑!",
+  "ko": "11/20부터 겨울 일루미네이션 이벤트 시작!"
+ }
 }
