@@ -1,6 +1,6 @@
 const MAXSPD = 17.5;
 /* ================= game state ================= */
-const GAME_URL = (window.HAYDASH_CONFIG && window.HAYDASH_CONFIG.url) || (window.HAYDASH_APP && /^https?:/.test(location.href) ? location.href.split('#')[0].split('?')[0] : 'https://renjill-hay-dash.pages.dev/');
+const GAME_URL = (window.HAYDASH_CONFIG && window.HAYDASH_CONFIG.url) || (window.HAYDASH_APP && /^https?:/.test(location.href) ? location.href.split('#')[0].split('?')[0] : 'https://hay-dash.coana.co.jp/');
 const WEATHERS = ['clear', 'rain', 'clear', 'snow']; // by season: spring, rainy summer, autumn, winter
 const G = {
   mode: 'title', t: 0, segs: [], ci: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false,

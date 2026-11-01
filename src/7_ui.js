@@ -4,7 +4,7 @@ function hideAll() { SCREENS.forEach(id => { $('#' + id).hidden = true; }); }
 function show(id) { $('#' + id).hidden = false; }
 function goTitle() { hideAll(); setupTitle(); show('sTitle'); refreshTitle(); }
 function applyLang() {
-  { const a = $('#tGuide'); if (a) { a.textContent = LANG === 'ja' ? '遊び方・キャラクター紹介' : 'How to play & characters'; a.href = window.HAYDASH_APP ? (LANG === 'ja' ? './guide.html' : './guide-en.html') : 'https://renjill-hay-dash.pages.dev/' + (LANG === 'ja' ? 'guide' : 'guide-en'); if (window.HAYDASH_APP) a.removeAttribute('target'); } }
+  { const a = $('#tGuide'); if (a) { a.textContent = LANG === 'ja' ? '遊び方・キャラクター紹介' : 'How to play & characters'; a.href = window.HAYDASH_APP ? (LANG === 'ja' ? './guide.html' : './guide-en.html') : 'https://hay-dash.coana.co.jp/' + (LANG === 'ja' ? 'guide' : 'guide-en'); if (window.HAYDASH_APP) a.removeAttribute('target'); } }
   { const a = $('#tSite'); if (a) a.textContent = LANG === 'ja' ? 'REN & JILL 公式サイト' : 'Ren & Jill official site'; }  // タイトル画面の下の小さな文字：アニメの公式サイト（2026-10-31 オーナー指示）
   document.documentElement.lang = LANG; $('#cv').setAttribute('aria-label', LANG === 'ja' ? 'レンとジルのチモシーダッシュ' : 'Ren & Jill: Hay Dash');
   $('#tStory').innerHTML = t('story'); $('#tStory').hidden = false; const lr = $('#tLast'); if (SV.runs > 0 && SV.last) { lr.hidden = false; lr.textContent = t('lastRun', fmt(SV.last.score), SV.last.place) + (SV.best ? (LANG === 'ja' ? '　' : ' · ') + t('lastBest', fmt(SV.best)) : ''); } else lr.hidden = true; $('#tSub').textContent = LANG === 'ja' ? 'レンとジル　チモシーダッシュ' : 'Two office bunnies, one mad dash across Tokyo';
@@ -339,7 +339,7 @@ function boot() {
 /* ---- SNS × game: a small feed (the latest episode and secret words) published next to the app (feed.json) ----
    The automation updates feed.json after each post; the game shows the latest episode on the title screen and
    lets players redeem the secret word from a post. Words are stored hashed (SHA-256 of the word in capitals). */
-const FEED_URL = (window.HAYDASH_APP ? './' : 'https://renjill-hay-dash.pages.dev/') + 'feed.json';
+const FEED_URL = (window.HAYDASH_APP ? './' : 'https://hay-dash.coana.co.jp/') + 'feed.json';
 let FEED = null; try { FEED = JSON.parse(localStorage.getItem('rjFeed') || 'null'); } catch (e) { }
 function loadFeed() { try { fetch(FEED_URL + '?t=' + Math.floor(Date.now() / 36e5), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (!j || typeof j !== 'object') return; FEED = j; try { localStorage.setItem('rjFeed', JSON.stringify(j)); } catch (e) { } feedCard(); }).catch(() => { }); } catch (e) { } }
 function quietLine(id, html) { // one small line under START: a first-time player sees the game first, never a wall of notices

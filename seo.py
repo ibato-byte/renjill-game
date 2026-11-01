@@ -1,7 +1,7 @@
 # SEO for the public app (app/): the game page's title/description/structured data, a crawlable guide page in Japanese and English,
 # robots.txt and sitemap.xml. Called from build.py. Text only says true things about the game (no ratings, no fake reviews).
 import json, html, datetime, os
-SITE = 'https://renjill-hay-dash.pages.dev/'
+SITE = 'https://hay-dash.coana.co.jp/'
 TODAY = datetime.date.today().isoformat()
 PLACES = json.load(open('seo_places.json')) if os.path.exists('seo_places.json') else []
 INDEXNOW_KEY = '7f3c9b2e5a1d4c8e9b6a2f1e3d5c7a9b'  # public by design: proves the site owner pings IndexNow (Bing etc.)

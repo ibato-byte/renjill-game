@@ -1,7 +1,7 @@
 # renjill-game — 「レンとジルのチモシーダッシュ」（Ren & Jill: Hay Dash）
 
 うさぎの課長レンと部下ジル（と新人ハムスターのポム）が東京をかけぬけるランゲーム。
-公開先：https://renjill-hay-dash.pages.dev/ （Cloudflare Pages の renjill-hay-dash。アプリ版＝PWA）
+公開先：https://hay-dash.coana.co.jp/ （Cloudflare Pages の renjill-hay-dash。アプリ版＝PWA。旧 https://renjill-hay-dash.pages.dev/ も同じ中身で動く。進み具合の保存はアドレスごとなので、旧から新へ強制転送しない）
 姉妹リポジトリ：ibato-byte/renjill-auto（アニメの自動投稿）、ibato-byte/automation-hub（自動の司令塔）。
 
 目標：遊んだ人 100万人（qa/kpi.mjs が数える。kpi.json）。そのために SNS とゲームを一緒に、自動で、少しずつ良くし続ける。

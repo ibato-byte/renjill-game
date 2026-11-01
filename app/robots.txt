@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /feed.json
 
-Sitemap: https://renjill-hay-dash.pages.dev/sitemap.xml
+Sitemap: https://hay-dash.coana.co.jp/sitemap.xml
