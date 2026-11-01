@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
   for (const loc of ['ja-JP', 'en-US']) {
   const p = await b.newPage({ viewport: { width: 390, height: 844 }, locale: loc }); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.route('**/fonts.googleapis.com/**', r => r.abort());
-  await p.route('https://renjill-hay-dash.pages.dev/feed.json*', r => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: require('fs').readFileSync(require('path').resolve(__dirname, '../app') + '/feed.json', 'utf8') }));
+  await p.route('https://hay-dash.coana.co.jp/feed.json*', r => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: require('fs').readFileSync(require('path').resolve(__dirname, '../app') + '/feed.json', 'utf8') }));
   await p.goto('file://' + require('path').resolve(__dirname, '../dist') + '/test.html'); await p.waitForTimeout(1800);
   const card = await p.evaluate(() => { const e = document.getElementById('tFeed'); return e && !e.hidden ? e.textContent + ' -> ' + e.href : 'none'; });
   const bank0 = await p.evaluate(() => window.__hayDash.SV.bank);

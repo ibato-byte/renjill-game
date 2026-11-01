@@ -95,7 +95,7 @@ jobs:
       - name: 検索エンジンに更新を知らせる（IndexNow・アカウント不要）
         if: steps.chk.outputs.ok == 'true'
         run: |
-          KEY=$(python3 -c "import seo; print(seo.INDEXNOW_KEY)"); S=https://renjill-hay-dash.pages.dev
+          KEY=$(python3 -c "import seo; print(seo.INDEXNOW_KEY)"); S=https://hay-dash.coana.co.jp
           curl -s -X POST https://api.indexnow.org/indexnow -H 'content-type: application/json; charset=utf-8' \
-            -d "{\"host\":\"renjill-hay-dash.pages.dev\",\"key\":\"$KEY\",\"keyLocation\":\"$S/$KEY.txt\",\"urlList\":[\"$S/\",\"$S/guide\",\"$S/guide-en\",\"$S/ranking\"]}" \
+            -d "{\"host\":\"hay-dash.coana.co.jp\",\"key\":\"$KEY\",\"keyLocation\":\"$S/$KEY.txt\",\"urlList\":[\"$S/\",\"$S/guide\",\"$S/guide-en\",\"$S/ranking\"]}" \
             -o /dev/null -w "IndexNow %{http_code}\n" || true

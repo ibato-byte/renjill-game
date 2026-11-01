@@ -1,6 +1,6 @@
 // 検索で見つけてもらうための確認：タイトル・説明・正規URL・構造化データ・robots.txt・sitemap.xml・ガイドページ（日英）・画像の説明文・スマホではみ出さない
 const { chromium } = require('playwright'); const fs = require('fs'); const path = require('path');
-const APP = path.join(process.cwd(), 'app'), SITE = 'https://renjill-hay-dash.pages.dev/';
+const APP = path.join(process.cwd(), 'app'), SITE = 'https://hay-dash.coana.co.jp/';
 const errs = [], rd = f => fs.readFileSync(path.join(APP, f), 'utf8');
 const ld = s => [...s.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(m => { try { return JSON.parse(m[1]); } catch (e) { errs.push('LD JSON broken'); return null; } });
 const one = (s, re, name) => { const m = s.match(re); if (!m) errs.push('missing ' + name); return m ? m[1] : ''; };

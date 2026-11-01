@@ -1,6 +1,6 @@
 /* ================= monthly ranking (shared through the page's database) =================
    ranks/<viewer id> = { m202610: best score this month, m202610c: character, m202610d: day reached, all: best ever, nick } */
-const RANK_PAGE = (window.HAYDASH_APP ? './' : 'https://renjill-hay-dash.pages.dev/') + 'ranking.html';
+const RANK_PAGE = (window.HAYDASH_APP ? './' : 'https://hay-dash.coana.co.jp/') + 'ranking.html';
 const RANK = { db: null, user: null, uid: null, ready: false, last: null };
 function monthKey(d) { const j = new Date((d || new Date()).getTime() + 9 * 3600e3); return 'm' + j.getUTCFullYear() + String(j.getUTCMonth() + 1).padStart(2, '0'); }
 function monthLabel(k) { const y = k.slice(1, 5), m = +k.slice(5); return LANG === 'ja' ? `${y}年${m}月` : new Date(+y, m - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' }); }
