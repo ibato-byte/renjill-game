@@ -1,9 +1,10 @@
+// あいことばの期限（until）は本物のまま読むと日が過ぎるたびに不合格になるので、このテストでは期限だけ先の日付にして、仕組み（受け取れる・二重に受け取れない）を確かめる
 const { chromium } = require('playwright');
 (async () => { const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined });
   for (const loc of ['ja-JP', 'en-US']) {
   const p = await b.newPage({ viewport: { width: 390, height: 844 }, locale: loc }); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.route('**/fonts.googleapis.com/**', r => r.abort());
-  await p.route('https://hay-dash.coana.co.jp/feed.json*', r => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: require('fs').readFileSync(require('path').resolve(__dirname, '../app') + '/feed.json', 'utf8') }));
+  await p.route('https://hay-dash.coana.co.jp/feed.json*', r => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify((f => { (f.codes || []).forEach(c => { c.until = '2099-12-31'; }); return f; })(JSON.parse(require('fs').readFileSync(require('path').resolve(__dirname, '../app') + '/feed.json', 'utf8')))) }));
   await p.goto('file://' + require('path').resolve(__dirname, '../dist') + '/test.html'); await p.waitForTimeout(1800);
   const card = await p.evaluate(() => { const e = document.getElementById('tFeed'); return e && !e.hidden ? e.textContent + ' -> ' + e.href : 'none'; });
   const bank0 = await p.evaluate(() => window.__hayDash.SV.bank);
