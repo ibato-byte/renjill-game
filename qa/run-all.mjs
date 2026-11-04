@@ -40,6 +40,7 @@ const T = [
   { n: 'firstrun', why: 'はじめての30秒（ごほうび・初回ボーナス）', ok: has('FIRST RUN OK'), timeout: 300 },
   { n: 'resettest', why: 'データのリセット（ランキングの記録も消える）', ok: has('RESET OK'), timeout: 200 },
   { n: 'inputtest', why: '操作が効かなくならない（速いフリック・高く跳びすぎない）', ok: has('INPUT OK'), timeout: 200 },
+  { n: 'forkstuck', why: '分かれ道で画面が止まって動けなくならない（曲がる瞬間に道が作れない・分かれ道の道がない・数値の壊れ・絵のメモリ切れ→道に戻す／だめなら結果画面）', ok: has('FORK STUCK OK'), timeout: 400 },
   { n: 'stuck', args: ['60'], why: '長く走っても動けなくならない（3人・夕方/2日目へ）', ok: has('NO STUCK'), timeout: 400 },
   { n: 'linktest', why: 'アカウントが2つにならない（つなぐコード・LINEから外のブラウザへ）', ok: has('LINK OK'), timeout: 300 },
   { n: 'hudfit', why: '上の3つの枠がスマホではみ出さない（スコア7〜9桁）', ok: has('HUD FIT OK'), timeout: 300 },
