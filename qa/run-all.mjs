@@ -49,6 +49,7 @@ const T = [
   { n: 'pomwear', why: 'ポムの着せ替え（会ってから・買う・かぶる・はずす）', ok: has('POM WEAR OK'), timeout: 200 },
   { n: 'i18n_audit', why: '中国語・韓国語に訳のない文・カナが残っていない（全画面・走行中）', ok: has('I18N OK'), timeout: 400 },
   { n: 'reach', why: 'いくら遊んでも手に入らない物がない（図鑑・スタンプ・実績）', ok: has('REACH OK') },
+  { n: 'growth', why: 'SNSとのつながり（フォローの列・シェアの ?ref=・最新話・控えめなひと言・結果の時刻・こわれた数字のセーブ・古いコードの pid）', ok: has('GROWTH OK'), timeout: 400 },
   { n: 'seo', why: '検索で見つけてもらう（タイトル・説明・ガイド・地図）', ok: has('SEO OK'), timeout: 200 },
 ];
 if (MODE === 'smoke') { const keep = new Set(['dupcheck', 'qa', 'reltest', 'apptest', 'seo', 'reach']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }

@@ -37,7 +37,7 @@ let fails = 0; const F = (s, m) => { fails++; console.log('  FAIL', s, m); };
     await fr.evaluate(() => window.__hayDash.ev('G.invT = 0; G.lives = 0; endRun()')); await page.waitForTimeout(2000);
     const info = await fr.evaluate(() => ({ x: document.getElementById('shX').href, line: document.getElementById('shLine').href, fb: document.getElementById('shFb').href, more: document.getElementById('tCopy').textContent, files: !!window.__hayDash.ev('G.shareFiles'), txt: window.__hayDash.ev('G.lastShare') }));
     console.log('==', S.n, '| more-label:', info.more, '| files ready:', info.files);
-    const xq = new URL(info.x); if (xq.host !== 'x.com' || xq.searchParams.get('text') !== info.txt || !/^https:\/\/hay-dash\.coana\.co\.jp\/\?beat=\d+&c=(ren|jill|pom)$/.test(xq.searchParams.get('url'))) F(S.n, 'x link ' + info.x);
+    const xq = new URL(info.x); if (xq.host !== 'x.com' || xq.searchParams.get('text') !== info.txt || !/^https:\/\/hay-dash\.coana\.co\.jp\/\?beat=\d+&c=(ren|jill|pom)&ref=x$/.test(xq.searchParams.get('url'))) F(S.n, 'x link ' + info.x);
     const lq = new URL(info.line); const phone = !!S.dev;
     if (phone ? !(lq.host === 'line.me' && lq.searchParams.get('text').includes(info.txt) && lq.searchParams.get('text').includes('hay-dash.coana.co.jp')) : !(lq.host === 'social-plugins.line.me' && lq.searchParams.get('url'))) F(S.n, 'line link ' + info.line);
     if (!/sharer\.php\?u=https%3A%2F%2Fhay-dash\.coana\.co\.jp/.test(info.fb)) F(S.n, 'fb link ' + info.fb);

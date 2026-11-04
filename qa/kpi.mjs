@@ -17,7 +17,10 @@ const thisMonth = await count({ fieldFilter: { field: { fieldPath: month }, op: 
 const ymd = ms => +new Date(ms + 9 * 3600e3).toISOString().slice(0, 10).replace(/-/g, '');
 const since = days => count({ fieldFilter: { field: { fieldPath: 'last' }, op: 'GREATER_THAN_OR_EQUAL', value: { integerValue: String(ymd(Date.now() - days * 864e5)) } } });
 const dau = await since(1), wau = await since(7);
-const out = { at: new Date().toISOString(), players_total: total, players_this_month: thisMonth, active_1d: dau, active_7d: wau, goal: 1000000 };
+// where players came from: the ?ref= word on the shared link they opened (src on the ranking row; players without one opened the game directly)
+const SRCS = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr'], from = {};
+for (const s of SRCS) { try { const n = await count({ fieldFilter: { field: { fieldPath: 'src' }, op: 'EQUAL', value: { stringValue: s } } }); if (n) from[s] = n; } catch (e) { } }
+const out = { at: new Date().toISOString(), players_total: total, players_this_month: thisMonth, active_1d: dau, active_7d: wau, from, goal: 1000000 };
 // keep a daily history (data/kpi.csv): the weekly automation reads the trend from it (growth slowing = players getting bored)
 import('node:fs').then(fs => { const f = path.join(ROOT, 'data/kpi.csv'); fs.mkdirSync(path.dirname(f), { recursive: true }); if (!fs.existsSync(f)) fs.writeFileSync(f, 'date,players_total,players_this_month,active_1d,active_7d\n'); const d = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); const rows = fs.readFileSync(f, 'utf8').trim().split('\n'); if (!rows.some(r => r.startsWith(d + ','))) fs.appendFileSync(f, [d, total, thisMonth, dau, wau].join(',') + '\n'); });
 writeFileSync(path.join(ROOT, 'kpi.json'), JSON.stringify(out, null, 1));
