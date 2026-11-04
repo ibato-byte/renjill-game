@@ -639,6 +639,17 @@ function newMissions() {
   for (const m of pool) { if (slots.length >= 3) break; slots.push({ id: m.id, target: m.f(SV.mlevel), base: SV.totals[m.stat] || 0, prog: 0, done: 0 }); }
   SV.missions = { slots }; save();
 }
+// missions kept from an older version or a damaged code: a slot whose mission no longer exists (or has no number) could never clear,
+// and the mission level would stop for good. Such slots are replaced; the good ones keep their progress.
+function missionsFix() {
+  if (!SV.missions) return; const all = Array.isArray(SV.missions.slots) ? SV.missions.slots : [];
+  const ok = all.filter(sl => sl && typeof sl === 'object' && MT.some(x => x.id === sl.id) && Number.isFinite(+sl.target) && +sl.target > 0);
+  for (const sl of ok) { sl.target = +sl.target; sl.base = Number.isFinite(+sl.base) ? +sl.base : 0; sl.prog = Number.isFinite(+sl.prog) ? +sl.prog : 0; }
+  if (ok.length === all.length && ok.length >= 3) return;
+  const pool = eligible().filter(m => !ok.some(sl => sl.id === m.id)).sort(() => Math.random() - .5);
+  for (const m of pool) { if (ok.length >= 3) break; ok.push({ id: m.id, target: m.f(SV.mlevel), base: SV.totals[m.stat] || 0, prog: 0, done: 0 }); }
+  SV.missions = { slots: ok }; save();
+}
 function missionProg(sl, live) {
   const m = MT.find(x => x.id === sl.id); if (!m) return 0;
   if (m.scope === 'abs') return m.stat === 'stamps' ? Object.keys(SV.stamps).length : Object.keys(SV.zukan).length;

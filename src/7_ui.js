@@ -146,23 +146,27 @@ async function resetAll() {
 }
 /* ---- one account across browsers and devices: a short code (15 minutes) instead of a long transfer code ----
    links/<CODE> = { d: the transfer code of the device that made it, exp, by }. The code is the secret; it is deleted once used. */
-const LINK_ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', LINK_MIN = 15;
+const LINK_ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', LINK_MIN = 15, LINK_SKEW = 3 * 3600e3; // a phone whose clock is a few hours off still reads a fresh code (the code is deleted once used)
 const linkOn = () => !!(RANK.own && rankOn());
 const linkFmt = c => c.slice(0, 4) + '-' + c.slice(4);
-const linkClean = v => String(v || '').normalize('NFKC').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+// the 8 letters, however they arrive: typed with a Japanese keyboard (ＡＢＣＤーＥＦＧＨ), pasted with words around them, or the whole link pasted
+const linkClean = v => { const s = String(v || '').normalize('NFKC').toUpperCase().replace(/[\u2010-\u2015\u2212\u30FC\uFF70~]/g, '-');
+  const m = /LINK=([A-Z0-9]{4}-?[A-Z0-9]{4})(?![A-Z0-9])/.exec(s) || /(?:^|[^A-Z0-9])([A-Z0-9]{4}-[A-Z0-9]{4})(?![A-Z0-9])/.exec(s);
+  return (m ? m[1] : s).replace(/[^A-Z0-9]/g, '').slice(0, 8); };
 function linkHTML() {
   if (!linkOn()) return '';
   return `<div class="m xfer link"><p><b>${esc(t('linkH'))}</b></p><p class="note">${esc(t('linkNote'))}</p>` +
     `<p class="linkstep" id="linkInH">${esc(t('linkInH'))}</p><p class="note">${esc(t('linkInHow'))}</p>` +
-    `<div class="btns" style="display:flex;gap:8px;margin-top:6px"><input id="linkIn" aria-label="${esc(t('linkInH'))}" maxlength="9" autocomplete="off" autocapitalize="characters" enterkeyhint="go" placeholder="${esc(t('linkPh'))}" style="flex:1;min-width:0;font:inherit;font-size:18px;letter-spacing:.12em;text-transform:uppercase;padding:8px 10px;border-radius:10px;border:2px solid var(--line)"><button class="sub" id="btnLinkGo" style="flex:none;width:auto;padding-left:18px;padding-right:18px">${esc(t('linkGo'))}</button></div>` +
+    `<div class="btns" style="display:flex;gap:8px;margin-top:6px"><input id="linkIn" aria-label="${esc(t('linkInH'))}" maxlength="200" autocomplete="off" autocapitalize="characters" enterkeyhint="go" placeholder="${esc(t('linkPh'))}" style="flex:1;min-width:0;font:inherit;font-size:18px;letter-spacing:.12em;text-transform:uppercase;padding:8px 10px;border-radius:10px;border:2px solid var(--line)"><button class="sub" id="btnLinkGo" style="flex:none;width:auto;padding-left:18px;padding-right:18px">${esc(t('linkGo'))}</button></div>` +
     `<p class="linkstep" style="margin-top:18px">${esc(t('linkOutH'))}</p><button class="sub" id="btnLinkMake">${esc(t('linkMake'))}</button><div id="linkOut" hidden></div>` +
     `<div id="linkAsk" hidden></div><p class="note" id="linkMsg" aria-live="polite"></p></div>`;
 }
 async function linkMake() {
   const msg = $('#linkMsg'), out = $('#linkOut'); msg.textContent = t('linkWait');
   try { saveNow(); const d = await xferMake(); let code = ''; const r = new Uint32Array(8); crypto.getRandomValues(r); for (const x of r) code += LINK_ABC[x % LINK_ABC.length];
-    await RANK.db.doc('links/' + code).set({ d, exp: Date.now() + LINK_MIN * 60e3, by: RANK.uid });
-    const url = (window.HAYDASH_APP && /^https?:/.test(location.href) ? location.href.split('#')[0].split('?')[0] : GAME_URL) + '?link=' + code;
+    try { await RANK.db.doc('links/' + code).set({ d, exp: Date.now() + LINK_MIN * 60e3, by: RANK.uid }); }
+    catch (e) { await RANK.db.doc('links/' + code).set({ d, exp: Date.now() - 2 * 3600e3 + LINK_MIN * 60e3, by: RANK.uid }); } // this phone's clock runs ahead (the server refuses a code that seems to last too long): once more, as if two hours earlier (readers allow LINK_SKEW)
+    const url = extOpen((window.HAYDASH_APP && /^https?:/.test(location.href) ? location.href.split('#')[0].split('?')[0] : GAME_URL) + '?link=' + code); // sent to yourself on LINE, it opens in the phone's own browser (not a second account inside LINE)
     out.hidden = false; out.innerHTML = `<p class="linkcode">${esc(linkFmt(code))}</p><p class="note">${esc(t('linkShow', LINK_MIN))}</p><button class="sub" id="btnLinkCopy">${esc(t('linkCopy'))}</button>`; out.dataset.url = url;
     msg.textContent = '';
   } catch (e) { msg.textContent = t('linkFail'); }
@@ -171,26 +175,46 @@ async function linkLook(raw) {
   const code = linkClean(raw), msg = $('#linkMsg'), ask = $('#linkAsk'); ask.hidden = true; if (code.length !== 8) { msg.textContent = t('linkBad'); return; }
   msg.textContent = t('linkWait');
   try { const sn = await RANK.db.doc('links/' + code).get(); const o = sn.exists ? sn.data() : null;
-    if (!o || !o.d || !(o.exp > Date.now())) { msg.textContent = t('linkBad'); return; }
+    if (!o || !o.d || !(o.exp > Date.now() - LINK_SKEW)) { msg.textContent = t('linkBad'); return; }
     if (o.by === RANK.uid) { msg.textContent = t('linkSelf'); return; }
     const them = await xferRead(o.d); msg.textContent = '';
     ask.hidden = false; ask.dataset.code = code; ask.dataset.d = o.d;
-    const mine = (SV.best || 0) > (them.best || 0);
-    ask.innerHTML = `<p class="note"><b>${esc(t('linkAsk', fmt(them.best || 0), fmt(them.bank || 0)))}</b></p>` + (mine ? `<p class="note" style="color:#B3352A">${esc(t('linkMine', fmt(SV.best || 0)))}</p>` : '') +
+    const mine = (SV.best || 0) > (+them.best || 0), more = xferMore(them);
+    ask.innerHTML = `<p class="note"><b>${esc(t('linkAsk', fmt(+them.best || 0), fmt(+them.bank || 0)))}</b></p>` + (mine ? `<p class="note" style="color:#B3352A">${esc(t('linkMine', fmt(SV.best || 0)))}</p>` : more ? `<p class="note" style="color:#B3352A">${esc(more)}</p>` : '') +
       `<div style="display:flex;gap:8px"><button class="sub" id="btnLinkYes">${esc(t('linkYes'))}</button><button class="sub" id="btnLinkNo">${esc(t('resetNo'))}</button></div>`;
   } catch (e) { msg.textContent = t('linkFail'); }
 }
 async function linkApply() {
   const ask = $('#linkAsk'), msg = $('#linkMsg'), code = ask.dataset.code, d = ask.dataset.d; if (!code || !d) return;
   $('#btnLinkYes').disabled = true; msg.textContent = t('linkWait');
-  try { if (rankOn()) await Promise.race([RANK.db.doc('ranks/' + RANK.uid).set({}), new Promise(r => setTimeout(r, 4000))]); } catch (e) { } // this browser's own entry leaves the boards: one player, one row
+  let them = null; try { them = await xferRead(d); await xferApply(d); } catch (e) { $('#btnLinkYes').disabled = false; msg.textContent = t('linkFail'); return; } // the progress first: nothing is removed unless it arrived
+  RESETTING = 1; // from here this page writes nothing back (the new save and account are in place)
   try { await RANK.db.doc('links/' + code).delete(); } catch (e) { }
-  try { await xferApply(d); } catch (e) { msg.textContent = t('linkFail'); return; }
-  RESETTING = 1; msg.textContent = t('linkDone'); setTimeout(() => location.reload(), 800);
+  await xferLeaveBoard(them && them._fs); // this browser's own entry leaves the boards: one player, one row
+  msg.textContent = t('linkDone'); setTimeout(() => location.reload(), 800);
+}
+// a transfer that brings another ranking account: this browser's old row is emptied (it would stay on the boards as a second player)
+async function xferLeaveBoard(fs) { if (!RANK.own || !rankOn() || !fs || !fs.u || fs.u === RANK.uid) return; try { await Promise.race([RANK.db.doc('ranks/' + RANK.uid).set({}), new Promise(r => setTimeout(r, 4000))]); } catch (e) { } }
+// this device has progress the code does not: say so before it is replaced (best, hay or runs; '' when nothing would be lost)
+function xferMore(them) { const b = SV.best || 0, h = SV.bank || 0, r = SV.runs || 0; return b > (+them.best || 0) || h > (+them.bank || 0) || r > (+them.runs || 0) ? t('xferMine', fmt(b), fmt(h), fmt(r)) : ''; }
+// the long backup code: show what it holds, warn when this device has more, and restore on the second tap (for this same code only)
+async function xferLoad(b) {
+  const code = $('#xferIn').value, msg = $('#xferMsg'); if (!code.trim() || b.disabled) return;
+  let them, key; try { them = await xferRead(code); key = xferParse(code).body.slice(-24); } catch (e) { b.dataset.sure = ''; msg.textContent = t('xferBad'); return; }
+  if (b.dataset.sure !== key) { b.dataset.sure = key; const more = xferMore(them);
+    msg.innerHTML = `<b>${esc(t('linkAsk', fmt(+them.best || 0), fmt(+them.bank || 0)))}</b><br>` + (more ? `<span style="color:#B3352A">${esc(more)}</span><br>` : '') + esc(t('xferConfirm')); return; }
+  b.disabled = true;
+  try { await xferApply(code); } catch (e) { b.disabled = false; b.dataset.sure = ''; msg.textContent = t('xferBad'); return; }
+  msg.textContent = t('xferDone');
+  let kept = false; try { kept = localStorage.getItem(SAVE_KEY) === JSON.stringify(SV); } catch (e) { }
+  if (kept) { RESETTING = 1; await xferLeaveBoard(them._fs); setTimeout(() => location.reload(), 900); return; } // a fresh start with the restored save: language, sound, account, gifts and perks all from it
+  // a page that cannot keep data (a private window, a host without storage): the restored save stays in this page, so no reload
+  LANG = LANGS.includes(SV.lang) ? SV.lang : LANG; G.char = SV.char || 'ren'; applyWear(); missionsFix(); setMute(!!SV.mute); applyAudioOpt(); refreshTitle(); { const lg = legendGrant(); if (lg) setTimeout(() => toastTitle(lg), 1000); }
+  setTimeout(() => { if (!$('#sPanel').hidden) closePanel(); goTitle(); }, 900);
 }
 // opened from a "connect" link (?link=CODE): open the settings with the code filled in
 const LINK_Q = (() => { try { const m = /[?&]link=([A-Za-z0-9-]{8,9})\b/.exec(location.search); if (m) { history.replaceState(null, '', location.pathname + location.hash); return linkClean(m[1]); } } catch (e) { } return ''; })();
-function linkFromUrl() { if (!LINK_Q) return; const go = (n) => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn()) return; openSettings(); const i = $('#linkIn'); if (i) { i.value = linkFmt(LINK_Q); i.scrollIntoView({ block: 'center' }); linkLook(LINK_Q); } }; go(0); }
+function linkFromUrl() { if (!LINK_Q) return; const go = (n) => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn()) { if (window.HAYDASH_APP) toastTitle(t('linkFail')); return; } openSettings(); const i = $('#linkIn'); if (i) { i.value = linkFmt(LINK_Q); i.scrollIntoView({ block: 'center' }); linkLook(LINK_Q); } }; go(0); }
 function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); }
 let rvTimer = null;
 function openRevive() {
@@ -291,10 +315,7 @@ $('#sPanel').addEventListener('click', e => {
   if (e.target.id === 'btnReset') { $('#resetAsk').hidden = false; $('#btnReset').hidden = true; $('#btnResetNo').focus(); return; }
   if (e.target.id === 'btnResetNo') { $('#resetAsk').hidden = true; $('#btnReset').hidden = false; return; }
   if (e.target.id === 'btnResetYes') { resetAll(); return; }
-  if (e.target.id === 'btnXferLoad') { const code = $('#xferIn').value.trim(), b = e.target; if (!code) return;
-    xferRead(code).then(() => { if (!b.dataset.sure) { b.dataset.sure = 1; $('#xferMsg').textContent = t('xferConfirm'); return; }
-      return xferApply(code).then(() => { $('#xferMsg').textContent = t('xferDone'); LANG = SV.lang || LANG; G.char = SV.char || 'ren'; applyWear(); setTimeout(() => { closePanel(); goTitle(); }, 900); }); })
-      .catch(() => { b.dataset.sure = ''; $('#xferMsg').textContent = t('xferBad'); }); }
+  if (e.target.id === 'btnXferLoad') { xferLoad(e.target); return; }
 });
 const toggleMute = () => { audioInit(); setMute(!SV.mute); applyLang(); };
 $('#btnMute').onclick = toggleMute; $('#btnMute2').onclick = toggleMute;
@@ -341,7 +362,7 @@ function resizeKeep() { cv.width = Math.round(W * DPR); cv.height = Math.round(H
 function boot() {
   buildItemSprites(); buildWorldSprites(); buildBunnies(); applyWear(); rankIcons(); rankInit(); chatInit(); resize(); addEventListener('resize', resize);
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
-  G.char = SV.char || 'ren';
+  G.char = SV.char || 'ren'; missionsFix();
   goTitle(); document.documentElement.classList.remove('booting'); // the page shows only once its words are in the player's language
   dailyBonus(); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && G.mode === 'title') dailyBonus(); }); // a phone that keeps the app open past midnight gets the next day's bonus when it comes back
   { // an event has ended: whoever still wears its gift goes back to their usual look once (the gift stays in the Shop and can be worn again)
@@ -371,7 +392,7 @@ function inAppCard() { // inside an app's built-in browser the game would start 
   if (!window.HAYDASH_APP || !/^https?:/.test(location.href)) return; const ua = navigator.userAgent || '', line = /\bLine\//i.test(ua), other = /Instagram|FBAN|FBAV|FB_IAB|Twitter|TwitterAndroid|\bKAKAOTALK/i.test(ua);
   if (!line && !other) return;
   // the way out of each app's browser: LINE takes a flag; on Android any app hands the page to Chrome; on iPhone (iOS 17+) Safari opens from its own link form
-  const here = location.href.split('#')[0], android = /Android/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua);
+  const here = location.href.split('#')[0] + (LINK_Q ? (location.href.split('#')[0].includes('?') ? '&' : '?') + 'link=' + LINK_Q : ''), android = /Android/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua);
   const go = line ? extOpen(here) : android ? 'intent://' + here.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end' : ios ? 'x-safari-' + here : '';
   const el = quietLine('tInApp', `<span>${esc(t(line ? 'inAppLine' : 'inAppOther'))}</span> <a id="inAppGo" href="${esc(go || '#')}" title="${esc(t('inAppNote'))}">${esc(t('inAppGo'))} ›</a><small id="inAppHow" hidden>${esc(t('inAppNote'))}${line ? '' : ' ' + esc(t('inAppHow'))}</small>`);
   // if the app keeps the page (the link did nothing), explain once, still small

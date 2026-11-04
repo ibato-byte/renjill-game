@@ -18,7 +18,7 @@ const defSave = () => ({ best: 0, bank: 0, closet: {}, wear: { ren: { tie: 'gold
   mlevel: 1, missions: null, totals: {}, zukan: {}, seenZukan: 0, daily: '', streak: 0, mute: false, runs: 0, bestClock: 480,
   lang: '', stamps: {}, album: {}, bestDay: 1, seenStamps: 0 });
 let SV = defSave();
-function svFrom(o) { const SVp = SV; SV = Object.assign(defSave(), o); try { const D = defSave(); SV.upg = Object.assign(D.upg, o.upg && typeof o.upg === 'object' ? o.upg : {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (!(SV.char === 'ren' || SV.char === 'jill' || (SV.char === 'pom' && SV.pomMet))) SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}), pom: Object.assign(dw.pom, (o.wear || {}).pom || {}) }; SV.closet = o.closet && typeof o.closet === 'object' ? o.closet : {}; svNums(); } catch (e) { SV = SVp; throw e; } }
+function svFrom(o) { const SVp = SV; SV = Object.assign(defSave(), o); try { const D = defSave(); SV.upg = Object.assign(D.upg, o.upg && typeof o.upg === 'object' ? o.upg : {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (!(SV.char === 'ren' || SV.char === 'jill' || (SV.char === 'pom' && SV.pomMet))) SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}), pom: Object.assign(dw.pom, (o.wear || {}).pom || {}) }; SV.closet = o.closet && typeof o.closet === 'object' && !Array.isArray(o.closet) ? o.closet : {}; if (SV.last && (typeof SV.last !== 'object' || !Number.isFinite(+SV.last.score))) delete SV.last; svNums(); } catch (e) { SV = SVp; throw e; } }
 // numbers from an old or damaged save: never NaN, never negative (the title would show “NaN” hay)
 function svNums() { const D = defSave(); for (const k of ['best', 'bank', 'clovers', 'runs', 'mlevel', 'streak', 'bestClock', 'bestDay', 'seenZukan', 'seenStamps']) { const v = +SV[k]; SV[k] = Number.isFinite(v) && v >= 0 ? Math.floor(v) : D[k]; } if (SV.mlevel < 1) SV.mlevel = 1; if (SV.bestDay < 1) SV.bestDay = 1; for (const k in SV.upg) { const v = +SV.upg[k]; SV.upg[k] = Number.isFinite(v) ? Math.max(0, Math.min(5, Math.floor(v))) : 0; } if (!SV.wear || typeof SV.wear !== 'object') SV.wear = D.wear; }
 try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { const o = JSON.parse(raw); if (o && typeof o === 'object' && !Array.isArray(o)) svFrom(o); } } catch (e) { SV = defSave(); }
@@ -32,7 +32,7 @@ const SNS = [{ id: 'ig', name: 'Instagram', url: 'https://www.instagram.com/renj
 const OFFICIAL_SITE = 'https://renjill.coana.co.jp/', SITE_REF = OFFICIAL_SITE + '?ref=haydash'; // the official site can count visits that came from the game
 /* ---- where a new player came from: ?ref=<channel> on a shared link (one short word from this list, nothing personal).
    Kept once (the first visit) and sent with the ranking row as "src", so qa/kpi.mjs can count players per channel. */
-const REF_OK = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr'];
+const REF_OK = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr', 'itch', 'gamejolt', 'newgrounds', 'freem', 'plicy', 'portal'];
 const REF_IN = (() => { try { const q = new URLSearchParams(location.search), r = (q.get('ref') || '').toLowerCase(); if (!q.has('ref')) return ''; q.delete('ref'); const rest = q.toString(); history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash); return REF_OK.includes(r) ? r : ''; } catch (e) { return ''; } })();
 if (REF_IN && !SV.ref) SV.ref = REF_IN;
 /* ---- account transfer: the whole save (without photos) as a code, readable by any build of the game ----
@@ -49,12 +49,43 @@ async function xferMake() {
   return tag + '.' + b64 + '.' + xferSum(b64);
 }
 function xferSum(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h.toString(36); }
+// a code pasted from LINE, a notes app or a mail: line breaks, full-width letters (ＲＪ１．…), invisible spaces, “smart” dashes (-- → —)
+// and words around it are all fine. The checksum decides where the code ends.
+function xferParse(code) {
+  const s = String(code || '').normalize('NFKC').replace(/[\u2014\u2015\u2E3A]/g, '--').replace(/[\u2010-\u2013\u2212\uFE63]/g, '-').replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, '').replace(/^[ \t]*(?:>[ \t]*)+/gm, ''); // also the “> ” of a quoted mail
+  const m = /(RJ[01])\s*\.([A-Za-z0-9_\-\s]+)\.\s*([a-z0-9][a-z0-9\s]*)/i.exec(s); if (!m) throw new Error('format');
+  const body = m[2].replace(/\s+/g, ''), sum = xferSum(body); if (!body) throw new Error('format');
+  if (!m[3].replace(/\s+/g, '').startsWith(sum)) throw new Error('checksum');
+  return { tag: m[1].toUpperCase(), body };
+}
 async function xferRead(code) {
-  const m = String(code || '').replace(/\s+/g, '').match(/^(RJ[01])\.([A-Za-z0-9_-]+)\.([a-z0-9]+)$/); if (!m) throw new Error('format');
-  if (xferSum(m[2]) !== m[3]) throw new Error('checksum');
-  const bin = atob(m[2].replace(/-/g, '+').replace(/_/g, '/')); let bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  if (m[1] === 'RJ1') { if (typeof DecompressionStream !== 'function') throw new Error('browser'); const ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')); bytes = new Uint8Array(await new Response(ds).arrayBuffer()); }
-  const o = JSON.parse(new TextDecoder().decode(bytes)); if (!o || typeof o !== 'object' || o._v !== 1) throw new Error('version'); return o;
+  const m = xferParse(code);
+  const bin = atob(m.body.replace(/-/g, '+').replace(/_/g, '/')); let bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  if (m.tag === 'RJ1') { if (typeof DecompressionStream === 'function') { const ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')); bytes = new Uint8Array(await new Response(ds).arrayBuffer()); } else bytes = xferInflate(bytes); }
+  const o = JSON.parse(new TextDecoder().decode(bytes)); if (!o || typeof o !== 'object' || Array.isArray(o) || o._v !== 1) throw new Error('version'); return o;
+}
+// older phones (iPhone before iOS 16.4) have no DecompressionStream: a small raw-DEFLATE reader so RJ1 codes open there too
+function xferInflate(src) {
+  let pos = 0, bit = 0, bb = 0; const out = [];
+  const bits = n => { let v = 0; for (let i = 0; i < n; i++) { if (!bit) { if (pos >= src.length) throw new Error('data'); bb = src[pos++]; bit = 8; } v |= (bb & 1) << i; bb >>= 1; bit--; } return v; };
+  const build = lens => { const cnt = new Uint16Array(16), offs = new Uint16Array(16), sym = new Uint16Array(lens.length); for (const l of lens) cnt[l]++; cnt[0] = 0; for (let i = 1; i < 16; i++) offs[i] = offs[i - 1] + cnt[i - 1]; for (let i = 0; i < lens.length; i++) if (lens[i]) sym[offs[lens[i]]++] = i; return { cnt, sym }; };
+  const dec = h => { let code = 0, first = 0, idx = 0; for (let l = 1; l < 16; l++) { code |= bits(1); const c = h.cnt[l]; if (code - c < first) return h.sym[idx + code - first]; idx += c; first += c; first <<= 1; code <<= 1; } throw new Error('data'); };
+  const LB = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258], LE = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0];
+  const DB = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577], DE = [0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13];
+  let last;
+  do { last = bits(1); const type = bits(2);
+    if (type === 0) { bit = 0; if (pos + 4 > src.length) throw new Error('data'); const len = src[pos] | src[pos + 1] << 8; pos += 4; if (pos + len > src.length) throw new Error('data'); for (let i = 0; i < len; i++) out.push(src[pos++]); continue; }
+    if (type === 3) throw new Error('data');
+    let lh, dh;
+    if (type === 1) { const l = []; for (let i = 0; i < 288; i++) l.push(i < 144 ? 8 : i < 256 ? 9 : i < 280 ? 7 : 8); lh = build(l); dh = build(new Array(30).fill(5)); }
+    else { const nl = bits(5) + 257, nd = bits(5) + 1, nc = bits(4) + 4, ORD = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15], cl = new Array(19).fill(0);
+      for (let i = 0; i < nc; i++) cl[ORD[i]] = bits(3); const ch = build(cl), lens = [];
+      while (lens.length < nl + nd) { const s = dec(ch); if (s < 16) lens.push(s); else if (s === 16) { if (!lens.length) throw new Error('data'); const p = lens[lens.length - 1]; for (let r = 3 + bits(2); r--;) lens.push(p); } else for (let r = s === 17 ? 3 + bits(3) : 11 + bits(7); r--;) lens.push(0); }
+      lh = build(lens.slice(0, nl)); dh = build(lens.slice(nl, nl + nd)); }
+    for (;;) { const s = dec(lh); if (s < 256) out.push(s); else if (s === 256) break; else { const i = s - 257; if (i >= 29) throw new Error('data'); const len = LB[i] + bits(LE[i]), d = dec(dh); if (d >= 30) throw new Error('data'); const dist = DB[d] + bits(DE[d]); if (dist > out.length) throw new Error('data'); for (let k = 0; k < len; k++) out.push(out[out.length - dist]); }
+      if (out.length > 8e6) throw new Error('data'); }
+  } while (!last);
+  return new Uint8Array(out);
 }
 async function xferApply(code) {
   const o = await xferRead(code), fs = o._fs; delete o._fs; delete o._v; delete o._at;
@@ -213,7 +244,7 @@ const STR = {
   ctrlNote: ['タップ：画面の左右をタップでレーン移動、真ん中の上半分でジャンプ、下半分でスライディング。', 'Tap: tap the left or right side to change lanes, the upper middle to jump, the lower middle to slide.'],
   sens: ['スワイプの感度', 'Swipe sensitivity'], sensN: ['ふつう', 'Normal'], sensH: ['敏感', 'High'],
   vib: ['振動', 'Vibration'], calm: ['画面の揺れ・演出をひかえめに', 'Reduce screen shake and flashes'], music: ['音楽', 'Music'], sfx: ['効果音', 'Sound effects'], on: ['オン', 'On'], off: ['オフ', 'Off'],
-  resetTut: ['チュートリアルをもう一度', 'Replay the tutorial'], xfer: ['記録のバックアップ（予備）', 'Backup of your progress (spare)'], xferNote: ['ネットにつながらないときなどの予備です。長いコードをメモ帳などに保存しておけば、あとで記録をもどせます。ふだんの引き継ぎは上の「記録の引き継ぎ」が簡単です。（写真アルバムは入りません）', 'A spare for when you are offline: save the long code somewhere and restore it later. For everyday moves, “Move your progress” above is easier. (Photos are not included.)'], xferMake: ['バックアップのコードを作る', 'Make a backup code'], xferCopied: ['コードをコピーしました。メモ帳などに保存しておいてください', 'Code copied. Keep it somewhere safe'], xferPaste: ['ここにバックアップのコードを貼り付け', 'Paste a backup code here'], xferLoad: ['このコードで復元', 'Restore from this code'], xferDone: ['記録をもどしました！', 'Restored!'], xferBad: ['コードが正しくありません。最後まで貼り付けられているか確認してください', 'That code does not look right. Check it was pasted in full'], xferConfirm: ['今の記録はこのコードの記録で上書きされます。もう一度押すと復元します', 'Your current progress will be replaced. Tap again to restore'], resetDone: ['次のスタートでチュートリアルが始まります', 'The tutorial will play on your next run'],
+  resetTut: ['チュートリアルをもう一度', 'Replay the tutorial'], xfer: ['記録のバックアップ（予備）', 'Backup of your progress (spare)'], xferNote: ['ネットにつながらないときなどの予備です。長いコードをメモ帳などに保存しておけば、あとで記録をもどせます。ふだんの引き継ぎは上の「記録の引き継ぎ」が簡単です。（写真アルバムは入りません）', 'A spare for when you are offline: save the long code somewhere and restore it later. For everyday moves, “Move your progress” above is easier. (Photos are not included.)'], xferMake: ['バックアップのコードを作る', 'Make a backup code'], xferCopied: ['コードをコピーしました。メモ帳などに保存しておいてください', 'Code copied. Keep it somewhere safe'], xferPaste: ['ここにバックアップのコードを貼り付け', 'Paste a backup code here'], xferLoad: ['このコードで復元', 'Restore from this code'], xferDone: ['記録をもどしました！', 'Restored!'], xferBad: ['コードが正しくありません。最後まで貼り付けられているか確認してください', 'That code does not look right. Check it was pasted in full'], xferConfirm: ['今の記録はこのコードの記録で上書きされます。もう一度押すと復元します', 'Your current progress will be replaced. Tap again to restore'], xferMine: ['この端末にも記録があります（ベスト {0}点・チモシー {1}本・{2}回プレイ）。続けると、この端末の記録は上の記録に入れかわります', 'This device has progress too (best {0}, hay {1}, {2} runs). It will be replaced by the progress above.'], resetDone: ['次のスタートでチュートリアルが始まります', 'The tutorial will play on your next run'],
 };
 const t = (k, ...a) => { const s = STR[k] ? tr(STR[k][0], STR[k][1]) : k; return s.replace(/\{(\d)\}/g, (_, i) => a[i] ?? ''); };
 

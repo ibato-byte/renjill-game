@@ -5,7 +5,8 @@ function fsdbMake(cfg) {
   const KEY = cfg.apiKey, PID = cfg.projectId, BASE = `https://firestore.googleapis.com/v1/projects/${PID}/databases/(default)/documents`;
   const AUTH = { id: null, exp: 0, uid: null, refresh: null };
   try { const a = JSON.parse(localStorage.getItem('hd_fsauth') || 'null'); if (a) { AUTH.refresh = a.r; AUTH.uid = a.u; } } catch (e) { }
-  const keep = () => { try { localStorage.setItem('hd_fsauth', JSON.stringify({ r: AUTH.refresh, u: AUTH.uid })); } catch (e) { } };
+  // never written while the save is being wiped or replaced (a transfer brings its own account)
+  const keep = () => { if (typeof RESETTING !== 'undefined' && RESETTING) return; try { localStorage.setItem('hd_fsauth', JSON.stringify({ r: AUTH.refresh, u: AUTH.uid })); } catch (e) { } };
   async function token() { // an anonymous Firebase account per device, refreshed when its token runs out
     if (AUTH.id && Date.now() < AUTH.exp - 60e3) return AUTH.id;
     if (AUTH.refresh) {
