@@ -15,7 +15,7 @@ const SH = process.env.SHOTS || 'shots';
     if (lk.visible || lk.cols !== 2) errs.push(tag + lang + ' HIDDEN ' + JSON.stringify(lk));
     if (tag === 'sp' && lang === 'ja') await p.screenshot({ path: SH + '/pom_hidden.png' });
     // 2) met: unlocked, pick, title, run
-    await p.evaluate(() => { const D = window.__hayDash; D.SV.pomMet = 1; D.SV.pomTold = 0; D.ev('save(); refreshTitle()'); });
+    await p.evaluate(() => { const D = window.__hayDash; D.ev('toastClear()'); D.SV.pomMet = 1; D.SV.pomTold = 0; D.ev('save(); refreshTitle()'); });
     await p.waitForTimeout(900);
     const toast = await p.evaluate(() => [...document.querySelectorAll('.toast')].map(x => x.textContent).join('|'));
     if (!/ポム|Pom/.test(toast)) errs.push(tag + lang + ' NO UNLOCK TOAST ' + toast);

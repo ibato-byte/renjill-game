@@ -44,6 +44,10 @@ const T = [
   { n: 'hudfit', why: '上の3つの枠がスマホではみ出さない（スコア7〜9桁）', ok: has('HUD FIT OK'), timeout: 300 },
   { n: 'dailybonus', why: 'ログインボーナス（毎日・連続・1日1回）', ok: has('DAILY BONUS OK'), timeout: 200 },
   { n: 'rankwear', why: 'ランキングの顔が着せ替えた姿で出る', ok: has('RANK WEAR OK'), timeout: 200 },
+  { n: 'seasonal', why: '季節の企画がもれなく切り替わる（初回から・古いリンクで戻らない・終わった帽子）', ok: has('SEASONAL OK'), timeout: 300 },
+  { n: 'legend', why: '伝説のうさぎの特典（到達ずみの人にも・二重にもらえない・まだの人は買えない）', ok: has('LEGEND OK'), timeout: 300 },
+  { n: 'pomwear', why: 'ポムの着せ替え（会ってから・買う・かぶる・はずす）', ok: has('POM WEAR OK'), timeout: 200 },
+  { n: 'i18n_audit', why: '中国語・韓国語に訳のない文・カナが残っていない（全画面・走行中）', ok: has('I18N OK'), timeout: 400 },
   { n: 'seo', why: '検索で見つけてもらう（タイトル・説明・ガイド・地図）', ok: has('SEO OK'), timeout: 200 },
 ];
 if (MODE === 'smoke') { const keep = new Set(['dupcheck', 'qa', 'reltest', 'apptest', 'seo']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }

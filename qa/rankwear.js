@@ -24,7 +24,7 @@ const { chromium } = require('playwright');
   if (f !== r.def.pom) errs.push('pom icon');
   if (g !== r.def.ren) errs.push('broken outfit code did not fall back');
   if (i === a) errs.push('mug not drawn');
-  if (r.wearNow !== JSON.stringify({ ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' } })) errs.push('the player\'s own outfit changed while drawing others ' + r.wearNow);
+  if (r.wearNow !== JSON.stringify({ ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' }, pom: { band: 'red', hat: '', suit: '' } })) errs.push('the player\'s own outfit changed while drawing others ' + r.wearNow);
   await p.screenshot({ path: (process.env.SHOTS || 'shots') + '/rank_wear.png', clip: { x: 0, y: 0, width: 390, height: 520 } });
   console.log(errs.length ? 'FAIL ' + errs.join(' || ') : 'RANK WEAR OK no errors'); await b.close();
 })();

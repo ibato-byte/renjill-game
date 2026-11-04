@@ -20,7 +20,7 @@ const { chromium } = require('playwright');
     }
     await p.click('#btnLang'); await p.waitForTimeout(100);
     const lang = await p.evaluate(() => document.querySelector('#btnStart').textContent + '|' + document.querySelector('#tMis').textContent);
-    await p.click('#btnLang');
+    await p.evaluate(() => window.__hayDash.ev("LANG = 'ja'; SV.lang = 'ja'; refreshTitle()")); // the button now cycles 日本語→English→繁體中文→한국어; go straight back to Japanese
     if (name === 'phone') { // tap controls + Jill + revive + pause
       await p.click('#pickJill'); await p.click('#btnSet'); await p.click('[data-opt="ctrl"][data-v="tap"]'); await p.click('#pClose');
       await p.evaluate(() => { const SV = window.__hayDash.SV; SV.tutDone = 1; SV.bank = 5000; SV.clovers = 3; });

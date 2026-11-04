@@ -46,7 +46,7 @@ const SIZES = (process.env.SIZES || 'ph:390x844,pc:1280x800').split(',').map(s =
   }
   fs.writeFileSync((process.env.SHOTS || '/tmp/rj-shots') + '/en_audit.json', JSON.stringify(out, null, 1));
   let n = 0; const seen = new Set();
-  for (const [k, v] of Object.entries(out)) { if (Array.isArray(v)) { n += v.length; continue; } for (const x of v.jp.concat(v.over.map(o => 'OVER ' + o))) { if (/btnLang/.test(x)) continue; const key = k.split(':')[0] + x; if (seen.has(key)) continue; seen.add(key); n++; console.log('ISSUE', k, x); } }
+  for (const [k, v] of Object.entries(out)) { if (Array.isArray(v)) { n += v.length; continue; } for (const x of v.jp.concat(v.over.map(o => 'OVER ' + o))) { if (/btnLang/.test(x) || /: (日本語|繁體中文|한국어)$/.test(x)) continue; const key = k.split(':')[0] + x; if (seen.has(key)) continue; seen.add(key); n++; console.log('ISSUE', k, x); } }
   console.log('EN_ISSUES ' + n);
   if (false) for (const [k, v] of Object.entries(out)) { if (Array.isArray(v)) { if (v.length) console.log(k, v); continue; } if (v.jp.length || v.over.length) console.log('==', k, '\n  JP:', v.jp.join('\n      '), '\n  OVER:', v.over.join('\n      ')); }
   await b.close(); process.exit(n ? 1 : 0);

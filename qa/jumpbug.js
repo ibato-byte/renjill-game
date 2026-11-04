@@ -13,11 +13,12 @@ const { chromium } = require('playwright');
   let fails = 0, tries = 0, details = [];
   for (let i = 0; i < 160; i++) {
     const up = i % 2 === 0;
-    const before = await p.evaluate(() => { const G = window.__hayDash.G; return { mode: G.mode, air: G.air, fly: G.pow.fly > 0, slide: G.slideT > 0, y: G.y, turnT: G.turnT, hs: G.hitStop }; });
+    const before = await p.evaluate(() => { const G = window.__hayDash.G; return { j: G.stats.jumps, mode: G.mode, air: G.air, fly: G.pow.fly > 0, slide: G.slideT > 0, y: G.y, turnT: G.turnT, hs: G.hitStop }; });
     if (i < 12) console.log(JSON.stringify(before)); if (before.mode !== 'play') { await p.waitForTimeout(500); continue; }
     await sw(0, up ? -90 : 90); await p.waitForTimeout(60);
-    const after = await p.evaluate(() => { const G = window.__hayDash.G; return { air: G.air, slide: G.slideT > 0, vy: G.vy, room: G.segs[G.ci].tid, mode: G.mode }; });
-    if (!before.air && !before.fly && after.mode === 'play') { tries++; const ok = up ? after.air : after.slide; if (!ok) { fails++; details.push({ up, before, after }); } }
+    const after = await p.evaluate(() => { const G = window.__hayDash.G; return { j: G.stats.jumps, air: G.air, slide: G.slideT > 0, vy: G.vy, room: G.segs[G.ci].tid, mode: G.mode }; });
+    // a busy frame can let a whole jump finish before we look again: the jump counter then says it happened
+    if (!before.air && !before.fly && after.mode === 'play') { tries++; const ok = up ? (after.air || after.j > before.j) : after.slide; if (!ok) { fails++; details.push({ up, before, after }); } }
     await p.waitForTimeout(up ? 700 : 500);
   }
   console.log('tries', tries, 'fails', fails, JSON.stringify(details.slice(0, 5)));
