@@ -417,22 +417,22 @@ function drawClockTower(x, yb, h, N) {
 
 /* ================= extra sprites ================= */
 function buildWorldSprites() {
-  const can = (cols, n) => { const c = mk(256), g = c.getContext('2d'); const r = rnd(n); for (let i = 0; i < 70; i++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 90; g.beginPath(); g.fillStyle = cols[(r() * cols.length) | 0]; g.arc(128 + Math.cos(a) * d, 120 + Math.sin(a) * d * .8, 18 + r() * 22, 0, Math.PI * 2); g.fill(); }
+  const can = (cols, n) => { const c = mk(256), g = c.getContext('2d') || noCtx(); const r = rnd(n); for (let i = 0; i < 70; i++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 90; g.beginPath(); g.fillStyle = cols[(r() * cols.length) | 0]; g.arc(128 + Math.cos(a) * d, 120 + Math.sin(a) * d * .8, 18 + r() * 22, 0, Math.PI * 2); g.fill(); }
     g.fillStyle = 'rgba(0,0,0,.12)'; g.beginPath(); g.ellipse(128, 190, 90, 30, 0, 0, Math.PI * 2); g.fill(); return c; };
   for (const k in TREE) SPR['canopy_' + k] = leafCrown(TREE[k].length > 2 ? TREE[k] : [TREE[k][0], TREE[k][0], TREE[k][0]], k.length * 7);
-  { const c = mk(256), g = c.getContext('2d'), r = rnd(9); for (let i = 0; i < 160; i++) { const v = r(), wv = (1 - v) * 92 + 6; g.beginPath(); g.fillStyle = TREE.ginkgo[(r() * 3) | 0]; g.arc(128 + (r() * 2 - 1) * wv * .8, 20 + v * 210, 10 + r() * 10, 0, Math.PI * 2); g.fill(); } SPR.canopy_cone = c; }
-  { const c = mk(256), g = c.getContext('2d'), r = rnd(4); for (let k = 0; k < 4; k++) for (let i = 0; i < 26; i++) { g.beginPath(); g.fillStyle = TREE.pine[(r() * 3) | 0]; g.ellipse(128 + (r() * 2 - 1) * 100, 60 + k * 45 + r() * 20, 26 + r() * 20, 10 + r() * 6, 0, 0, Math.PI * 2); g.fill(); } SPR.canopy_pine = c; }
-  { const day = leafCrown(TREE.green, 31), c = mk(256), g = c.getContext('2d'); g.drawImage(day, 0, 0); const r = rnd(11); for (let i = 0; i < 90; i++) { g.fillStyle = 'rgba(255,230,150,.9)'; g.beginPath(); g.arc(30 + r() * 196, 30 + r() * 170, 2.2, 0, Math.PI * 2); g.fill(); } SPR.canopy_illum = c;
-    const n = mk(256), h2 = n.getContext('2d'); h2.globalAlpha = .55; h2.filter = 'brightness(.25)'; h2.drawImage(day, 0, 0); h2.filter = 'none'; h2.globalAlpha = 1; const r2 = rnd(13);
+  { const c = mk(256), g = c.getContext('2d') || noCtx(), r = rnd(9); for (let i = 0; i < 160; i++) { const v = r(), wv = (1 - v) * 92 + 6; g.beginPath(); g.fillStyle = TREE.ginkgo[(r() * 3) | 0]; g.arc(128 + (r() * 2 - 1) * wv * .8, 20 + v * 210, 10 + r() * 10, 0, Math.PI * 2); g.fill(); } SPR.canopy_cone = c; }
+  { const c = mk(256), g = c.getContext('2d') || noCtx(), r = rnd(4); for (let k = 0; k < 4; k++) for (let i = 0; i < 26; i++) { g.beginPath(); g.fillStyle = TREE.pine[(r() * 3) | 0]; g.ellipse(128 + (r() * 2 - 1) * 100, 60 + k * 45 + r() * 20, 26 + r() * 20, 10 + r() * 6, 0, 0, Math.PI * 2); g.fill(); } SPR.canopy_pine = c; }
+  { const day = leafCrown(TREE.green, 31), c = mk(256), g = c.getContext('2d') || noCtx(); g.drawImage(day, 0, 0); const r = rnd(11); for (let i = 0; i < 90; i++) { g.fillStyle = 'rgba(255,230,150,.9)'; g.beginPath(); g.arc(30 + r() * 196, 30 + r() * 170, 2.2, 0, Math.PI * 2); g.fill(); } SPR.canopy_illum = c;
+    const n = mk(256), h2 = n.getContext('2d') || noCtx(); h2.globalAlpha = .55; h2.filter = 'brightness(.25)'; h2.drawImage(day, 0, 0); h2.filter = 'none'; h2.globalAlpha = 1; const r2 = rnd(13);
     for (let i = 0; i < 160; i++) { const x = 28 + r2() * 200, y = 24 + r2() * 176; const gr = h2.createRadialGradient(x, y, 0, x, y, 7); gr.addColorStop(0, 'rgba(255,236,170,1)'); gr.addColorStop(1, 'rgba(255,200,110,0)'); h2.fillStyle = gr; h2.fillRect(x - 7, y - 7, 14, 14); } SPR.canopy_illumN = n; }
-  { const c = mk(128), g = c.getContext('2d'); const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, 'rgba(255,230,170,.95)'); gr.addColorStop(1, 'rgba(255,200,120,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); SPR.glow = c; }
-  { const c = mk(128), g = c.getContext('2d'); g.fillStyle = '#2B1A12'; g.fillRect(48, 6, 32, 12); g.fillRect(48, 110, 32, 12); const gr = g.createRadialGradient(54, 50, 6, 64, 64, 60); gr.addColorStop(0, '#FF7A5C'); gr.addColorStop(1, '#C0392B'); g.fillStyle = gr; g.beginPath(); g.ellipse(64, 64, 42, 50, 0, 0, Math.PI * 2); g.fill();
+  { const c = mk(128), g = c.getContext('2d') || noCtx(); const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, 'rgba(255,230,170,.95)'); gr.addColorStop(1, 'rgba(255,200,120,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); SPR.glow = c; }
+  { const c = mk(128), g = c.getContext('2d') || noCtx(); g.fillStyle = '#2B1A12'; g.fillRect(48, 6, 32, 12); g.fillRect(48, 110, 32, 12); const gr = g.createRadialGradient(54, 50, 6, 64, 64, 60); gr.addColorStop(0, '#FF7A5C'); gr.addColorStop(1, '#C0392B'); g.fillStyle = gr; g.beginPath(); g.ellipse(64, 64, 42, 50, 0, 0, Math.PI * 2); g.fill();
     g.strokeStyle = 'rgba(0,0,0,.25)'; for (let k = 1; k < 6; k++) { g.beginPath(); g.ellipse(64, 64 - 50 + k * 16.6, 42 * Math.sin(k / 6 * Math.PI), 3, 0, 0, Math.PI * 2); g.stroke(); } SPR.lantern = c; }
-  { const c = mk(64), g = c.getContext('2d'); g.strokeStyle = '#E9EDF0'; g.lineWidth = 4; g.beginPath(); g.moveTo(32, 0); g.lineTo(32, 36); g.stroke(); g.beginPath(); g.ellipse(32, 48, 12, 14, 0, 0, Math.PI * 2); g.stroke(); SPR.strap = c; }
-  { const c = mk(128), g = c.getContext('2d'); for (let i = 0; i < 26; i++) { g.beginPath(); g.fillStyle = i % 3 ? '#5F9E5A' : ['#E86A75', '#F2C230', '#FBF6EE', '#C792EA'][i % 4]; g.arc(20 + (i * 37) % 90, 40 + (i * 23) % 60, 9, 0, Math.PI * 2); g.fill(); } SPR.flowers = c; }
-  { const c = mk(64), g = c.getContext('2d'); g.fillStyle = '#F07C2E'; g.beginPath(); g.arc(32, 36, 22, Math.PI, 0); g.fill(); g.fillStyle = '#FBF6EE'; g.fillRect(10, 36, 44, 6); SPR.buoy = c; }
-  { const c = mk(256), g = c.getContext('2d'), r = rnd(23); // a row of riverside buildings in silhouette, windows lit at night via the N variant
-      const paintRow = (night) => { const cv = mk(256), q = cv.getContext('2d'), rr2 = rnd(23); let x = 0; while (x < 256) { const w = 40 + rr2() * 60, h = 90 + rr2() * 150; q.fillStyle = night ? '#1C2440' : `rgb(${150 + rr2() * 40 | 0},${160 + rr2() * 36 | 0},${178 + rr2() * 30 | 0})`; q.fillRect(x, 256 - h, w, h);
+  { const c = mk(64), g = c.getContext('2d') || noCtx(); g.strokeStyle = '#E9EDF0'; g.lineWidth = 4; g.beginPath(); g.moveTo(32, 0); g.lineTo(32, 36); g.stroke(); g.beginPath(); g.ellipse(32, 48, 12, 14, 0, 0, Math.PI * 2); g.stroke(); SPR.strap = c; }
+  { const c = mk(128), g = c.getContext('2d') || noCtx(); for (let i = 0; i < 26; i++) { g.beginPath(); g.fillStyle = i % 3 ? '#5F9E5A' : ['#E86A75', '#F2C230', '#FBF6EE', '#C792EA'][i % 4]; g.arc(20 + (i * 37) % 90, 40 + (i * 23) % 60, 9, 0, Math.PI * 2); g.fill(); } SPR.flowers = c; }
+  { const c = mk(64), g = c.getContext('2d') || noCtx(); g.fillStyle = '#F07C2E'; g.beginPath(); g.arc(32, 36, 22, Math.PI, 0); g.fill(); g.fillStyle = '#FBF6EE'; g.fillRect(10, 36, 44, 6); SPR.buoy = c; }
+  { const c = mk(256), g = c.getContext('2d') || noCtx(), r = rnd(23); // a row of riverside buildings in silhouette, windows lit at night via the N variant
+      const paintRow = (night) => { const cv = mk(256), q = cv.getContext('2d') || noCtx(), rr2 = rnd(23); let x = 0; while (x < 256) { const w = 40 + rr2() * 60, h = 90 + rr2() * 150; q.fillStyle = night ? '#1C2440' : `rgb(${150 + rr2() * 40 | 0},${160 + rr2() * 36 | 0},${178 + rr2() * 30 | 0})`; q.fillRect(x, 256 - h, w, h);
           const cols = Math.max(1, (w / 9) | 0), rows = Math.max(1, (h / 10) | 0); for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) { const on = rr2() < (night ? .5 : .9); q.fillStyle = night ? (on ? '#F7D58A' : '#2A3550') : 'rgba(255,255,255,.28)'; if (on || !night) q.fillRect(x + 3 + i * 9, 256 - h + 4 + j * 10, 5, 5); }
           x += w + 2 + rr2() * 6; } return cv; };
       SPR.bldg = paintRow(0); SPR.bldgN = paintRow(1); }
@@ -452,7 +452,7 @@ function treeLimbs(g, r, x, y, ang, len, wid, depth, col, tips, droop) {
   for (let i = 0; i < n; i++) treeLimbs(g, r, x2, y2, ang + (i - (n - 1) / 2) * .62 + (r() - .5) * .45, len * (.6 + r() * .16), Math.max(1, wid * .6), depth - 1, col, tips, droop);
 }
 function sakuraTree(dir, night, seed) {
-  const S = 512, c = mk(S), g = c.getContext('2d'), r = rnd(seed), tips = [];
+  const S = 512, c = mk(S), g = c.getContext('2d') || noCtx(), r = rnd(seed), tips = [];
   const bark = night ? '#17110F' : '#3B2F2B', bx = 256 - dir * 92;
   // trunk: short and thick, leaning
   const tx = bx + dir * 46, ty = 330;
@@ -481,7 +481,7 @@ function sakuraTree(dir, night, seed) {
   return c;
 }
 function bareTree(seed, cone) {
-  const S = 256, c = mk(S), g = c.getContext('2d'), r = rnd(seed), tips = [];
+  const S = 256, c = mk(S), g = c.getContext('2d') || noCtx(), r = rnd(seed), tips = [];
   if (cone) { g.strokeStyle = '#5E4C42'; g.lineWidth = 4; g.beginPath(); g.moveTo(128, 250); g.lineTo(128, 14); g.stroke();
     for (let y = 30; y < 240; y += 9) { const w = (y - 14) / 236 * 100; for (const sd of [-1, 1]) treeLimbs(g, r, 128, y, (sd < 0 ? Math.PI : 0) - sd * (.5 + r() * .3), w * (.6 + r() * .4), 2, 1, '#6B5A50', tips, 0); } return c; }
   for (const a of [-1.9, -1.55, -1.2, -2.3, -.85]) treeLimbs(g, r, 128, 250, a + (r() - .5) * .2, 70 + r() * 20, 7, 3, '#5A4A42', tips, 0);
@@ -491,7 +491,7 @@ function buildSakuraSprites() {
   for (const d of [-1, 1]) for (const v of [0, 1]) { SPR[`sakura${d < 0 ? 'L' : 'R'}${v}`] = sakuraTree(d, 0, 17 + v * 31 + (d + 1) * 7); SPR[`sakura${d < 0 ? 'L' : 'R'}${v}N`] = sakuraTree(d, 1, 17 + v * 31 + (d + 1) * 7); }
   SPR.sakuraU = sakuraTree(0, 0, 88); SPR.sakuraUN = sakuraTree(0, 1, 88);
   SPR.canopy_sakura = SPR.sakuraU; SPR.canopy_bare = bareTree(5); SPR.canopy_coneB = bareTree(9, 1);
-  { const c = mk(256), g = c.getContext('2d'), r = rnd(9); for (let i = 0; i < 170; i++) { const v = r(), wv = (1 - v) * 92 + 6; g.beginPath(); g.fillStyle = TREE.fresh[(r() * 3) | 0]; g.arc(128 + (r() * 2 - 1) * wv * .8, 20 + v * 210, 10 + r() * 10, 0, Math.PI * 2); g.fill(); } SPR.canopy_coneG = c; }
+  { const c = mk(256), g = c.getContext('2d') || noCtx(), r = rnd(9); for (let i = 0; i < 170; i++) { const v = r(), wv = (1 - v) * 92 + 6; g.beginPath(); g.fillStyle = TREE.fresh[(r() * 3) | 0]; g.arc(128 + (r() * 2 - 1) * wv * .8, 20 + v * 210, 10 + r() * 10, 0, Math.PI * 2); g.fill(); } SPR.canopy_coneG = c; }
 }
 // sprites take the scene's light: a darkened copy per light level, made once and kept
 const LIT_CACHE = new WeakMap(); // weak: when a building texture is dropped, its lit copies go with it
@@ -505,7 +505,7 @@ function litSprite(img, amb, force, full) {
   const k = q.join(','); if (m[k]) return m[k];
   if (!force && !texOK() && m.last) return m.last; TEXN++; // over this frame's budget: the previous shade for one more frame
   const ks = full ? 1 : Math.min(1, LIT_MAXDIM / Math.max(img.width, img.height)); // phones keep shaded copies at a reduced size: many more fit in memory, and they are drawn small anyway
-  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.width * ks)); c.height = Math.max(1, Math.round(img.height * ks)); const g = c.getContext('2d');
+  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.width * ks)); c.height = Math.max(1, Math.round(img.height * ks)); const g = c.getContext('2d'); if (!g) { noCtx(); return img; } // out of picture memory: the unshaded picture (never a throw, never a blank kept)
   g.drawImage(img, 0, 0, c.width, c.height); g.globalCompositeOperation = 'multiply'; g.fillStyle = `rgb(${q.map(x => (x * 255) | 0).join(',')})`; g.fillRect(0, 0, c.width, c.height);
   g.globalCompositeOperation = 'destination-in'; g.drawImage(img, 0, 0, c.width, c.height);
   for (const kk of Object.keys(m)) if (kk !== 'last' && kk !== k) { const o = m[kk]; delete m[kk]; const i = LIT_LIST.findIndex(e => e.c === o); if (i >= 0) { LIT_PX -= LIT_LIST[i].px; LIT_LIST.splice(i, 1); } try { o.width = o.height = 0; } catch (x) { } } // one shade per picture: the light only moves one way through the day
@@ -515,7 +515,7 @@ function litSprite(img, amb, force, full) {
 const STAMP_CACHE = {};
 function stampSprite(tid, big) {
   const key = tid + (big ? 'B' : '') + LANG; if (STAMP_CACHE[key]) return STAMP_CACHE[key];
-  const th = THEMES[tid], st = th && th.stamp; const sz = big ? 256 : 128, c = mk(sz), g = c.getContext('2d'), s = sz / 128;
+  const th = THEMES[tid], st = th && th.stamp; const sz = big ? 256 : 128, c = mk(sz), g = c.getContext('2d') || noCtx(), s = sz / 128;
   g.scale(s, s); g.fillStyle = '#FBF6EE'; g.beginPath(); g.arc(64, 64, 58, 0, Math.PI * 2); g.fill();
   g.strokeStyle = '#C8463C'; g.lineWidth = 6; g.beginPath(); g.arc(64, 64, 52, 0, Math.PI * 2); g.stroke(); g.lineWidth = 2; g.beginPath(); g.arc(64, 64, 44, 0, Math.PI * 2); g.stroke();
   g.fillStyle = '#C8463C'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `900 ${st && st.k.length > 2 ? 30 : 38}px "Zen Maru Gothic","Hiragino Sans",sans-serif`; g.fillText(st ? st.k : '?', 64, 60);

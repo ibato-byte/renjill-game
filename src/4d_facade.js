@@ -39,7 +39,7 @@ function facadeTex(st, variant, w, h, night, mood, soft) {
   while (FAC_CACHE.size && (FAC_CACHE.size > FAC_MAXN || FAC_PX > FAC_MAXPX)) { let oldK = null, oldN = 1e18; for (const [k, v] of FAC_CACHE) if (v.n < oldN) { oldN = v.n; oldK = k; } const ev = FAC_CACHE.get(oldK); FAC_PX -= ev.px; FAC_CACHE.delete(oldK); try { ev.c.width = ev.c.height = 0; } catch (e) { } }
   const c = document.createElement('canvas'); const PW = Math.max(8, Math.round(w * FAC_P)), PH = Math.max(8, Math.round(h * FAC_P));
   const ks = Math.min(1, 700 / PH, 320 / PW); c.width = Math.max(8, Math.round(PW * ks)); c.height = Math.max(8, Math.round(PH * ks)); // tall towers are painted at a lower resolution
-  const g = c.getContext('2d'), r = rnd(variant * 131 + 7 + Math.round(w * 3) + Math.round(h * 5)); g.scale(c.width / PW, c.height / PH);
+  const g = c.getContext('2d') || noCtx(), r = rnd(variant * 131 + 7 + Math.round(w * 3) + Math.round(h * 5)); if (g === NOCTX) return null; g.scale(c.width / PW, c.height / PH);
   // the texture's y runs top-down, the wall's v runs bottom-up: flip so v=0 (street level) is at the bottom
   const paint = FAC_STYLE[st] || FAC_STYLE.mixed;
   paint(g, r, PW, PH, w, h, night, variant, mood || '');
@@ -302,7 +302,7 @@ function drawFacadeTex(w, dist) {
 }
 
 const SPR_PEND = {};
-function sprPaint(k) { const f = SPR_PEND[k]; if (!f) return SPR[k]; delete SPR_PEND[k]; try { SPR[k] = f(); if (SPR[k] && !SPR[k].__keep) { SPR[k].__keep = 1; ART_KEPT++; } } catch (e) { } return SPR[k]; }
+function sprPaint(k) { const f = SPR_PEND[k]; if (!f) return SPR[k]; delete SPR_PEND[k]; const low = CANVAS_LOW; try { SPR[k] = f(); if (CANVAS_LOW !== low) { delete SPR[k]; SPR_PEND[k] = f; return null; } /* out of picture memory: painted again later, not kept blank */ if (SPR[k] && !SPR[k].__keep) { SPR[k].__keep = 1; ART_KEPT++; } } catch (e) { } return SPR[k]; }
 // idle time: paint the fronts of the streets ahead (and their lit copies) before they come round the corner
 function texWarm(ms) {
   const end = performance.now() + Math.max(1.5, ms); const night = LT.night > .35;

@@ -79,11 +79,11 @@ function rankIconFor(r, ch) {
   const key = who + ':' + JSON.stringify(pw); if (RANK_ICON_W[key] !== undefined) return RANK_ICON_W[key] || RANK_ICON[who];
   const keep = Object.assign({}, WEAR[who]), seed = SEED; let url = '';
   try { Object.assign(WEAR[who], pw.w); SEED = 6; const fr = paint(g => drawBody(g, who, { lift: 0, sq: 1, feet: 0, ear: 0, view: 'front', mood: 'open', mug: pw.mug ? 1 : 0 }));
-    const c = mk(64); iconCrop(c.getContext('2d'), fr, who); url = c.toDataURL(); } catch (e) { url = ''; }
+    const c = mk(64); iconCrop(c.getContext('2d') || noCtx(), fr, who); url = c.toDataURL(); } catch (e) { url = ''; }
   finally { Object.assign(WEAR[who], keep); SEED = seed; }
   RANK_ICON_W[key] = url; return url || RANK_ICON[who];
 }
-function rankIcons() { for (const w of ['ren', 'jill', 'pom']) { const c = mk(64), g = c.getContext('2d'); iconCrop(g, bunFrame(w, 'front_open'), w); try { RANK_ICON[w] = c.toDataURL(); } catch (e) { RANK_ICON[w] = ''; } } }
+function rankIcons() { for (const w of ['ren', 'jill', 'pom']) { const c = mk(64), g = c.getContext('2d') || noCtx(); iconCrop(g, bunFrame(w, 'front_open'), w); try { RANK_ICON[w] = c.toDataURL(); } catch (e) { RANK_ICON[w] = ''; } } }
 // after a run: submit, then show this month's position and the top five
 async function rankAfterRun(score) {
   const box = $('#resRank'); if (!box) return;

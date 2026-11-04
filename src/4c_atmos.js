@@ -57,7 +57,7 @@ function drawSunGlow(horizon) {
 const CLOUD_SPR = [];
 function buildCloudSprites() {
   for (let n = 0; n < 6; n++) {
-    const c = document.createElement('canvas'); c.width = 512; c.height = 220; const g = c.getContext('2d'), r = rnd(31 + n * 17);
+    const c = document.createElement('canvas'); c.width = 512; c.height = 220; const g = c.getContext('2d') || noCtx(), r = rnd(31 + n * 17);
     const puffs = [], cnt = n < 4 ? 26 : 14;
     for (let i = 0; i < cnt; i++) { const t = r(), x = 70 + t * 372, ht = Math.sin(t * Math.PI) * (n < 4 ? 80 : 30); puffs.push([x + (r() - .5) * 30, 175 - r() * ht, (n < 4 ? 26 : 18) + r() * (n < 4 ? 34 : 16)]); }
     // body
@@ -70,7 +70,7 @@ function buildCloudSprites() {
     CLOUD_SPR.push(c);
   }
   { // thin high cirrus
-    const c = document.createElement('canvas'); c.width = 512; c.height = 96; const g = c.getContext('2d'), r = rnd(77);
+    const c = document.createElement('canvas'); c.width = 512; c.height = 96; const g = c.getContext('2d') || noCtx(), r = rnd(77);
     for (let i = 0; i < 40; i++) { const x = r() * 420 + 40, y = 30 + r() * 40, w = 60 + r() * 120; const gr = g.createLinearGradient(x - w / 2, 0, x + w / 2, 0); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(.5, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.beginPath(); g.ellipse(x, y, w / 2, 3 + r() * 4, -.08, 0, Math.PI * 2); g.fill(); }
     CLOUD_SPR.push(c);
   }
@@ -80,7 +80,7 @@ function tintedSprite(img, rgb) {
   if (!img || !img.width) return img;
   const q = rgb.map(x => Math.min(255, Math.round(x / 12) * 12)); if (q[0] >= 252 && q[1] >= 252 && q[2] >= 252) return img;
   let m = TINT_CACHE.get(img); if (!m) { m = {}; TINT_CACHE.set(img, m); } const k = q.join(','); if (m[k]) return m[k];
-  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d');
+  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d') || noCtx();
   g.drawImage(img, 0, 0); g.globalCompositeOperation = 'multiply'; g.fillStyle = rgbS(q); g.fillRect(0, 0, c.width, c.height); g.globalCompositeOperation = 'destination-in'; g.drawImage(img, 0, 0);
   const keys = Object.keys(m); while (keys.length > 3) { const kk = keys.shift(), o = m[kk]; delete m[kk]; try { o.width = o.height = 0; } catch (e) { } } m[k] = c; return c;
 }
@@ -143,14 +143,14 @@ function postFX() {
       ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = `rgba(255,214,170,${(.35 * gold).toFixed(3)})`; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over'; } }
   if (!LT.indoor) { ctx.globalCompositeOperation = 'soft-light'; const g = ctx.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, LT.night > .5 ? 'rgba(60,80,160,.35)' : 'rgba(90,130,200,.22)'); g.addColorStop(1, LT.night > .5 ? 'rgba(255,170,90,.18)' : 'rgba(255,200,140,.22)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over'; }
-  if (!GRAIN) { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), d = g.createImageData(128, 128), r = rnd(3);
+  if (!GRAIN) { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d') || noCtx(), d = g.createImageData(128, 128), r = rnd(3);
     for (let i = 0; i < d.data.length; i += 4) { const v = 128 + (r() - .5) * 90; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } g.putImageData(d, 0, 0); GRAIN = ctx.createPattern(c, 'repeat'); }
   ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .07; ctx.fillStyle = GRAIN; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
 }
 
 /* ---- tree crowns with light from above: dark inner mass, lit clumps, sky gaps ---- */
 function leafCrown(cols, seed) {
-  const c = mk(256), g = c.getContext('2d'), r = rnd(seed);
+  const c = mk(256), g = c.getContext('2d') || noCtx(), r = rnd(seed);
   const dark = hexRgb(cols[1]).map(x => x * .62), mid = hexRgb(cols[0]), lt = hexRgb(cols[2]).map(x => Math.min(255, x * 1.12));
   const clumps = []; for (let i = 0; i < 22; i++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 86; clumps.push([128 + Math.cos(a) * d, 118 + Math.sin(a) * d * .72, 22 + r() * 18]); }
   const dot = (x, y, R, col) => { g.fillStyle = col; g.beginPath(); g.arc(x, y, R, 0, Math.PI * 2); g.fill(); };
@@ -169,7 +169,7 @@ function leafCrown(cols, seed) {
    so it adds detail without changing the floor's color. */
 const FTEX = {};
 function buildFloorTex() {
-  const mkT = (fn, seed) => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), r = rnd(seed); g.fillStyle = 'rgb(128,128,128)'; g.fillRect(0, 0, 256, 256); fn(g, r); return c; };
+  const mkT = (fn, seed) => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d') || noCtx(), r = rnd(seed); g.fillStyle = 'rgb(128,128,128)'; g.fillRect(0, 0, 256, 256); fn(g, r); return c; };
   const blot = (g, r, n, a, R) => { for (let i = 0; i < n; i++) { const x = r() * 256, y = r() * 256, rr = R * (.4 + r()), v = r() < .5 ? 96 : 160; const gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, `rgba(${v},${v},${v},${a})`); gr.addColorStop(1, `rgba(${v},${v},${v},0)`); g.fillStyle = gr; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); } };
   const specks = (g, r, n, lo, hi, s) => { for (let i = 0; i < n; i++) { const v = (lo + r() * (hi - lo)) | 0; g.fillStyle = `rgb(${v},${v},${v})`; g.fillRect(r() * 256, r() * 256, s * (.5 + r()), s * (.5 + r())); } };
   FTEX.asphalt = mkT((g, r) => { blot(g, r, 26, .35, 40); specks(g, r, 2600, 70, 120, 1.6); specks(g, r, 1600, 150, 200, 1.3); }, 5);

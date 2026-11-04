@@ -15,35 +15,49 @@ const G = {
 function curSeg() { return G.segs[G.ci]; }
 function forkLabels(fk) { return fk.lbl; }
 function nextStep() {
-  if (!G.plan.length) { G.planDay++; G.plan = dayPlan(G.planDay); G.planClock = 480; }
+  if (!G.plan.length) { const np = dayPlan(G.planDay + 1); G.planDay++; G.plan = np; G.planClock = 480; } // the new day only once its plan is made
   return G.plan.shift();
 }
-function ensureSegs() {
-  while (!G.fork && G.segs.length - G.ci < 4) { // four ahead: a street is built well before it can come into view
+// one street of a fork's side, and the fork flag it needs when another fork follows it straight away
+function forkSide(last, list, turnIn, t0, after) {
+  const nf = list.length === 1 && after && after.fork;
+  const sg = newSeg(last, list[0], { turnIn, t0, day: G.planDay, fork: nf || null }); if (nf) sg.forkLbl = forkLabels(nf, G.planDay); return sg;
+}
+// builds the streets ahead (max: at most that many per call, so a turn never builds three streets in one frame).
+// All or nothing per street: if building one fails (a phone out of memory), its step goes back into the plan and it is tried
+// again a moment later, so the route never loses a street and a fork is never half made.
+function ensureSegs(max) {
+  let built = 0;
+  while (!G.fork && G.segs.length - G.ci < 4 && !(max && built >= max)) { // four ahead: a street is built well before it can come into view
     const last = G.segs[G.segs.length - 1];
-    const step = nextStep();
+    let step; try { step = nextStep(); } catch (e) { reportErr(e); G.segDue = Math.max(G.segDue || 0, .25); break; }
+    if (!step) break;
     const t0 = G.planClock;
-    if (step.fork) {
-      const Ls = Array.isArray(step.fork.L) ? step.fork.L : [step.fork.L], Rs = Array.isArray(step.fork.R) ? step.fork.R : [step.fork.R];
-      G.distEst = G.dist + (G.segs.length - G.ci) * 90;
-      const a = newSeg(last, Ls[0], { turnIn: -1, t0, day: G.planDay }), b = newSeg(last, Rs[0], { turnIn: 1, t0, day: G.planDay });
-      G.fork = [a, b]; G.forkRest = { L: Ls.slice(1), R: Rs.slice(1), d0: Ls[0].d, d1: Rs[0].d };
-      break;
-    }
-    const nf = G.plan[0] && G.plan[0].fork;
-    G.distEst = G.dist + (G.segs.length - G.ci) * 90; G.speedEst = Math.min(MAXSPD + 1, G.speed + 1.2);
-    const sg = newSeg(last, step, { t0, day: G.planDay, fork: nf || null });
-    if (nf) sg.forkLbl = forkLabels(nf, G.planDay);
-    if (step.st) sg.stName = LANG === 'ja' || LANG === 'zh' ? step.st : stEn(step.st); // station names: kanji for Japanese/Chinese readers, romaji otherwise
-    G.segs.push(sg); G.planClock = sg.t1;
+    try {
+      if (step.fork) {
+        const Ls = Array.isArray(step.fork.L) ? step.fork.L : [step.fork.L], Rs = Array.isArray(step.fork.R) ? step.fork.R : [step.fork.R];
+        G.distEst = G.dist + (G.segs.length - G.ci) * 90;
+        const a = forkSide(last, Ls, -1, t0, G.plan[0]), b = forkSide(last, Rs, 1, t0, G.plan[0]);
+        G.fork = [a, b]; G.forkRest = { L: Ls.slice(1), R: Rs.slice(1), d0: Ls[0].d, d1: Rs[0].d };
+        break;
+      }
+      const nf = G.plan[0] && G.plan[0].fork;
+      G.distEst = G.dist + (G.segs.length - G.ci) * 90; G.speedEst = Math.min(MAXSPD + 1, G.speed + 1.2);
+      // after a fork's own street only a fork can follow (it has no corner of its own); should a plain street ever come next, it turns
+      const sg = newSeg(last, step, { t0, day: G.planDay, fork: nf || null, turnIn: last && last.fork ? (Math.random() < .5 ? -1 : 1) : undefined });
+      if (nf) sg.forkLbl = forkLabels(nf, G.planDay);
+      if (step.st) sg.stName = LANG === 'ja' || LANG === 'zh' ? step.st : stEn(step.st); // station names: kanji for Japanese/Chinese readers, romaji otherwise
+      G.segs.push(sg); G.planClock = sg.t1; built++;
+    } catch (e) { G.plan.unshift(step); G.segFails = (G.segFails || 0) + 1; G.segDue = Math.max(G.segDue || 0, .25); reportErr(e); break; }
   }
   while (G.ci > 1) { G.segs.shift(); G.ci--; }
 }
+function reportErr(e) { window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (window.__frameErr < 4) console.error('frame error', e); }
 
 /* ---------- title diorama ---------- */
 function setupTitle() {
   G.mode = 'title'; G.planDay = 1; G.plan = []; G.clock = 480; G.weather = 'clear';
-  G.segs = [newSeg(null, { t: 'titleroom', d: 5 }, { empty: true })]; G.ci = 0; G.fork = null; G.chaseVis = 0;
+  G.segs = [newSeg(null, { t: 'titleroom', d: 5 }, { empty: true })]; G.ci = 0; G.fork = null; G.segDue = 0; G.chaseVis = 0;
   buildTitleRoom(G.segs[0]);
   G.player.show = G.follow.show = true;
 }
@@ -158,7 +172,7 @@ function doRevive(kind) {
   save(); G.reviveN++;
   const seg = curSeg();
   for (const o of seg.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001;
-  if (G.cause === 'wall') { if (seg.fork) G.turnQueued = Math.random() < .5 ? -1 : 1; doTurn(); }
+  if (G.cause === 'wall') { if (seg.fork) G.turnQueued = Math.random() < .5 ? -1 : 1; try { doTurn(); } catch (e) { reportErr(e); } } // whatever happens here, the run goes on (the safety net puts the runner back if needed)
   G.mode = 'play'; G.invT = 2.5; G.chaseT = 0; G.chaseVis = 0; G.player.tilt = 0; G.follow.tilt = 0; G.pom.tilt = 0; G.y = Math.max(G.y, 0); G.vy = 0; G.slideT = 0;
   if (G.rush) G.rush = .5;
   hideAll(); show('hud'); musicStart(); banner('KEEP GOING!', t('keepGoing'), 'good');
@@ -189,20 +203,38 @@ function flashChoice(seg, d) {
   const cue = $('#turnCue'); cue.textContent = d < 0 ? '←' : '→'; cue.className = (d < 0 ? 'l' : 'r') + ' show locked';
   if (seg.fork && seg.forkLbl) banner(d < 0 ? '← LEFT' : 'RIGHT →', L(d < 0 ? seg.forkLbl.L : seg.forkLbl.R), 'good');
 }
+// the turn itself never fails half way: the street to turn into is found (or built) first; only then does the runner move onto it.
+// (A turn that broke off after the runner had left the old street but before arriving on the new one left the run pointing at a
+// street that did not exist: the picture stopped mid-turn, with no runner, and no swipe did anything.)
 function doTurn() {
-  const seg = curSeg(); const dir = seg.fork ? (G.turnQueued || -1) : seg.turn; const over = G.s - seg.len;
-  const ns = dir > 0 ? G.lat : -G.lat, nlat = dir > 0 ? -over : over;
-  onLeaveSeg(seg);
-  if (seg.fork && seg.fork.label === 'lunch') G.stats.lunch = 1;
-  if (seg.fork && G.fork) {
-    const pickL = dir < 0, chosen = pickL ? G.fork[0] : G.fork[1];
-    G.segs.push(chosen); G.planClock = chosen.t1; G.plan = (pickL ? G.forkRest.L : G.forkRest.R).concat(G.plan); G.fork = null; G.forkRest = null;
+  const seg = curSeg(); let dir = seg.fork ? (G.turnQueued || -1) : seg.turn; const over = clamp(G.s - seg.len, 0, 2);
+  let next = null;
+  if (seg.fork) {
+    if (!G.fork && !G.segs[G.ci + 1]) ensureSegs(); // its two streets are normally built long before: if that failed, once more now
+    if (G.fork) {
+      const pickL = dir < 0, chosen = pickL ? G.fork[0] : G.fork[1];
+      G.segs.push(chosen); G.planClock = chosen.t1; G.plan = (pickL ? G.forkRest.L : G.forkRest.R).concat(G.plan); G.fork = null; G.forkRest = null; next = chosen;
+    } else if (!G.segs[G.ci + 1]) { // still no fork: just the chosen side, so the run goes on
+      const step = G.plan[0];
+      try { if (step && step.fork) { const side = dir < 0 ? step.fork.L : step.fork.R, list = Array.isArray(side) ? side : [side]; G.plan.shift(); const t0 = G.planClock;
+          try { next = forkSide(seg, list, dir, t0, G.plan[0]); } catch (e) { G.plan.unshift(step); throw e; }
+          G.plan = list.slice(1).concat(G.plan); G.segs.push(next); G.planClock = next.t1; } } catch (e) { reportErr(e); }
+    }
   }
-  G.ci++; if (G.fork || G.segs.length - G.ci < 3) ensureSegs(); else G.segDue = .3; // the next street is built a moment after the turn, not on the turn's frame
-  const n = curSeg();
-  if (G.turnQT > 6) react('wink', 0);
+  if (!next) { next = G.segs[G.ci + 1]; if (!next) { ensureSegs(1); next = G.segs[G.ci + 1]; } }
+  if (!next) { G.s = Math.min(G.s, seg.len); G.segDue = Math.max(G.segDue || 0, .2); return; } // nothing to turn into yet: wait at the corner (the safety net ends the run if it never comes)
+  if (next.turnIn) dir = next.turnIn; // the street that was built decides the side
+  const ns = dir > 0 ? G.lat : -G.lat, nlat = clamp(dir > 0 ? -over : over, -ROAD, ROAD);
+  try { onLeaveSeg(seg); } catch (e) { reportErr(e); }
+  if (seg.fork && seg.fork.label === 'lunch') G.stats.lunch = 1;
+  const qt = G.turnQT;
+  G.ci = G.segs.indexOf(next);
   G.s = ns; G.lat = nlat; G.lane = clamp(Math.round(nlat / 1.5) + 1, 0, 2); G.prevLane = G.lane; G.turnQueued = 0; G.turnAuto = 0; G.turnQT = 0; G.turnT = .8; G.stats.turns++;
-  onEnterSeg(n);
+  // the streets after it: only what is needed right now on the turn's frame, the rest a moment later (one per frame)
+  if (G.segs.length - G.ci < 2 && !G.fork) ensureSegs(1); while (G.ci > 1) { G.segs.shift(); G.ci--; }
+  G.segDue = .3;
+  if (qt > 6) react('wink', 0);
+  try { onEnterSeg(next); } catch (e) { reportErr(e); }
 }
 function onEnterSeg(n) {
   BQ.length = Math.min(BQ.length, 1);
@@ -337,7 +369,7 @@ function tutorialScale(seg, dt) {
 
 /* ---------- per-frame update ---------- */
 function update(dt) {
-  if (G.segDue > 0 && (G.segDue -= dt) <= 0) { G.segDue = 0; ensureSegs(); }
+  if (G.segDue > 0 && G.mode !== 'title' && (G.segDue -= dt) <= 0) { G.segDue = 0; ensureSegs(1); if (!G.fork && G.segs.length - G.ci < 4 && !G.segDue) G.segDue = .05; } // one street per step, never a pile in one frame
   for (const sg of [G.segs[G.ci], G.segs[G.ci + 1]]) if (sg && sg.walkers) for (const w of sg.walkers) { w.s += w.vs * dt; if (w.s > w.a1) w.s = w.a0; else if (w.s < w.a0) w.s = w.a1; }
   G.t += dt; G.dtFX = dt;
   if (G.mode === 'title') { titleFrame(dt); return; }
@@ -499,6 +531,73 @@ function placeCamera(dt) {
       B.look = look ? .6 : 0; B.mood = look ? (k.t < 1.1 ? 'sparkle' : 'open') : 'open'; B.say = look && k.t < 1.4 ? (SV.pomMet ? t('pomPeekSay') : '？') : ''; B.big = 1.45;
       B.depth = (mp[0] - CAM.x) * CAM.s + (mp[1] - CAM.z) * CAM.c; B.show = true; } else B.show = false; }
   { const M = G.pom; if (M.on) { M.depth = (M.wx - CAM.x) * CAM.s + (M.wz - CAM.z) * CAM.c; if (M.tuck) M.depth = P.depth + .5; } }
+}
+/* ---------- safety net ----------
+   Whatever goes wrong in a frame (a street that could not be built, a picture the phone had no memory for, a number gone bad),
+   a run must never freeze. Every frame of play is checked: the runner must be on a street that exists, with sane numbers, and
+   moving. If not, the runner is put back on the street (with a moment of invincibility, like a revive); if that does not help
+   (it keeps happening), the run ends with the normal result screen. Screens are checked too: a dead run always shows the
+   revive or the result screen, and a countdown always ends. */
+const GUARD = { errN: 0, stillT: 0, s: 0, segId: -1, fixes: 0, fixT: -1e9, mode: '', modeT: 0 };
+function runOK() {
+  const seg = curSeg(); if (!seg || !seg.f || !(seg.len > 0)) return 'noseg';
+  for (const v of [G.s, G.lat, G.y, G.vy, G.speed, G.dist, G.score, G.rx, G.rz, G.camYaw, CAM.x, CAM.y, CAM.z, CAM.yaw, CAM.pitch]) if (!Number.isFinite(v)) return 'nan';
+  if (Math.abs(G.lat) > HW + .5 || G.s < -HW - 2 || G.s > seg.len + HW + 2) return 'offtrack';
+  if (G.y < -3 || G.y > 40) return 'height';
+  if (G.turnT <= 0) { const p = segPos(seg, G.s, G.lat); if (Math.hypot(p[0] - G.rx, p[1] - G.rz) > 4) return 'drift'; } // the picture follows the runner (it stops following when the frame breaks off)
+  return '';
+}
+function runGuard(rdt, err) {
+  if (GUARD.mode !== G.mode) { GUARD.mode = G.mode; GUARD.modeT = 0; } else GUARD.modeT += rdt;
+  if (G.mode === 'play') {
+    GUARD.errN = err ? GUARD.errN + 1 : 0;
+    const seg = curSeg(), id = seg ? seg.id : -1;
+    if (id !== GUARD.segId || Math.abs(G.s - GUARD.s) > .01 || G.hitStop > 0) { GUARD.stillT = 0; GUARD.segId = id; GUARD.s = G.s; } else GUARD.stillT += rdt;
+    const why = GUARD.errN >= 20 ? 'errors' : GUARD.stillT > 2.5 ? 'still' : runOK();
+    if (why) rescueRun(why);
+    return;
+  }
+  GUARD.errN = 0; GUARD.stillT = 0; GUARD.segId = -1;
+  const hid = id => { const e = document.getElementById(id); return !e || e.hidden; };
+  if (G.mode === 'dying' && GUARD.modeT > 3) { G.dyingT = 0; G.mode = 'dead'; GUARD.modeT = 0; try { if (canRevive()) openRevive(); else endRun(); } catch (e) { reportErr(e); finishRun('dying'); } }
+  else if (G.mode === 'dead' && GUARD.modeT > 1.5 && hid('sRevive') && hid('sResult') && hid('sPanel')) finishRun('dead');
+  else if (G.mode === 'result' && GUARD.modeT > 1.5 && hid('sResult') && hid('sPanel')) { try { hideAll(); show('sResult'); } catch (e) { goTitle(); } }
+  else if (G.mode === 'countdown' && GUARD.modeT > 4) { G.mode = 'play'; G.invT = Math.max(G.invT, 1); const c = document.getElementById('tutCue'); if (c) c.className = ''; }
+}
+function rescueRun(why) {
+  GUARD.errN = 0; GUARD.stillT = 0; G.stats.rescues = (G.stats.rescues || 0) + 1; window.__rescue = (window.__rescue || 0) + 1; window.__rescueWhy = why;
+  GUARD.fixes = G.t - GUARD.fixT < 15 ? GUARD.fixes + 1 : 1; GUARD.fixT = G.t;
+  if (GUARD.fixes <= 2) { try { if (snapBack()) return; } catch (e) { reportErr(e); } }
+  finishRun(why); // it keeps going wrong: end the run the normal way (score, hay and missions are kept)
+}
+// put the runner back on the street they are on, in a lane, on the ground, with the camera right behind them
+function snapBack() {
+  if (!curSeg()) G.ci = Math.max(0, Math.min(G.ci | 0, G.segs.length - 1));
+  const seg = curSeg(); if (!seg || !seg.f || !(seg.len > 0)) return false;
+  if (!seg.fork && !G.segs[G.ci + 1]) ensureSegs(1);
+  if (!Number.isFinite(G.s)) G.s = 0;
+  G.s = clamp(G.s, 0, Math.max(0, seg.len - 8));
+  if (!seg.fork && !G.segs[G.ci + 1] && seg.len - G.s < 30) return false; // a corner with nothing after it: no way on
+  for (const k of ['speed', 'dist', 'score', 'hay']) if (!Number.isFinite(G[k])) G[k] = k === 'speed' ? 12 : 0;
+  G.speed = clamp(G.speed, 8, MAXSPD * 1.6);
+  G.lane = clamp(Number.isFinite(G.lat) ? Math.round(G.lat / LANE) + 1 : 1, 0, 2); G.lat = LANES[G.lane]; G.prevLane = G.lane;
+  G.y = 0; G.vy = 0; G.air = false; G.slideT = 0; G.vault = 0; G.vaultDown = 0; G.jumpBuf = 0; G.pow.fly = 0;
+  G.turnQueued = 0; G.turnAuto = 0; G.turnQT = 0; G.turnT = 0; G.hitStop = 0; G.shake = 0;
+  for (const B of [G.follow, G.pom]) { B.y = 0; B.vy = 0; B.air = false; if (!Number.isFinite(B.lat)) B.lat = 0; if (!Number.isFinite(B.back)) B.back = 1; }
+  const p = segPos(seg, G.s, G.lat); G.rx = p[0]; G.rz = p[1]; G.camYaw = seg.dir * Math.PI / 2; G.ey = G.camE = null; G.camSl = 0;
+  G.invT = Math.max(G.invT, 2.5);
+  for (const o of seg.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001;
+  { const fc = document.getElementById('forkCards'); if (fc) fc.hidden = true; const cue = document.getElementById('turnCue'); if (cue) cue.className = ''; }
+  placeCamera(.016);
+  if (runOK()) return false;
+  banner('KEEP GOING!', t('keepGoing'), 'good');
+  return true;
+}
+function finishRun(why) {
+  window.__finish = (window.__finish || 0) + 1; window.__finishWhy = why;
+  if (!curSeg()) G.ci = Math.max(0, G.segs.length - 1);
+  G.cause = 'quit'; G.mode = 'dead';
+  try { hideAll(); if (!curSeg()) throw new Error('no street'); endRun(); } catch (e) { reportErr(e); try { goTitle(); } catch (e2) { } }
 }
 // the other bunny runs beside you and dodges on its own; Pom trots along behind, on the other side
 function buddy(dt, seg) {
@@ -673,7 +772,7 @@ function missionHTML() {
 function takePhoto(tid) {
   try {
     const c = document.createElement('canvas'); const w = 280, h = Math.round(w * Math.min(1.25, H / W));
-    c.width = w; c.height = h; const g = c.getContext('2d');
+    c.width = w; c.height = h; const g = c.getContext('2d') || noCtx();
     const sw = cv.width, sh = Math.round(cv.width * h / w); g.drawImage(cv, 0, Math.max(0, (cv.height - sh) * .35), sw, Math.min(sh, cv.height), 0, 0, w, h);
     g.fillStyle = 'rgba(251,246,238,.92)'; g.fillRect(0, h - 34, w, 34); g.fillStyle = '#3B2A20'; g.font = '900 15px "Zen Maru Gothic",sans-serif'; g.textBaseline = 'middle';
     g.fillText(L(THEMES[tid].stamp) + '  ' + clockStr(G.clock), 10, h - 17); g.drawImage(stampSprite(tid), w - 44, h - 70, 40, 40);
@@ -802,7 +901,7 @@ function prepShareFiles(sq, story) {
 }
 function fitFont(g, txt, maxW, size, tpl) { let s = size; g.font = tpl.replace('{}', s); while (s > 12 && g.measureText(txt).width > maxW) { s -= 2; g.font = tpl.replace('{}', s); } return s; } // the biggest size (up to `size`) that fits maxW
 function buildShareCard(cap, place, gained) {
-  const c = document.createElement('canvas'); c.width = 1080; c.height = 1080; const g = c.getContext('2d');
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1080; const g = c.getContext('2d') || noCtx();
   g.fillStyle = '#F6EBDC'; g.fillRect(0, 0, 1080, 1080);
   try { const sh = Math.round(cv.width * .62); g.drawImage(cv, 0, Math.max(0, (cv.height - sh) / 2), cv.width, Math.min(sh, cv.height), 60, 260, 960, 595); } catch (e) { }
   g.strokeStyle = '#3B2A20'; g.lineWidth = 8; g.strokeRect(60, 260, 960, 595);
@@ -823,7 +922,7 @@ function buildShareCard(cap, place, gained) {
   { const L2 = shareLinks(); $('#shX').href = L2.x; $('#shLine').href = L2.line; $('#shTh').href = L2.th; $('#shFb').href = L2.fb; $('#igNote').textContent = ''; $('#tCopy').textContent = SHARE.phone() && SHARE.canSheet() ? t('shareMore') : t('copy'); }
   G.shareCanvas = c;
   { // a tall 9:16 version for Instagram Stories: the square card on a warm backdrop, the title above, the hashtag below
-    const t = document.createElement('canvas'); t.width = 1080; t.height = 1920; const q = t.getContext('2d');
+    const t = document.createElement('canvas'); t.width = 1080; t.height = 1920; const q = t.getContext('2d') || noCtx();
     const bg = q.createLinearGradient(0, 0, 0, 1920); bg.addColorStop(0, '#F6E7C8'); bg.addColorStop(1, '#F2C9A6'); q.fillStyle = bg; q.fillRect(0, 0, 1080, 1920);
     q.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 40; i++) { q.beginPath(); q.arc((i * 263) % 1080, (i * 397) % 1920, 6 + (i % 5) * 4, 0, Math.PI * 2); q.fill(); }
     q.save(); q.translate(540, 980); q.rotate(-.03); q.shadowColor = 'rgba(59,42,32,.35)'; q.shadowBlur = 40; q.shadowOffsetY = 18; q.drawImage(c, -470, -470, 940, 940); q.restore();

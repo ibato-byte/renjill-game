@@ -9,7 +9,13 @@ function artCanvas(key, w, h, paint) {
   let c = ART_C.get(key); if (c) return c;
   if (ART_SOFT && !texOK()) return null; TEXN++;
   if (ART_C.size - ART_KEPT > ART_MAX) { for (const [k0, old] of ART_C) { if (old.__keep) continue; ART_C.delete(k0); try { old.width = old.height = 0; } catch (e) { } break; } } // oldest loose picture out (phones); the ones the scenery holds on to do not count
-  c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); paint(g, w, h); ART_C.set(key, c); return c;
+  c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d') || noCtx(); if (g === NOCTX) return null; paint(g, w, h); ART_C.set(key, c); return c;
+}
+// out of picture memory (see noCtx): drop every picture that is only a kept copy; each is painted again when it is next needed
+function freePictures() {
+  while (LIT_LIST.length) { const e = LIT_LIST.shift(); const m = LIT_CACHE.get(e.img); if (m) { if (m[e.k] === e.c) delete m[e.k]; if (m.last === e.c) m.last = null; } try { e.c.width = e.c.height = 0; } catch (x) { } } LIT_PX = 0;
+  for (const v of FAC_CACHE.values()) { try { v.c.width = v.c.height = 0; } catch (x) { } } FAC_CACHE.clear(); FAC_PX = 0;
+  for (const [k0, old] of [...ART_C]) { if (old.__keep) continue; ART_C.delete(k0); try { old.width = old.height = 0; } catch (x) { } }
 }
 const shadeHex = (hex, k) => { const c = hexRgb(hex); return `rgb(${clamp(c[0] * k, 0, 255) | 0},${clamp(c[1] * k, 0, 255) | 0},${clamp(c[2] * k, 0, 255) | 0})`; };
 function rrect(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }

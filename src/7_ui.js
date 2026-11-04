@@ -59,7 +59,7 @@ function shopHTML() {
 const CLOSET_ICON = {};
 function closetIcon(c) { // a small picture of the item
   if (CLOSET_ICON[c.id]) return CLOSET_ICON[c.id];
-  const cv = mk(64), g = cv.getContext('2d'); g.translate(32, 40);
+  const cv = mk(64), g = cv.getContext('2d') || noCtx(); g.translate(32, 40);
   if (c.slot === 'tie') { const keep = WEAR.ren.tie; WEAR.ren.tie = c.v; g.scale(.7, .7); g.translate(0, -36); tie(g, 0, 0, 60, 0); WEAR.ren.tie = keep; }
   else if (c.slot === 'frame') { const keep = WEAR.jill.frame; WEAR.jill.frame = c.v; g.scale(.9, .9); glasses(g, -14, 14, -6, 12); WEAR.jill.frame = keep; }
   else if (c.slot === 'band') { const keep = WEAR.pom.band; WEAR.pom.band = c.v; g.scale(.55, .55); g.translate(0, -10); headband(g, 0, 0, 48, 0); WEAR.pom.band = keep; }
@@ -340,16 +340,25 @@ $('#btnShare').onclick = () => { SFX.ui(); shareMore(); };
 let last = performance.now();
 let perfAcc = 0, perfN = 0, lowQ = 0;
 // the loop must never die: an error in one frame is reported once and the next frame goes on
-let FRAME_ERRS = 0;
+let FRAME_ERRS = 0, FRAME_BAD = 0;
 function frame(now) {
-  try { frameBody(now); } catch (e) { FRAME_ERRS++; window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (FRAME_ERRS < 4) console.error('frame error', e); try { for (let i = 0; i < 12; i++) ctx.restore(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none'; } catch (e2) { } }
+  try { frameBody(now); FRAME_BAD = 0; } catch (e) { FRAME_ERRS++; window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (FRAME_ERRS < 4) console.error('frame error', e); try { for (let i = 0; i < 12; i++) ctx.restore(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none'; } catch (e2) { } frameTrouble(); }
   requestAnimationFrame(frame);
 }
+// the picture breaks off frame after frame (on a phone: usually out of picture memory): free the kept pictures, then draw more simply;
+// if it still cannot be drawn, the run ends the normal way rather than leave a frozen, half-drawn screen
+function frameTrouble() {
+  FRAME_BAD++;
+  if (FRAME_BAD === 3 || FRAME_BAD % 60 === 0) { try { freePictures(); } catch (e) { } }
+  if (FRAME_BAD === 30 && !lowQ) { lowQ = 1; DPR = 1; try { resizeKeep(); } catch (e) { } }
+  if (FRAME_BAD >= 150 && G.mode === 'play') { FRAME_BAD = 0; finishRun('draw'); }
+}
 function frameBody(now) {
-  const raw = (now - last) / 1000, dt = Math.min(.05, raw); last = now;
+  const raw = (now - last) / 1000, dt = Math.min(.05, Math.max(0, raw)); last = now; // never backwards (the first frame after a countdown can be stamped a hair before it)
   if (G.mode === 'play' && raw < .25) { perfAcc += raw; perfN++; if (perfN >= 90) { const avg = perfAcc / perfN; perfAcc = perfN = 0; if (avg > 1 / 42 && lowQ < 2 && !G.lockQ) { lowQ++; if (lowQ === 1) { DPR = 1; resizeKeep(); } } } }
   TEXN = 0; TEXB = performance.now() + 3;
-  if (G.mode !== 'pause' && G.mode !== 'dead' && G.mode !== 'result') update(dt);
+  { let bad = null; if (G.mode !== 'pause' && G.mode !== 'dead' && G.mode !== 'result') { try { update(dt); } catch (e) { bad = e; } }
+    if (bad) reportErr(bad); runGuard(Math.min(.1, Math.max(0, raw)), bad); } // a broken frame still draws, and the safety net looks at every frame
   render();
   if (G.mode === 'play') texWarm(Math.max(0, Math.min(3, TEXB - performance.now())));
   if (G.capture && G.capture.t <= 0) { takePhoto(G.capture.tid); G.capture = null; }

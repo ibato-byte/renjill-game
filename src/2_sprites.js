@@ -2,6 +2,12 @@
 const SPR = {};
 const SPR_URL = {};
 function mk(sz, h) { const c = document.createElement('canvas'); c.width = sz; c.height = h || sz; return c; }
+// a phone that has run out of picture memory hands out canvases with no drawing context (iPhone: getContext returns null), and every
+// drawing call on one would throw, frame after frame (the screen stopped half drawn on a very long run). noCtx() frees the kept copies
+// (each is painted again when next needed) and returns a tiny scratch context, so the picture is just blank this once and the frame goes on.
+const NOCTX = (() => { try { const c = document.createElement('canvas'); c.width = c.height = 1; return c.getContext('2d'); } catch (e) { return null; } })();
+let NOCTX_T = -1e9, CANVAS_LOW = 0;
+function noCtx() { CANVAS_LOW++; const now = performance.now(); if (now - NOCTX_T > 1500) { NOCTX_T = now; try { freePictures(); } catch (e) { } } try { NOCTX.setTransform(1, 0, 0, 1, 0, 0); } catch (e) { } return NOCTX; }
 function ell(g, x, y, rx, ry, rot, fill, stroke, lw) { g.beginPath(); g.ellipse(x, y, Math.max(.1, rx), Math.max(.1, ry), rot || 0, 0, Math.PI * 2); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw || 2; g.stroke(); } }
 function rr(g, x, y, w, h, r, fill, stroke, lw) { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw || 2; g.stroke(); } }
 function leaf(g, x, y, len, wid, ang, fill, vein) {
@@ -77,9 +83,9 @@ const DRAW_ITEM = {
     g.fillStyle = '#C8463C'; g.font = '900 14px sans-serif'; g.textAlign = 'center'; g.fillText('CHIPS', 64, 46); },
 };
 function buildItemSprites() {
-  for (const k in DRAW_ITEM) { const c = mk(128); const g = c.getContext('2d'); g.lineJoin = 'round'; DRAW_ITEM[k](g); SPR[k] = c; try { SPR_URL[k] = c.toDataURL(); } catch (e) { SPR_URL[k] = ''; } }
+  for (const k in DRAW_ITEM) { const c = mk(128); const g = c.getContext('2d') || noCtx(); g.lineJoin = 'round'; DRAW_ITEM[k](g); SPR[k] = c; try { SPR_URL[k] = c.toDataURL(); } catch (e) { SPR_URL[k] = ''; } }
   // NG badge over bad foods
-  for (const k of BADS) { const c = mk(128); const g = c.getContext('2d'); g.drawImage(SPR[k], 0, 0); ell(g, 100, 24, 20, 20, 0, '#C8463C', '#FBF6EE', 4);
+  for (const k of BADS) { const c = mk(128); const g = c.getContext('2d') || noCtx(); g.drawImage(SPR[k], 0, 0); ell(g, 100, 24, 20, 20, 0, '#C8463C', '#FBF6EE', 4);
     g.strokeStyle = '#FBF6EE'; g.lineWidth = 6; g.beginPath(); g.moveTo(91, 15); g.lineTo(109, 33); g.moveTo(109, 15); g.lineTo(91, 33); g.stroke(); SPR[k + 'NG'] = c; }
 }
 

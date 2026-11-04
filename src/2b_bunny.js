@@ -438,10 +438,10 @@ function buildBunnies(only) {
     }
   }
 }
-function paint(fn) { const c = mk(BS, BS + BTOP); const g = c.getContext('2d'); g.lineJoin = 'round'; g.translate(0, BTOP); fn(g); return c; }
+function paint(fn) { const c = mk(BS, BS + BTOP); const g = c.getContext('2d') || noCtx(); g.lineJoin = 'round'; g.translate(0, BTOP); fn(g); return c; }
 function bunFrame(who, pose, mug) { const k = mug && who === 'ren' ? 'm' : ''; return BUN[who][pose + k] || BUN[who][pose] || BUN[who]['front_open'] || BUN[who].run0; }
 function drawCharCard(cv, who, t) {
-  const g = cv.getContext('2d'); g.clearRect(0, 0, cv.width, cv.height);
+  const g = cv.getContext('2d') || noCtx(); g.clearRect(0, 0, cv.width, cv.height);
   const mood = (t % 3.4) < .14 ? 'blink' : ((t % 9) > 7.4 ? 'happy' : 'open');
   const img = bunFrame(who, 'front_' + mood, SV.mugOn);
   const s = cv.width / BS * 1.05 * (who === 'pom' ? 1.25 : 1), bob = Math.sin(t * 2.2) * 2;

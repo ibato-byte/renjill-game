@@ -133,7 +133,7 @@ function faceVisible(fc) { const v = fc.v; const cx = (v[0] + v[6]) / 2, cy = (v
 function spriteAt(x, y, z) { tc(x, y, z, TMP, 0); const zc = TMP[2]; if (zc < NEAR || zc > FAR) return null; return { sx: W / 2 + TMP[0] * FOCAL / zc, sy: HORIZON - TMP[1] * FOCAL / zc, k: FOCAL / zc, z: zc }; }
 /* a fine material grain laid over near box faces (wood, paint, fabric all read as surfaces rather than flat blocks) */
 let GRAINP = null;
-function grainPattern() { if (GRAINP) return GRAINP; const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d'), r = rnd(11);
+function grainPattern() { if (GRAINP) return GRAINP; const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d') || noCtx(), r = rnd(11);
   for (let i = 0; i < 900; i++) { const v = r(); g.fillStyle = v < .5 ? `rgba(0,0,0,${(.05 + r() * .08).toFixed(3)})` : `rgba(255,255,255,${(.04 + r() * .07).toFixed(3)})`; g.fillRect(r() * 96, r() * 96, 1 + r() * 2.5, 1 + r() * 1.2); }
   for (let k = 0; k < 7; k++) { g.fillStyle = 'rgba(0,0,0,.035)'; g.fillRect(0, r() * 96, 96, 1 + r() * 2); } GRAINP = ctx.createPattern(c, 'repeat'); return GRAINP; }
 /* ---- real materials on every box face ----
@@ -143,7 +143,7 @@ function grainPattern() { if (GRAINP) return GRAINP; const c = document.createEl
 const MAT_TEX = {};
 function matTex(kind) {
   if (MAT_TEX[kind]) return MAT_TEX[kind];
-  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), r = rnd(kind.length * 31 + 7);
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d') || noCtx(), r = rnd(kind.length * 31 + 7);
   const dot = (n, a0, a1, w, h) => { for (let i = 0; i < n; i++) { const v = r(); g.fillStyle = v < .5 ? `rgba(0,0,0,${(a0 + r() * a1).toFixed(3)})` : `rgba(255,255,255,${(a0 + r() * a1).toFixed(3)})`; g.fillRect(r() * 128, r() * 128, w + r() * w, h + r() * h); } };
   if (kind === 'wood') { for (let y = 0; y < 128; y += 3 + r() * 5) { g.strokeStyle = `rgba(60,30,10,${(.06 + r() * .1).toFixed(3)})`; g.lineWidth = .8 + r() * 1.6; g.beginPath(); g.moveTo(0, y); for (let x = 0; x <= 128; x += 16) g.lineTo(x, y + Math.sin(x * .05 + y) * 1.6); g.stroke(); }
     for (let k = 0; k < 2; k++) { const x = r() * 128, y = r() * 128; g.strokeStyle = 'rgba(60,30,10,.18)'; g.lineWidth = 1.2; g.beginPath(); g.ellipse(x, y, 7, 2.6, 0, 0, Math.PI * 2); g.stroke(); } dot(160, .02, .04, 1, .6); }
@@ -179,6 +179,7 @@ let BOXA = 1;
 // a painting laid on a box face in true perspective: the face is cut into narrow vertical strips, each mapped on its own
 const FI = new Float32Array(3);
 function faceImage(img, flip, v) {
+  if (!img || !img.width) return; // a picture the phone had no memory for: the plain box face stays
   const L = litSprite(img, LT.amb), IW = L.width, IH = L.height, N = 6;
   // world corners: bottom-start, bottom-end, top-start, top-end (start = the image's left edge)
   let B0 = [v[0], v[1], v[2]], B1 = [v[3], v[4], v[5]], T1 = [v[6], v[7], v[8]], T0 = [v[9], v[10], v[11]];
