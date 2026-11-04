@@ -5858,7 +5858,8 @@ function collect(it, seg) {
     banner('STAMP!', LANG === 'en' ? `${t('stampGet')} ${L(THEMES[tid].stamp)}` : `${t('stampGet')}「${L(THEMES[tid].stamp)}」`, 'good'); react('sparkle', 1); if (Math.random() < .5) pomSay(t('pomStamp'), 'sparkle', 1.2); return;
   }
   if (def.kind === 'pom') { pomJoin(); return; }
-  if (def.kind !== 'hay' && !SV.zukan[it.type]) { SV.zukan[it.type] = 1; save(); if (def.kind !== 'bad') floatText(W / 2, H * .24, t('newBook', L(def)), '#F2C230'); }
+  // golden hay is a hay, but it has its own page in the food book (it used to never be recorded, so the book could never be completed)
+  if ((def.kind !== 'hay' || it.type === 'goldhay') && !SV.zukan[it.type]) { SV.zukan[it.type] = 1; save(); if (def.kind !== 'bad') floatText(W / 2, H * .24, t('newBook', L(def)), '#F2C230'); }
   if (it.type === 'hay' && !SV.zukan.hay) { SV.zukan.hay = 1; save(); }
   if (def.kind === 'bad') {
     SFX.bad(); G.stats.bads.push(it.type); G.feverG = Math.max(0, G.feverG - 25);
