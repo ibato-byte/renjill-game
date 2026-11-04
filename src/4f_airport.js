@@ -78,8 +78,8 @@ Object.assign(DECO_DRAW, {
       const hh = 7 + ((k * 37) % 13), mm = ((k * 17) % 6) * 10;
       qtext(String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0'), .03, v0, .2, v1, '#F2C230');
       qtext('RJ ' + (100 + k * 7), .22, v0, .38, v1, '#BFD3E6');
-      qtext(LANG === 'ja' ? FLIGHTS[k][0] : FLIGHTS[k][1], .4, v0, .72, v1, '#FBF6EE');
-      const st = (k + Math.floor(step / 7)) % 4; qtext(LANG === 'ja' ? ['搭乗中', '定刻', '定刻', 'まもなく'][st] : ['BOARDING', 'ON TIME', 'ON TIME', 'SOON'][st], .74, v0, .97, v1, st === 0 ? '#7FD06A' : st === 3 ? '#F2C230' : '#BFD3E6'); }
+      qtext(tr(FLIGHTS[k][0], FLIGHTS[k][1]), .4, v0, .72, v1, '#FBF6EE');
+      const st = (k + Math.floor(step / 7)) % 4; qtext(tr(['搭乗中', '定刻', '定刻', 'まもなく'][st], ['BOARDING', 'ON TIME', 'ON TIME', 'SOON'][st]), .74, v0, .97, v1, st === 0 ? '#7FD06A' : st === 3 ? '#F2C230' : '#BFD3E6'); }
   },
   planewin(e) { // a tall window onto the apron: a parked plane at the gate and another taxiing past
     const N = LT.night; bquad(0, 0, 1, 1, tint('#AEB7C0'));

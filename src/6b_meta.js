@@ -27,13 +27,13 @@ function checkAch(live) {
   const st = Object.assign({}, G.stats, { day: G.day, maxCombo: G.stats.maxCombo || 0 });
   const got = [];
   for (const a of ACH) if (!SV.ach[a.id] && a.ok(st, SV)) { SV.ach[a.id] = todayStr(); SV.bank += a.hay; got.push(a); }
-  if (got.length) { save(); if (live) for (const a of got) { banner('NEW TITLE!', (LANG === 'ja' ? `${L(a.n)}（+${a.hay}）` : `${L(a.n)} (+${a.hay} hay)`), 'good'); SFX.mission(); } }
+  if (got.length) { save(); if (live) for (const a of got) { banner('NEW TITLE!', t('achGot', L(a.n), a.hay), 'good'); SFX.mission(); } }
   return got;
 }
 function achHTML() {
   SV.ach = SV.ach || {};
   const n = ACH.filter(a => SV.ach[a.id]).length;
-  return `<h3 class="ph" style="font-size:18px">${LANG === 'ja' ? `称号 ${n} / ${ACH.length}` : `TITLES<small>${n} / ${ACH.length} earned</small>`}</h3>` + ACH.map(a => { const g = SV.ach[a.id];
+  return `<h3 class="ph" style="font-size:18px">${LANG === 'en' ? `TITLES<small>${n} / ${ACH.length} earned</small>` : t('titlesN', n, ACH.length)}</h3>` + ACH.map(a => { const g = SV.ach[a.id];
     return `<div class="m${g ? ' done' : ''}"><p><b>${esc(L(a.n))}</b><br><small>${esc(L(a.d))}</small></p><span class="n">${g ? '✓' : '+' + a.hay}</span></div>`; }).join('');
 }
 
@@ -51,10 +51,10 @@ function dailyToday() { const d = new Date(); const seed = d.getFullYear() * 400
 function dailyCheck(live) {
   const dly = dailyToday(); SV.dailyDone = SV.dailyDone || '';
   if (SV.dailyDone === dly.key) return false;
-  if (dly.c.v(G.stats) >= dly.n) { SV.dailyDone = dly.key; SV.bank += 300; SV.clovers++; save(); if (live) { banner('DAILY CLEAR!', LANG === 'ja' ? 'チャレンジ達成！ チモシー300本＋お守り' : 'Daily challenge done! +300 hay and a lucky charm', 'good'); SFX.mission(); react('sparkle', 1); } return true; }
+  if (dly.c.v(G.stats) >= dly.n) { SV.dailyDone = dly.key; SV.bank += 300; SV.clovers++; save(); if (live) { banner('DAILY CLEAR!', tr('チャレンジ達成！ チモシー300本＋お守り', 'Daily challenge done! +300 hay and a lucky charm'), 'good'); SFX.mission(); react('sparkle', 1); } return true; }
   return false;
 }
-function dailyHTML() { const dly = dailyToday(), done = SV.dailyDone === dly.key; return `<div class="m${done ? ' done' : ''}"><p><b>${LANG === 'ja' ? '今日のチャレンジ' : "Today's challenge"}</b><br>${esc(L(dly.c.t(dly.n)))}</p><span class="n">${done ? 'CLEAR' : '+300'}</span></div>`; }
+function dailyHTML() { const dly = dailyToday(), done = SV.dailyDone === dly.key; return `<div class="m${done ? ' done' : ''}"><p><b>${tr('今日のチャレンジ', "Today's challenge")}</b><br>${esc(L(dly.c.t(dly.n)))}</p><span class="n">${done ? 'CLEAR' : '+300'}</span></div>`; }
 
 /* ---- omikuji (a fortune slip) after a good run ---- */
 const KUJI = [['大吉', 'GREAT LUCK', 4, 400, 1], ['中吉', 'GOOD LUCK', 10, 200, 0], ['小吉', 'SMALL LUCK', 18, 120, 0], ['吉', 'FAIR LUCK', 30, 80, 0], ['末吉', 'LUCK ON THE WAY', 38, 40, 0]];
@@ -71,8 +71,22 @@ const RANKS = [['見習い', 'Trainee'], ['新入社員', 'New hire'], ['一人�
 function careerXP() { const T = SV.totals || {}; return Math.round((T.hay || 0) * .5 + (T.veg || 0) * 2 + (SV.runs || 0) * 40 + Object.keys(SV.stamps || {}).length * 120 + Object.keys(SV.ach || {}).length * 150 + Object.keys(SV.zukan || {}).length * 40 + (SV.best || 0) * .02); }
 function careerNeed(lv) { return Math.round(200 * Math.pow(1.5, lv)); } // xp from this level to the next
 function careerLevel(xp) { let lv = 0, acc = 0; while (lv < RANKS.length - 1 && xp >= acc + careerNeed(lv)) { acc += careerNeed(lv); lv++; } return { lv, into: xp - acc, need: careerNeed(lv), max: lv >= RANKS.length - 1 }; }
-function careerTitle(lv) { const r = RANKS[Math.min(lv, RANKS.length - 1)]; return LANG === 'ja' ? r[0] : r[1]; }
+function careerTitle(lv) { const r = RANKS[Math.min(lv, RANKS.length - 1)]; return tr(r[0], r[1]); }
 function careerHTML() { const c = careerLevel(careerXP()); const pct = c.max ? 100 : Math.round(c.into / c.need * 100);
-  return `<div class="career"><span class="cr-t">${esc(careerTitle(c.lv))}</span><span class="cr-lv">Lv.${c.lv + 1}</span><span class="cr-bar"><i style="width:${pct}%"></i></span><small>${c.max ? (LANG === 'ja' ? '最高位' : 'Top rank') : (LANG === 'ja' ? `次の昇進まで ${fmt(c.need - c.into)}` : `${fmt(c.need - c.into)} to the next promotion`)}</small></div>`; }
+  const li = c.max ? legendInfo() : null; const lp = li ? Math.round(li.into / li.need * 100) : pct;
+  return `<div class="career${li ? ' legend' : ''}"><span class="cr-t">${esc(careerTitle(c.lv))}${li && li.stars ? ' ★' + li.stars : ''}</span><span class="cr-lv">Lv.${c.lv + 1}</span><span class="cr-bar"><i style="width:${lp}%"></i></span><small>${li ? t('nextStar', fmt(li.need - li.into)) : t('nextPromo', fmt(c.need - c.into))}</small></div>`; }
+/* ---- beyond the top rank: Legendary bunny stars (no end) ----
+   Reaching Legendary bunny unlocks the laurel and the gold coat (all three), Legend mode (faster, x1.5 score) and a star on the board.
+   Every LEGEND_STEP more experience adds a star: ★1 the golden sparkle trail, ★2 a gold name on the ranking, and every star hay + a charm. */
+const LEGEND_STEP = 50000;
+function legendInfo() { const c = careerLevel(careerXP()); if (!c.max) return null; const stars = Math.floor(c.into / LEGEND_STEP); return { stars, into: c.into % LEGEND_STEP, need: LEGEND_STEP }; }
+const LEGEND_PERKS = [{ star: 0, ja: '伝説の月桂冠と金の礼服（3人とも）・伝説モード', en: 'Laurel & gold coat for all three, Legend mode' }, { star: 1, ja: '伝説の輝き（走ると金色の光の粒）', en: 'Golden sparkle trail' }, { star: 2, ja: 'ランキングの金の名札', en: 'A gold name on the ranking' }];
+function legendGrant() { const li = legendInfo(); if (!li) return ''; let msg = ''; const seen = SV.lstar == null ? -1 : SV.lstar;
+  if (seen < 0) { for (const c of CLOSET) if (c.lg != null && c.lg <= li.stars) SV.closet[c.id] = 1; msg = tr('伝説のうさぎ！ 月桂冠・金の礼服・伝説モードが使えます', 'Legendary bunny! Laurel, gold coat and Legend mode unlocked'); }
+  if (li.stars > Math.max(0, seen)) { const n = li.stars - Math.max(0, seen); SV.bank += 2000 * n; SV.clovers = (SV.clovers || 0) + n; const p = LEGEND_PERKS.find(x => x.star === li.stars);
+    msg = (msg ? msg + '　' : '') + t('legendStar', li.stars, fmt(2000 * n), n, p ? t('sep') + L(p) : ''); }
+  if (seen !== li.stars) { SV.lstar = li.stars; save(); }
+  return msg; }
+const legendOn = k => { const li = legendInfo(); return !!li && li.stars >= ({ mode: 0, aura: 1, gold: 2 })[k]; };
 // called after a run: a promotion is announced and rewarded
-function careerCheck() { const lv = careerLevel(careerXP()).lv, was = SV.career || 0; if (lv <= was) return ''; SV.career = lv; const rw = 200 + lv * 100; SV.bank += rw; SV.clovers = (SV.clovers || 0) + 1; return LANG === 'ja' ? `昇進！ ${careerTitle(lv)} に（チモシー${rw}本＋お守り）` : `Promoted to ${careerTitle(lv)}! (+${rw} hay, +1 charm)`; }
+function careerCheck() { const lv = careerLevel(careerXP()).lv, was = SV.career || 0; if (lv <= was) return legendGrant(); SV.career = lv; const rw = 200 + lv * 100; SV.bank += rw; SV.clovers = (SV.clovers || 0) + 1; const lg = legendGrant(); return t('promoted', careerTitle(lv), rw) + (lg ? '　' + lg : ''); }

@@ -306,7 +306,8 @@ function takeSpots(n, not) {
   const out = []; while (out.length < n && pool.length) { const i = (Math.random() * pool.length) | 0; out.push(pool.splice(i, 1)[0]); }
   out.forEach(x => ROUTE.used.add(x)); ROUTE.avoid = []; return out;
 }
-const lblOf = tid => ({ ja: THEMES[tid].lbl || THEMES[tid].ja.split('・')[0], en: THEMES[tid].lblEn || (s => s.length > 16 && THEMES[tid].stamp ? THEMES[tid].stamp.en : s)(THEMES[tid].en.split(',')[0]) });
+const lblOf = tid => { const ja = THEMES[tid].lbl || THEMES[tid].ja.split('・')[0], en = THEMES[tid].lblEn || (s => s.length > 16 && THEMES[tid].stamp ? THEMES[tid].stamp.en : s)(THEMES[tid].en.split(',')[0]);
+  return { ja, en, zh: (I18N.zh || {})[ja] || en, ko: (I18N.ko || {})[ja] || en }; }; // short place names in all four languages
 /* ================= where things are, and what comes next =================
    Every pick prefers what you have not seen for the longest time, across runs (SV.seen is updated when you
    actually enter a place), so the scenery keeps changing for a long while before anything comes round again. */
@@ -487,7 +488,7 @@ function dayPlan(day) {
   else start.push({ t: 'station', d: 5, st: day === 1 ? '日暮里' : '田端' }, { t: 'yamanote', d: 20, line: day === 1 ? ['鶯谷', '上野', '御徒町', '秋葉原', '神田', '東京'] : ['西日暮里', '日暮里', '上野', '秋葉原', '神田', '東京'] });
   start.push({ t: ride === 'ride_sub' ? one(['otemachi', 'gyoko']) : one(['tokyoeki', 'gyoko', 'otemachi']), d: Math.max(6, 60 - start.reduce((a, x) => a + x.d, 0)) });
   const fk = (label, x, y) => ({ fork: { label, L: { t: x, d: 40 }, R: { t: y, d: 40 }, lbl: { L: lblOf(x), R: lblOf(y) } } });
-  const two = (a, b) => ({ ja: lblOf(a).ja + '・' + lblOf(b).ja, en: lblOf(a).en + ' & ' + lblOf(b).en });
+  const two = (a, b) => ({ ja: lblOf(a).ja + '・' + lblOf(b).ja, en: lblOf(a).en + ' & ' + lblOf(b).en, zh: lblOf(a).zh + '・' + lblOf(b).zh, ko: lblOf(a).ko + ' & ' + lblOf(b).ko });
   /* ---- the office ---- */
   const door = one(['lobby', 'ehall']), am = one(['meeting', 'shiryo', 'yakuin', 'copy']);
   // lunch: two places near the office (the canteen and the rooftop count); spring always offers the cherry blossoms

@@ -34,7 +34,7 @@ function ensureSegs() {
     G.distEst = G.dist + (G.segs.length - G.ci) * 90; G.speedEst = Math.min(MAXSPD + 1, G.speed + 1.2);
     const sg = newSeg(last, step, { t0, day: G.planDay, fork: nf || null });
     if (nf) sg.forkLbl = forkLabels(nf, G.planDay);
-    if (step.st) sg.stName = LANG === 'ja' ? step.st : stEn(step.st);
+    if (step.st) sg.stName = LANG === 'ja' || LANG === 'zh' ? step.st : stEn(step.st); // station names: kanji for Japanese/Chinese readers, romaji otherwise
     G.segs.push(sg); G.planClock = sg.t1;
   }
   while (G.ci > 1) { G.segs.shift(); G.ci--; }
@@ -89,11 +89,13 @@ function titleFrame(dt) {
 
 /* ---------- run lifecycle ---------- */
 function startRun() {
-  audioInit(); SFX.ui(); { const f = document.getElementById('tFresh'); if (f) f.remove(); }
+  audioInit(); SFX.ui(); { const f = document.getElementById('tFresh'); if (f) f.remove(); } toastClear();
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
     fork: null, forkRest: null, rush: 0, chimed: 0, soonTold: 0, gaugeTold: 0, gainT: 0, feverMax: 6, hitStop: 0, jumpBuf: 0, tut: null, tutDid: '', fovK: 0, look: 0, lookCD: 4, photoT: 0, capture: null, rumbleT: 8, shake: 0, announce: [] });
   G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.chalWon = 0;
+  G.legend = !!(SV.lgMode && legendOn('mode') && SV.tutDone); G.aura = !!(SV.lgAura !== 0 && legendOn('aura')); // the Legendary bunny's own run: faster, x1.5 score / a golden sparkle trail
+  if (G.legend) banner('LEGEND MODE', tr('伝説モード：速さ＋15%・スコア×1.5', 'Legend mode: 15% faster, score x1.5'), 'good');
   G.stats = { hay: 0, dist: 0, jumps: 0, slides: 0, treats: 0, veg: 0, powers: 0, turns: 0, score: 0, fevers: 0, clean: 0, cleanCur: 0, office: 0, chime: 0, looks: 0, flights: 0, bads: [], foods: {}, spots: [], stampsNew: [] };
   G.player.who = G.char; G.player.big = G.char === 'pom' ? POM_BIG : 1; G.player.say = ''; G.follow.who = G.char === 'ren' ? 'jill' : 'ren'; G.player.view = G.follow.view = 'back'; G.player.tilt = G.follow.tilt = 0;
   G.player.show = G.follow.show = true; G.player.look = 0;
@@ -131,7 +133,7 @@ function hit(o) {
 // skill chain: close dodges, jump-overs and slide-unders within a second of each other
 function nice(kind) {
   const now = G.t; G.niceN = (now - (G.niceT || -9) < 1.4) ? (G.niceN || 0) + 1 : 1; G.niceT = now;
-  const mult = SV.mlevel * (G.pow.x2 > 0 ? 2 : 1), pts = (40 + 30 * Math.min(G.niceN - 1, 4)) * mult; G.score += pts; G.stats.nice = (G.stats.nice || 0) + 1;
+  const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1), pts = (40 + 30 * Math.min(G.niceN - 1, 4)) * mult; G.score += pts; G.stats.nice = (G.stats.nice || 0) + 1;
   const lbl = lab(kind === 'jump' ? 'NICE JUMP!' : kind === 'slide' ? 'NICE SLIDE!' : 'CLOSE!');
   floatText(W / 2, H * .5, G.niceN > 1 ? `${lbl} ×${G.niceN}` : lbl, G.niceN > 2 ? '#FF8A5C' : '#F2C230');
   tone(880 + G.niceN * 110, .08, 'triangle', .07); G.hitStop = Math.max(G.hitStop, .03);
@@ -208,12 +210,12 @@ function onEnterSeg(n) {
   G.weather = WEATHERS[(n.day - 1) % WEATHERS.length];
   if (!G.stats.spots.includes(n.tid) && th.stamp) G.stats.spots.push(n.tid);
   if (n.step && n.step.cont) { /* still the same place */ }
-  else if (n.t0 === 480 && n.day > 1) { banner(LANG === 'ja' ? `${n.day}日目・${L(SEASON_LBL[seasonOf(n.day)]).split('・')[0]}` : t('dayLbl') + ' ' + n.day + ' · ' + seasonOf(n.day).toUpperCase(), L(SEASON_LBL[seasonOf(n.day)]) + '　' + t('dayN'), 'room'); G.chimed = 0; }
+  else if (n.t0 === 480 && n.day > 1) { banner(LANG === 'en' ? t('dayLbl') + ' ' + n.day + ' · ' + seasonOf(n.day).toUpperCase() : `${t('dayN', n.day)}・${L(SEASON_LBL[seasonOf(n.day)]).split('・')[0]}`, L(SEASON_LBL[seasonOf(n.day)]) + '　' + t('dayN'), 'room'); G.chimed = 0; }
   else if (n.tid === 'lobby' || n.tid === 'ehall') { G.stats.office = 1; const b = 500 * SV.mlevel; G.score += b; banner('9:00 ON TIME!', t('onTime', fmt(b)), 'good'); SFX.mission(); react('cheer', 1); }
   else if (n.t0 >= 1080 && !G.chimed) { G.chimed = 1; G.rush = 0; G.stats.chime = 1; const b = 1000 * SV.mlevel; G.score += b; SFX.chime(); startFever(7); bannerNow("IT'S 6 PM! FEVER", t('chime', fmt(b)), 'good'); react('sparkle', 1); }
   else if (n.step && n.step.last) banner('LAST TRAIN', t('lastTrain'), 'room');
-  else if (th.arrive || ARRIVE[n.tid]) banner(LANG === 'ja' ? lblOf(n.tid).ja : lblOf(n.tid).en.toUpperCase(), L(th.arrive || ARRIVE[n.tid]), 'room');
-  else banner(LANG === 'ja' ? lblOf(n.tid).ja : lblOf(n.tid).en.toUpperCase(), LANG === 'ja' ? (th.ja.split('・')[1] || '') : '', 'room');
+  else if (th.arrive || ARRIVE[n.tid]) banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), L(th.arrive || ARRIVE[n.tid]), 'room');
+  else banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), LANG === 'en' ? '' : (L(th).split('・')[1] || ''), 'room');
   if (th.rush) { G.rush = 1; G.chaseT = 0; } else G.rush = 0;
   if (n.th.kind === 'train' && n.step.line) { G.announce = n.step.line.map((st, i) => ({ s: n.len * (i + 1) / (n.step.line.length + 1), st })); }
   else G.announce = [];
@@ -222,7 +224,7 @@ function onEnterSeg(n) {
   if (n.tid === 'station') setTimeout(jingle, 400);
 }
 function onLeaveSeg(o) {
-  if (SUMMIT[o.tid]) { const b = 800 * SV.mlevel; G.score += b; if (o.tid === 'tower') G.stats.towerTop = 1; if (o.tid === 'skytree') G.stats.skytreeTop = 1; banner(SUMMIT[o.tid].en, LANG === 'ja' ? SUMMIT[o.tid].ja : SUMMIT[o.tid].en2, 'good'); SFX.mission(); react('sparkle', 1); }
+  if (SUMMIT[o.tid]) { const b = 800 * SV.mlevel; G.score += b; if (o.tid === 'tower') G.stats.towerTop = 1; if (o.tid === 'skytree') G.stats.skytreeTop = 1; banner(SUMMIT[o.tid].en, LANG === 'en' ? SUMMIT[o.tid].en2 : L(SUMMIT[o.tid]), 'good'); SFX.mission(); react('sparkle', 1); }
 }
 // each fever makes the next one take longer to earn (the 6 PM chime fever does not count)
 function feverK() { return 1 / (1 + .6 * (G.stats.feversEarned || 0)); }
@@ -248,7 +250,7 @@ function pomOn() { return G.pom.on && G.pom.who === 'pom'; } // the rookie runs 
 function pomSay(line, mood, dur) { const M = G.pom; if (!pomOn()) return; M.look = dur || 1.3; M.mood = mood || 'happy'; M.say = line; }
 function pomPouch(n) { // Pom stuffs the hay you pass into its cheek pouches; when they are full it shares a bonus
   const M = G.pom, me = G.char === 'pom'; M.pouch = (M.pouch || 0) + n; if (M.pouch < (me ? 60 : 80)) return; M.pouch = 0; G.stats.pomPuff = (G.stats.pomPuff || 0) + 1;
-  const b = 600 * SV.mlevel; G.score += b; if (me) { const P = G.player; P.look = 1.2; P.mood = 'puff'; P.say = t('pomPuff'); G.lookCD = Math.max(G.lookCD, 2); } else pomSay(t('pomPuff'), 'puff', 1.5); floatText(W / 2, H * .36, (LANG === 'ja' ? 'ほお袋ボーナス +' : 'POUCH BONUS +') + fmt(b), '#F2C230'); SFX.treat();
+  const b = 600 * SV.mlevel; G.score += b; if (me) { const P = G.player; P.look = 1.2; P.mood = 'puff'; P.say = t('pomPuff'); G.lookCD = Math.max(G.lookCD, 2); } else pomSay(t('pomPuff'), 'puff', 1.5); floatText(W / 2, H * .36, (tr('ほお袋ボーナス +', 'POUCH BONUS +')) + fmt(b), '#F2C230'); SFX.treat();
   const seg = curSeg(), a = G.s + 8, e = Math.min(seg.len - 14, a + 16); let lane = G.lane; for (let q = a; q < e; q += 1.6) addItem(seg, Math.random() < .12 ? 'goldhay' : 'hay', q, lane, .45);
 }
 function pomJoin() {
@@ -256,7 +258,7 @@ function pomJoin() {
   M.on = 1; M.show = true; M.lat = G.lat; M.back = 6; M.y = 0; M.vy = 0; M.air = false; M.pouch = 0; G.stats.pom = 1;
   SFX.mission(); burst(W / 2, H * .55, '#F2C230', 26); buzz(40); G.hitStop = .06;
   const first = !SV.pomMet; SV.pomMet = (SV.pomMet || 0) + 1; save(); G.pomPeek = null;
-  bannerNow(first ? (LANG === 'ja' ? 'ナゾの新人あらわる！' : 'A MYSTERY ROOKIE!') : (LANG === 'ja' ? 'ポム合流！' : 'POM JOINS!'), t(first ? 'pomJoin' : 'pomJoin2'), 'good');
+  bannerNow(first ? (tr('ナゾの新人あらわる！', 'A MYSTERY ROOKIE!')) : (tr('ポム合流！', 'POM JOINS!')), t(first ? 'pomJoin' : 'pomJoin2'), 'good');
   const id = G.runId; setTimeout(() => { if (G.runId === id) pomSay(t(first ? 'pomHi' : 'pomHi2'), 'sparkle', 1.8); }, 500);
 }
 // bad food: the runner turns round looking unwell, and the partner looks back, worried
@@ -304,7 +306,7 @@ function setupTutorial(seg) {
     pre: { ja: R ? 'この先は右に曲がる。矢印が出たら右へスワイプ' : 'この先は左に曲がる。矢印が出たら左へスワイプ', en: R ? 'The path turns right ahead. Swipe right when the arrow appears' : 'The path turns left ahead. Swipe left when the arrow appears' } };
   G.tut = TUT.concat([turnStep]).map(x => Object.assign({ done: 0 }, x)); G.tutSeg = seg;
 }
-function tutFinish(cue) { if (G.tutEnd) return; G.tutEnd = 1; SV.tutDone = 1; save(); cue.className = ''; banner('GOOD!', LANG === 'ja' ? 'その調子！ チモシーを集めながら進もう' : 'Nice! Keep going and grab the hay', 'good');
+function tutFinish(cue) { if (G.tutEnd) return; G.tutEnd = 1; SV.tutDone = 1; save(); cue.className = ''; banner('GOOD!', tr('その調子！ チモシーを集めながら進もう', 'Nice! Keep going and grab the hay'), 'good');
   if (SV.runs <= 1) { const id = G.runId; setTimeout(() => { if (G.runId !== id || G.mode !== 'play' || G.fever > 0) return; startFever(5); G.stats.fevers--; bannerNow(lab('FIRST-RUN BONUS!'), t('firstFever'), 'good'); burst(W / 2, H * .45, '#F2C230', 30); }, 2200); } } // a first taste of the fever, right after the lesson
 function tutorialScale(seg, dt) {
   if (!G.tut) return 1;
@@ -355,11 +357,11 @@ function update(dt) {
 
   // speed rises gently and levels off (it used to reach 24 m/s mid-run, which got too hard)
   const base = Math.min(MAXSPD, (SV.tutDone ? 12.4 : 11) + G.dist * .0024 + (G.day - 1) * .7);
-  const target = base * (G.pow.dash > 0 ? 1.4 : 1) * (G.fever > 0 ? 1.18 : 1) * (G.pow.fly > 0 ? 1.1 : 1);
+  const target = base * (G.legend ? 1.15 : 1) * (G.pow.dash > 0 ? 1.4 : 1) * (G.fever > 0 ? 1.18 : 1) * (G.pow.fly > 0 ? 1.1 : 1);
   G.speed = lerp(G.speed, target, 1 - Math.exp(-dt * 2.5));
   const step = G.speed * dt, prevS = G.s, prevY = G.y;
   G.s += step; G.dist += step; G.stats.cleanCur += step; G.stats.clean = Math.max(G.stats.clean, G.stats.cleanCur);
-  const mult = SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
+  const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
   G.score += step * mult * (3 + G.speed * .12); // distance is the backbone: about 4-6 points per metre, more when fast
   const tl = LANES[G.lane]; const dl = tl - G.lat; G.lat += Math.sign(dl) * Math.min(Math.abs(dl), dt * 15);
   if (G.laneT > 0) G.laneT -= dt;
@@ -421,7 +423,7 @@ function update(dt) {
   const cue = $('#turnCue');
   { // fork cards: both destinations on screen well before the junction, lit up when the swipe window opens
     const fc = $('#forkCards'), showF = seg.fork && seg.forkLbl && G.s > seg.len - 42 && G.s < seg.len;
-    if (showF) { if (fc.hidden) { fc.hidden = false; $('#fcL b').textContent = L(seg.forkLbl.L); $('#fcR b').textContent = L(seg.forkLbl.R); const q = seg.fork.label === 'lunch' ? t('lunch') : seg.fork.label === 'errand' ? t('errandQ') : t('detour'); $('#fcL small').textContent = q; $('#fcR small').textContent = t('hintFork'); banner(seg.fork.label === 'lunch' ? 'LUNCH?' : 'WHICH WAY?', q + (LANG === 'ja' ? '　' : ' ') + t('hintFork'), 'good'); $('#fcL').className = 'fc l'; $('#fcR').className = 'fc r'; }
+    if (showF) { if (fc.hidden) { fc.hidden = false; $('#fcL b').textContent = L(seg.forkLbl.L); $('#fcR b').textContent = L(seg.forkLbl.R); const q = seg.fork.label === 'lunch' ? t('lunch') : seg.fork.label === 'errand' ? t('errandQ') : t('detour'); $('#fcL small').textContent = q; $('#fcR small').textContent = t('hintFork'); banner(seg.fork.label === 'lunch' ? 'LUNCH?' : 'WHICH WAY?', q + (tr('　', ' ')) + t('hintFork'), 'good'); $('#fcL').className = 'fc l'; $('#fcR').className = 'fc r'; }
       fc.classList.toggle('now', G.s > win && !G.turnQueued);
       if (G.turnQueued && !G.turnAuto) { $('#fcL').classList.toggle('pick', G.turnQueued < 0); $('#fcR').classList.toggle('pick', G.turnQueued > 0); $('#fcL').classList.toggle('dim', G.turnQueued > 0); $('#fcR').classList.toggle('dim', G.turnQueued < 0); } }
     else if (!fc.hidden) fc.hidden = true;
@@ -430,7 +432,7 @@ function update(dt) {
   else if (G.s > win && G.s < seg.len && !G.turnQueued) { cue.textContent = seg.fork ? '←  →' : seg.turn > 0 ? '→' : '←'; cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + (Math.floor(G.t * 8) % 2 ? ' show' : ''); }
   else cue.className = '';
   // events inside a stretch
-  for (const a of G.announce) if (!a.done && G.s > a.s) { a.done = 1; const st = LANG === 'ja' ? a.st : stEn(a.st); banner('NEXT: ' + stEn(a.st).toUpperCase(), LANG === 'ja' ? t('nextStation', st) : '', 'room'); tone(880, .12, 'sine', .08); tone(660, .18, 'sine', .08, AU.ctx && AU.ctx.currentTime + .14); }
+  for (const a of G.announce) if (!a.done && G.s > a.s) { a.done = 1; const st = LANG === 'ja' || LANG === 'zh' ? a.st : stEn(a.st); banner('NEXT: ' + stEn(a.st).toUpperCase(), LANG === 'en' ? '' : t('nextStation', st), 'room'); tone(880, .12, 'sine', .08); tone(660, .18, 'sine', .08, AU.ctx && AU.ctx.currentTime + .14); }
   if (seg.movers) for (const m of seg.movers) { if (m.cross) { m.dl = (m.dl == null ? -20 : m.dl) - m.v * dt * .6; if (m.dl > 90) m.dl = -40; continue; } m.ds += m.v * dt; if (m.ds < -60) m.ds = seg.len + 30; }
   if (seg.th.rumble) { G.rumbleT -= dt; if (G.rumbleT <= 0) { G.rumbleT = rand(5, 8); G.shake = 1; SFX.rumble(); } }
   if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 1.6);
@@ -468,7 +470,8 @@ function placeCamera(dt) {
   const k = G.turnT > 0 ? 1 - Math.exp(-dt * 14) : 1;
   G.rx = lerp(G.rx, p[0], k); G.rz = lerp(G.rz, p[1], k);
   const eP = segE(seg, G.s); G.ey = G.ey == null || G.turnT <= 0 && Math.abs(G.ey - eP) > 3 ? eP : lerp(G.ey, eP, Math.min(1, dt * 18));
-  P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * .06); P.vy = P.who === 'pom' ? G.vy : null;
+  P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * .06);
+  if (G.aura && G.mode === 'play' && !OPT().calm && (G.auraT = (G.auraT || 0) + (G.dtFX || .016)) > .045) { G.auraT = 0; const sp = spriteAt(P.wx + rand(-.35, .35), P.wy + rand(.2, 1.1) * (P.big || 1), P.wz + .2); if (sp) FX.push({ x: sp.sx, y: sp.sy, vx: rand(-25, 25), vy: rand(-70, -20), life: rand(.35, .7), t: 0, c: Math.random() < .5 ? 'rgba(255,214,90,.95)' : 'rgba(255,246,200,.95)', r: rand(1.5, 3.2) }); } P.vy = P.who === 'pom' ? G.vy : null;
   const fp = segPos(seg, G.s - F.back, F.lat); F.wx = fp[0]; F.wz = fp[1]; F.wy = fp[2] + (F.y || 0) + (F.air ? 0 : Math.abs(Math.sin(F.ph)) * .06);
   F.fly = P.fly; if (P.fly) { F.wy = G.ey + G.y - .3; }
   F.show = !F.off && G.s - F.back > (seg.first ? -14 : HW + .3);
@@ -487,7 +490,7 @@ function placeCamera(dt) {
   if (F.tuck) F.depth = P.depth + .3;
   if (G.pomPeek && G.pomPeek.seg === seg) { // the teaser: a hamster trots into the road, runs alongside staring at you for a moment, then dashes off
     const k = G.pomPeek, B = k.b; G.peekSlow = 0;
-    if (!k.ph && G.s > k.s - 32) { k.ph = 'in'; k.stop = LANES[G.lane === 1 ? (G.follow.side > 0 ? 0 : 2) : G.lane === 0 ? 2 : 0]; bannerNow(SV.pomMet ? (LANG === 'ja' ? 'あっ、ポム！' : 'POM!') : (LANG === 'ja' ? '！？' : '!?'), t(SV.pomMet ? 'pomPeek2' : 'pomPeek'), 'room'); tone(1320, .07, 'square', .05); tone(1760, .09, 'square', .05, AU.ctx && AU.ctx.currentTime + .09); }
+    if (!k.ph && G.s > k.s - 32) { k.ph = 'in'; k.stop = LANES[G.lane === 1 ? (G.follow.side > 0 ? 0 : 2) : G.lane === 0 ? 2 : 0]; bannerNow(SV.pomMet ? (tr('あっ、ポム！', 'POM!')) : (tr('！？', '!?')), t(SV.pomMet ? 'pomPeek2' : 'pomPeek'), 'room'); tone(1320, .07, 'square', .05); tone(1760, .09, 'square', .05, AU.ctx && AU.ctx.currentTime + .09); }
     let ps = k.s, lat = 0, look = 0; const side = -k.dir * (HW + .4);
     if (k.ph === 'in') { const q = clamp((G.s - (k.s - 32)) / 20, 0, 1); lat = lerp(side, k.stop, Math.min(1, q * 1.4)); if (G.s > k.s - 1.8) { k.ph = 'look'; k.t = 1.7; } }
     if (k.ph === 'look') { ps = G.s + 1.8; lat = k.stop; look = 1; G.peekSlow = 1; k.t -= dt; if (k.t <= 0) { k.ph = 'out'; k.t = .45; } }
@@ -526,12 +529,12 @@ function buddyMove(F, dt, seg, tlat0, back0) {
   F.ph += dt * (F.who === 'pom' ? 9 + G.speed * .7 : 6.4 + G.speed * .55);
 }
 function collect(it, seg) {
-  it.got = 1; const def = ITEMS[it.type]; const mult = SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
+  it.got = 1; const def = ITEMS[it.type]; const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
   const sp = spriteAt(G.player.wx, G.player.wy + .6, G.player.wz); const sx = sp ? sp.sx : W / 2, sy = sp ? sp.sy : H * .6;
   if (def.kind === 'stamp') {
     const tid = seg.tid, isNew = !SV.stamps[tid]; SV.stamps[tid] = (SV.stamps[tid] || 0) + 1; save();
     G.score += def.pts * mult; SFX.mission(); burst(sx, sy, '#C8463C', 24); buzz(30); G.hitStop = .08; if (isNew) G.stats.stampsNew.push(tid); G.stats.stampsGot = (G.stats.stampsGot || 0) + 1;
-    banner('STAMP!', LANG === 'ja' ? `${t('stampGet')}「${L(THEMES[tid].stamp)}」` : `${t('stampGet')} ${L(THEMES[tid].stamp)}`, 'good'); react('sparkle', 1); if (Math.random() < .5) pomSay(t('pomStamp'), 'sparkle', 1.2); return;
+    banner('STAMP!', LANG === 'en' ? `${t('stampGet')} ${L(THEMES[tid].stamp)}` : `${t('stampGet')}「${L(THEMES[tid].stamp)}」`, 'good'); react('sparkle', 1); if (Math.random() < .5) pomSay(t('pomStamp'), 'sparkle', 1.2); return;
   }
   if (def.kind === 'pom') { pomJoin(); return; }
   if (def.kind !== 'hay' && !SV.zukan[it.type]) { SV.zukan[it.type] = 1; save(); if (def.kind !== 'bad') floatText(W / 2, H * .24, t('newBook', L(def)), '#F2C230'); }
@@ -581,7 +584,7 @@ function hud() {
   chalTick(); setText('hChal', CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
   setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay)));
   setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
-  setText('hClock', clockStr(G.clock)); setText('hDay', LANG === 'ja' ? G.day + t('dayLbl') : t('dayLbl') + ' ' + G.day);
+  setText('hClock', clockStr(G.clock)); setText('hDay', t('dayN', G.day));
   { const sg = curSeg(); setText('hRoom', sg.th.climb ? `${L(sg.th)} ${altitude(sg, G.s)}m` : L(sg.th)); }
   { const danger = (G.chaseT > 0 && !G.chaseIntro) || G.rush; if (danger) G.bumped = 1; setCls('lives', 'hide', !G.bumped && !G.rush); setCls('lives', 'warn', danger); setCls('lives', 'one', danger);
     setText('livesTxt', G.rush ? t('livesRush') : danger ? t('livesWarn', Math.ceil(G.chaseT)) : ''); }
@@ -590,7 +593,7 @@ function hud() {
   setCls('feverBar', 'on', G.fever > 0); setCls('feverBar', 'soon', G.fever <= 0 && pct >= 80);
   setCls('feverBar', 'gain', G.fever <= 0 && G.gainT > 0 && pct < 80);
   setCls('feverGlow', 'on', G.fever > 0);
-  setText('feverLbl', G.fever > 0 ? (LANG === 'ja' ? 'もぐもぐフィーバー中！' : 'FEVER!') : t('gauge'));
+  setText('feverLbl', G.fever > 0 ? (tr('もぐもぐフィーバー中！', 'FEVER!')) : t('gauge'));
   setText('feverPct', G.fever > 0 ? G.fever.toFixed(1) + 's' : Math.floor(pct) + '%');
   if (pct >= 15 && !G.gaugeTold && SV.runs <= 3) { G.gaugeTold = 1; banner('', t('gaugeHint'), ''); }
   if (!G.bestTold && SV.best > 500 && G.score > SV.best) { G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.mission(); react('sparkle', 1); }
@@ -600,7 +603,7 @@ function hud() {
   const box = $('#pows');
   if (box.dataset.k !== key) { box.dataset.k = key; box.innerHTML = on.map(k => `<div class="pow"><img src="${SPR_URL[POW[k].ico]}" alt=""><i><u data-p="${k}"></u></i></div>`).join('') + (G.shield ? `<div class="pow"><img src="${SPR_URL.clover}" alt=""></div>` : ''); }
   if (on.length) box.querySelectorAll('u[data-p]').forEach(u => { const k = u.dataset.p; u.style.width = (G.pow[k] / powDur(k) * 100) + '%'; });
-  setText('combo', G.combo >= 5 ? (LANG === 'ja' ? `${G.combo}コンボ` : `${G.combo} COMBO`) : '');
+  setText('combo', G.combo >= 5 ? t('comboN', G.combo) : '');
   const h = $('#hint');
   if (G.hint > 0 && G.hint < 7) { h.style.opacity = 1; setText('hint', G.hint > 3.5 ? t('hintMove') : t('hintTurn')); } else h.style.opacity = 0;
   routeBar();
@@ -692,23 +695,23 @@ function endRun() {
   { const pm = careerCheck(); if (pm) { lvlMsg = pm + (lvlMsg ? '　' + lvlMsg : ''); $('#resPromo').textContent = pm; $('#resPromo').hidden = false; } else $('#resPromo').hidden = true; }
   save();
   const cap = (CAPS[G.cause] || CAPS.obstacle)[G.char] || CAPS.obstacle.ren;
-  $('#resEn').textContent = LANG === 'ja' ? cap[1] : cap[0]; $('#resJa').textContent = '';
+  $('#resEn').textContent = tr(cap[1], cap[0]); $('#resJa').textContent = '';
   $('#resBest').hidden = !newBest;
   { const el = $('#resScore'), total = Math.floor(G.score), t0 = performance.now(), dur = Math.min(1400, 500 + total / 60); el.textContent = '0';
     const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); if (k < 1) { if (Math.random() < .5) tone(600 + 600 * e, .03, 'square', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); SFX.mission(); } }; requestAnimationFrame(tick); }
   { const hi = []; if ((st.maxCombo || 0) >= 20) hi.push(t('hiCombo', st.maxCombo)); if ((st.nice || 0) >= 3) hi.push(t('hiNice', st.nice)); if ((st.fevers || 0) >= 2) hi.push(t('hiFever', st.fevers)); if ((st.looks || 0) >= 3) hi.push(t('hiLook', st.looks));
     $('#resHi').innerHTML = st.stampsNew.map(tid => `<span class="new">${esc(t('hiNew', L(THEMES[tid].stamp)))}</span>`).join('') + hi.map(x => `<span>${esc(x)}</span>`).join(''); }
-  SV.last = { score: Math.floor(G.score), place: L(curSeg().th) }; save(); $('#resClock').textContent = (G.day > 1 ? (LANG === 'ja' ? G.day + '日目 ' : 'D' + G.day + ' ') : '') + clockStr(G.clock); $('#resHay').textContent = fmt(gained);
+  SV.last = { score: Math.floor(G.score), place: { ja: curSeg().th.ja, en: curSeg().th.en } }; // the place in every language (shown in whatever language the title is in later) save(); $('#resClock').textContent = (G.day > 1 ? t('dayN', G.day) + ' ' : '') + clockStr(G.clock); $('#resHay').textContent = fmt(gained);
   const vsBest = prevBest > 0 ? (newBest ? t('bestUp', fmt(Math.floor(G.score) - prevBest)) : t('bestShort', fmt(prevBest - Math.floor(G.score)))) : '';
   $('#resNote').textContent = (CHAL ? (G.chalWon ? t('chalDone', fmt(CHAL.s)) : t('chalLeft', fmt(Math.ceil(CHAL.s - G.score) + 1))) : '') + (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '');
   $('#resSpots').innerHTML = st.spots.length ? st.spots.map(tid => `<span class="spot${st.stampsNew.includes(tid) ? ' new' : ''}"><img src="${stampSprite(tid).toDataURL()}" alt="">${esc(L(THEMES[tid].stamp))}</span>`).join('') : '';
   $('#resMissions').innerHTML = missionHTML();
   const seen = st.bads.length ? st.bads[st.bads.length - 1] : pick(Object.keys(st.foods).length ? Object.keys(st.foods) : ['hay']);
-  const d = ITEMS[seen]; $('#resTip').innerHTML = `<b>${d.kind === 'bad' ? (LANG === 'ja' ? lab('NG FOOD') : "DON'T FEED") : lab('BUNNY FOOD NOTE')}${LANG === 'ja' ? '｜' : ' · '}${esc(L(d))}</b>${esc(L(d.tip).split('\n')[0])}`;
+  const d = ITEMS[seen]; $('#resTip').innerHTML = `<b>${d.kind === 'bad' ? (LANG === 'en' ? "DON'T FEED" : lab('NG FOOD')) : lab('BUNNY FOOD NOTE')}${tr('｜', ' · ')}${esc(L(d))}</b>${esc(L(d.tip).split('\n')[0])}`;
   const place = L(curSeg().th);
   G.lastShare = t(G.chalWon ? 'shareTextWon' : 'shareText', fmt(G.score), (G.day > 1 ? 'DAY ' + G.day + ' ' : '') + clockStr(G.clock), place, CHAL ? fmt(CHAL.s) : '');
   buildShareCard(cap, place, gained);
-  const kb = $('#kujiBox'); kb.hidden = G.dist < 300; $('#kujiRes').innerHTML = ''; $('#btnKuji').disabled = false; $('#btnKuji').textContent = LANG === 'ja' ? 'おみくじを引く' : 'Draw a fortune slip';
+  const kb = $('#kujiBox'); kb.hidden = G.dist < 300; $('#kujiRes').innerHTML = ''; $('#btnKuji').disabled = false; $('#btnKuji').textContent = tr('おみくじを引く', 'Draw a fortune slip');
   $('#resCareer').innerHTML = careerHTML();
   hideAll(); show('sResult');
   rankAfterRun(G.score);
@@ -786,14 +789,14 @@ function buildShareCard(cap, place, gained) {
   g.fillStyle = '#F6EBDC'; g.fillRect(0, 0, 1080, 1080);
   try { const sh = Math.round(cv.width * .62); g.drawImage(cv, 0, Math.max(0, (cv.height - sh) / 2), cv.width, Math.min(sh, cv.height), 60, 260, 960, 595); } catch (e) { }
   g.strokeStyle = '#3B2A20'; g.lineWidth = 8; g.strokeRect(60, 260, 960, 595);
-  g.fillStyle = '#3B2A20'; g.font = `400 ${LANG === 'ja' ? 74 : 92}px "Dela Gothic One","Hiragino Sans",sans-serif`; g.textAlign = 'left'; g.fillText(LANG === 'ja' ? 'チモシーダッシュ' : 'HAY DASH!', 60, 150);
-  g.font = '900 34px "Zen Maru Gothic",sans-serif'; g.fillStyle = '#A97A1E'; g.fillText(LANG === 'ja' ? 'レンとジルの チモシーダッシュ' : 'REN & JILL: HAY DASH', 64, 210);
+  g.fillStyle = '#3B2A20'; g.font = `400 ${LANG === 'ja' ? 74 : 92}px "Dela Gothic One","Hiragino Sans",sans-serif`; g.textAlign = 'left'; g.fillText(tr('チモシーダッシュ', 'HAY DASH!'), 60, 150);
+  g.font = '900 34px "Zen Maru Gothic",sans-serif'; g.fillStyle = '#A97A1E'; g.fillText(tr('レンとジルの チモシーダッシュ', 'REN & JILL: HAY DASH'), 64, 210);
   g.drawImage(bunFrame('ren', 'front_happy', SV.mugOn), 700, 40 + 210 * (1 - (BS + BTOP) / BS) + 30, 210, 210 * (BS + BTOP) / BS); g.drawImage(bunFrame('jill', 'front_open'), 860, 70 + 180 * (1 - (BS + BTOP) / BS) + 24, 180, 180 * (BS + BTOP) / BS);
   g.fillStyle = '#3B2A20'; g.font = '400 120px "Dela Gothic One",sans-serif'; g.fillText(fmt(G.score), 60, 990);
   g.font = '900 36px "Zen Maru Gothic",sans-serif'; g.fillStyle = '#6E5848';
-  g.fillText(`${G.day > 1 ? (LANG === 'ja' ? G.day + '日目 · ' : 'DAY ' + G.day + ' · ') : ''}${clockStr(G.clock)} · ${place}`, 64, 1040);
-  g.textAlign = 'right'; g.fillText(LANG === 'ja' ? `チモシー ${fmt(gained)}本` : `HAY ${fmt(gained)}`, 1016, 1040);
-  g.save(); g.translate(880, 940); g.rotate(-.12); g.fillStyle = '#C8463C'; g.font = '400 44px "Dela Gothic One",sans-serif'; g.textAlign = 'center'; g.fillText(LANG === 'ja' ? cap[1] : (cap[0].length > 18 ? 'GAME OVER' : cap[0]), 0, 0); g.restore();
+  g.fillText(`${G.day > 1 ? t('dayN', G.day) + ' · ' : ''}${clockStr(G.clock)} · ${place}`, 64, 1040);
+  g.textAlign = 'right'; g.fillText(t('hayN', fmt(gained)), 1016, 1040);
+  g.save(); g.translate(880, 940); g.rotate(-.12); g.fillStyle = '#C8463C'; g.font = '400 44px "Dela Gothic One",sans-serif'; g.textAlign = 'center'; g.fillText(LANG === 'en' ? (cap[0].length > 18 ? 'GAME OVER' : cap[0]) : tr(cap[1], cap[0]), 0, 0); g.restore();
   let x = 64; for (const tid of G.stats.spots.slice(0, 7)) { g.drawImage(stampSprite(tid, 1), x, 790, 120, 120); x += 110; }
   try { $('#shareImg').src = c.toDataURL('image/png'); } catch (e) { }
   { const L2 = shareLinks(); $('#shX').href = L2.x; $('#shLine').href = L2.line; $('#shFb').href = L2.fb; $('#igNote').textContent = ''; $('#tCopy').textContent = SHARE.phone() && SHARE.canSheet() ? t('shareMore') : t('copy'); }
@@ -803,8 +806,8 @@ function buildShareCard(cap, place, gained) {
     const bg = q.createLinearGradient(0, 0, 0, 1920); bg.addColorStop(0, '#F6E7C8'); bg.addColorStop(1, '#F2C9A6'); q.fillStyle = bg; q.fillRect(0, 0, 1080, 1920);
     q.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 40; i++) { q.beginPath(); q.arc((i * 263) % 1080, (i * 397) % 1920, 6 + (i % 5) * 4, 0, Math.PI * 2); q.fill(); }
     q.save(); q.translate(540, 980); q.rotate(-.03); q.shadowColor = 'rgba(59,42,32,.35)'; q.shadowBlur = 40; q.shadowOffsetY = 18; q.drawImage(c, -470, -470, 940, 940); q.restore();
-    q.fillStyle = '#3B2A20'; q.textAlign = 'center'; q.font = '400 64px "Dela Gothic One","Hiragino Sans",sans-serif'; q.fillText(LANG === 'ja' ? '今日のチモシーダッシュ' : "TODAY'S HAY DASH", 540, 400);
-    q.font = '900 40px "Zen Maru Gothic",sans-serif'; q.fillStyle = '#6E5848'; q.fillText('#レンとジル', 540, 1560); q.fillText(LANG === 'ja' ? 'うさぎの課長と、東京をかけぬけて出社' : 'Two office bunnies, one mad dash across Tokyo', 540, 1620);
+    q.fillStyle = '#3B2A20'; q.textAlign = 'center'; q.font = '400 64px "Dela Gothic One","Hiragino Sans",sans-serif'; q.fillText(tr('今日のチモシーダッシュ', "TODAY'S HAY DASH"), 540, 400);
+    q.font = '900 40px "Zen Maru Gothic",sans-serif'; q.fillStyle = '#6E5848'; q.fillText('#レンとジル', 540, 1560); q.fillText(tr('うさぎの課長と、東京をかけぬけて出社', 'Two office bunnies, one mad dash across Tokyo'), 540, 1620);
     G.shareStory = t; prepShareFiles(c, t);
   }
 }

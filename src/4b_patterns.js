@@ -9,7 +9,7 @@ function decalDraw(p, d) {
       ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(1, rx), Math.max(1, Math.max(rx * .18, ry)), Math.atan2(ex[1] - c[1], ex[0] - c[0]), 0, Math.PI * 2); ctx.fillStyle = T('#4E4C48'); ctx.fill(); ctx.strokeStyle = T('#2E2C2A'); ctx.lineWidth = Math.max(.8, 18 / d); ctx.stroke();
       if (d < 22) { ctx.globalAlpha = a * .5; ctx.beginPath(); for (let k = 1; k < 4; k++) bline(.5 - k * .1, .2, .5 - k * .1, .8), bline(.5 + k * .1, .2, .5 + k * .1, .8); ctx.strokeStyle = T('#6E6A64'); ctx.lineWidth = Math.max(.6, 10 / d); ctx.stroke(); } break; }
     case 'zebra': for (let v = .06; v < .94; v += .16) bquad(.0, v, 1, v + .09, T('#EEEDE8')); break;
-    case 'stop': bquad(.05, .2, .95, .8, 'rgba(0,0,0,0)'); if (d < 40) qtext(LANG === 'ja' ? 'とまれ' : 'STOP', .1, .15, .9, .85, T('#F2F1EC')); break;
+    case 'stop': bquad(.05, .2, .95, .8, 'rgba(0,0,0,0)'); if (d < 40) qtext(tr('とまれ', 'STOP'), .1, .15, .9, .85, T('#F2F1EC')); break;
     case 'arrow': { const P = [[.2, .4], [.6, .4], [.6, .25], [.95, .5], [.6, .75], [.6, .6], [.2, .6]]; ctx.beginPath(); P.forEach(([u, v], i) => { const q = bil(u, v); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.closePath(); ctx.fillStyle = T('#EEEDE8'); ctx.fill(); break; }
     case 'grate': bquad(0, 0, 1, 1, T('#3E3C39')); if (d < 25) { ctx.beginPath(); for (let k = 1; k < 8; k++) bline(k / 8, .1, k / 8, .9); ctx.strokeStyle = T('#26241F'); ctx.lineWidth = Math.max(.6, 12 / d); ctx.stroke(); } break;
     case 'patch': ctx.globalAlpha = a * .3; bquad(0, 0, 1, 1, T(p.pc || '#5E5E62')); break;

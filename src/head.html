@@ -12,6 +12,8 @@
   --f-body:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
   color-scheme:light;
 }
+:root:lang(zh-Hant){--f-display:"Dela Gothic One","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;--f-body:"Zen Maru Gothic","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
+:root:lang(ko){--f-display:"Dela Gothic One","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;--f-body:"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic","Zen Maru Gothic",system-ui,sans-serif}
 [hidden]{display:none!important}
 html,body{height:100%;margin:0;background:var(--ink);color:var(--ink);overscroll-behavior:none}
 body{font-family:var(--f-body);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
@@ -57,7 +59,7 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 .msg{max-width:84%;padding:8px 12px;border-radius:14px;font-size:14px;line-height:1.55;font-weight:700;white-space:pre-wrap;word-break:break-word}
 .msg.bot{align-self:flex-start;background:var(--cream);color:var(--ink);border-bottom-left-radius:4px}.msg.me{align-self:flex-end;background:var(--ink);color:var(--paper);border-bottom-right-radius:4px}
 .msg.wait{opacity:.6;animation:tpulse .6s ease-in-out infinite alternate}
-.chatsug{display:flex;gap:6px;overflow-x:auto;padding:0 12px 6px;scrollbar-width:none}.chatsug button{flex:0 0 auto;white-space:nowrap}
+.chatsug{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 6px}.chatsug button{flex:0 1 auto;white-space:normal;text-align:left}
 .chatform{display:flex;gap:6px;padding:8px 12px}.chatform input{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:2px solid var(--ink);background:#fff;color:var(--ink)}
 .chatform .big{font-size:16px;padding:8px 14px}#sChat .note{padding:0 12px 10px;margin:0;font-size:11px}
 #lives.hide{display:none}#lives{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;font-size:11px;font-weight:800;color:var(--paper);text-shadow:0 1px 2px rgba(0,0,0,.55)}
@@ -261,6 +263,8 @@ button:active,.shbtns a:active{transform:scale(.95)}
 .rk{display:grid;grid-template-columns:28px 26px 1fr auto;gap:8px;align-items:center;background:var(--paper);border-radius:10px;padding:5px 8px;font-size:13px;font-weight:700;min-width:0}
 .rk b{font-family:var(--f-display);font-weight:400;text-align:center}
 .rk img{width:26px;height:26px}
+.rk.lg img{border-radius:50%;box-shadow:0 0 0 2px #E2B341,0 0 6px 1px rgba(242,194,48,.55);background:#FFF6DA}.rk.lggold span{color:#A97A1E}.career.legend .cr-t{color:#A97A1E}.career.legend .cr-bar i{background:linear-gradient(90deg,#F6DC86,#E2B341)}
+.legendbox{margin:10px 0 4px;padding:10px 12px;border-radius:14px;background:linear-gradient(180deg,#FFF6DA,#F8E6B0);border:2px solid #E2B341}.legendbox h3{margin:0 0 6px;font-size:15px}.legendbox .row3{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0;font-size:13px;font-weight:700}.legendbox .lock{opacity:.55}
 .rk span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .rk em{font-style:normal;font-family:var(--f-display);font-variant-numeric:tabular-nums}
 .rk.top1 b{color:#C9962F}.rk.top2 b{color:#8F9AA6}.rk.top3 b{color:#A86E3F}
@@ -290,6 +294,8 @@ button:active,.shbtns a:active{transform:scale(.95)}
 .career .cr-t{font-weight:900;font-size:14px;color:var(--ink)}.career .cr-lv{font-family:var(--f-display);font-size:12px;color:var(--badge-deep)}
 .career .cr-bar{height:8px;border-radius:999px;background:rgba(59,42,32,.14);overflow:hidden}.career .cr-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--tie),#E9A84A);border-radius:999px}
 .career small{grid-column:1/-1;font-size:10.5px;font-weight:800;color:var(--ink-soft)}
+.langseg{flex-wrap:wrap;justify-content:flex-end}.langseg .buy{font-size:12px}
+#tLast,#tResMore,.newbest,.chalcard b{text-wrap:balance}
 .newbest.promo{background:var(--tie);color:var(--ink)}
 .m.xfer{display:block;text-align:left}.m.xfer p{margin:0 0 6px}.m.xfer .note{font-size:12px;line-height:1.5}
 .xfer textarea{width:100%;box-sizing:border-box;font:12px/1.4 ui-monospace,monospace;border:2px solid var(--line);border-radius:10px;padding:6px 8px;margin:6px 0;background:#fff;color:var(--ink);resize:vertical;word-break:break-all}

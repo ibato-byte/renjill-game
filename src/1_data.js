@@ -7,19 +7,19 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const pick = a => a[(Math.random() * a.length) | 0];
 function wpick(list) { let t = 0; for (const e of list) t += e[1]; let r = Math.random() * t; for (const e of list) { r -= e[1]; if (r <= 0) return e[0]; } return list[0][0]; }
 const hexRgb = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
-const fmt = n => Math.floor(n).toLocaleString(LANG === 'ja' ? 'ja-JP' : 'en-US');
+const fmt = n => Math.floor(n).toLocaleString(({ ja: 'ja-JP', en: 'en-US', zh: 'zh-TW', ko: 'ko-KR' })[LANG] || 'en-US');
 function todayStr() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
 function clockStr(min) { min = Math.floor(min) % 1440; return Math.floor(min / 60) + ':' + String(min % 60).padStart(2, '0'); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 /* ================= save ================= */
 const SAVE_KEY = 'renjill-hay-dash-v1';
-const defSave = () => ({ best: 0, bank: 0, closet: {}, wear: { ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' } }, upg: { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }, clovers: 1, char: 'ren', mug: false, mugOn: false,
+const defSave = () => ({ best: 0, bank: 0, closet: {}, wear: { ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' }, pom: { band: 'red', hat: '', suit: '' } }, upg: { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }, clovers: 1, char: 'ren', mug: false, mugOn: false,
   mlevel: 1, missions: null, totals: {}, zukan: {}, seenZukan: 0, daily: '', streak: 0, mute: false, runs: 0, bestClock: 480,
   lang: '', stamps: {}, album: {}, bestDay: 1, seenStamps: 0 });
 let SV = defSave();
-function svFrom(o) { const SVp = SV; SV = Object.assign(defSave(), o); try { const D = defSave(); SV.upg = Object.assign(D.upg, o.upg || {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (!(SV.char === 'ren' || SV.char === 'jill' || (SV.char === 'pom' && SV.pomMet))) SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}) }; SV.closet = o.closet || {}; } catch (e) { SV = SVp; throw e; } }
-try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { const o = JSON.parse(raw); SV = Object.assign(defSave(), o); const D = defSave(); SV.upg = Object.assign(D.upg, o.upg || {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (!(SV.char === 'ren' || SV.char === 'jill' || (SV.char === 'pom' && SV.pomMet))) SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}) }; SV.closet = o.closet || {}; } } catch (e) { }
+function svFrom(o) { const SVp = SV; SV = Object.assign(defSave(), o); try { const D = defSave(); SV.upg = Object.assign(D.upg, o.upg || {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (!(SV.char === 'ren' || SV.char === 'jill' || (SV.char === 'pom' && SV.pomMet))) SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}), pom: Object.assign(dw.pom, (o.wear || {}).pom || {}) }; SV.closet = o.closet || {}; } catch (e) { SV = SVp; throw e; } }
+try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { const o = JSON.parse(raw); SV = Object.assign(defSave(), o); const D = defSave(); SV.upg = Object.assign(D.upg, o.upg || {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (!(SV.char === 'ren' || SV.char === 'jill' || (SV.char === 'pom' && SV.pomMet))) SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}), pom: Object.assign(dw.pom, (o.wear || {}).pom || {}) }; SV.closet = o.closet || {}; } } catch (e) { }
 // one stable player id per save: it travels with a transfer code, so a future app (iOS/Android) can take the same account over
 if (!SV.pid) { try { SV.pid = (crypto.randomUUID ? crypto.randomUUID() : 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2)); } catch (e) { SV.pid = 'p' + Date.now().toString(36); } }
 /* ---- account transfer: the whole save (without photos) as a code, readable by any build of the game ----
@@ -58,9 +58,15 @@ function saveNow() { if (RESETTING) return; // if storage is full, give up the o
   SAVE_DIRTY = 0;
   for (let k = 0; k < 100; k++) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); return; } catch (e) { const ks = Object.keys(SV.album || {}); if (!ks.length) return; delete SV.album[ks[0]]; } } }
 const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true }, SV.opt || {}));
-const QLANG = (/[?&]lang=(ja|en)\b/.exec(location.search) || [])[1]; // ?lang=en opens the English version (links from the English guide)
-let LANG = QLANG || SV.lang || ((navigator.language || 'ja').toLowerCase().startsWith('ja') ? 'ja' : 'en');
-const L = o => o == null ? '' : typeof o === 'string' ? o : (o[LANG] ?? o.ja ?? o.en ?? '');
+/* ---- languages: the same four as the official site (日本語・English・繁體中文・한국어) ----
+   Chinese and Korean come from I18N (src/0_i18n.js, keyed by the Japanese text); anything missing falls back to English. */
+const LANGS = ['ja', 'en', 'zh', 'ko'], LANG_NAME = { ja: '日本語', en: 'English', zh: '繁體中文', ko: '한국어' };
+const QLANG = (/[?&]lang=(ja|en|zh|ko)\b/.exec(location.search) || [])[1]; // ?lang=en opens the English version (links from the guides)
+const navLang = () => { const n = (navigator.language || 'ja').toLowerCase(); return n.startsWith('ja') ? 'ja' : n.startsWith('zh') ? 'zh' : n.startsWith('ko') ? 'ko' : 'en'; };
+let LANG = QLANG || (LANGS.includes(SV.lang) ? SV.lang : navLang());
+const i18nMiss = ja => { if (window.__i18nMiss) window.__i18nMiss.add(ja); }; // the language check (qa/i18n_audit.js) lists phrases with no translation yet
+const tr = (ja, en) => LANG === 'ja' ? ja : LANG === 'en' ? en : ((I18N[LANG] || {})[ja] ?? (i18nMiss(ja), en)); // a Japanese/English pair in the current language
+const L = o => o == null ? '' : typeof o === 'string' ? o : (o[LANG] ?? (LANG === 'ja' ? (o.ja ?? o.en) : LANG === 'en' ? (o.en ?? o.ja) : ((o.ja != null && (I18N[LANG] || {})[o.ja]) || (o.ja != null && i18nMiss(o.ja), o.en ?? o.ja))) ?? '');
 
 /* ================= interface text ================= */
 const STR = {
@@ -71,8 +77,8 @@ const STR = {
   pomWorry: ['先輩!? 大丈夫っすか!?', 'Senpai!? You OK!?'], pomDonmai: ['ドンマイっす！', "Shake it off!"], pomFever: ['ファイトーー！', 'Go, go, gooo!'], pomNice: ['ナイスっす！', 'Nice one!'], pomNice2: ['まだまだいけるっす！', 'Keep it up!'], pomStamp: ['スタンプ、映えるっす！', 'Ooh, picture-perfect!'],
   worryRen: ['ジル、大丈夫か!?', 'Jill, are you OK!?'], worryJill: ['課長、大丈夫ですか!?', 'Boss, are you OK!?'],
   start: ['スタート', 'START'], again: ['もう一回！', 'ONE MORE RUN'], resume: ['つづける', 'RESUME'],
-  legal: ['このゲームはフィクションです。登場する地名・駅名は場所を表すためのもので、実在の施設・企業・団体とは関係がなく、公認を受けたものでもありません。うさぎの食べ物のメモは一般的な目安です（主な出典：長野県動物愛護センターの資料）。本物のうさぎのことは、うさぎを診られる動物病院に相談してください。AIのジルの答えは間違うこともあります。フォント：Dela Gothic One、Zen Maru Gothic（SIL Open Font License 1.1）。音楽・効果音・絵はこのゲームのために作ったものです。© COANA TOKYO「レンとジル」',
-    'This game is fiction. Place and station names are used only to show where you are; the game is not affiliated with or endorsed by any real facility, company or group. Rabbit food notes are general guidance (main source: Nagano Prefecture Animal Welfare Center). For a real rabbit, ask a vet who sees rabbits. AI Jill can make mistakes. Fonts: Dela Gothic One, Zen Maru Gothic (SIL Open Font License 1.1). All music, sound effects and art were made for this game. © COANA TOKYO “Ren & Jill”'],
+  legal: ['このゲームはフィクションです。登場する地名・駅名は場所を表すためのもので、実在の施設・企業・団体とは関係がなく、公認を受けたものでもありません。うさぎの食べ物のメモは一般的な目安です（主な出典：長野県動物愛護センターの資料）。本物のうさぎのことは、うさぎを診られる動物病院に相談してください。チャットのジルの答えは間違うこともあります。フォント：Dela Gothic One、Zen Maru Gothic（SIL Open Font License 1.1）。音楽・効果音・絵はこのゲームのために作ったものです。© COANA TOKYO「レンとジル」',
+    'This game is fiction. Place and station names are used only to show where you are; the game is not affiliated with or endorsed by any real facility, company or group. Rabbit food notes are general guidance (main source: Nagano Prefecture Animal Welfare Center). For a real rabbit, ask a vet who sees rabbits. Chat Jill’s answers may be wrong. Fonts: Dela Gothic One, Zen Maru Gothic (SIL Open Font License 1.1). All music, sound effects and art were made for this game. © COANA TOKYO “Ren & Jill”'],
   gameTitle: ['レンとジルのチモシーダッシュ', 'Ren & Jill: Hay Dash'], tagline: ['寝坊した課長と、東京をかけぬけて出社！', 'Two office bunnies, one mad dash across Tokyo'],
   missions: ['ミッション', 'Missions'], shop: ['購買部', 'Shop'], book: ['えさ図鑑', 'Food book'], stamps: ['スタンプ帳', 'Stamps'], how: ['あそびかた', 'How to play'],
   best: ['ベスト', 'Best'], soundOn: ['音：オン', 'Sound: on'], soundOff: ['音：オフ', 'Sound: off'], lang: ['English', '日本語'],
@@ -182,14 +188,18 @@ const STR = {
   chalWin: ['挑戦状クリア！', 'CHALLENGE BEATEN!'], chalWinSub: ['友だちの{0}点をこえた！', 'You beat your friend’s {0}!'],
   chalLeft: ['挑戦状まであと{0}点！ ', '{0} more to beat the challenge! '], chalDone: ['挑戦状クリア！（{0}点をこえた） ', 'Challenge beaten (over {0})! '],
   daily: ['おはよう！ {0}日連続出社ボーナス：チモシー{1}本', 'GOOD MORNING! {0}-day streak bonus: {1} hay'],
-  dayLbl: ['日目', 'DAY'],
+  dayLbl: ['日目', 'DAY'], dayN: ['{0}日目', 'DAY {0}'], comboN: ['{0}コンボ', '{0} COMBO'], hayN: ['チモシー {0}本', 'HAY {0}'], achGot: ['{0}（+{1}）', '{0} (+{1} hay)'], titlesN: ['称号 {0} / {1}', 'TITLES {0} / {1}'],
+  nextStar: ['次の★まで {0}', '{0} to the next ★'], nextPromo: ['次の昇進まで {0}', '{0} to the next promotion'], legendStar: ['伝説の★{0}！（チモシー{1}本＋お守り{2}{3}）', 'Legend ★{0}! (+{1} hay, +{2} charm{3})'],
+  promoted: ['昇進！ {0}に（チモシー{1}本＋お守り）', 'Promoted to {0}! (+{1} hay, +1 charm)'], rankYou: ['あなたは <b>{0}位</b><small>ベスト {1}</small>', "You're <b>#{0}</b><small>best {1}</small>"], untilMD: ['（〜{0}/{1}）', ' (to {0}/{1})'],
+  stampFaq: ['東京の名所を初めて通るとスタンプと記念写真がもらえます。全部で{0}種類。分かれ道でまだ行っていない方を選ぶのがコツです。', "Pass a Tokyo spot for the first time to get its stamp and a photo. There are {0}. At forks, pick the way you haven't been."],
+  climbs: ['高さ{0}→{1}mを登る', 'climbs {0}→{1} m'], sep: ['・', ' · '],
   settings: ['設定', 'Settings'], ctrl: ['操作', 'Controls'], ctrlSwipe: ['スワイプ', 'Swipe'], ctrlTap: ['タップ', 'Tap'],
   ctrlNote: ['タップ：画面の左右をタップでレーン移動、真ん中の上半分でジャンプ、下半分でスライディング。', 'Tap: tap the left or right side to change lanes, the upper middle to jump, the lower middle to slide.'],
   sens: ['スワイプの感度', 'Swipe sensitivity'], sensN: ['ふつう', 'Normal'], sensH: ['敏感', 'High'],
   vib: ['振動', 'Vibration'], calm: ['画面の揺れ・演出をひかえめに', 'Reduce screen shake and flashes'], music: ['音楽', 'Music'], sfx: ['効果音', 'Sound effects'], on: ['オン', 'On'], off: ['オフ', 'Off'],
   resetTut: ['チュートリアルをもう一度', 'Replay the tutorial'], xfer: ['記録のバックアップ（予備）', 'Backup of your progress (spare)'], xferNote: ['ネットにつながらないときなどの予備です。長いコードをメモ帳などに保存しておけば、あとで記録をもどせます。ふだんの引き継ぎは上の「記録の引き継ぎ」が簡単です。（写真アルバムは入りません）', 'A spare for when you are offline: save the long code somewhere and restore it later. For everyday moves, “Move your progress” above is easier. (Photos are not included.)'], xferMake: ['バックアップのコードを作る', 'Make a backup code'], xferCopied: ['コードをコピーしました。メモ帳などに保存しておいてください', 'Code copied. Keep it somewhere safe'], xferPaste: ['ここにバックアップのコードを貼り付け', 'Paste a backup code here'], xferLoad: ['このコードで復元', 'Restore from this code'], xferDone: ['記録をもどしました！', 'Restored!'], xferBad: ['コードが正しくありません。最後まで貼り付けられているか確認してください', 'That code does not look right. Check it was pasted in full'], xferConfirm: ['今の記録はこのコードの記録で上書きされます。もう一度押すと復元します', 'Your current progress will be replaced. Tap again to restore'], resetDone: ['次のスタートでチュートリアルが始まります', 'The tutorial will play on your next run'],
 };
-const t = (k, ...a) => { const s = STR[k] ? STR[k][LANG === 'ja' ? 0 : 1] : k; return s.replace(/\{(\d)\}/g, (_, i) => a[i] ?? ''); };
+const t = (k, ...a) => { const s = STR[k] ? tr(STR[k][0], STR[k][1]) : k; return s.replace(/\{(\d)\}/g, (_, i) => a[i] ?? ''); };
 
 /* ================= world constants ================= */
 const HW = 4.6;               // visual half width of every corridor (sidewalks / furniture live in 2.6..4.6)
@@ -248,27 +258,28 @@ function powDur(k) { return (POW[k].base + (SV.upg[k] || 0) * 1.4) * (hasPerk('j
 
 /* ================= missions ================= */
 const MT = [
-  { id: 'hayRun', scope: 'run', stat: 'hay', f: l => 60 + 40 * l, t: n => ({ ja: `1回のランでチモシーを${n}本集める`, en: `Collect ${n} hay in one run` }) },
-  { id: 'distRun', scope: 'run', stat: 'dist', f: l => 400 + 250 * l, t: n => ({ ja: `1回のランで${n}m走る`, en: `Run ${n} m in one run` }) },
-  { id: 'jumpTot', scope: 'total', stat: 'jumps', f: l => 25 + 10 * l, t: n => ({ ja: `合計${n}回ジャンプする`, en: `Jump ${n} times in total` }) },
-  { id: 'slideTot', scope: 'total', stat: 'slides', f: l => 20 + 8 * l, t: n => ({ ja: `合計${n}回スライディングする`, en: `Slide ${n} times in total` }) },
-  { id: 'treatTot', scope: 'total', stat: 'treats', f: l => 3 + 2 * l, t: n => ({ ja: `おやつ（果物）を合計${n}個食べる`, en: `Eat ${n} fruit treats in total` }) },
-  { id: 'vegRun', scope: 'run', stat: 'veg', f: l => 4 + 2 * l, t: n => ({ ja: `1回のランで野菜を${n}個食べる`, en: `Eat ${n} vegetables in one run` }) },
-  { id: 'powTot', scope: 'total', stat: 'powers', f: l => 3 + 2 * l, t: n => ({ ja: `パワーアップを合計${n}回とる`, en: `Grab ${n} power-ups in total` }) },
-  { id: 'turnRun', scope: 'run', stat: 'turns', f: l => 4 + 2 * l, t: n => ({ ja: `1回のランで曲がり角を${n}回曲がる`, en: `Turn ${n} corners in one run` }) },
-  { id: 'scoreRun', scope: 'run', stat: 'score', f: l => 3000 + 3500 * l, t: n => ({ ja: `1回のランで${fmt(n)}点とる`, en: `Score ${fmt(n)} in one run` }) },
-  { id: 'feverTot', scope: 'total', stat: 'fevers', f: l => 1 + l, t: n => ({ ja: `もぐもぐフィーバーを合計${n}回起こす`, en: `Trigger ${n} fevers in total` }) },
-  { id: 'cleanRun', scope: 'run', stat: 'clean', f: l => 300 + 200 * l, t: n => ({ ja: `ぶつからずに${n}m走る`, en: `Run ${n} m without a bump` }) },
+  { id: 'hayRun', scope: 'run', stat: 'hay', f: l => 60 + 40 * l, t: n => ({ ja: `1回のランでチモシーを${n}本集める`, zh: `一次跑步收集${n}根牧草`, ko: `한 번에 건초 ${n}개 모으기`, en: `Collect ${n} hay in one run` }) },
+  { id: 'distRun', scope: 'run', stat: 'dist', f: l => 400 + 250 * l, t: n => ({ ja: `1回のランで${n}m走る`, zh: `一次跑步跑${n}m`, ko: `한 번에 ${n}m 달리기`, en: `Run ${n} m in one run` }) },
+  { id: 'jumpTot', scope: 'total', stat: 'jumps', f: l => 25 + 10 * l, t: n => ({ ja: `合計${n}回ジャンプする`, zh: `累計跳躍${n}次`, ko: `총 ${n}번 점프하기`, en: `Jump ${n} times in total` }) },
+  { id: 'slideTot', scope: 'total', stat: 'slides', f: l => 20 + 8 * l, t: n => ({ ja: `合計${n}回スライディングする`, zh: `累計滑行${n}次`, ko: `총 ${n}번 슬라이딩하기`, en: `Slide ${n} times in total` }) },
+  { id: 'treatTot', scope: 'total', stat: 'treats', f: l => 3 + 2 * l, t: n => ({ ja: `おやつ（果物）を合計${n}個食べる`, zh: `累計吃${n}個點心（水果）`, ko: `간식(과일) 총 ${n}개 먹기`, en: `Eat ${n} fruit treats in total` }) },
+  { id: 'vegRun', scope: 'run', stat: 'veg', f: l => 4 + 2 * l, t: n => ({ ja: `1回のランで野菜を${n}個食べる`, zh: `一次跑步吃${n}個蔬菜`, ko: `한 번에 채소 ${n}개 먹기`, en: `Eat ${n} vegetables in one run` }) },
+  { id: 'powTot', scope: 'total', stat: 'powers', f: l => 3 + 2 * l, t: n => ({ ja: `パワーアップを合計${n}回とる`, zh: `累計拿到${n}次強化道具`, ko: `파워업 총 ${n}번 얻기`, en: `Grab ${n} power-ups in total` }) },
+  { id: 'turnRun', scope: 'run', stat: 'turns', f: l => 4 + 2 * l, t: n => ({ ja: `1回のランで曲がり角を${n}回曲がる`, zh: `一次跑步轉彎${n}次`, ko: `한 번에 모퉁이 ${n}번 돌기`, en: `Turn ${n} corners in one run` }) },
+  { id: 'scoreRun', scope: 'run', stat: 'score', f: l => 3000 + 3500 * l, t: n => ({ ja: `1回のランで${fmt(n)}点とる`, zh: `一次跑步拿到${fmt(n)}分`, ko: `한 번에 ${fmt(n)}점 얻기`, en: `Score ${fmt(n)} in one run` }) },
+  { id: 'feverTot', scope: 'total', stat: 'fevers', f: l => 1 + l, t: n => ({ ja: `もぐもぐフィーバーを合計${n}回起こす`, zh: `累計觸發${n}次嚼嚼狂熱`, ko: `냠냠 피버 총 ${n}번 일으키기`, en: `Trigger ${n} fevers in total` }) },
+  { id: 'cleanRun', scope: 'run', stat: 'clean', f: l => 300 + 200 * l, t: n => ({ ja: `ぶつからずに${n}m走る`, zh: `不撞到任何東西跑${n}m`, ko: `부딪히지 않고 ${n}m 달리기`, en: `Run ${n} m without a bump` }) },
   { id: 'office', scope: 'run', stat: 'office', f: () => 1, t: () => ({ ja: '9:00までにオフィスに着く', en: 'Get to the office by 9:00' }) },
   { id: 'yamanote', scope: 'run', stat: 'yamanote', f: () => 1, t: () => ({ ja: '山手線に乗る（車内を走りぬける）', en: 'Ride the Yamanote Line' }) },
-  { id: 'lookTot', scope: 'total', stat: 'looks', f: l => 3 + l * 2, t: n => ({ ja: `振り向いた顔を合計${n}回見る`, en: `Earn ${n} look-backs (dodge well and they glance at you)` }) },
-  { id: 'flyTot', scope: 'total', stat: 'flights', f: l => 1 + l, t: n => ({ ja: `紙ひこうきで合計${n}回飛ぶ`, en: `Fly the paper plane ${n} times` }) },
+  { id: 'lookTot', scope: 'total', stat: 'looks', f: l => 3 + l * 2, t: n => ({ ja: `振り向いた顔を合計${n}回見る`, zh: `累計看到${n}次回頭的臉`, ko: `뒤돌아보는 얼굴 총 ${n}번 보기`, en: `Earn ${n} look-backs (dodge well and they glance at you)` }) },
+  { id: 'flyTot', scope: 'total', stat: 'flights', f: l => 1 + l, t: n => ({ ja: `紙ひこうきで合計${n}回飛ぶ`, zh: `累計搭紙飛機飛${n}次`, ko: `종이비행기로 총 ${n}번 날기`, en: `Fly the paper plane ${n} times` }) },
   { id: 'chime', scope: 'run', stat: 'chime', f: () => 1, t: () => ({ ja: '18:00の定時チャイムまで走りきる', en: 'Make it to the 6 PM chime' }), min: 3 },
-  { id: 'stampTot', scope: 'abs', stat: 'stamps', f: l => Math.min(14, 2 + l), t: n => ({ ja: `観光スタンプを${n}個集める`, en: `Collect ${n} Tokyo stamps` }), min: 2 },
-  { id: 'zukanAll', scope: 'abs', stat: 'zukan', f: l => Math.min(21, 6 + l * 2), t: n => ({ ja: `えさ図鑑を${n}種類うめる`, en: `Fill in ${n} food book entries` }) },
+  { id: 'stampTot', scope: 'abs', stat: 'stamps', f: l => Math.min(14, 2 + l), t: n => ({ ja: `観光スタンプを${n}個集める`, zh: `收集${n}個觀光印章`, ko: `관광 스탬프 ${n}개 모으기`, en: `Collect ${n} Tokyo stamps` }), min: 2 },
+  { id: 'zukanAll', scope: 'abs', stat: 'zukan', f: l => Math.min(21, 6 + l * 2), t: n => ({ ja: `えさ図鑑を${n}種類うめる`, zh: `填滿${n}種飼料圖鑑`, ko: `먹이 도감 ${n}종류 채우기`, en: `Fill in ${n} food book entries` }) },
 ];
 
 /* ---- closet items: who, slot, price ---- */
+const SLOT_DEF = { tie: 'gold', frame: 'brown', band: 'red' }; // what each slot goes back to when an item is taken off ('' = nothing)
 const CLOSET = [
   { id: 'tie_red', who: 'ren', slot: 'tie', v: 'red', cost: 800, ja: '赤い水玉ネクタイ', en: 'Red polka-dot tie' },
   { id: 'tie_navy', who: 'ren', slot: 'tie', v: 'navy', cost: 800, ja: 'ネイビーのストライプネクタイ', en: 'Navy striped tie' },
@@ -297,6 +308,30 @@ const CLOSET = [
   { id: 'hat_star_ren', who: 'ren', slot: 'hat', v: 'starband', cost: 0, ev: 'tanabata', ja: '星のはちまき（七夕限定）', en: 'Star headband (Tanabata gift)' },
   { id: 'suit_bee', who: 'ren', slot: 'suit', v: 'bee', cost: 3000, ja: 'ミツバチのコスプレ', en: 'Honeybee costume' },
   { id: 'suit_zebra', who: 'jill', slot: 'suit', v: 'zebra', cost: 3000, ja: 'しまうま模様のコスプレ', en: 'Zebra costume' },
+  // the Legendary bunny's rewards (not for sale: unlocked when you reach the top rank; lg = legend stars needed)
+  { id: 'hat_laurel_ren', who: 'ren', slot: 'hat', v: 'laurel', cost: 0, lg: 0, ja: '伝説の月桂冠', en: 'Legendary laurel' },
+  { id: 'hat_laurel_jill', who: 'jill', slot: 'hat', v: 'laurel', cost: 0, lg: 0, ja: '伝説の月桂冠', en: 'Legendary laurel' },
+  { id: 'hat_laurel_pom', who: 'pom', slot: 'hat', v: 'laurel', cost: 0, lg: 0, ja: '伝説の月桂冠', en: 'Legendary laurel' },
+  { id: 'suit_royal_ren', who: 'ren', slot: 'suit', v: 'royal', cost: 0, lg: 0, ja: '伝説の金の礼服', en: 'Legendary gold coat' },
+  { id: 'suit_royal_jill', who: 'jill', slot: 'suit', v: 'royal', cost: 0, lg: 0, ja: '伝説の金の礼服', en: 'Legendary gold coat' },
+  { id: 'suit_royal_pom', who: 'pom', slot: 'suit', v: 'royal', cost: 0, lg: 0, ja: '伝説の金の礼服', en: 'Legendary gold coat' },
+  // Pom (after you have met him): headband colours, hats in his size, a costume, and his own seasonal gifts
+  { id: 'band_blue', who: 'pom', slot: 'band', v: 'blue', cost: 600, ja: '青いはちまき', en: 'Blue headband' },
+  { id: 'band_green', who: 'pom', slot: 'band', v: 'green', cost: 600, ja: '緑のはちまき', en: 'Green headband' },
+  { id: 'band_pink', who: 'pom', slot: 'band', v: 'pink', cost: 800, ja: 'ピンクのはちまき', en: 'Pink headband' },
+  { id: 'band_gold', who: 'pom', slot: 'band', v: 'gold', cost: 1500, ja: '金のはちまき', en: 'Gold headband' },
+  { id: 'hat_beret_pom', who: 'pom', slot: 'hat', v: 'beret', cost: 1200, ja: '赤いベレー帽', en: 'Red beret' },
+  { id: 'hat_straw_pom', who: 'pom', slot: 'hat', v: 'straw', cost: 1500, ja: '麦わら帽子', en: 'Straw hat' },
+  { id: 'hat_helmet_pom', who: 'pom', slot: 'hat', v: 'helmet', cost: 2000, ja: '現場のヘルメット', en: 'Hard hat' },
+  { id: 'hat_santa_pom', who: 'pom', slot: 'hat', v: 'santa', cost: 2500, ja: 'サンタ帽', en: 'Santa hat' },
+  { id: 'hat_crown_pom', who: 'pom', slot: 'hat', v: 'crown', cost: 6000, ja: '社長の王冠', en: "The president's crown" },
+  { id: 'suit_bee_pom', who: 'pom', slot: 'suit', v: 'bee', cost: 3000, ja: 'ミツバチのコスプレ', en: 'Honeybee costume' },
+  { id: 'hat_antler_pom', who: 'pom', slot: 'hat', v: 'antler', cost: 0, ev: 'xmas', ja: 'トナカイのカチューシャ（クリスマス限定）', en: 'Reindeer antlers (Christmas gift)' },
+  { id: 'hat_kagami_pom', who: 'pom', slot: 'hat', v: 'kagami', cost: 0, ev: 'newyear', ja: '鏡もちの帽子（お正月限定）', en: 'Rice-cake cap (New Year gift)' },
+  { id: 'hat_heart_pom', who: 'pom', slot: 'hat', v: 'heartband', cost: 0, ev: 'valentine', ja: 'ハートのカチューシャ（バレンタイン限定）', en: 'Heart headband (Valentine gift)' },
+  { id: 'hat_sakura_pom', who: 'pom', slot: 'hat', v: 'sakura', cost: 0, ev: 'hanami', ja: '桜の髪かざり（お花見限定）', en: 'Cherry-blossom clip (spring gift)' },
+  { id: 'hat_star_pom', who: 'pom', slot: 'hat', v: 'starband', cost: 0, ev: 'tanabata', ja: '星のはちまき（七夕限定）', en: 'Star headband (Tanabata gift)' },
+  { id: 'hat_pumpkin_pom', who: 'pom', slot: 'hat', v: 'pumpkin', cost: 0, ev: 'halloween', ja: 'かぼちゃの帽子（ハロウィン限定）', en: 'Pumpkin cap (Halloween gift)' },
 ];
 
 /* ---- seasonal events ----
@@ -315,8 +350,10 @@ const EV_KITS = {
 const EV_CAL = [['newyear', '01-01', '01-07'], ['valentine', '02-01', '02-14'], ['hanami', '03-20', '04-10'], ['tanabata', '07-01', '07-07'], ['halloween', '10-15', '10-31'], ['xmas', '12-01', '12-25'], ['newyear', '12-29', '12-31']];
 const EVENT_INFO = (() => {
   const d = new Date(), md = String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'), iso = d.getFullYear() + '-' + md;
-  try { const m = /[#&]ev=([a-z]+)/.exec(location.hash) || /[#&](halloween)\b/.exec(location.hash); if (m && EV_KITS[m[1]]) return { id: m[1] }; } catch (e) { }
-  try { const f = JSON.parse(localStorage.getItem('rjFeed') || 'null'); if (f && Array.isArray(f.events)) { const e = f.events.find(e => e && EV_KITS[e.id] && e.from <= iso && iso <= e.to); if (e) return e; if (f.eventsOnly) return {}; } } catch (e) { }
+  // '#ev=<id>' forces an event only in the test build (screenshots, promo videos). Links from old posts (like '#halloween')
+  // never bring an event back after it has ended: the public game always follows the date (feed → calendar).
+  try { const m = /[#&]ev=([a-z]+)/.exec(location.hash); if (m && EV_KITS[m[1]] && !window.HAYDASH_APP && !(window.claude && window.claude.use)) return { id: m[1] }; } catch (e) { }
+  try { let f = JSON.parse(localStorage.getItem('rjFeed') || 'null'); const inl = window.HAYDASH_EVENTS; if (inl && Array.isArray(inl.events) && !(f && Array.isArray(f.events) && (f.updated || '') > (inl.updated || ''))) f = inl; if (f && Array.isArray(f.events)) { const e = f.events.find(e => e && EV_KITS[e.id] && e.from <= iso && iso <= e.to); if (e) return e; if (f.eventsOnly) return {}; } } catch (e) { }
   const c = EV_CAL.find(([, a, b]) => a <= md && md <= b); return c ? { id: c[0], to: d.getFullYear() + '-' + c[2] } : {};
 })();
 const EVENT = EVENT_INFO.id || '';
@@ -327,7 +364,18 @@ const JA_LBL = { 'LUNCH?': 'お昼休み', 'WHICH WAY?': '分かれ道', 'JUMP':
   'CLOSE!': 'ギリギリ！', '← SWIPE →': '← スワイプ →', '↑ JUMP': '↑ ジャンプ', '↓ SLIDE': '↓ スライディング', 'TURN →': '右へ曲がる →', '← TURN': '← 左へ曲がる', '450 m!': '地上450m！', '150 m DECK!': '地上150m！',
   'GOAL': 'あそびかた', '♥ BUMPS': 'ぶつかったら', 'FEVER': 'もぐもぐフィーバー', 'TAP A FOOD': 'タップすると解説', 'BUNNY FOOD NOTE': 'うさぎごはんメモ', 'NG FOOD': 'あげちゃダメ', 'GO!': 'GO！', 'OOPS.': 'あっ。', 'PAUSE': 'ひと休み' };
 function lab(en) {
-  if (LANG !== 'ja' || !en) return en;
+  if (LANG === 'en' || !en) return en;
+  if (LANG !== 'ja') { // Chinese / Korean: the same patterns as Japanese, or the Japanese label's translation
+    if (JA_LBL[en] != null) return (I18N[LANG] || {})[JA_LBL[en]] ?? en;
+    if (/[^\x00-\x7F]/.test(en)) return en; const zh = LANG === 'zh'; let m;
+    if ((m = /^DAY (\d+)/.exec(en))) return zh ? `第${m[1]}天` : `${m[1]}일째`;
+    if (/^NEXT: /.test(en)) return zh ? '下一站' : '다음 역';
+    if (/^NO /.test(en)) return zh ? '不行！' : '안 돼!';
+    if (/^\d[\d,]* COMBO$/.test(en)) return en.replace(' COMBO', zh ? ' 連擊' : ' 콤보');
+    const ja = labJa(en); return ja ? ((I18N[LANG] || {})[ja] ?? en) : ja; }
+  return labJa(en);
+}
+function labJa(en) {
   if (JA_LBL[en] != null) return JA_LBL[en];
   if (/[^\x00-\x7F]/.test(en)) return en; // already Japanese
   let m;

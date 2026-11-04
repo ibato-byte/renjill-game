@@ -12,12 +12,18 @@ const PAL = {
   pom:  { a: '#F3E3CA', b: '#DCC29E', back: '#EBCDA2', ear: ['#9A8478', '#EBAAA4'], cream: '#FAF1E4' },
 };
 /* ---- the closet: what each bunny is wearing while its sprites are painted ---- */
-const WEAR = { ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' } };
+const WEAR = { ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' }, pom: { band: 'red', hat: '', suit: '' } };
+const BAND_COL = { red: ['#C8263C', 'rgba(255,255,255,.45)'], blue: ['#2F6DB5', 'rgba(255,255,255,.45)'], green: ['#3E9A4E', 'rgba(255,255,255,.45)'], pink: ['#E77FA3', 'rgba(255,255,255,.5)'], gold: ['#D9A21B', 'rgba(255,248,200,.8)'] };
 /* ---- costumes from the shop: a striped onesie over the body, plus a little extra (wings, antennae, mane, tail) ---- */
 function suitOver(g, kind, cx, cy, rx, ry) {
   const ex = rx * .94, ey = ry * .94;
   g.save(); g.beginPath(); g.ellipse(cx, cy, ex, ey, 0, 0, Math.PI * 2); g.clip();
-  if (kind === 'bee') {
+  if (kind === 'royal') { // the Legendary bunny's gold-and-cream ceremonial coat: soft gold cloth, a red sash, small gold buttons
+    const gr = g.createLinearGradient(cx - rx, cy - ry, cx + rx, cy + ry); gr.addColorStop(0, '#F6DC86'); gr.addColorStop(.5, '#E2B341'); gr.addColorStop(1, '#C8902A'); g.fillStyle = gr; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
+    g.strokeStyle = 'rgba(255,248,215,.35)'; g.lineWidth = 2; for (let k = -4; k <= 4; k++) { g.beginPath(); g.moveTo(cx + k * rx * .3 - rx * .3, cy - ry); g.lineTo(cx + k * rx * .3 + rx * .3, cy + ry); g.stroke(); }
+    g.fillStyle = '#C8263C'; g.beginPath(); g.moveTo(cx - rx, cy - ry * .55); g.lineTo(cx - rx * .7, cy - ry * .8); g.lineTo(cx + rx, cy + ry * .55); g.lineTo(cx + rx * .7, cy + ry * .85); g.closePath(); g.fill();
+    g.fillStyle = '#FFF2C2'; for (const k of [-.35, .05, .45]) { g.beginPath(); g.arc(cx - rx * .02, cy + k * ry, rx * .05, 0, Math.PI * 2); g.fill(); }
+  } else if (kind === 'bee') {
     g.fillStyle = '#F4C433'; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
     g.fillStyle = '#2E2622'; const h = ry * .26;
     for (const k of [-1.15, -.45, .25, .95]) { const y = cy + k * ry; g.beginPath(); g.moveTo(cx - rx, y); g.quadraticCurveTo(cx, y + ry * .16, cx + rx, y); g.lineTo(cx + rx, y + h); g.quadraticCurveTo(cx, y + h + ry * .16, cx - rx, y + h); g.closePath(); g.fill(); }
@@ -63,6 +69,17 @@ const TIE_COL = { gold: ['#D6A23C', '#A97A1E', '#E0AE48'], red: ['#C8463C', '#8E
 const FRAME_COL = { brown: '#9C7A52', red: '#C8463C', gold: '#C9962F', navy: '#2F4F7F', pink: '#E86A75' };
 // hats drawn with the origin at the top of the head (y grows down)
 function hat(g, kind, w) {
+  if (kind === 'laurel') { g.save(); g.scale(w, w); // the Legendary bunny's golden laurel: a ring of leaves sitting on the head, the two sprays rising to points at the back, a red gem in front
+    const leaf = (x, y, a, L) => { g.save(); g.translate(x, y); g.rotate(a); const gr = g.createLinearGradient(-L * .4, -L, L * .4, 0); gr.addColorStop(0, '#FFF0A8'); gr.addColorStop(.55, '#F2C230'); gr.addColorStop(1, '#B98A22'); g.fillStyle = gr;
+      g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(L * .42, -L * .5, 0, -L); g.quadraticCurveTo(-L * .42, -L * .5, 0, 0); g.fill(); g.strokeStyle = 'rgba(120,85,20,.6)'; g.lineWidth = 1.2; g.stroke(); g.beginPath(); g.moveTo(0, -1); g.lineTo(0, -L * .8); g.strokeStyle = 'rgba(255,248,210,.6)'; g.stroke(); g.restore(); };
+    // back half of the ring (behind), then the front
+    g.strokeStyle = '#A57C24'; g.lineWidth = 4; g.beginPath(); g.ellipse(0, -6, 40, 12, 0, Math.PI, Math.PI * 2); g.stroke();
+    for (const sd of [-1, 1]) for (let i = 0; i < 7; i++) { const u = i / 6, ang = Math.PI * (1 + u * .5) , x = sd * Math.cos(ang) * -40, y = -6 + Math.sin(ang) * 12 - u * 14;
+      leaf(x, y, sd * (-.4 - u * .9), 16 - u * 3); leaf(x, y + 2, sd * (.5 - u * .6) + Math.PI * .1 * sd, 13 - u * 2); }
+    g.strokeStyle = '#C9962F'; g.lineWidth = 4; g.beginPath(); g.ellipse(0, -6, 40, 12, 0, 0, Math.PI); g.stroke();
+    for (const sd of [-1, 1]) for (let i = 0; i < 4; i++) { const ang = Math.PI * (.5 - sd * (.12 + i * .1)); leaf(Math.cos(ang) * 40, -6 + Math.sin(ang) * 12, sd * (.9 + i * .15), 14); }
+    g.fillStyle = '#C8263C'; g.beginPath(); g.ellipse(0, 6, 6.5, 5.5, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.arc(-2, 4, 1.8, 0, Math.PI * 2); g.fill();
+    g.restore(); return; }
   w = w || 1;
   if (kind === 'mug') { mugHat(g, 0); return; }
   if (kind === 'beret') { g.save(); g.scale(w, w); g.fillStyle = '#C8463C'; g.beginPath(); g.ellipse(4, -8, 46, 18, -.12, 0, Math.PI * 2); g.fill(); g.fillStyle = '#A8352C'; g.beginPath(); g.ellipse(0, 2, 40, 9, 0, 0, Math.PI); g.fill(); g.fillStyle = '#7A241E'; g.fillRect(4, -30, 4, 8); g.restore(); return; }
@@ -293,9 +310,9 @@ function faceJill(g, cx, cy, sc, mood) {
 function pomEar(g, x, y, r, rot, back) { g.save(); g.translate(x, y); g.rotate(rot); g.beginPath(); g.ellipse(0, 0, r, r * 1.05, 0, 0, Math.PI * 2); g.fillStyle = '#8E786C'; g.fill(); g.beginPath(); g.ellipse(0, r * .12, r * .72, r * .78, 0, 0, Math.PI * 2); g.fillStyle = back ? '#A8928A' : '#E9A9A2'; g.fill();
   g.strokeStyle = 'rgba(70,55,50,.55)'; g.lineWidth = 1.5; g.beginPath(); g.arc(0, 0, r * .98, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); g.restore(); }
 function headband(g, x, y, w, back, ph) { // Pom's red sweatband; from behind the knot and its two tails flutter
-  g.save(); g.strokeStyle = '#C8263C'; g.lineWidth = 9; g.lineCap = 'round'; g.beginPath(); g.moveTo(x - w, y + 4); g.quadraticCurveTo(x, y - 7, x + w, y + 4); g.stroke();
-  g.strokeStyle = 'rgba(255,255,255,.45)'; g.lineWidth = 2; g.beginPath(); g.moveTo(x - w * .8, y + 1); g.quadraticCurveTo(x, y - 8, x + w * .8, y + 1); g.stroke();
-  if (back) { const t = ph || 0; g.fillStyle = '#C8263C'; g.beginPath(); g.ellipse(x + 6, y - 1, 7, 6, 0, 0, Math.PI * 2); g.fill();
+  const bc = BAND_COL[WEAR.pom.band] || BAND_COL.red; g.save(); g.strokeStyle = bc[0]; g.lineWidth = 9; g.lineCap = 'round'; g.beginPath(); g.moveTo(x - w, y + 4); g.quadraticCurveTo(x, y - 7, x + w, y + 4); g.stroke();
+  g.strokeStyle = bc[1]; g.lineWidth = 2; g.beginPath(); g.moveTo(x - w * .8, y + 1); g.quadraticCurveTo(x, y - 8, x + w * .8, y + 1); g.stroke();
+  if (back) { const t = ph || 0; g.fillStyle = bc[0]; g.beginPath(); g.ellipse(x + 6, y - 1, 7, 6, 0, 0, Math.PI * 2); g.fill();
     for (const k of [0, 1]) { g.beginPath(); g.moveTo(x + 8, y); const ex = x + 40 + k * 6, ey = y + 8 + k * 14 + Math.sin(t * 2 + k) * 5; g.quadraticCurveTo(x + 24, y - 4 + k * 8 + Math.sin(t * 2 + k + 1) * 4, ex, ey); g.lineTo(ex - 2, ey + 7); g.quadraticCurveTo(x + 22, y + 4 + k * 8, x + 8, y + 6); g.closePath(); g.fill(); } }
   g.restore();
 }
@@ -312,6 +329,7 @@ function facePom(g, cx, cy, sc, mood) {
   mouth(g, 0, 21, 6, mood === 'sick' ? 'wavy' : mood === 'worry' ? 'o' : mood === 'sparkle' || mood === 'cheer' ? 1 : mood === 'yawn' ? 'o' : mood === 'open' || mood === 'blink' ? 'w' : 'smile');
   whiskers(g, 0, 16, 14, 46);
   headband(g, 0, -34, 52, 0);
+  if (WEAR.pom.hat) { g.save(); g.translate(0, -50); hat(g, WEAR.pom.hat, .95); g.restore(); } else if (WEAR.pom.suit === 'bee') antennae(g, 0, -52, .9);
   moodFx(g, mood, -40, 54);
   g.restore();
 }
@@ -320,7 +338,7 @@ function drawPom(g, p) {
   const by = GROUND_Y - 70 * sy - p.lift, brx = 84 * sx, bry = 72 * sy;
   if (p.view === 'front') {
     fur(g, 150, by + 6, brx, bry, 0, P.a, P.b);
-    fur(g, 150, by + 22, brx * .6, bry * .62, 0, P.cream, '#E7D9C4', { sparse: 1, rim: 3 });
+    if (WEAR.pom.suit) suitOver(g, WEAR.pom.suit, 150, by + 6, brx, bry); else fur(g, 150, by + 22, brx * .6, bry * .62, 0, P.cream, '#E7D9C4', { sparse: 1, rim: 3 });
     for (const sd of [-1, 1]) { blob(g, 150 + sd * 22, by + 26, 10, 8, 0, '#F2B8B0'); blob(g, 150 + sd * 36, GROUND_Y - 6, 15, 8, 0, '#F2B8B0'); } // little pink hands and feet
     // a green "new hire" leaf badge
     g.save(); g.translate(150, by + 46); g.beginPath(); g.moveTo(0, 12); g.lineTo(-9, 0); g.lineTo(-9, -10); g.lineTo(0, -4); g.closePath(); g.fillStyle = '#F2C230'; g.fill(); g.beginPath(); g.moveTo(0, 12); g.lineTo(9, 0); g.lineTo(9, -10); g.lineTo(0, -4); g.closePath(); g.fillStyle = '#3FA34D'; g.fill(); g.restore();
@@ -329,13 +347,16 @@ function drawPom(g, p) {
   // back / look: one round pear-shaped body (hamsters have no neck), pink soles, a stub of a tail
   const fy = GROUND_Y - 6 - Math.max(0, p.feet) * 7, fo = Math.max(0, -p.feet) * 8;
   for (const sd of [-1, 1]) { blob(g, 150 + sd * brx * .5, fy + fo * .3, 17, 9 + fo * .3, 0, '#F2B8B0'); blob(g, 150 + sd * brx * .5, fy + fo * .3 + 1, 9, 4, 0, 'rgba(200,120,120,.45)'); }
+  if (WEAR.pom.suit === 'bee') beeWings(g, 150, by - bry * .2, 1, Math.sin((p.tiePh || 0) * 3) * .15);
   fur(g, 150, by, brx, bry, 0, P.a, P.b);
+  if (WEAR.pom.suit) suitOver(g, WEAR.pom.suit, 150, by, brx, bry);
   { const gl = g.createRadialGradient(150, by - bry * .4, 6, 150, by - bry * .3, brx); gl.addColorStop(0, 'rgba(222,182,128,.55)'); gl.addColorStop(1, 'rgba(222,182,128,0)'); g.fillStyle = gl; g.beginPath(); g.ellipse(150, by - bry * .25, brx * .9, bry * .8, 0, 0, Math.PI * 2); g.fill(); } // warmer back
   blob(g, 150, by + bry * .62, 7, 5, 0, '#E8CFA8');
   const hy = by - bry * .55 + (p.slide ? 14 : 0);
   if (p.view === 'look') { facePom(g, 156, hy - 24, .98, p.mood); if (p.mood === 'cheer') { fur(g, 150 + 56, hy + 10, 9, 16, -.6, P.a, P.b); blob(g, 150 + 64, hy - 6, 10, 8, -.3, '#F2B8B0'); } return; }
   pomEar(g, 150 - 40, hy - 26, 16 + p.ear * 2, -.3 - p.ear * .3, 1); pomEar(g, 150 + 40, hy - 26, 16 + p.ear * 2, .3 + p.ear * .3, 1);
   headband(g, 150, hy - 4, 58, 1, p.tiePh);
+  if (WEAR.pom.hat) { g.save(); g.translate(150, hy - 22); hat(g, WEAR.pom.hat, 1.0); g.restore(); } else if (WEAR.pom.suit === 'bee') antennae(g, 150, hy - 24, 1);
 }
 function mugHat(g, y) { g.save(); g.translate(0, y); rr(g, -22, -38, 44, 38, 6, '#FBF6EE', '#9AA9B6', 3); g.beginPath(); g.ellipse(27, -19, 9, 12, 0, 0, Math.PI * 2); g.strokeStyle = '#9AA9B6'; g.lineWidth = 5; g.stroke(); rr(g, -22, -30, 44, 7, 0, '#4E77A0'); g.restore(); }
 
