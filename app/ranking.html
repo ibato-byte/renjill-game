@@ -14,15 +14,16 @@ header{text-align:center;padding:14px 0 6px}header small{letter-spacing:.2em;col
 .rk{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid #F1E8DA}.rk:first-child{border-top:0}
 .rk b{font-size:18px;text-align:center}.rk span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}.rk span i{font-style:normal;font-size:11px;color:var(--soft);font-weight:700;margin-left:6px}.rk em{font-style:normal;font-weight:900;font-variant-numeric:tabular-nums}
 .rk.t1 b{color:#C9962F}.rk.t2 b{color:#8E9AA6}.rk.t3 b{color:#B0764A}.rk.me{background:#FFF3D6}
-.note{font-size:12px;color:var(--soft);line-height:1.6;text-align:center}.play{display:block;margin:18px auto 0;max-width:320px;text-align:center;text-decoration:none;background:var(--ink);color:#fff;font-weight:900;font-size:18px;padding:14px;border-radius:14px}
+.fol a{color:inherit;font-weight:800}.note{font-size:12px;color:var(--soft);line-height:1.6;text-align:center}.play{display:block;margin:18px auto 0;max-width:320px;text-align:center;text-decoration:none;background:var(--ink);color:#fff;font-weight:900;font-size:18px;padding:14px;border-radius:14px}
 .stat{text-align:center;font-weight:800;color:var(--soft);font-size:13px;margin:6px 0}
 </style></head><body><main>
 <header><small>REN &amp; JILL ・ HAY DASH</small><h1 id="h">みんなのランキング</h1></header>
 <div class="tabs"><button id="tM" class="on"></button><button id="tA"></button></div>
 <p class="stat" id="stat"></p>
 <div class="list" id="list"><p class="note" style="padding:20px">…</p></div>
-<a class="play" id="play" href="./">遊んでランキングにのる ▶</a>
+<a class="play" id="play" href="./?ref=rank">遊んでランキングにのる ▶</a>
 <p class="note" id="foot"></p>
+<p class="note fol" id="fol"><b id="folH">レンとジルをフォロー</b><br><a href="https://www.instagram.com/renjill_office/" target="_blank" rel="noopener">Instagram</a> · <a href="https://www.tiktok.com/@renjill_office" target="_blank" rel="noopener">TikTok</a> · <a href="https://www.youtube.com/@renjill_office" target="_blank" rel="noopener">YouTube</a> · <a href="https://www.threads.net/@renjill_office" target="_blank" rel="noopener">Threads</a> · <a href="https://www.facebook.com/1358515160686321" target="_blank" rel="noopener">Facebook</a> · <a id="folSite" href="https://renjill.coana.co.jp/?ref=haydash" target="_blank" rel="noopener">公式サイト</a></p>
 </main>
 <script src="config.js"></script>
 <script>
@@ -38,7 +39,7 @@ const monthLbl = L(`${j9.getUTCFullYear()}年${j9.getUTCMonth() + 1}月`, new Da
 const fmt = n => Math.floor(n).toLocaleString(JA ? 'ja-JP' : 'en-US');
 document.getElementById('h').textContent = L('みんなのランキング', 'Leaderboard');
 document.getElementById('tM').textContent = monthLbl; document.getElementById('tA').textContent = L('歴代', 'All time');
-document.getElementById('play').textContent = L('遊んでランキングにのる ▶', 'Play free and get on the board ▶');
+document.getElementById('play').textContent = L('遊んでランキングにのる ▶', 'Play free and get on the board ▶'); document.getElementById('folH').textContent = L('レンとジルをフォロー', 'Follow Ren & Jill'); document.getElementById('folSite').textContent = L('公式サイト', 'Official site');
 document.getElementById('foot').textContent = L('アプリ版（このサイト）で遊んだ記録がのります。月間ランキングは毎月1日（日本時間）に新しくなります。名前を決めていない人は「うさぎ#番号」で表示されます。', 'Scores from the web/app version appear here. The monthly board starts fresh on the 1st (Japan time). Players without a name show as "Bunny#number".');
 const cfg = (window.HAYDASH_CONFIG || {}).firebase || {};
 let me = ''; try { const a = JSON.parse(localStorage.getItem('hd_fsauth') || 'null'); me = (a && a.u) || ''; } catch (e) { }
