@@ -1,34 +1,35 @@
 {
- "updated": "2026-11-02T20:39:45+09:00",
- "latest": {
-  "date": "2026-11-02",
-  "ja": "99%で止まる更新",
-  "en": "Stuck at 99%. We waited. Everyone fell asleep.",
-  "url": "https://www.youtube.com/shorts/QB6yeURg6sk"
- },
- "codes": [
-  {
-   "h": "2fc9efec05b27ca72bde7a842c0cca7e707fd37f1a74ea50940150f6fcf05991",
-   "hay": 500,
-   "until": "2026-11-01",
-   "note": "10/26 ハロウィン告知の投稿で発表"
+  "updated": "2026-11-04T12:00:00+09:00",
+  "latest": {
+    "date": "2026-11-02",
+    "ja": "99%で止まる更新",
+    "en": "Stuck at 99%. We waited. Everyone fell asleep.",
+    "url": "https://www.youtube.com/shorts/QB6yeURg6sk"
+  },
+  "codes": [
+    {
+      "h": "2fc9efec05b27ca72bde7a842c0cca7e707fd37f1a74ea50940150f6fcf05991",
+      "hay": 500,
+      "until": "2026-11-01",
+      "note": "10/26 ハロウィン告知の投稿で発表"
+    }
+  ],
+  "events": [
+    {
+      "id": "xmas",
+      "from": "2026-11-01",
+      "to": "2026-12-25",
+      "note": "オーナーの決定（11/4）：11月は行事がないので、11/1 からクリスマス（冬のイルミネーション）にする。開始日を遅らせないこと。",
+      "gift": {
+        "ja": "街がイルミネーションの季節に。ツリーの飾りと、冬の帽子をプレゼント！",
+        "en": "The city is lighting up for winter. A tree and a festive hat are waiting for you!"
+      }
+    }
+  ],
+  "news": {
+    "ja": "冬のイルミネーション企画、開催中！（〜12/25）",
+    "en": "Winter lights event is on now! (until Dec 25)",
+    "zh": "冬季燈飾活動進行中！（至12/25）",
+    "ko": "겨울 일루미네이션 이벤트 진행 중! (~12/25)"
   }
- ],
- "events": [
-  {
-   "id": "xmas",
-   "from": "2026-11-20",
-   "to": "2026-12-25",
-   "gift": {
-    "ja": "街がイルミネーションの季節に。ツリーの飾りと、冬の帽子をプレゼント！",
-    "en": "The city is lighting up for winter. A tree and a festive hat are waiting for you!"
-   }
-  }
- ],
- "news": {
-  "ja": "11/20から冬のイルミネーション企画がスタート！",
-  "en": "Winter lights event starts Nov 20!",
-  "zh": "11/20 冬季燈飾活動開跑!",
-  "ko": "11/20부터 겨울 일루미네이션 이벤트 시작!"
- }
 }
