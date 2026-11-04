@@ -1,7 +1,7 @@
 <div id="app">
   <canvas id="cv" aria-label="レンとジルのチモシーダッシュ"></canvas>
   <div id="bootMsg" aria-live="polite"></div>
-  <script>(function(){var h=document.documentElement;h.classList.add('booting');setTimeout(function(){h.classList.remove('booting')},8000);try{var s=JSON.parse(localStorage.getItem('renjill-hay-dash-v1')||'{}'),q=(/[?&]lang=(ja|en)\b/.exec(location.search)||[])[1],l=q||s.lang||((navigator.language||'ja').toLowerCase().indexOf('ja')===0?'ja':'en');h.lang=l;document.getElementById('bootMsg').textContent=l==='ja'?'読み込み中…':'Loading...'}catch(e){}})();</script>
+  <script>(function(){var h=document.documentElement;h.classList.add('booting');setTimeout(function(){h.classList.remove('booting')},8000);try{var s=JSON.parse(localStorage.getItem('renjill-hay-dash-v1')||'{}'),n=(navigator.language||'ja').toLowerCase(),q=(/[?&]lang=(ja|en|zh|ko)\b/.exec(location.search)||[])[1],l=q||s.lang||(n.indexOf('ja')===0?'ja':n.indexOf('zh')===0?'zh':n.indexOf('ko')===0?'ko':'en');h.lang=l==='zh'?'zh-Hant':l;document.getElementById('bootMsg').textContent={ja:'読み込み中…',zh:'載入中…',ko:'불러오는 중…'}[l]||'Loading...'}catch(e){}})();</script>
 
   <div id="hud" hidden>
     <div id="feverGlow"></div>
@@ -50,7 +50,8 @@
       <div class="bank"><span><span id="tBestL"></span> <b id="tBest">0</b></span><span><img id="tHayIco" alt=""> <b id="tBank">0</b></span>
         <span class="tog"><button class="sub small" id="btnLang">English</button><button class="sub small" id="btnMute">音：ON</button><button class="sub small" id="btnSet" aria-label="Settings">⚙</button></span></div>
     </div>
-    <p class="small-print"><a id="tGuide" href="https://hay-dash.coana.co.jp/guide" target="_blank" rel="noopener">遊び方・キャラクター紹介</a> · <a id="tSite" href="https://renjill.coana.co.jp/" target="_blank" rel="noopener">REN &amp; JILL 公式サイト</a> · <span class="nw">COANA TOKYO</span></p>
+    <p class="small-print"><a id="tGuide" href="https://hay-dash.coana.co.jp/guide" target="_blank" rel="noopener">遊び方・キャラクター紹介</a> · <a id="tSite" href="https://renjill.coana.co.jp/?ref=haydash" target="_blank" rel="noopener">REN &amp; JILL 公式サイト</a> · <span class="nw">COANA TOKYO</span></p>
+    <p class="small-print fol" id="tFollow"></p>
   </section>
 
   <section id="sChat" class="screen center" hidden aria-modal="true" role="dialog" aria-labelledby="chatTitle">
@@ -99,11 +100,12 @@
       <button class="big" id="btnAgain">ONE MORE RUN</button>
       <div class="sharebar"><b id="tShareBar"></b>
         <div class="shbtns">
-          <a id="shX" target="_blank" rel="noopener" aria-label="X"><i>𝕏</i>X</a><a id="shLine" target="_blank" rel="noopener"><i>L</i>LINE</a><a id="shFb" target="_blank" rel="noopener"><i>f</i>Facebook</a><a id="shIg" href="https://www.instagram.com/" target="_blank" rel="noopener"><i>◎</i>Instagram</a><button id="btnShare" type="button"><i>🔗</i><span id="tCopy"></span></button>
+          <a id="shX" target="_blank" rel="noopener"><i aria-hidden="true">𝕏</i>X</a><a id="shLine" target="_blank" rel="noopener"><i aria-hidden="true">L</i>LINE</a><a id="shTh" target="_blank" rel="noopener"><i aria-hidden="true">@</i>Threads</a><a id="shFb" target="_blank" rel="noopener"><i aria-hidden="true">f</i>Facebook</a><a id="shIg" href="https://www.instagram.com/" target="_blank" rel="noopener"><i aria-hidden="true">◎</i>Instagram</a><button id="btnShare" type="button"><i aria-hidden="true">🔗</i><span id="tCopy"></span></button>
         </div>
         <p class="note" id="igNote" aria-live="polite"></p>
       </div>
       <div id="resCareer"></div><div class="rank-box" id="resRank"><div class="rk-top"><b class="rk-h"></b><p class="rk-me"></p></div><div class="rk-list"></div><div class="rk-foot"><button class="linkbtn" id="resNameToggle" type="button"></button><button class="sub small" id="btnRank2"></button></div><div class="rk-name namebox" hidden><label for="resNameIn"></label><div class="btns"><input id="resNameIn" maxlength="12" autocomplete="off" enterkeyhint="done"><button class="sub" id="resNameOk"></button></div></div></div>
+      <div class="follow" id="resFollow"></div>
       <details class="more" id="resMore">
         <summary id="tResMore"></summary>
         <div class="spots" id="resSpots"></div>

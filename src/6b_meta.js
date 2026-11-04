@@ -40,12 +40,12 @@ function achHTML() {
 /* ---- today's challenge: the same for everyone on the same date ---- */
 const DAILY = [
   { k: 'stamp', n: () => 1, t: n => ({ ja: '観光スタンプを1つとる', en: 'Grab a Tokyo stamp' }), v: s => s.stampsGot || 0 },
-  { k: 'hay', n: () => 250, t: n => ({ ja: `1回のランでチモシーを${n}本`, en: `Collect ${n} hay in one run` }), v: s => s.hay },
-  { k: 'combo', n: () => 60, t: n => ({ ja: `${n}コンボを決める`, en: `Get a ${n} combo` }), v: s => s.maxCombo || 0 },
-  { k: 'treat', n: () => 6, t: n => ({ ja: `果物のおやつを${n}個`, en: `Eat ${n} fruit treats` }), v: s => s.treats },
-  { k: 'fly', n: () => 2, t: n => ({ ja: `紙ひこうきに${n}回乗る`, en: `Fly the paper plane ${n} times` }), v: s => s.flights },
+  { k: 'hay', n: () => 250, t: n => ({ ja: `1回のランでチモシーを${n}本`, en: `Collect ${n} hay in one run`, zh: `一次跑步收集${n}根牧草`, ko: `한 번에 건초 ${n}개 모으기` }), v: s => s.hay },
+  { k: 'combo', n: () => 60, t: n => ({ ja: `${n}コンボを決める`, en: `Get a ${n} combo`, zh: `達成${n}連擊`, ko: `${n}콤보 달성하기` }), v: s => s.maxCombo || 0 },
+  { k: 'treat', n: () => 6, t: n => ({ ja: `果物のおやつを${n}個`, en: `Eat ${n} fruit treats`, zh: `吃${n}個水果點心`, ko: `과일 간식 ${n}개 먹기` }), v: s => s.treats },
+  { k: 'fly', n: () => 2, t: n => ({ ja: `紙ひこうきに${n}回乗る`, en: `Fly the paper plane ${n} times`, zh: `搭乘紙飛機${n}次`, ko: `종이비행기 ${n}번 타기` }), v: s => s.flights },
   { k: 'lunch', n: () => 1, t: () => ({ ja: 'お昼休みまで走る', en: 'Make it to the lunch break' }), v: s => s.lunch ? 1 : 0 },
-  { k: 'look', n: () => 6, t: n => ({ ja: `振り向いた顔を${n}回見る`, en: `See ${n} look-backs` }), v: s => s.looks },
+  { k: 'look', n: () => 6, t: n => ({ ja: `振り向いた顔を${n}回見る`, en: `See ${n} look-backs`, zh: `看到${n}次回頭的臉`, ko: `뒤돌아보는 얼굴 ${n}번 보기` }), v: s => s.looks },
 ];
 function dailyToday() { const d = new Date(); const seed = d.getFullYear() * 400 + d.getMonth() * 32 + d.getDate(); const c = DAILY[seed % DAILY.length]; return { c, n: c.n(), key: todayStr() }; }
 function dailyCheck(live) {

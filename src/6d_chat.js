@@ -66,6 +66,7 @@ function chatLore() {
     '- Ren: the section chief (課長), a Holland Lop with big floppy ears, a gold tie that flutters when he runs, loves timothy hay, oversleeps a lot, takes paperwork home (the pile of papers chasing you is his). Lovable, a little sloppy, means well. Can wear the boss\'s mug on his head.',
     '- Jill: his assistant (部下), a Netherland Dwarf with upright ears, round glasses and an ID badge on a blue lanyard; organized, polite, a bit teasing about the boss, comes to pick him up every morning.',
     '- Setting: a gentle office comedy; the two run across Tokyo from morning commute to the last train, collecting hay.',
+    '- The anime: Ren & Jill is also a short anime series posted on YouTube, TikTok, Instagram, Threads and Facebook, all under @renjill_office (the newest episode is linked on the title and result screens; secret words for the Settings are announced in those posts). Mention the handle, not web addresses.',
     ...(SV.pomMet ? ['- Pom: the sporty new hire (体育会系の新入社員), a golden (kinkuma) Syrian hamster: pale cream fur, round grey-brown ears, pink paws, a red sweatband and a green new-hire leaf badge. Says 押忍 and ends sentences with っす. Joins when you pick up sunflower seeds (about 2 minutes into a run, around 2,500 m, or from day 2); runs beside you, flips on every jump and rolls under things, makes your score ×1.2, stuffs passing hay into its cheek pouches and shares a bonus when they are full, cheers on fevers and worries when a bunny eats something bad. Sunflower seeds are too fatty for rabbits, so only Pom eats them.']
       : ['- SECRET: there is a hidden third character the player has not met yet. Do not name it or describe it. If asked about secrets or new characters, only hint playfully that there is a rumour of a mysterious new hire somewhere in Tokyo once the run is well under way (day 2 or so), and that something small may dash across the road first.']),
   ].join('\n');
@@ -124,7 +125,8 @@ const CHAT_FAQ = [
   { k: ['フィーバー', 'fever', 'ゲージ', 'meter', '狂熱', '量表', '피버', '게이지'], a: () => t('howFever') },
   { k: ['ぶつか', 'ハート', 'ライフ', 'bump', 'heart', 'life', 'lives', '死', '撞', '愛心', '生命', '부딪', '하트', '목숨'], a: () => t('howBump') },
   { k: ['目的', 'ゴール', 'goal', 'how to play', 'あそびかた', '遊び方', '玩法', '怎麼玩', '目標', '플레이 방법', '어떻게', '목표'], a: () => t('howGoal') },
-  { k: ['ランキング', 'rank', '順位', '排行', '名次', '랭킹', '순위'], a: () => tr('月間ランキングは毎月1日（日本時間）に新しくなります。共有ページでサインインして遊ぶと記録されます。名前はタイトルの「名前を決める」から変えられます（本名はNGです）。', 'The monthly board resets on the 1st (Japan time). Play on the shared page while signed in to be listed. Change your name from the title screen (no real names, please).') },
+  { k: ['ランキング', 'rank', '順位', '排行', '名次', '랭킹', '순위'], a: () => window.HAYDASH_APP ? tr('月間ランキングは毎月1日（日本時間）に新しくなります。遊ぶだけで記録がのります（登録はいりません）。名前はタイトルの「名前を決める」から変えられます（本名はNGです）。', 'The monthly board resets on the 1st (Japan time). Just play and your best run is listed, no sign-up needed. Change your name from the title screen (no real names, please).') : tr('月間ランキングは毎月1日（日本時間）に新しくなります。共有ページでサインインして遊ぶと記録されます。名前はタイトルの「名前を決める」から変えられます（本名はNGです）。', 'The monthly board resets on the 1st (Japan time). Play on the shared page while signed in to be listed. Change your name from the title screen (no real names, please).') },
+  { k: ['アニメ', 'sns', 'フォロー', 'インスタ', 'youtube', 'tiktok', 'instagram', 'threads', 'facebook', 'follow', 'anime', 'video', '動画', '新作', '動畫', '追蹤', '影片', '애니', '팔로우', '영상'], a: () => t('snsFaq') },
   { k: ['スタンプ', 'stamp', '写真', 'photo', '印章', '照片', '스탬프', '사진'], a: () => t('stampFaq', STAMP_ORDER.length) },
   { k: ['桜', 'さくら', 'sakura', 'cherry', '千鳥', '櫻', '벚꽃'], a: () => tr('千鳥ヶ淵の桜は春（1日目・5日目…）だけ。春のお昼休みの分かれ道に必ず出てきます。', 'The Chidorigafuchi cherry blossoms appear only in spring (day 1, day 5, ...), always at the lunch fork.') },
   { k: ['ショップ', '購買', 'shop', 'クローゼット', 'closet', '服', '帽子', 'ネクタイ', 'hat', 'tie', '福利社', '商店', '衣服', '領帶', '매점', '상점', '옷', '모자', '넥타이'], a: () => tr('購買部ではパワーアップの時間延長、お守り、課長のマグカップ、クローゼット（ネクタイ・メガネ・帽子）が買えます。見た目アイテムは走る姿と結果カードにも反映されます。', 'The shop has power-up upgrades, lucky charms, the boss\'s mug and the closet (ties, glasses, hats). Looks show while running and on the share card.') },
@@ -140,7 +142,7 @@ function chatOffline(q) {
   return hit ? hit.a() : (tr('ごめんなさい、その質問はここでは答えられません。「あそびかた」の画面も見てみてくださいね。', "Sorry, I can't answer that here. Have a look at How to play."));
 }
 /* ---- UI ---- */
-const CHAT_SUGGEST = { ja: ['フィーバーのコツは？', 'ハートが減ったらどうなる？', '桜のステージはどこ？', 'スコアを伸ばすには？', 'まだ取っていないスタンプは？'], en: ['Any fever tips?', 'What happens when I lose a heart?', 'Where are the cherry blossoms?', 'How do I score more?', 'Which stamps am I missing?'] };
+const CHAT_SUGGEST = { ja: ['フィーバーのコツは？', 'ハートが減ったらどうなる？', '桜のステージはどこ？', 'スコアを伸ばすには？', 'まだ取っていないスタンプは？', 'アニメはどこで見られる？'], en: ['Any fever tips?', 'What happens when I lose a heart?', 'Where are the cherry blossoms?', 'How do I score more?', 'Which stamps am I missing?', 'Where can I watch the anime?'] };
 function chatOpen() {
   SFX.ui(); const box = $('#sChat'); box.hidden = false;
   $('#chatTitle').textContent = tr('ジルに聞く', 'Ask Jill');

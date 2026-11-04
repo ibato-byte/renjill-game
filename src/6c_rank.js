@@ -34,6 +34,7 @@ async function rankSubmit(score, info) {
   { const li = legendInfo(), lg = li ? li.stars + 1 : 0; if ((cur.lg | 0) !== lg) { cur.lg = lg; changed = true; } } // legend stars + 1 (0 = not legendary): a star and a gold ring on the board
   for (const [f, who] of [['wr', 'ren'], ['wj', 'jill'], ['wp', 'pom']]) { const w = wearCode(who); if (cur[f] !== w) { cur[f] = w; changed = true; } } // the outfit each bunny wears now: the board draws this player's own bunny
   { const j = new Date(Date.now() + 9 * 3600e3), day = +j.toISOString().slice(0, 10).replace(/-/g, ''); if (cur.last !== day) { cur.last = day; changed = true; } cur.runs = Math.min(1e6, (cur.runs | 0) + 1); changed = true; } // when this player last played (Japan date) and how many runs: the automation reads daily/weekly active players from these
+  if (SV.ref && !cur.src && REF_OK.includes(SV.ref)) { cur.src = SV.ref; changed = true; } // which shared link brought this player here (one word, e.g. "x"), for counting
   if (changed) { try { await ref.set(cur); } catch (e) { return { err: 1, best: cur[mk] } } }
   return { best: cur[mk] };
 }

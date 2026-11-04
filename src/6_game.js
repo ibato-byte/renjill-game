@@ -702,10 +702,11 @@ function endRun() {
     const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); if (k < 1) { if (Math.random() < .5) tone(600 + 600 * e, .03, 'square', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); SFX.mission(); } }; requestAnimationFrame(tick); }
   { const hi = []; if ((st.maxCombo || 0) >= 20) hi.push(t('hiCombo', st.maxCombo)); if ((st.nice || 0) >= 3) hi.push(t('hiNice', st.nice)); if ((st.fevers || 0) >= 2) hi.push(t('hiFever', st.fevers)); if ((st.looks || 0) >= 3) hi.push(t('hiLook', st.looks));
     $('#resHi').innerHTML = st.stampsNew.map(tid => `<span class="new">${esc(t('hiNew', L(THEMES[tid].stamp)))}</span>`).join('') + hi.map(x => `<span>${esc(x)}</span>`).join(''); }
-  SV.last = { score: Math.floor(G.score), place: { ja: curSeg().th.ja, en: curSeg().th.en } }; // the place in every language (shown in whatever language the title is in later) save(); $('#resClock').textContent = (G.day > 1 ? t('dayN', G.day) + ' ' : '') + clockStr(G.clock); $('#resHay').textContent = fmt(gained);
+  SV.last = { score: Math.floor(G.score), place: { ja: curSeg().th.ja, en: curSeg().th.en } }; // the place in every language (shown in whatever language the title is in later)
+  save(); $('#resClock').textContent = (G.day > 1 ? t('dayN', G.day) + ' ' : '') + clockStr(G.clock); $('#resHay').textContent = fmt(gained);
   const vsBest = prevBest > 0 ? (newBest ? t('bestUp', fmt(Math.floor(G.score) - prevBest)) : t('bestShort', fmt(prevBest - Math.floor(G.score)))) : '';
   $('#resNote').textContent = (CHAL ? (G.chalWon ? t('chalDone', fmt(CHAL.s)) : t('chalLeft', fmt(Math.ceil(CHAL.s - G.score) + 1))) : '') + (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '');
-  $('#resSpots').innerHTML = st.spots.length ? st.spots.map(tid => `<span class="spot${st.stampsNew.includes(tid) ? ' new' : ''}"><img src="${stampSprite(tid).toDataURL()}" alt="">${esc(L(THEMES[tid].stamp))}</span>`).join('') : '';
+  $('#resSpots').innerHTML = st.spots.length ? st.spots.map(tid => `<span class="spot${st.stampsNew.includes(tid) ? ' new' : ''}"><img src="${stampURL(tid)}" alt="">${esc(L(THEMES[tid].stamp))}</span>`).join('') : '';
   $('#resMissions').innerHTML = missionHTML();
   const seen = st.bads.length ? st.bads[st.bads.length - 1] : pick(Object.keys(st.foods).length ? Object.keys(st.foods) : ['hay']);
   const d = ITEMS[seen]; $('#resTip').innerHTML = `<b>${d.kind === 'bad' ? (LANG === 'en' ? "DON'T FEED" : lab('NG FOOD')) : lab('BUNNY FOOD NOTE')}${tr('｜', ' · ')}${esc(L(d))}</b>${esc(L(d.tip).split('\n')[0])}`;
@@ -714,6 +715,7 @@ function endRun() {
   buildShareCard(cap, place, gained);
   const kb = $('#kujiBox'); kb.hidden = G.dist < 300; $('#kujiRes').innerHTML = ''; $('#btnKuji').disabled = false; $('#btnKuji').textContent = tr('おみくじを引く', 'Draw a fortune slip');
   $('#resCareer').innerHTML = careerHTML();
+  resultFollow((newBest && SV.runs >= 3) || G.score >= 30000 || !!G.chalWon);
   hideAll(); show('sResult');
   rankAfterRun(G.score);
 }
@@ -732,15 +734,17 @@ function chalSave() { if (CHAL && G.chalWon) { CHAL.won = 1; try { localStorage.
 const SHARE = {
   phone: () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)),
   canSheet: () => typeof navigator.share === 'function',
-  text: () => G.lastShare || '', url: () => G.score > 0 ? GAME_URL + (GAME_URL.includes('?') ? '&' : '?') + 'beat=' + Math.floor(G.score) + '&c=' + G.char : GAME_URL, // the link carries your score: whoever opens it gets a challenge to beat it
+  text: () => G.lastShare || '', url: ch => { const base = G.score > 0 ? GAME_URL + (GAME_URL.includes('?') ? '&' : '?') + 'beat=' + Math.floor(G.score) + '&c=' + G.char : GAME_URL; return ch ? base + (base.includes('?') ? '&' : '?') + 'ref=' + ch : base; },
+  caption: ch => (G.lastShare || '') + (ch === 'ig' || ch === 'th' ? ' ' + SNS_HANDLE : '') + ' ' + SHARE.url(ch), // Instagram and Threads: the official account is tagged too // the link carries your score: whoever opens it gets a challenge to beat it
 };
 const encU = encodeURIComponent;
 const extOpen = u => u + (u.includes('?') ? '&' : '?') + 'openExternalBrowser=1'; // LINE opens such a link in the phone's own browser (one account, not a second one inside LINE)
 function shareLinks() {
-  const txt = SHARE.text(), u = SHARE.url();
-  return { x: `https://x.com/intent/post?text=${encU(txt)}&url=${encU(u)}`,
-    line: SHARE.phone() ? `https://line.me/R/share?text=${encU(txt + '\n' + extOpen(u))}` : `https://social-plugins.line.me/lineit/share?url=${encU(u)}&text=${encU(txt)}`,
-    fb: `https://www.facebook.com/sharer/sharer.php?u=${encU(u)}` };
+  const txt = SHARE.text(), u = SHARE.url;
+  return { x: `https://x.com/intent/post?text=${encU(txt)}&url=${encU(u('x'))}`,
+    line: SHARE.phone() ? `https://line.me/R/share?text=${encU(txt + '\n' + extOpen(u('line')))}` : `https://social-plugins.line.me/lineit/share?url=${encU(u('line'))}&text=${encU(txt)}`,
+    th: `https://www.threads.net/intent/post?text=${encU(SHARE.caption('th'))}`,
+    fb: `https://www.facebook.com/sharer/sharer.php?u=${encU(u('fb'))}` };
 }
 async function copyText(s) { try { await navigator.clipboard.writeText(s); return true; } catch (e) { }
   try { const ta = document.createElement('textarea'); ta.value = s; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-9999px;top:0'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok; } catch (e) { return false; } }
@@ -759,14 +763,14 @@ async function sharePictureSave(blob) {
   return savePicture(blob);
 }
 async function shareFacebook() {
-  const ok = await copyText(SHARE.text() + ' ' + SHARE.url());
-  const r = SHARE.phone() ? await sheet({ url: SHARE.url() }) : 'none';
+  const ok = await copyText(SHARE.caption('fb'));
+  const r = SHARE.phone() ? await sheet({ url: SHARE.url('fb') }) : 'none';
   if (r === 'ok') return shareNote(t('fbShared'));
   if (r === 'abort') return shareNote('');
   shareNote(ok ? t('fbCopied') : '', shareLinks().fb, t('fbOpen'));
 }
 async function shareInstagram() {
-  const f = G.shareFiles; await copyText(SHARE.text() + ' ' + SHARE.url());
+  const f = G.shareFiles; await copyText(SHARE.caption('ig'));
   const r = f && SHARE.phone() ? await sheet({ files: [f.story], needFiles: 1 }) : 'none';
   if (r === 'ok') return shareNote(t('igShared'));
   if (r === 'abort') return shareNote('');
@@ -774,33 +778,38 @@ async function shareInstagram() {
   shareNote(saved ? t('igSaved') : t('shareImg'), 'https://www.instagram.com/', t('igOpen'));
 }
 async function shareMore() {
-  const f = G.shareFiles, txt = SHARE.text(), u = SHARE.url();
-  const r = await sheet({ title: t('gameTitle'), text: txt, url: u, files: f ? [f.square] : undefined });
+  const f = G.shareFiles, txt = SHARE.text();
+  const r = await sheet({ title: t('gameTitle'), text: txt, url: SHARE.url('share'), files: f ? [f.square] : undefined });
   if (r === 'ok') return shareNote(t('igShared'));
   if (r === 'abort') return shareNote('');
-  const ok = await copyText(txt + ' ' + u); shareNote(ok ? t('copyNote') : t('copyFail'));
+  const ok = await copyText(txt + ' ' + SHARE.url('copy')); shareNote(ok ? t('copyNote') : t('copyFail'));
 }
 // the picture files are made ahead of time: a share sheet must open straight from the tap
 function prepShareFiles(sq, story) {
   G.shareFiles = null; const mk = c => new Promise(r => { try { c.toBlob(r, 'image/png'); } catch (e) { r(null); } });
   Promise.all([mk(sq), mk(story)]).then(([a, b]) => { if (!a || !b) return; G.shareFiles = { square: new File([a], 'renjill-hay-dash.png', { type: 'image/png' }), story: new File([b], 'renjill-hay-dash-story.png', { type: 'image/png' }), storyBlob: b }; });
 }
+function fitFont(g, txt, maxW, size, tpl) { let s = size; g.font = tpl.replace('{}', s); while (s > 12 && g.measureText(txt).width > maxW) { s -= 2; g.font = tpl.replace('{}', s); } return s; } // the biggest size (up to `size`) that fits maxW
 function buildShareCard(cap, place, gained) {
   const c = document.createElement('canvas'); c.width = 1080; c.height = 1080; const g = c.getContext('2d');
   g.fillStyle = '#F6EBDC'; g.fillRect(0, 0, 1080, 1080);
   try { const sh = Math.round(cv.width * .62); g.drawImage(cv, 0, Math.max(0, (cv.height - sh) / 2), cv.width, Math.min(sh, cv.height), 60, 260, 960, 595); } catch (e) { }
   g.strokeStyle = '#3B2A20'; g.lineWidth = 8; g.strokeRect(60, 260, 960, 595);
-  g.fillStyle = '#3B2A20'; g.font = `400 ${LANG === 'ja' ? 74 : 92}px "Dela Gothic One","Hiragino Sans",sans-serif`; g.textAlign = 'left'; g.fillText(tr('チモシーダッシュ', 'HAY DASH!'), 60, 150);
-  g.font = '900 34px "Zen Maru Gothic",sans-serif'; g.fillStyle = '#A97A1E'; g.fillText(tr('レンとジルの チモシーダッシュ', 'REN & JILL: HAY DASH'), 64, 210);
-  g.drawImage(bunFrame('ren', 'front_happy', SV.mugOn), 700, 40 + 210 * (1 - (BS + BTOP) / BS) + 30, 210, 210 * (BS + BTOP) / BS); g.drawImage(bunFrame('jill', 'front_open'), 860, 70 + 180 * (1 - (BS + BTOP) / BS) + 24, 180, 180 * (BS + BTOP) / BS);
-  g.fillStyle = '#3B2A20'; g.font = '400 120px "Dela Gothic One",sans-serif'; g.fillText(fmt(G.score), 60, 990);
+  const pom = G.char === 'pom', kH = (BS + BTOP) / BS, who = (w, mood, x, size) => g.drawImage(bunFrame(w, mood, w === 'ren' && SV.mugOn), x, 278 - size * kH, size, size * kH);
+  const titleW = pom ? 540 : 610; g.fillStyle = '#3B2A20'; g.textAlign = 'left'; fitFont(g, tr('チモシーダッシュ', 'HAY DASH!'), titleW, LANG === 'ja' ? 74 : 92, '400 {}px "Dela Gothic One","Hiragino Sans",sans-serif'); g.fillText(tr('チモシーダッシュ', 'HAY DASH!'), 60, 150);
+  // under the title: the hashtag and where to play (the picture travels without its caption)
+  const host = GAME_URL.replace(/^https?:\/\//, '').replace(/\/$/, ''), tag = LANG === 'ja' ? '#レンとジル' : '#RenAndJill';
+  g.fillStyle = '#A97A1E'; fitFont(g, tag + '  ' + host, titleW, 34, '900 {}px "Zen Maru Gothic",sans-serif'); g.fillText(tag + '  ' + host, 64, 210);
+  if (pom) { who('ren', 'front_happy', 610, 180); who('jill', 'front_open', 765, 155); who('pom', 'front_happy', 900, 150); }
+  else { who('ren', 'front_happy', 700, 210); who('jill', 'front_open', 860, 180); }
+  g.fillStyle = '#3B2A20'; fitFont(g, fmt(G.score), 600, 120, '400 {}px "Dela Gothic One",sans-serif'); g.fillText(fmt(G.score), 60, 990);
   g.font = '900 36px "Zen Maru Gothic",sans-serif'; g.fillStyle = '#6E5848';
-  g.fillText(`${G.day > 1 ? t('dayN', G.day) + ' · ' : ''}${clockStr(G.clock)} · ${place}`, 64, 1040);
-  g.textAlign = 'right'; g.fillText(t('hayN', fmt(gained)), 1016, 1040);
-  g.save(); g.translate(880, 940); g.rotate(-.12); g.fillStyle = '#C8463C'; g.font = '400 44px "Dela Gothic One",sans-serif'; g.textAlign = 'center'; g.fillText(LANG === 'en' ? (cap[0].length > 18 ? 'GAME OVER' : cap[0]) : tr(cap[1], cap[0]), 0, 0); g.restore();
+  { const ln = `${G.day > 1 ? t('dayN', G.day) + ' · ' : ''}${clockStr(G.clock)} · ${place}`; fitFont(g, ln, 640, 36, '900 {}px "Zen Maru Gothic",sans-serif'); g.fillText(ln, 64, 1040); }
+  g.textAlign = 'right'; g.font = '900 36px "Zen Maru Gothic",sans-serif'; g.fillText(t('hayN', fmt(gained)), 1016, 1040);
+  { const capTxt = LANG === 'en' ? (cap[0].length > 18 ? 'GAME OVER' : cap[0]) : tr(cap[1], cap[0]); g.save(); g.translate(860, 940); g.rotate(-.12); g.fillStyle = '#C8463C'; g.textAlign = 'center'; fitFont(g, capTxt, 360, 44, '400 {}px "Dela Gothic One",sans-serif'); g.fillText(capTxt, 0, 0); g.restore(); } // long captions shrink instead of running off the card
   let x = 64; for (const tid of G.stats.spots.slice(0, 7)) { g.drawImage(stampSprite(tid, 1), x, 790, 120, 120); x += 110; }
   try { $('#shareImg').src = c.toDataURL('image/png'); } catch (e) { }
-  { const L2 = shareLinks(); $('#shX').href = L2.x; $('#shLine').href = L2.line; $('#shFb').href = L2.fb; $('#igNote').textContent = ''; $('#tCopy').textContent = SHARE.phone() && SHARE.canSheet() ? t('shareMore') : t('copy'); }
+  { const L2 = shareLinks(); $('#shX').href = L2.x; $('#shLine').href = L2.line; $('#shTh').href = L2.th; $('#shFb').href = L2.fb; $('#igNote').textContent = ''; $('#tCopy').textContent = SHARE.phone() && SHARE.canSheet() ? t('shareMore') : t('copy'); }
   G.shareCanvas = c;
   { // a tall 9:16 version for Instagram Stories: the square card on a warm backdrop, the title above, the hashtag below
     const t = document.createElement('canvas'); t.width = 1080; t.height = 1920; const q = t.getContext('2d');
@@ -808,7 +817,10 @@ function buildShareCard(cap, place, gained) {
     q.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 40; i++) { q.beginPath(); q.arc((i * 263) % 1080, (i * 397) % 1920, 6 + (i % 5) * 4, 0, Math.PI * 2); q.fill(); }
     q.save(); q.translate(540, 980); q.rotate(-.03); q.shadowColor = 'rgba(59,42,32,.35)'; q.shadowBlur = 40; q.shadowOffsetY = 18; q.drawImage(c, -470, -470, 940, 940); q.restore();
     q.fillStyle = '#3B2A20'; q.textAlign = 'center'; q.font = '400 64px "Dela Gothic One","Hiragino Sans",sans-serif'; q.fillText(tr('今日のチモシーダッシュ', "TODAY'S HAY DASH"), 540, 400);
-    q.font = '900 40px "Zen Maru Gothic",sans-serif'; q.fillStyle = '#6E5848'; q.fillText('#レンとジル', 540, 1560); q.fillText(tr('うさぎの課長と、東京をかけぬけて出社', 'Two office bunnies, one mad dash across Tokyo'), 540, 1620);
+    q.font = '900 40px "Zen Maru Gothic",sans-serif'; q.fillStyle = '#6E5848'; q.fillText('#レンとジル', 540, 1560); fitFont(q, tr('うさぎの課長と、東京をかけぬけて出社', 'Two office bunnies, one mad dash across Tokyo'), 960, 40, '900 {}px "Zen Maru Gothic",sans-serif'); q.fillText(tr('うさぎの課長と、東京をかけぬけて出社', 'Two office bunnies, one mad dash across Tokyo'), 540, 1620);
+    // where to play and whom to follow, in a soft pill (a Story has no clickable caption)
+    { const host = GAME_URL.replace(/^https?:\/\//, '').replace(/\/$/, ''); q.fillStyle = 'rgba(255,250,242,.92)'; q.beginPath(); q.roundRect ? q.roundRect(190, 1680, 700, 130, 40) : q.rect(190, 1680, 700, 130); q.fill();
+      q.fillStyle = '#3B2A20'; fitFont(q, host, 640, 40, '900 {}px "Zen Maru Gothic",sans-serif'); q.fillText(host, 540, 1736); q.fillStyle = '#A97A1E'; q.font = '900 32px "Zen Maru Gothic",sans-serif'; q.fillText(SNS_HANDLE, 540, 1786); }
     G.shareStory = t; prepShareFiles(c, t);
   }
 }

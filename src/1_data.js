@@ -18,10 +18,23 @@ const defSave = () => ({ best: 0, bank: 0, closet: {}, wear: { ren: { tie: 'gold
   mlevel: 1, missions: null, totals: {}, zukan: {}, seenZukan: 0, daily: '', streak: 0, mute: false, runs: 0, bestClock: 480,
   lang: '', stamps: {}, album: {}, bestDay: 1, seenStamps: 0 });
 let SV = defSave();
-function svFrom(o) { const SVp = SV; SV = Object.assign(defSave(), o); try { const D = defSave(); SV.upg = Object.assign(D.upg, o.upg || {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (!(SV.char === 'ren' || SV.char === 'jill' || (SV.char === 'pom' && SV.pomMet))) SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}), pom: Object.assign(dw.pom, (o.wear || {}).pom || {}) }; SV.closet = o.closet || {}; } catch (e) { SV = SVp; throw e; } }
-try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { const o = JSON.parse(raw); SV = Object.assign(defSave(), o); const D = defSave(); SV.upg = Object.assign(D.upg, o.upg || {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (!(SV.char === 'ren' || SV.char === 'jill' || (SV.char === 'pom' && SV.pomMet))) SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}), pom: Object.assign(dw.pom, (o.wear || {}).pom || {}) }; SV.closet = o.closet || {}; } } catch (e) { }
+function svFrom(o) { const SVp = SV; SV = Object.assign(defSave(), o); try { const D = defSave(); SV.upg = Object.assign(D.upg, o.upg && typeof o.upg === 'object' ? o.upg : {}); for (const k of ['totals', 'zukan', 'stamps', 'album', 'ach', 'opt']) if (!SV[k] || typeof SV[k] !== 'object') SV[k] = D[k] || {}; if (SV.missions && !Array.isArray(SV.missions.slots)) SV.missions = null; if (!(SV.char === 'ren' || SV.char === 'jill' || (SV.char === 'pom' && SV.pomMet))) SV.char = 'ren'; SV.nick = typeof SV.nick === 'string' ? SV.nick.replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12) : ''; const dw = defSave().wear; SV.wear = { ren: Object.assign(dw.ren, (o.wear || {}).ren || {}), jill: Object.assign(dw.jill, (o.wear || {}).jill || {}), pom: Object.assign(dw.pom, (o.wear || {}).pom || {}) }; SV.closet = o.closet && typeof o.closet === 'object' ? o.closet : {}; svNums(); } catch (e) { SV = SVp; throw e; } }
+// numbers from an old or damaged save: never NaN, never negative (the title would show “NaN” hay)
+function svNums() { const D = defSave(); for (const k of ['best', 'bank', 'clovers', 'runs', 'mlevel', 'streak', 'bestClock', 'bestDay', 'seenZukan', 'seenStamps']) { const v = +SV[k]; SV[k] = Number.isFinite(v) && v >= 0 ? Math.floor(v) : D[k]; } if (SV.mlevel < 1) SV.mlevel = 1; if (SV.bestDay < 1) SV.bestDay = 1; for (const k in SV.upg) { const v = +SV.upg[k]; SV.upg[k] = Number.isFinite(v) ? Math.max(0, Math.min(5, Math.floor(v))) : 0; } if (!SV.wear || typeof SV.wear !== 'object') SV.wear = D.wear; }
+try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { const o = JSON.parse(raw); if (o && typeof o === 'object' && !Array.isArray(o)) svFrom(o); } } catch (e) { SV = defSave(); }
 // one stable player id per save: it travels with a transfer code, so a future app (iOS/Android) can take the same account over
 if (!SV.pid) { try { SV.pid = (crypto.randomUUID ? crypto.randomUUID() : 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2)); } catch (e) { SV.pid = 'p' + Date.now().toString(36); } }
+/* ---- Ren & Jill on social media (the official profiles; plain text links, no logos) ---- */
+const SNS_HANDLE = '@renjill_office';
+const SNS = [{ id: 'ig', name: 'Instagram', url: 'https://www.instagram.com/renjill_office/' }, { id: 'tt', name: 'TikTok', url: 'https://www.tiktok.com/@renjill_office' },
+  { id: 'yt', name: 'YouTube', url: 'https://www.youtube.com/@renjill_office' }, { id: 'th', name: 'Threads', url: 'https://www.threads.net/@renjill_office' },
+  { id: 'fb', name: 'Facebook', url: 'https://www.facebook.com/1358515160686321' }];
+const OFFICIAL_SITE = 'https://renjill.coana.co.jp/', SITE_REF = OFFICIAL_SITE + '?ref=haydash'; // the official site can count visits that came from the game
+/* ---- where a new player came from: ?ref=<channel> on a shared link (one short word from this list, nothing personal).
+   Kept once (the first visit) and sent with the ranking row as "src", so qa/kpi.mjs can count players per channel. */
+const REF_OK = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr'];
+const REF_IN = (() => { try { const q = new URLSearchParams(location.search), r = (q.get('ref') || '').toLowerCase(); if (!q.has('ref')) return ''; q.delete('ref'); const rest = q.toString(); history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash); return REF_OK.includes(r) ? r : ''; } catch (e) { return ''; } })();
+if (REF_IN && !SV.ref) SV.ref = REF_IN;
 /* ---- account transfer: the whole save (without photos) as a code, readable by any build of the game ----
    format: RJ1.<base64url of deflated JSON>.<checksum>   (RJ0 = not compressed, for browsers without CompressionStream) */
 const XFER_FIELDS_SKIP = ['album'];
@@ -45,7 +58,7 @@ async function xferRead(code) {
 }
 async function xferApply(code) {
   const o = await xferRead(code), fs = o._fs; delete o._fs; delete o._v; delete o._at;
-  const album = SV.album; svFrom(o); SV.album = album || {}; // photos stay with this device
+  const album = SV.album, pid = SV.pid; svFrom(o); SV.album = album || {}; if (!SV.pid) SV.pid = pid; // photos stay with this device; a code from before player ids keeps this device's id
   try { if (fs) localStorage.setItem('hd_fsauth', JSON.stringify(fs)); } catch (e) { }
   saveNow(); return true;
 }
@@ -101,7 +114,6 @@ const STR = {
   reviveHave: ['お守り {0}個・チモシー {1}本', 'Charms: {0} · Hay: {1}'], seeResult: ['結果を見る', 'See result'],
   keepGoing: ['まだ定時じゃない！', 'Not quitting time yet!'],
   morning: ['課長、寝坊。走れ！', 'The boss overslept. Run!'],
-  dayN: ['翌朝。田端駅で待ち合わせて、今日も出社', 'Next morning. Meet at Tabata Station, off to work again'],
   lastTrain: ['終電に乗って帰ろう', 'Catch the last train home'],
   onTime: ['出社！ +{0}', 'Made it to work! +{0}'],
   chime: ['定時！ ここから課長と東京を寄り道 +{0}', 'Six o’clock! Time for a detour through Tokyo +{0}'],
@@ -169,8 +181,8 @@ const STR = {
   howDown: ['下スワイプでスライディング。ちゃぶ台・テーブル・のれん・提灯の下をくぐる', 'Swipe down to slide under tables, curtains and lanterns'],
   howKeys: ['パソコンは矢印キー・WASD・スペースでも遊べる。P か ESC で一時停止', 'On a computer: arrow keys, WASD or Space. P or Esc to pause'],
   howNG: ['チョコ・玉ねぎ・ポテチはうさぎにダメ。よけよう', 'Chocolate, onions and chips are bad for bunnies. Dodge them'],
-  shareText: ['「レンとジルのチモシーダッシュ」で {0}点！ {1}まで走った（{2}）この記録、こえられる？ #レンとジル', 'I scored {0} in Ren & Jill: Hay Dash and made it to {1} ({2}). Can you beat it? #RenAndJill'],
-  shareTextWon: ['挑戦状の{3}点をこえて {0}点！（{2}）次はあなたの番！ #レンとジル', 'Beat the {3} challenge with {0} ({2})! Your turn! #RenAndJill'],
+  shareText: ['「レンとジルのチモシーダッシュ」で {0}点！ {1}まで走った（{2}）この記録、こえられる？ #レンとジル #チモシーダッシュ', 'I scored {0} in Ren & Jill: Hay Dash and made it to {1} ({2}). Can you beat it? #RenAndJill #レンとジル'],
+  shareTextWon: ['挑戦状の{3}点をこえて {0}点！（{2}）次はあなたの番！ #レンとジル #チモシーダッシュ', 'Beat the {3} challenge with {0} ({2})! Your turn! #RenAndJill #レンとジル'],
   reviveFree: ['初回ボーナスで続ける', 'Continue for free'], reviveFreeNote: ['最初の3回のプレイは、1回だけ無料で続けられます', 'First-run bonus: in your first 3 runs, continue once for free'], firstFever: ['フィーバー中はぶつかっても平気！', 'You can’t crash in a fever!'],
   resetH: ['データのリセット', 'Reset your data'], resetNote: ['スコア・チモシー・服・スタンプ・ランキングの記録をすべて消して、はじめからにします。元にはもどせません（残したいときは先に「記録のバックアップ」のコードを作ってください）。', 'Erase every record (scores, hay, clothes, stamps and your ranking entries) and start over. This cannot be undone: make a backup code first if you want to keep a copy.'],
   resetBtn: ['データをリセットする', 'Reset my data'], resetAsk: ['本当にすべて消しますか？', 'Really erase everything?'], resetYes: ['消してはじめから', 'Erase all'], resetNo: ['やめる', 'Cancel'],
@@ -187,6 +199,10 @@ const STR = {
   chalCard: ['友だちからの挑戦状', 'A FRIEND’S CHALLENGE'], chalBody: ['{0}点をこえろ！', 'Beat {0}!'], chalHud: ['挑戦 {0}', 'BEAT {0}'],
   chalWin: ['挑戦状クリア！', 'CHALLENGE BEATEN!'], chalWinSub: ['友だちの{0}点をこえた！', 'You beat your friend’s {0}!'],
   chalLeft: ['挑戦状まであと{0}点！ ', '{0} more to beat the challenge! '], chalDone: ['挑戦状クリア！（{0}点をこえた） ', 'Challenge beaten (over {0})! '],
+  follow: ['レンとジルをフォロー', 'Follow Ren & Jill'], followSite: ['公式サイト', 'Official site'], followAsk: ['いい走りでした！ レンとジルのアニメもSNSで公開中です', 'Great run! The Ren & Jill anime is on social media too'],
+  watchNew: ['最新話を見る', 'Watch the newest episode'], snsH: ['公式SNS', 'Official social media'], snsNote: ['アニメの新作や「あいことば」は、ここで発表しています', 'New episodes and secret words are posted here'],
+  pauseLbl: ['一時停止', 'Pause'], pickChar: ['走るキャラクターを選ぶ', 'Choose who runs'], langLbl: ['言語：{0}', 'Language: {0}'],
+  snsFaq: ['レンとジルのアニメは YouTube・TikTok・Instagram・Threads・Facebook（どれも @renjill_office）で見られます。新しい話が出るとタイトル画面にも出ますよ。「あいことば」もSNSで発表しています。', 'The Ren & Jill anime is on YouTube, TikTok, Instagram, Threads and Facebook (all @renjill_office). New episodes also show up on the title screen, and the secret words are posted there too.'],
   daily: ['おはよう！ {0}日連続出社ボーナス：チモシー{1}本', 'GOOD MORNING! {0}-day streak bonus: {1} hay'],
   dayLbl: ['日目', 'DAY'], dayN: ['{0}日目', 'DAY {0}'], comboN: ['{0}コンボ', '{0} COMBO'], hayN: ['チモシー {0}本', 'HAY {0}'], achGot: ['{0}（+{1}）', '{0} (+{1} hay)'], titlesN: ['称号 {0} / {1}', 'TITLES {0} / {1}'],
   nextStar: ['次の★まで {0}', '{0} to the next ★'], nextPromo: ['次の昇進まで {0}', '{0} to the next promotion'], legendStar: ['伝説の★{0}！（チモシー{1}本＋お守り{2}{3}）', 'Legend ★{0}! (+{1} hay, +{2} charm{3})'],

@@ -5,15 +5,15 @@ function show(id) { $('#' + id).hidden = false; }
 function goTitle() { hideAll(); setupTitle(); show('sTitle'); refreshTitle(); }
 function applyLang() {
   { const a = $('#tGuide'); if (a) { a.textContent = tr('遊び方・キャラクター紹介', 'How to play & characters'); a.href = window.HAYDASH_APP ? (tr('./guide.html', './guide-en.html')) : 'https://hay-dash.coana.co.jp/' + (tr('guide', 'guide-en')); if (window.HAYDASH_APP) a.removeAttribute('target'); } }
-  { const a = $('#tSite'); if (a) a.textContent = tr('REN & JILL 公式サイト', 'Ren & Jill official site'); } // タイトル画面の下の小さな文字：アニメの公式サイト（2026-10-31 オーナー指示）
+  { const a = $('#tSite'); if (a) { a.textContent = tr('REN & JILL 公式サイト', 'Ren & Jill official site'); a.href = SITE_REF; } } { const f = $('#tFollow'); if (f) f.innerHTML = followLinks(); } // タイトル画面の下の小さな文字：アニメの公式サイト（2026-10-31 オーナー指示）
   document.documentElement.lang = ({ zh: 'zh-Hant', ko: 'ko' })[LANG] || LANG; $('#cv').setAttribute('aria-label', tr('レンとジルのチモシーダッシュ', 'Ren & Jill: Hay Dash'));
   $('#tStory').innerHTML = t('story'); $('#tStory').hidden = false; const lr = $('#tLast'); if (SV.runs > 0 && SV.last) { lr.hidden = false; lr.textContent = t('lastRun', fmt(SV.last.score), L(SV.last.place)) + (SV.best ? (tr('　', ' · ')) + t('lastBest', fmt(SV.best)) : ''); } else lr.hidden = true; $('#tSub').textContent = tr('レンとジル　チモシーダッシュ', 'Two office bunnies, one mad dash across Tokyo');
   cardTxt('#tRenRole', t('renRole')); cardTxt('#tRenPerk', t('renPerk')); cardTxt('#tJillRole', t('jillRole')); cardTxt('#tJillPerk', t('jillPerk')); { const met = !!SV.pomMet; cardTxt('#tPomRole', t('pomRole')); cardTxt('#tPomPerk', t('pomPerk')); $('#pickPom').hidden = !met; $('#pickPom').parentNode.classList.toggle('three', met); } // the rookie stays a secret until you have met him on the road
   $('#tMis').textContent = t('missions'); $('#tSta').textContent = t('stamps'); $('#tBook').textContent = t('book'); $('#tShop').textContent = t('shop'); $('#tHow').textContent = t('how');
-  $('#tBestL').textContent = t('best'); $('#btnRank').textContent = tr('ランキング', 'Ranking'); $('#btnRank2').textContent = tr('ランキングをもっと見る', 'See the full ranking'); $('#btnLang').textContent = '🌐 ' + LANG_NAME[LANG]; $('#btnLang').setAttribute('aria-label', 'Language: ' + LANG_NAME[LANG]); $('#tPause').textContent = t('pause'); $('#btnQuit').textContent = t('quit');
+  $('#tBestL').textContent = t('best'); $('#sTitle .chars').setAttribute('aria-label', t('pickChar')); $('#sResult .shbtns').setAttribute('aria-label', tr('友だちに挑戦状を送ろう', 'Challenge a friend')); $('#sResult .shbtns').setAttribute('role', 'group'); $('#chatIn').setAttribute('aria-label', tr('ゲームについて質問してね', 'Ask about the game')); $('#btnRank').textContent = tr('ランキング', 'Ranking'); $('#btnRank2').textContent = tr('ランキングをもっと見る', 'See the full ranking'); $('#btnLang').textContent = '🌐 ' + LANG_NAME[LANG]; $('#btnLang').setAttribute('aria-label', t('langLbl', LANG_NAME[LANG])); $('#pauseBtn').setAttribute('aria-label', t('pauseLbl')); $('#btnSet').setAttribute('aria-label', t('settings')); $('#btnSet').title = t('settings'); for (const id of ['pClose', 'chatClose']) $('#' + id).setAttribute('aria-label', t('close')); $('#tPause').textContent = t('pause'); $('#btnQuit').textContent = t('quit');
   $('#btnRvNo').textContent = t('seeResult'); $('#btnMenu').textContent = t('menu'); { const m = $('#tResMore'); if (m) m.textContent = t('resMore'); } $('#tCopy').textContent = t('copy'); { const sb = $('#tShareBar'); if (sb) sb.textContent = tr('友だちに挑戦状を送ろう', 'Challenge a friend');} $('#tShare').textContent = t('share'); $('#tShareImg').textContent = t('shareImg');
   $('#tKick').textContent = tr('レンとジルの', 'REN & JILL'); $('#tLogo').innerHTML = tr('チモシー<br><em>ダッシュ！</em>', 'HAY<br><em>DASH!</em>'); $('#tSub').textContent = t('tagline'); document.title = t('gameTitle');
-  $('#nmRen').textContent = tr('レン', 'REN'); $('#nmJill').textContent = tr('ジル', 'JILL'); $('#nmPom').textContent = tr('ポム', 'POM'); $('#btnStart').textContent = t('start'); $('#btnAgain').textContent = t('again'); $('#btnResume').textContent = t('resume'); $('#tPauseH').textContent = lab('PAUSE');
+  $('#nmRen').textContent = tr('レン', 'REN'); $('#nmJill').textContent = tr('ジル', 'JILL'); $('#nmPom').textContent = tr('ポム', 'POM'); $('#btnStart').textContent = t('start'); $('#btnAgain').textContent = t('again'); $('#btnResume').textContent = t('resume'); $('#tPauseH').textContent = lab('PAUSE'); $('#tPause').hidden = $('#tPause').textContent === $('#tPauseH').textContent;
   $('#lbScore').textContent = tr('スコア', 'SCORE'); $('#lbTime').textContent = tr('時刻', 'TIME'); $('#lbHay').textContent = tr('チモシー', 'HAY'); $('#resBest').textContent = lab('NEW BEST!');
   $('#btnChat').textContent = $('#btnChat2').textContent = tr('ジルに聞く', 'Ask Jill');
   ['btnMute', 'btnMute2'].forEach(id => $('#' + id).textContent = SV.mute ? t('soundOff') : t('soundOn'));
@@ -31,8 +31,9 @@ function refreshTitle() {
   $('#dotStamps').hidden = Object.keys(SV.stamps).length + Object.keys(SV.album).length <= (SV.seenStamps || 0);
   $('#dotMissions').hidden = !(SV.missions && SV.missions.slots.some(s => s.done));
 }
-function openPanel(title, sub, html) { if (LANG !== 'en' && sub) { title = esc(sub); sub = ''; } document.querySelectorAll('.toast').forEach(x => x.remove()); if (sub && sub.toUpperCase() === title) sub = ''; $('#pTitle').innerHTML = `${title}<small>${esc(sub)}</small>`; $('#pBody').innerHTML = html; $('#pBody').scrollTop = 0; show('sPanel'); $('#pClose').focus(); }
-function closePanel() { $('#sPanel').hidden = true; if (G.mode === 'title') refreshTitle(); }
+let PANEL_FROM = null;
+function openPanel(title, sub, html) { if ($('#sPanel').hidden) { const a = document.activeElement; PANEL_FROM = a && a !== document.body && !a.closest('#sPanel') ? a : null; } if (LANG !== 'en' && sub) { title = esc(sub); sub = ''; } document.querySelectorAll('.toast').forEach(x => x.remove()); if (sub && sub.toUpperCase() === title) sub = ''; $('#pTitle').innerHTML = `${title}<small>${esc(sub)}</small>`; $('#pBody').innerHTML = html; $('#pBody').scrollTop = 0; show('sPanel'); $('#pClose').focus(); }
+function closePanel() { $('#sPanel').hidden = true; if (G.mode === 'title') refreshTitle(); const f = PANEL_FROM; PANEL_FROM = null; if (f && f.isConnected && !f.closest('[hidden]')) try { f.focus({ preventScroll: true }); } catch (e) { } }
 
 function openMissions() { SFX.ui(); openPanel('MISSIONS', t('missions'), `<div class="lvl"><b>×${SV.mlevel}</b><span>${esc(t('missionNote'))}</span></div>${missionHTML()}${dailyHTML()}${achHTML()}`); }
 function shopHTML() {
@@ -83,12 +84,13 @@ function zukanHTML(sel) {
 function openZukan() { SFX.ui(); SV.seenZukan = Object.keys(SV.zukan).length; save(); openPanel('FOOD BOOK', t('book'), zukanHTML()); }
 function stampsHTML(sel) {
   const n = STAMP_ORDER.filter(id => SV.stamps[id]).length;
-  const tiles = STAMP_ORDER.map(id => { const st = THEMES[id].stamp, got = SV.stamps[id]; return `<button class="st${got ? '' : ' locked'}" data-s="${id}"><img src="${stampSprite(id).toDataURL()}" alt="">${got ? esc(L(st)) : (tr('？？？', '???'))}</button>`; }).join('');
+  const tiles = STAMP_ORDER.map(id => { const st = THEMES[id].stamp, got = SV.stamps[id]; return `<button class="st${got ? '' : ' locked'}" data-s="${id}"><img src="${stampURL(id)}" alt="">${got ? esc(L(st)) : (tr('？？？', '???'))}</button>`; }).join('');
   let det = `<div class="zdetail"><b>${tr('東京スタンプラリー', 'TOKYO STAMP RALLY')}</b>${esc(t('stampNote'))}</div>`;
   if (sel && SV.stamps[sel]) { const st = THEMES[sel].stamp; det = `<div class="zdetail"><b>${esc(L(st))}</b>${esc(L(st.note))}</div>`; }
   const pics = STAMP_ORDER.filter(id => SV.album[id]).map(id => `<figure><img src="${SV.album[id]}" alt="${esc(L(THEMES[id].stamp))}"><figcaption>${esc(L(THEMES[id].stamp))}</figcaption></figure>`).join('');
   return `<div class="bank"><span>${n} / ${STAMP_ORDER.length}</span></div>${det}<div class="stamps">${tiles}</div><h3 class="ph" style="font-size:18px;margin-top:6px">${LANG === 'en' ? 'PHOTOS<small>' + t('photos') + '</small>' : t('photos')}</h3>${pics ? `<div class="album">${pics}</div>` : `<p class="note">${t('noPhoto')}</p>`}`;
 }
+const STAMP_URL = {}; function stampURL(id) { const k = id + LANG; if (!STAMP_URL[k]) { try { STAMP_URL[k] = stampSprite(id).toDataURL(); } catch (e) { return ''; } } return STAMP_URL[k]; }
 function openStamps() { SFX.ui(); SV.seenStamps = Object.keys(SV.stamps).length + Object.keys(SV.album).length; save(); openPanel('TOKYO', t('stamps'), stampsHTML()); }
 function openHow() {
   SFX.ui();
@@ -104,14 +106,14 @@ function openHow() {
 }
 function settingsHTML() {
   const o = OPT(), row = (lbl, key, opts) => `<div class="m"><p><b>${esc(lbl)}</b></p><span class="seg">${opts.map(([v, txt]) => `<button class="buy${o[key] === v ? '' : ' off'}" data-opt="${key}" data-v="${v}">${esc(txt)}</button>`).join('')}</span></div>`;
-  const langRow = `<div class="m"><p><b>🌐 Language</b></p><span class="seg langseg">${LANGS.map(l => `<button class="buy${LANG === l ? '' : ' off'}" data-lang="${l}" lang="${({ zh: 'zh-Hant' })[l] || l}">${LANG_NAME[l]}</button>`).join('')}</span></div>`; // all four, side by side (the title button cycles)
+  const langRow = `<div class="m langrow"><p><b>🌐 Language</b></p><span class="seg langseg">${LANGS.map(l => `<button class="buy${LANG === l ? '' : ' off'}" data-lang="${l}" lang="${({ zh: 'zh-Hant' })[l] || l}">${LANG_NAME[l]}</button>`).join('')}</span></div>`; // all four, side by side (the title button cycles)
   return langRow + row(t('ctrl'), 'ctrl', [['swipe', t('ctrlSwipe')], ['tap', t('ctrlTap')]]) + `<p class="note">${esc(t('ctrlNote'))}</p>` +
     row(t('sens'), 'sens', [['normal', t('sensN')], ['high', t('sensH')]]) + row(t('vib'), 'vib', [[true, t('on')], [false, t('off')]]) +
     row(t('calm'), 'calm', [[true, t('on')], [false, t('off')]]) + row(t('music'), 'music', [[true, t('on')], [false, t('off')]]) + row(t('sfx'), 'sfx', [[true, t('on')], [false, t('off')]]) +
     `<button class="sub" id="btnNameSet">${esc(SV.nick ? t('nameBtn', SV.nick) : t('nameNone'))}</button> <button class="sub" id="btnTut">${esc(t('resetTut'))}</button>` +
-    `<div class="m xfer"><p><b>${esc(t('codeH'))}</b></p><p class="note">${esc(t('codeNote'))}</p><div class="btns" style="display:flex;gap:8px"><input id="codeIn" maxlength="24" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="${esc(t('codePh'))}" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px"><button class="sub" id="btnCode" style="width:auto">${esc(t('codeOk'))}</button></div><p class="note" id="codeMsg" aria-live="polite"></p></div>` +
-    linkHTML() + `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" readonly rows="3" hidden></textarea>` +
-    `<textarea id="xferIn" rows="3" placeholder="${esc(t('xferPaste'))}"></textarea><button class="sub" id="btnXferLoad">${esc(t('xferLoad'))}</button><p class="note" id="xferMsg" aria-live="polite"></p></div>` +
+    `<div class="m xfer"><p><b>${esc(t('codeH'))}</b></p><p class="note">${esc(t('codeNote'))}</p><div class="btns" style="display:flex;gap:8px"><input id="codeIn" aria-label="${esc(t('codeH'))}" maxlength="24" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="${esc(t('codePh'))}" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px"><button class="sub" id="btnCode" style="width:auto">${esc(t('codeOk'))}</button></div><p class="note" id="codeMsg" aria-live="polite"></p></div>` +
+    `<div class="m xfer sns"><p><b>${esc(t('snsH'))}</b></p><p class="note">${esc(t('snsNote'))}</p>${followLinks('chips')}</div>` + linkHTML() + `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" aria-label="${esc(t('xfer'))}" readonly rows="3" hidden></textarea>` +
+    `<textarea id="xferIn" aria-label="${esc(t('xferPaste'))}" rows="3" placeholder="${esc(t('xferPaste'))}"></textarea><button class="sub" id="btnXferLoad">${esc(t('xferLoad'))}</button><p class="note" id="xferMsg" aria-live="polite"></p></div>` +
     `<div class="m xfer reset"><p><b>${esc(t('resetH'))}</b></p><p class="note">${esc(t('resetNote'))}</p><button class="sub danger" id="btnReset">${esc(t('resetBtn'))}</button>` +
     `<div id="resetAsk" hidden><p class="note"><b>${esc(t('resetAsk'))}</b></p><div style="display:flex;gap:8px"><button class="sub danger" id="btnResetYes">${esc(t('resetYes'))}</button><button class="sub" id="btnResetNo">${esc(t('resetNo'))}</button></div></div><p class="note" id="resetMsg" aria-live="polite"></p></div>`;
 }
@@ -119,7 +121,7 @@ function settingsHTML() {
 let nameThenStart = 0;
 function openName(first) {
   SFX.ui(); nameThenStart = first;
-  openPanel('NAME', t('nameTitle'), `<div class="namebox"><input id="nameIn" maxlength="12" autocomplete="off" enterkeyhint="done" placeholder="${esc(t('namePh'))}"><p class="note">${esc(t('nameNote'))}</p>
+  openPanel('NAME', t('nameTitle'), `<div class="namebox"><input id="nameIn" maxlength="12" autocomplete="off" enterkeyhint="done" placeholder="${esc(t('namePh'))}" aria-label="${esc(t('nameTitle'))}"><p class="note">${esc(t('nameNote'))}</p>
     <div class="btns">${first ? `<button class="sub" id="nameLater">${esc(t('nameLater'))}</button>` : ''}<button class="big" id="nameOk">${esc(t('nameOk'))}</button></div></div>`);
   const i = $('#nameIn'); i.value = SV.nick || ''; setTimeout(() => { try { i.focus(); } catch (e) { } }, 50);
   i.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); nameDone(1); } };
@@ -152,7 +154,7 @@ function linkHTML() {
   if (!linkOn()) return '';
   return `<div class="m xfer link"><p><b>${esc(t('linkH'))}</b></p><p class="note">${esc(t('linkNote'))}</p>` +
     `<p class="linkstep" id="linkInH">${esc(t('linkInH'))}</p><p class="note">${esc(t('linkInHow'))}</p>` +
-    `<div class="btns" style="display:flex;gap:8px;margin-top:6px"><input id="linkIn" maxlength="9" autocomplete="off" autocapitalize="characters" enterkeyhint="go" placeholder="${esc(t('linkPh'))}" style="flex:1;min-width:0;font:inherit;font-size:18px;letter-spacing:.12em;text-transform:uppercase;padding:8px 10px;border-radius:10px;border:2px solid var(--line)"><button class="sub" id="btnLinkGo" style="flex:none;width:auto;padding-left:18px;padding-right:18px">${esc(t('linkGo'))}</button></div>` +
+    `<div class="btns" style="display:flex;gap:8px;margin-top:6px"><input id="linkIn" aria-label="${esc(t('linkInH'))}" maxlength="9" autocomplete="off" autocapitalize="characters" enterkeyhint="go" placeholder="${esc(t('linkPh'))}" style="flex:1;min-width:0;font:inherit;font-size:18px;letter-spacing:.12em;text-transform:uppercase;padding:8px 10px;border-radius:10px;border:2px solid var(--line)"><button class="sub" id="btnLinkGo" style="flex:none;width:auto;padding-left:18px;padding-right:18px">${esc(t('linkGo'))}</button></div>` +
     `<p class="linkstep" style="margin-top:18px">${esc(t('linkOutH'))}</p><button class="sub" id="btnLinkMake">${esc(t('linkMake'))}</button><div id="linkOut" hidden></div>` +
     `<div id="linkAsk" hidden></div><p class="note" id="linkMsg" aria-live="polite"></p></div>`;
 }
@@ -200,7 +202,7 @@ function openRevive() {
   bh.textContent = t('reviveHay', c.hay); bh.disabled = SV.bank + Math.floor(G.hay) < c.hay; bh.style.opacity = bh.disabled ? .45 : 1; bh.hidden = free;
   $('#rvHave').textContent = free ? t('reviveFreeNote') : t('reviveHave', SV.clovers, fmt(SV.bank + Math.floor(G.hay)));
   if (bc.disabled && bh.disabled) { endRun(); return; }
-  hideAll(); show('sRevive');
+  hideAll(); show('sRevive'); { const f = !bc.disabled ? bc : !bh.disabled && !bh.hidden ? bh : $('#btnRvNo'); try { f.focus({ preventScroll: true }); } catch (e) { } } // keyboard players can continue with Enter
   const ring = $('#rvRing'), num = $('#rvNum'), t0 = performance.now();
   clearInterval(rvTimer);
   let rvLeft = 5, rvLast = performance.now();
@@ -248,7 +250,7 @@ $('#sChat').addEventListener('keydown', e => { e.stopPropagation(); if (e.key ==
 $('#fcL').onclick = () => { if (G.mode === 'play' && G.s > turnWindow(curSeg())) act('left'); }; $('#fcR').onclick = () => { if (G.mode === 'play' && G.s > turnWindow(curSeg())) act('right'); };
 $('#shIg').onclick = e => { SFX.ui(); e.preventDefault(); shareInstagram(); };
 $('#shFb').onclick = e => { SFX.ui(); e.preventDefault(); shareFacebook(); };
-$('#shX').onclick = $('#shLine').onclick = () => { SFX.ui(); copyText(SHARE.text() + ' ' + SHARE.url()); }; // the link itself opens X / LINE with the text filled in; the text is also copied, just in case
+for (const [id, ch] of [['shX', 'x'], ['shLine', 'line'], ['shTh', 'th']]) $('#' + id).onclick = () => { SFX.ui(); copyText(SHARE.caption(ch)); }; // the link itself opens X / LINE with the text filled in; the text is also copied, just in case
 $('#resNameOk').onclick = () => { $('#resNameToggle').hidden = true; const v = cleanName($('#resNameIn').value); if (!v) return; if (nameBad(v)) { $('#resNameIn').value = ''; $('#resNameIn').placeholder = t('nameNG'); return; } SFX.ui(); setNick(v); SV.nickAsked = 1; save(); $('#resRank .rk-name').hidden = true; rankAfterRun(G.score); };
 $('#resNameIn').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('#resNameOk').click(); } };
 $('#pickRen').onclick = () => { G.char = 'ren'; SV.char = 'ren'; save(); refreshTitle(); audioInit(); SFX.ui(); };
@@ -310,6 +312,7 @@ $('#btnKuji').onclick = () => {
     b.textContent = tr('また次のランで', 'Another fortune next run!'); }, 700);
 };
 $('#btnMenu').onclick = () => { SFX.ui(); goTitle(); };
+document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a[data-fol]'); if (a && !SV.fol) { SV.fol = 1; save(); } });
 $('#btnShare').onclick = () => { SFX.ui(); shareMore(); };
 
 /* ================= boot ================= */
@@ -388,7 +391,24 @@ function chalCard() { // a friend sent you their score: show it right above the 
 function feedCard() {
   let el = $('#tFeed'); const e = FEED && FEED.latest; if (!e || !e.url || !/^https:\/\//.test(e.url)) { if (el) el.hidden = true; return; }
   if (!el) { el = document.createElement('a'); el.id = 'tFeed'; el.target = '_blank'; el.rel = 'noopener'; el.className = 'feedcard'; const c = $('#tCareer'); if (!c) return; c.parentNode.insertBefore(el, c.nextSibling); }
-  el.hidden = false; el.href = e.url; el.innerHTML = `<small>${esc(t('feedNew'))}</small><b>${esc(e[LANG] || (LANG === 'ja' ? (e.ja || e.en) : (e.en || e.ja)) || '')}</b><i>▶</i>`;
+  const fresh = /^\d{4}-\d\d-\d\d$/.test(e.date || '') && Date.now() - new Date(e.date + 'T00:00:00+09:00').getTime() < 7 * 864e5;
+  el.hidden = false; el.href = e.url; el.innerHTML = `${fresh ? '<em class="newtag">NEW</em>' : ''}<small>${esc(t('feedNew'))}</small><b>${esc(e[LANG] || (LANG === 'ja' ? (e.ja || e.en) : (e.en || e.ja)) || '')}</b><i>▶</i>`;
+}
+/* ---- Follow Ren & Jill: the official profiles as plain text links (title, settings, result). Never a popup. ---- */
+function followLinks(kind) {
+  const a = (u, txt) => `<a href="${esc(u)}" target="_blank" rel="noopener" data-fol="1">${esc(txt)}</a>`;
+  const links = SNS.map(s => a(s.url, s.name)).concat(a(SITE_REF, t('followSite')));
+  return kind === 'chips' ? `<div class="fol-chips" role="group" aria-label="${esc(t('follow'))}">${links.join('')}</div>` : `<span class="fol-h">${esc(t('follow'))}</span> ${links.join(' · ')}`;
+}
+function latestEpisode() { const e = FEED && FEED.latest; return e && e.url && /^https:\/\//.test(e.url) ? e : null; }
+// the result screen: the newest episode and the profiles; after a good run, one friendly line (at most every 3 days, never once they have followed a link)
+function resultFollow(good) {
+  const box = $('#resFollow'); if (!box) return; const ep = latestEpisode();
+  const ask = good && !SV.fol && Date.now() - (SV.folAt || 0) > 3 * 864e5; if (ask) { SV.folAt = Date.now(); save(); }
+  box.innerHTML = (ask ? `<p class="fol-ask">${esc(t('followAsk'))}</p>` : '') +
+    (ep ? `<a class="fol-ep" href="${esc(ep.url)}" target="_blank" rel="noopener"><i aria-hidden="true">▶</i><span><small>${esc(t('watchNew'))}</small><b>${esc(ep[LANG] || (LANG === 'ja' ? (ep.ja || ep.en) : (ep.en || ep.ja)) || '')}</b></span></a>` : '') +
+    `<b class="fol-t">${esc(t('follow'))} <small>${esc(SNS_HANDLE)}</small></b>${followLinks('chips')}`;
+  box.classList.toggle('glow', ask);
 }
 async function sha256Hex(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
 async function redeemCode(raw) {
