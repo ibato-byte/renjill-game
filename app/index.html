@@ -1455,6 +1455,12 @@ const STAMP_ORDER = ['yamanote', 'tokyoeki', 'ginza', 'yurakucho', 'kokyo', 'chi
 const SPR = {};
 const SPR_URL = {};
 function mk(sz, h) { const c = document.createElement('canvas'); c.width = sz; c.height = h || sz; return c; }
+// a phone that has run out of picture memory hands out canvases with no drawing context (iPhone: getContext returns null), and every
+// drawing call on one would throw, frame after frame (the screen stopped half drawn on a very long run). noCtx() frees the kept copies
+// (each is painted again when next needed) and returns a tiny scratch context, so the picture is just blank this once and the frame goes on.
+const NOCTX = (() => { try { const c = document.createElement('canvas'); c.width = c.height = 1; return c.getContext('2d'); } catch (e) { return null; } })();
+let NOCTX_T = -1e9, CANVAS_LOW = 0;
+function noCtx() { CANVAS_LOW++; const now = performance.now(); if (now - NOCTX_T > 1500) { NOCTX_T = now; try { freePictures(); } catch (e) { } } try { NOCTX.setTransform(1, 0, 0, 1, 0, 0); } catch (e) { } return NOCTX; }
 function ell(g, x, y, rx, ry, rot, fill, stroke, lw) { g.beginPath(); g.ellipse(x, y, Math.max(.1, rx), Math.max(.1, ry), rot || 0, 0, Math.PI * 2); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw || 2; g.stroke(); } }
 function rr(g, x, y, w, h, r, fill, stroke, lw) { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw || 2; g.stroke(); } }
 function leaf(g, x, y, len, wid, ang, fill, vein) {
@@ -1530,9 +1536,9 @@ const DRAW_ITEM = {
     g.fillStyle = '#C8463C'; g.font = '900 14px sans-serif'; g.textAlign = 'center'; g.fillText('CHIPS', 64, 46); },
 };
 function buildItemSprites() {
-  for (const k in DRAW_ITEM) { const c = mk(128); const g = c.getContext('2d'); g.lineJoin = 'round'; DRAW_ITEM[k](g); SPR[k] = c; try { SPR_URL[k] = c.toDataURL(); } catch (e) { SPR_URL[k] = ''; } }
+  for (const k in DRAW_ITEM) { const c = mk(128); const g = c.getContext('2d') || noCtx(); g.lineJoin = 'round'; DRAW_ITEM[k](g); SPR[k] = c; try { SPR_URL[k] = c.toDataURL(); } catch (e) { SPR_URL[k] = ''; } }
   // NG badge over bad foods
-  for (const k of BADS) { const c = mk(128); const g = c.getContext('2d'); g.drawImage(SPR[k], 0, 0); ell(g, 100, 24, 20, 20, 0, '#C8463C', '#FBF6EE', 4);
+  for (const k of BADS) { const c = mk(128); const g = c.getContext('2d') || noCtx(); g.drawImage(SPR[k], 0, 0); ell(g, 100, 24, 20, 20, 0, '#C8463C', '#FBF6EE', 4);
     g.strokeStyle = '#FBF6EE'; g.lineWidth = 6; g.beginPath(); g.moveTo(91, 15); g.lineTo(109, 33); g.moveTo(109, 15); g.lineTo(91, 33); g.stroke(); SPR[k + 'NG'] = c; }
 }
 
@@ -1977,10 +1983,10 @@ function buildBunnies(only) {
     }
   }
 }
-function paint(fn) { const c = mk(BS, BS + BTOP); const g = c.getContext('2d'); g.lineJoin = 'round'; g.translate(0, BTOP); fn(g); return c; }
+function paint(fn) { const c = mk(BS, BS + BTOP); const g = c.getContext('2d') || noCtx(); g.lineJoin = 'round'; g.translate(0, BTOP); fn(g); return c; }
 function bunFrame(who, pose, mug) { const k = mug && who === 'ren' ? 'm' : ''; return BUN[who][pose + k] || BUN[who][pose] || BUN[who]['front_open'] || BUN[who].run0; }
 function drawCharCard(cv, who, t) {
-  const g = cv.getContext('2d'); g.clearRect(0, 0, cv.width, cv.height);
+  const g = cv.getContext('2d') || noCtx(); g.clearRect(0, 0, cv.width, cv.height);
   const mood = (t % 3.4) < .14 ? 'blink' : ((t % 9) > 7.4 ? 'happy' : 'open');
   const img = bunFrame(who, 'front_' + mood, SV.mugOn);
   const s = cv.width / BS * 1.05 * (who === 'pom' ? 1.25 : 1), bob = Math.sin(t * 2.2) * 2;
@@ -2816,7 +2822,7 @@ function faceVisible(fc) { const v = fc.v; const cx = (v[0] + v[6]) / 2, cy = (v
 function spriteAt(x, y, z) { tc(x, y, z, TMP, 0); const zc = TMP[2]; if (zc < NEAR || zc > FAR) return null; return { sx: W / 2 + TMP[0] * FOCAL / zc, sy: HORIZON - TMP[1] * FOCAL / zc, k: FOCAL / zc, z: zc }; }
 /* a fine material grain laid over near box faces (wood, paint, fabric all read as surfaces rather than flat blocks) */
 let GRAINP = null;
-function grainPattern() { if (GRAINP) return GRAINP; const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d'), r = rnd(11);
+function grainPattern() { if (GRAINP) return GRAINP; const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d') || noCtx(), r = rnd(11);
   for (let i = 0; i < 900; i++) { const v = r(); g.fillStyle = v < .5 ? `rgba(0,0,0,${(.05 + r() * .08).toFixed(3)})` : `rgba(255,255,255,${(.04 + r() * .07).toFixed(3)})`; g.fillRect(r() * 96, r() * 96, 1 + r() * 2.5, 1 + r() * 1.2); }
   for (let k = 0; k < 7; k++) { g.fillStyle = 'rgba(0,0,0,.035)'; g.fillRect(0, r() * 96, 96, 1 + r() * 2); } GRAINP = ctx.createPattern(c, 'repeat'); return GRAINP; }
 /* ---- real materials on every box face ----
@@ -2826,7 +2832,7 @@ function grainPattern() { if (GRAINP) return GRAINP; const c = document.createEl
 const MAT_TEX = {};
 function matTex(kind) {
   if (MAT_TEX[kind]) return MAT_TEX[kind];
-  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), r = rnd(kind.length * 31 + 7);
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d') || noCtx(), r = rnd(kind.length * 31 + 7);
   const dot = (n, a0, a1, w, h) => { for (let i = 0; i < n; i++) { const v = r(); g.fillStyle = v < .5 ? `rgba(0,0,0,${(a0 + r() * a1).toFixed(3)})` : `rgba(255,255,255,${(a0 + r() * a1).toFixed(3)})`; g.fillRect(r() * 128, r() * 128, w + r() * w, h + r() * h); } };
   if (kind === 'wood') { for (let y = 0; y < 128; y += 3 + r() * 5) { g.strokeStyle = `rgba(60,30,10,${(.06 + r() * .1).toFixed(3)})`; g.lineWidth = .8 + r() * 1.6; g.beginPath(); g.moveTo(0, y); for (let x = 0; x <= 128; x += 16) g.lineTo(x, y + Math.sin(x * .05 + y) * 1.6); g.stroke(); }
     for (let k = 0; k < 2; k++) { const x = r() * 128, y = r() * 128; g.strokeStyle = 'rgba(60,30,10,.18)'; g.lineWidth = 1.2; g.beginPath(); g.ellipse(x, y, 7, 2.6, 0, 0, Math.PI * 2); g.stroke(); } dot(160, .02, .04, 1, .6); }
@@ -2862,6 +2868,7 @@ let BOXA = 1;
 // a painting laid on a box face in true perspective: the face is cut into narrow vertical strips, each mapped on its own
 const FI = new Float32Array(3);
 function faceImage(img, flip, v) {
+  if (!img || !img.width) return; // a picture the phone had no memory for: the plain box face stays
   const L = litSprite(img, LT.amb), IW = L.width, IH = L.height, N = 6;
   // world corners: bottom-start, bottom-end, top-start, top-end (start = the image's left edge)
   let B0 = [v[0], v[1], v[2]], B1 = [v[3], v[4], v[5]], T1 = [v[6], v[7], v[8]], T0 = [v[9], v[10], v[11]];
@@ -3640,22 +3647,22 @@ function drawClockTower(x, yb, h, N) {
 
 /* ================= extra sprites ================= */
 function buildWorldSprites() {
-  const can = (cols, n) => { const c = mk(256), g = c.getContext('2d'); const r = rnd(n); for (let i = 0; i < 70; i++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 90; g.beginPath(); g.fillStyle = cols[(r() * cols.length) | 0]; g.arc(128 + Math.cos(a) * d, 120 + Math.sin(a) * d * .8, 18 + r() * 22, 0, Math.PI * 2); g.fill(); }
+  const can = (cols, n) => { const c = mk(256), g = c.getContext('2d') || noCtx(); const r = rnd(n); for (let i = 0; i < 70; i++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 90; g.beginPath(); g.fillStyle = cols[(r() * cols.length) | 0]; g.arc(128 + Math.cos(a) * d, 120 + Math.sin(a) * d * .8, 18 + r() * 22, 0, Math.PI * 2); g.fill(); }
     g.fillStyle = 'rgba(0,0,0,.12)'; g.beginPath(); g.ellipse(128, 190, 90, 30, 0, 0, Math.PI * 2); g.fill(); return c; };
   for (const k in TREE) SPR['canopy_' + k] = leafCrown(TREE[k].length > 2 ? TREE[k] : [TREE[k][0], TREE[k][0], TREE[k][0]], k.length * 7);
-  { const c = mk(256), g = c.getContext('2d'), r = rnd(9); for (let i = 0; i < 160; i++) { const v = r(), wv = (1 - v) * 92 + 6; g.beginPath(); g.fillStyle = TREE.ginkgo[(r() * 3) | 0]; g.arc(128 + (r() * 2 - 1) * wv * .8, 20 + v * 210, 10 + r() * 10, 0, Math.PI * 2); g.fill(); } SPR.canopy_cone = c; }
-  { const c = mk(256), g = c.getContext('2d'), r = rnd(4); for (let k = 0; k < 4; k++) for (let i = 0; i < 26; i++) { g.beginPath(); g.fillStyle = TREE.pine[(r() * 3) | 0]; g.ellipse(128 + (r() * 2 - 1) * 100, 60 + k * 45 + r() * 20, 26 + r() * 20, 10 + r() * 6, 0, 0, Math.PI * 2); g.fill(); } SPR.canopy_pine = c; }
-  { const day = leafCrown(TREE.green, 31), c = mk(256), g = c.getContext('2d'); g.drawImage(day, 0, 0); const r = rnd(11); for (let i = 0; i < 90; i++) { g.fillStyle = 'rgba(255,230,150,.9)'; g.beginPath(); g.arc(30 + r() * 196, 30 + r() * 170, 2.2, 0, Math.PI * 2); g.fill(); } SPR.canopy_illum = c;
-    const n = mk(256), h2 = n.getContext('2d'); h2.globalAlpha = .55; h2.filter = 'brightness(.25)'; h2.drawImage(day, 0, 0); h2.filter = 'none'; h2.globalAlpha = 1; const r2 = rnd(13);
+  { const c = mk(256), g = c.getContext('2d') || noCtx(), r = rnd(9); for (let i = 0; i < 160; i++) { const v = r(), wv = (1 - v) * 92 + 6; g.beginPath(); g.fillStyle = TREE.ginkgo[(r() * 3) | 0]; g.arc(128 + (r() * 2 - 1) * wv * .8, 20 + v * 210, 10 + r() * 10, 0, Math.PI * 2); g.fill(); } SPR.canopy_cone = c; }
+  { const c = mk(256), g = c.getContext('2d') || noCtx(), r = rnd(4); for (let k = 0; k < 4; k++) for (let i = 0; i < 26; i++) { g.beginPath(); g.fillStyle = TREE.pine[(r() * 3) | 0]; g.ellipse(128 + (r() * 2 - 1) * 100, 60 + k * 45 + r() * 20, 26 + r() * 20, 10 + r() * 6, 0, 0, Math.PI * 2); g.fill(); } SPR.canopy_pine = c; }
+  { const day = leafCrown(TREE.green, 31), c = mk(256), g = c.getContext('2d') || noCtx(); g.drawImage(day, 0, 0); const r = rnd(11); for (let i = 0; i < 90; i++) { g.fillStyle = 'rgba(255,230,150,.9)'; g.beginPath(); g.arc(30 + r() * 196, 30 + r() * 170, 2.2, 0, Math.PI * 2); g.fill(); } SPR.canopy_illum = c;
+    const n = mk(256), h2 = n.getContext('2d') || noCtx(); h2.globalAlpha = .55; h2.filter = 'brightness(.25)'; h2.drawImage(day, 0, 0); h2.filter = 'none'; h2.globalAlpha = 1; const r2 = rnd(13);
     for (let i = 0; i < 160; i++) { const x = 28 + r2() * 200, y = 24 + r2() * 176; const gr = h2.createRadialGradient(x, y, 0, x, y, 7); gr.addColorStop(0, 'rgba(255,236,170,1)'); gr.addColorStop(1, 'rgba(255,200,110,0)'); h2.fillStyle = gr; h2.fillRect(x - 7, y - 7, 14, 14); } SPR.canopy_illumN = n; }
-  { const c = mk(128), g = c.getContext('2d'); const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, 'rgba(255,230,170,.95)'); gr.addColorStop(1, 'rgba(255,200,120,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); SPR.glow = c; }
-  { const c = mk(128), g = c.getContext('2d'); g.fillStyle = '#2B1A12'; g.fillRect(48, 6, 32, 12); g.fillRect(48, 110, 32, 12); const gr = g.createRadialGradient(54, 50, 6, 64, 64, 60); gr.addColorStop(0, '#FF7A5C'); gr.addColorStop(1, '#C0392B'); g.fillStyle = gr; g.beginPath(); g.ellipse(64, 64, 42, 50, 0, 0, Math.PI * 2); g.fill();
+  { const c = mk(128), g = c.getContext('2d') || noCtx(); const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, 'rgba(255,230,170,.95)'); gr.addColorStop(1, 'rgba(255,200,120,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); SPR.glow = c; }
+  { const c = mk(128), g = c.getContext('2d') || noCtx(); g.fillStyle = '#2B1A12'; g.fillRect(48, 6, 32, 12); g.fillRect(48, 110, 32, 12); const gr = g.createRadialGradient(54, 50, 6, 64, 64, 60); gr.addColorStop(0, '#FF7A5C'); gr.addColorStop(1, '#C0392B'); g.fillStyle = gr; g.beginPath(); g.ellipse(64, 64, 42, 50, 0, 0, Math.PI * 2); g.fill();
     g.strokeStyle = 'rgba(0,0,0,.25)'; for (let k = 1; k < 6; k++) { g.beginPath(); g.ellipse(64, 64 - 50 + k * 16.6, 42 * Math.sin(k / 6 * Math.PI), 3, 0, 0, Math.PI * 2); g.stroke(); } SPR.lantern = c; }
-  { const c = mk(64), g = c.getContext('2d'); g.strokeStyle = '#E9EDF0'; g.lineWidth = 4; g.beginPath(); g.moveTo(32, 0); g.lineTo(32, 36); g.stroke(); g.beginPath(); g.ellipse(32, 48, 12, 14, 0, 0, Math.PI * 2); g.stroke(); SPR.strap = c; }
-  { const c = mk(128), g = c.getContext('2d'); for (let i = 0; i < 26; i++) { g.beginPath(); g.fillStyle = i % 3 ? '#5F9E5A' : ['#E86A75', '#F2C230', '#FBF6EE', '#C792EA'][i % 4]; g.arc(20 + (i * 37) % 90, 40 + (i * 23) % 60, 9, 0, Math.PI * 2); g.fill(); } SPR.flowers = c; }
-  { const c = mk(64), g = c.getContext('2d'); g.fillStyle = '#F07C2E'; g.beginPath(); g.arc(32, 36, 22, Math.PI, 0); g.fill(); g.fillStyle = '#FBF6EE'; g.fillRect(10, 36, 44, 6); SPR.buoy = c; }
-  { const c = mk(256), g = c.getContext('2d'), r = rnd(23); // a row of riverside buildings in silhouette, windows lit at night via the N variant
-      const paintRow = (night) => { const cv = mk(256), q = cv.getContext('2d'), rr2 = rnd(23); let x = 0; while (x < 256) { const w = 40 + rr2() * 60, h = 90 + rr2() * 150; q.fillStyle = night ? '#1C2440' : `rgb(${150 + rr2() * 40 | 0},${160 + rr2() * 36 | 0},${178 + rr2() * 30 | 0})`; q.fillRect(x, 256 - h, w, h);
+  { const c = mk(64), g = c.getContext('2d') || noCtx(); g.strokeStyle = '#E9EDF0'; g.lineWidth = 4; g.beginPath(); g.moveTo(32, 0); g.lineTo(32, 36); g.stroke(); g.beginPath(); g.ellipse(32, 48, 12, 14, 0, 0, Math.PI * 2); g.stroke(); SPR.strap = c; }
+  { const c = mk(128), g = c.getContext('2d') || noCtx(); for (let i = 0; i < 26; i++) { g.beginPath(); g.fillStyle = i % 3 ? '#5F9E5A' : ['#E86A75', '#F2C230', '#FBF6EE', '#C792EA'][i % 4]; g.arc(20 + (i * 37) % 90, 40 + (i * 23) % 60, 9, 0, Math.PI * 2); g.fill(); } SPR.flowers = c; }
+  { const c = mk(64), g = c.getContext('2d') || noCtx(); g.fillStyle = '#F07C2E'; g.beginPath(); g.arc(32, 36, 22, Math.PI, 0); g.fill(); g.fillStyle = '#FBF6EE'; g.fillRect(10, 36, 44, 6); SPR.buoy = c; }
+  { const c = mk(256), g = c.getContext('2d') || noCtx(), r = rnd(23); // a row of riverside buildings in silhouette, windows lit at night via the N variant
+      const paintRow = (night) => { const cv = mk(256), q = cv.getContext('2d') || noCtx(), rr2 = rnd(23); let x = 0; while (x < 256) { const w = 40 + rr2() * 60, h = 90 + rr2() * 150; q.fillStyle = night ? '#1C2440' : `rgb(${150 + rr2() * 40 | 0},${160 + rr2() * 36 | 0},${178 + rr2() * 30 | 0})`; q.fillRect(x, 256 - h, w, h);
           const cols = Math.max(1, (w / 9) | 0), rows = Math.max(1, (h / 10) | 0); for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) { const on = rr2() < (night ? .5 : .9); q.fillStyle = night ? (on ? '#F7D58A' : '#2A3550') : 'rgba(255,255,255,.28)'; if (on || !night) q.fillRect(x + 3 + i * 9, 256 - h + 4 + j * 10, 5, 5); }
           x += w + 2 + rr2() * 6; } return cv; };
       SPR.bldg = paintRow(0); SPR.bldgN = paintRow(1); }
@@ -3675,7 +3682,7 @@ function treeLimbs(g, r, x, y, ang, len, wid, depth, col, tips, droop) {
   for (let i = 0; i < n; i++) treeLimbs(g, r, x2, y2, ang + (i - (n - 1) / 2) * .62 + (r() - .5) * .45, len * (.6 + r() * .16), Math.max(1, wid * .6), depth - 1, col, tips, droop);
 }
 function sakuraTree(dir, night, seed) {
-  const S = 512, c = mk(S), g = c.getContext('2d'), r = rnd(seed), tips = [];
+  const S = 512, c = mk(S), g = c.getContext('2d') || noCtx(), r = rnd(seed), tips = [];
   const bark = night ? '#17110F' : '#3B2F2B', bx = 256 - dir * 92;
   // trunk: short and thick, leaning
   const tx = bx + dir * 46, ty = 330;
@@ -3704,7 +3711,7 @@ function sakuraTree(dir, night, seed) {
   return c;
 }
 function bareTree(seed, cone) {
-  const S = 256, c = mk(S), g = c.getContext('2d'), r = rnd(seed), tips = [];
+  const S = 256, c = mk(S), g = c.getContext('2d') || noCtx(), r = rnd(seed), tips = [];
   if (cone) { g.strokeStyle = '#5E4C42'; g.lineWidth = 4; g.beginPath(); g.moveTo(128, 250); g.lineTo(128, 14); g.stroke();
     for (let y = 30; y < 240; y += 9) { const w = (y - 14) / 236 * 100; for (const sd of [-1, 1]) treeLimbs(g, r, 128, y, (sd < 0 ? Math.PI : 0) - sd * (.5 + r() * .3), w * (.6 + r() * .4), 2, 1, '#6B5A50', tips, 0); } return c; }
   for (const a of [-1.9, -1.55, -1.2, -2.3, -.85]) treeLimbs(g, r, 128, 250, a + (r() - .5) * .2, 70 + r() * 20, 7, 3, '#5A4A42', tips, 0);
@@ -3714,7 +3721,7 @@ function buildSakuraSprites() {
   for (const d of [-1, 1]) for (const v of [0, 1]) { SPR[`sakura${d < 0 ? 'L' : 'R'}${v}`] = sakuraTree(d, 0, 17 + v * 31 + (d + 1) * 7); SPR[`sakura${d < 0 ? 'L' : 'R'}${v}N`] = sakuraTree(d, 1, 17 + v * 31 + (d + 1) * 7); }
   SPR.sakuraU = sakuraTree(0, 0, 88); SPR.sakuraUN = sakuraTree(0, 1, 88);
   SPR.canopy_sakura = SPR.sakuraU; SPR.canopy_bare = bareTree(5); SPR.canopy_coneB = bareTree(9, 1);
-  { const c = mk(256), g = c.getContext('2d'), r = rnd(9); for (let i = 0; i < 170; i++) { const v = r(), wv = (1 - v) * 92 + 6; g.beginPath(); g.fillStyle = TREE.fresh[(r() * 3) | 0]; g.arc(128 + (r() * 2 - 1) * wv * .8, 20 + v * 210, 10 + r() * 10, 0, Math.PI * 2); g.fill(); } SPR.canopy_coneG = c; }
+  { const c = mk(256), g = c.getContext('2d') || noCtx(), r = rnd(9); for (let i = 0; i < 170; i++) { const v = r(), wv = (1 - v) * 92 + 6; g.beginPath(); g.fillStyle = TREE.fresh[(r() * 3) | 0]; g.arc(128 + (r() * 2 - 1) * wv * .8, 20 + v * 210, 10 + r() * 10, 0, Math.PI * 2); g.fill(); } SPR.canopy_coneG = c; }
 }
 // sprites take the scene's light: a darkened copy per light level, made once and kept
 const LIT_CACHE = new WeakMap(); // weak: when a building texture is dropped, its lit copies go with it
@@ -3728,7 +3735,7 @@ function litSprite(img, amb, force, full) {
   const k = q.join(','); if (m[k]) return m[k];
   if (!force && !texOK() && m.last) return m.last; TEXN++; // over this frame's budget: the previous shade for one more frame
   const ks = full ? 1 : Math.min(1, LIT_MAXDIM / Math.max(img.width, img.height)); // phones keep shaded copies at a reduced size: many more fit in memory, and they are drawn small anyway
-  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.width * ks)); c.height = Math.max(1, Math.round(img.height * ks)); const g = c.getContext('2d');
+  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.width * ks)); c.height = Math.max(1, Math.round(img.height * ks)); const g = c.getContext('2d'); if (!g) { noCtx(); return img; } // out of picture memory: the unshaded picture (never a throw, never a blank kept)
   g.drawImage(img, 0, 0, c.width, c.height); g.globalCompositeOperation = 'multiply'; g.fillStyle = `rgb(${q.map(x => (x * 255) | 0).join(',')})`; g.fillRect(0, 0, c.width, c.height);
   g.globalCompositeOperation = 'destination-in'; g.drawImage(img, 0, 0, c.width, c.height);
   for (const kk of Object.keys(m)) if (kk !== 'last' && kk !== k) { const o = m[kk]; delete m[kk]; const i = LIT_LIST.findIndex(e => e.c === o); if (i >= 0) { LIT_PX -= LIT_LIST[i].px; LIT_LIST.splice(i, 1); } try { o.width = o.height = 0; } catch (x) { } } // one shade per picture: the light only moves one way through the day
@@ -3738,7 +3745,7 @@ function litSprite(img, amb, force, full) {
 const STAMP_CACHE = {};
 function stampSprite(tid, big) {
   const key = tid + (big ? 'B' : '') + LANG; if (STAMP_CACHE[key]) return STAMP_CACHE[key];
-  const th = THEMES[tid], st = th && th.stamp; const sz = big ? 256 : 128, c = mk(sz), g = c.getContext('2d'), s = sz / 128;
+  const th = THEMES[tid], st = th && th.stamp; const sz = big ? 256 : 128, c = mk(sz), g = c.getContext('2d') || noCtx(), s = sz / 128;
   g.scale(s, s); g.fillStyle = '#FBF6EE'; g.beginPath(); g.arc(64, 64, 58, 0, Math.PI * 2); g.fill();
   g.strokeStyle = '#C8463C'; g.lineWidth = 6; g.beginPath(); g.arc(64, 64, 52, 0, Math.PI * 2); g.stroke(); g.lineWidth = 2; g.beginPath(); g.arc(64, 64, 44, 0, Math.PI * 2); g.stroke();
   g.fillStyle = '#C8463C'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `900 ${st && st.k.length > 2 ? 30 : 38}px "Zen Maru Gothic","Hiragino Sans",sans-serif`; g.fillText(st ? st.k : '?', 64, 60);
@@ -3805,7 +3812,7 @@ function drawSunGlow(horizon) {
 const CLOUD_SPR = [];
 function buildCloudSprites() {
   for (let n = 0; n < 6; n++) {
-    const c = document.createElement('canvas'); c.width = 512; c.height = 220; const g = c.getContext('2d'), r = rnd(31 + n * 17);
+    const c = document.createElement('canvas'); c.width = 512; c.height = 220; const g = c.getContext('2d') || noCtx(), r = rnd(31 + n * 17);
     const puffs = [], cnt = n < 4 ? 26 : 14;
     for (let i = 0; i < cnt; i++) { const t = r(), x = 70 + t * 372, ht = Math.sin(t * Math.PI) * (n < 4 ? 80 : 30); puffs.push([x + (r() - .5) * 30, 175 - r() * ht, (n < 4 ? 26 : 18) + r() * (n < 4 ? 34 : 16)]); }
     // body
@@ -3818,7 +3825,7 @@ function buildCloudSprites() {
     CLOUD_SPR.push(c);
   }
   { // thin high cirrus
-    const c = document.createElement('canvas'); c.width = 512; c.height = 96; const g = c.getContext('2d'), r = rnd(77);
+    const c = document.createElement('canvas'); c.width = 512; c.height = 96; const g = c.getContext('2d') || noCtx(), r = rnd(77);
     for (let i = 0; i < 40; i++) { const x = r() * 420 + 40, y = 30 + r() * 40, w = 60 + r() * 120; const gr = g.createLinearGradient(x - w / 2, 0, x + w / 2, 0); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(.5, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.beginPath(); g.ellipse(x, y, w / 2, 3 + r() * 4, -.08, 0, Math.PI * 2); g.fill(); }
     CLOUD_SPR.push(c);
   }
@@ -3828,7 +3835,7 @@ function tintedSprite(img, rgb) {
   if (!img || !img.width) return img;
   const q = rgb.map(x => Math.min(255, Math.round(x / 12) * 12)); if (q[0] >= 252 && q[1] >= 252 && q[2] >= 252) return img;
   let m = TINT_CACHE.get(img); if (!m) { m = {}; TINT_CACHE.set(img, m); } const k = q.join(','); if (m[k]) return m[k];
-  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d');
+  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d') || noCtx();
   g.drawImage(img, 0, 0); g.globalCompositeOperation = 'multiply'; g.fillStyle = rgbS(q); g.fillRect(0, 0, c.width, c.height); g.globalCompositeOperation = 'destination-in'; g.drawImage(img, 0, 0);
   const keys = Object.keys(m); while (keys.length > 3) { const kk = keys.shift(), o = m[kk]; delete m[kk]; try { o.width = o.height = 0; } catch (e) { } } m[k] = c; return c;
 }
@@ -3891,14 +3898,14 @@ function postFX() {
       ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = `rgba(255,214,170,${(.35 * gold).toFixed(3)})`; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over'; } }
   if (!LT.indoor) { ctx.globalCompositeOperation = 'soft-light'; const g = ctx.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, LT.night > .5 ? 'rgba(60,80,160,.35)' : 'rgba(90,130,200,.22)'); g.addColorStop(1, LT.night > .5 ? 'rgba(255,170,90,.18)' : 'rgba(255,200,140,.22)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over'; }
-  if (!GRAIN) { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), d = g.createImageData(128, 128), r = rnd(3);
+  if (!GRAIN) { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d') || noCtx(), d = g.createImageData(128, 128), r = rnd(3);
     for (let i = 0; i < d.data.length; i += 4) { const v = 128 + (r() - .5) * 90; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } g.putImageData(d, 0, 0); GRAIN = ctx.createPattern(c, 'repeat'); }
   ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .07; ctx.fillStyle = GRAIN; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
 }
 
 /* ---- tree crowns with light from above: dark inner mass, lit clumps, sky gaps ---- */
 function leafCrown(cols, seed) {
-  const c = mk(256), g = c.getContext('2d'), r = rnd(seed);
+  const c = mk(256), g = c.getContext('2d') || noCtx(), r = rnd(seed);
   const dark = hexRgb(cols[1]).map(x => x * .62), mid = hexRgb(cols[0]), lt = hexRgb(cols[2]).map(x => Math.min(255, x * 1.12));
   const clumps = []; for (let i = 0; i < 22; i++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 86; clumps.push([128 + Math.cos(a) * d, 118 + Math.sin(a) * d * .72, 22 + r() * 18]); }
   const dot = (x, y, R, col) => { g.fillStyle = col; g.beginPath(); g.arc(x, y, R, 0, Math.PI * 2); g.fill(); };
@@ -3917,7 +3924,7 @@ function leafCrown(cols, seed) {
    so it adds detail without changing the floor's color. */
 const FTEX = {};
 function buildFloorTex() {
-  const mkT = (fn, seed) => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'), r = rnd(seed); g.fillStyle = 'rgb(128,128,128)'; g.fillRect(0, 0, 256, 256); fn(g, r); return c; };
+  const mkT = (fn, seed) => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d') || noCtx(), r = rnd(seed); g.fillStyle = 'rgb(128,128,128)'; g.fillRect(0, 0, 256, 256); fn(g, r); return c; };
   const blot = (g, r, n, a, R) => { for (let i = 0; i < n; i++) { const x = r() * 256, y = r() * 256, rr = R * (.4 + r()), v = r() < .5 ? 96 : 160; const gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, `rgba(${v},${v},${v},${a})`); gr.addColorStop(1, `rgba(${v},${v},${v},0)`); g.fillStyle = gr; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); } };
   const specks = (g, r, n, lo, hi, s) => { for (let i = 0; i < n; i++) { const v = (lo + r() * (hi - lo)) | 0; g.fillStyle = `rgb(${v},${v},${v})`; g.fillRect(r() * 256, r() * 256, s * (.5 + r()), s * (.5 + r())); } };
   FTEX.asphalt = mkT((g, r) => { blot(g, r, 26, .35, 40); specks(g, r, 2600, 70, 120, 1.6); specks(g, r, 1600, 150, 200, 1.3); }, 5);
@@ -4043,7 +4050,7 @@ function facadeTex(st, variant, w, h, night, mood, soft) {
   while (FAC_CACHE.size && (FAC_CACHE.size > FAC_MAXN || FAC_PX > FAC_MAXPX)) { let oldK = null, oldN = 1e18; for (const [k, v] of FAC_CACHE) if (v.n < oldN) { oldN = v.n; oldK = k; } const ev = FAC_CACHE.get(oldK); FAC_PX -= ev.px; FAC_CACHE.delete(oldK); try { ev.c.width = ev.c.height = 0; } catch (e) { } }
   const c = document.createElement('canvas'); const PW = Math.max(8, Math.round(w * FAC_P)), PH = Math.max(8, Math.round(h * FAC_P));
   const ks = Math.min(1, 700 / PH, 320 / PW); c.width = Math.max(8, Math.round(PW * ks)); c.height = Math.max(8, Math.round(PH * ks)); // tall towers are painted at a lower resolution
-  const g = c.getContext('2d'), r = rnd(variant * 131 + 7 + Math.round(w * 3) + Math.round(h * 5)); g.scale(c.width / PW, c.height / PH);
+  const g = c.getContext('2d') || noCtx(), r = rnd(variant * 131 + 7 + Math.round(w * 3) + Math.round(h * 5)); if (g === NOCTX) return null; g.scale(c.width / PW, c.height / PH);
   // the texture's y runs top-down, the wall's v runs bottom-up: flip so v=0 (street level) is at the bottom
   const paint = FAC_STYLE[st] || FAC_STYLE.mixed;
   paint(g, r, PW, PH, w, h, night, variant, mood || '');
@@ -4306,7 +4313,7 @@ function drawFacadeTex(w, dist) {
 }
 
 const SPR_PEND = {};
-function sprPaint(k) { const f = SPR_PEND[k]; if (!f) return SPR[k]; delete SPR_PEND[k]; try { SPR[k] = f(); if (SPR[k] && !SPR[k].__keep) { SPR[k].__keep = 1; ART_KEPT++; } } catch (e) { } return SPR[k]; }
+function sprPaint(k) { const f = SPR_PEND[k]; if (!f) return SPR[k]; delete SPR_PEND[k]; const low = CANVAS_LOW; try { SPR[k] = f(); if (CANVAS_LOW !== low) { delete SPR[k]; SPR_PEND[k] = f; return null; } /* out of picture memory: painted again later, not kept blank */ if (SPR[k] && !SPR[k].__keep) { SPR[k].__keep = 1; ART_KEPT++; } } catch (e) { } return SPR[k]; }
 // idle time: paint the fronts of the streets ahead (and their lit copies) before they come round the corner
 function texWarm(ms) {
   const end = performance.now() + Math.max(1.5, ms); const night = LT.night > .35;
@@ -4341,7 +4348,13 @@ function artCanvas(key, w, h, paint) {
   let c = ART_C.get(key); if (c) return c;
   if (ART_SOFT && !texOK()) return null; TEXN++;
   if (ART_C.size - ART_KEPT > ART_MAX) { for (const [k0, old] of ART_C) { if (old.__keep) continue; ART_C.delete(k0); try { old.width = old.height = 0; } catch (e) { } break; } } // oldest loose picture out (phones); the ones the scenery holds on to do not count
-  c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); paint(g, w, h); ART_C.set(key, c); return c;
+  c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d') || noCtx(); if (g === NOCTX) return null; paint(g, w, h); ART_C.set(key, c); return c;
+}
+// out of picture memory (see noCtx): drop every picture that is only a kept copy; each is painted again when it is next needed
+function freePictures() {
+  while (LIT_LIST.length) { const e = LIT_LIST.shift(); const m = LIT_CACHE.get(e.img); if (m) { if (m[e.k] === e.c) delete m[e.k]; if (m.last === e.c) m.last = null; } try { e.c.width = e.c.height = 0; } catch (x) { } } LIT_PX = 0;
+  for (const v of FAC_CACHE.values()) { try { v.c.width = v.c.height = 0; } catch (x) { } } FAC_CACHE.clear(); FAC_PX = 0;
+  for (const [k0, old] of [...ART_C]) { if (old.__keep) continue; ART_C.delete(k0); try { old.width = old.height = 0; } catch (x) { } }
 }
 const shadeHex = (hex, k) => { const c = hexRgb(hex); return `rgb(${clamp(c[0] * k, 0, 255) | 0},${clamp(c[1] * k, 0, 255) | 0},${clamp(c[2] * k, 0, 255) | 0})`; };
 function rrect(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
@@ -5413,35 +5426,49 @@ const G = {
 function curSeg() { return G.segs[G.ci]; }
 function forkLabels(fk) { return fk.lbl; }
 function nextStep() {
-  if (!G.plan.length) { G.planDay++; G.plan = dayPlan(G.planDay); G.planClock = 480; }
+  if (!G.plan.length) { const np = dayPlan(G.planDay + 1); G.planDay++; G.plan = np; G.planClock = 480; } // the new day only once its plan is made
   return G.plan.shift();
 }
-function ensureSegs() {
-  while (!G.fork && G.segs.length - G.ci < 4) { // four ahead: a street is built well before it can come into view
+// one street of a fork's side, and the fork flag it needs when another fork follows it straight away
+function forkSide(last, list, turnIn, t0, after) {
+  const nf = list.length === 1 && after && after.fork;
+  const sg = newSeg(last, list[0], { turnIn, t0, day: G.planDay, fork: nf || null }); if (nf) sg.forkLbl = forkLabels(nf, G.planDay); return sg;
+}
+// builds the streets ahead (max: at most that many per call, so a turn never builds three streets in one frame).
+// All or nothing per street: if building one fails (a phone out of memory), its step goes back into the plan and it is tried
+// again a moment later, so the route never loses a street and a fork is never half made.
+function ensureSegs(max) {
+  let built = 0;
+  while (!G.fork && G.segs.length - G.ci < 4 && !(max && built >= max)) { // four ahead: a street is built well before it can come into view
     const last = G.segs[G.segs.length - 1];
-    const step = nextStep();
+    let step; try { step = nextStep(); } catch (e) { reportErr(e); G.segDue = Math.max(G.segDue || 0, .25); break; }
+    if (!step) break;
     const t0 = G.planClock;
-    if (step.fork) {
-      const Ls = Array.isArray(step.fork.L) ? step.fork.L : [step.fork.L], Rs = Array.isArray(step.fork.R) ? step.fork.R : [step.fork.R];
-      G.distEst = G.dist + (G.segs.length - G.ci) * 90;
-      const a = newSeg(last, Ls[0], { turnIn: -1, t0, day: G.planDay }), b = newSeg(last, Rs[0], { turnIn: 1, t0, day: G.planDay });
-      G.fork = [a, b]; G.forkRest = { L: Ls.slice(1), R: Rs.slice(1), d0: Ls[0].d, d1: Rs[0].d };
-      break;
-    }
-    const nf = G.plan[0] && G.plan[0].fork;
-    G.distEst = G.dist + (G.segs.length - G.ci) * 90; G.speedEst = Math.min(MAXSPD + 1, G.speed + 1.2);
-    const sg = newSeg(last, step, { t0, day: G.planDay, fork: nf || null });
-    if (nf) sg.forkLbl = forkLabels(nf, G.planDay);
-    if (step.st) sg.stName = LANG === 'ja' || LANG === 'zh' ? step.st : stEn(step.st); // station names: kanji for Japanese/Chinese readers, romaji otherwise
-    G.segs.push(sg); G.planClock = sg.t1;
+    try {
+      if (step.fork) {
+        const Ls = Array.isArray(step.fork.L) ? step.fork.L : [step.fork.L], Rs = Array.isArray(step.fork.R) ? step.fork.R : [step.fork.R];
+        G.distEst = G.dist + (G.segs.length - G.ci) * 90;
+        const a = forkSide(last, Ls, -1, t0, G.plan[0]), b = forkSide(last, Rs, 1, t0, G.plan[0]);
+        G.fork = [a, b]; G.forkRest = { L: Ls.slice(1), R: Rs.slice(1), d0: Ls[0].d, d1: Rs[0].d };
+        break;
+      }
+      const nf = G.plan[0] && G.plan[0].fork;
+      G.distEst = G.dist + (G.segs.length - G.ci) * 90; G.speedEst = Math.min(MAXSPD + 1, G.speed + 1.2);
+      // after a fork's own street only a fork can follow (it has no corner of its own); should a plain street ever come next, it turns
+      const sg = newSeg(last, step, { t0, day: G.planDay, fork: nf || null, turnIn: last && last.fork ? (Math.random() < .5 ? -1 : 1) : undefined });
+      if (nf) sg.forkLbl = forkLabels(nf, G.planDay);
+      if (step.st) sg.stName = LANG === 'ja' || LANG === 'zh' ? step.st : stEn(step.st); // station names: kanji for Japanese/Chinese readers, romaji otherwise
+      G.segs.push(sg); G.planClock = sg.t1; built++;
+    } catch (e) { G.plan.unshift(step); G.segFails = (G.segFails || 0) + 1; G.segDue = Math.max(G.segDue || 0, .25); reportErr(e); break; }
   }
   while (G.ci > 1) { G.segs.shift(); G.ci--; }
 }
+function reportErr(e) { window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (window.__frameErr < 4) console.error('frame error', e); }
 
 /* ---------- title diorama ---------- */
 function setupTitle() {
   G.mode = 'title'; G.planDay = 1; G.plan = []; G.clock = 480; G.weather = 'clear';
-  G.segs = [newSeg(null, { t: 'titleroom', d: 5 }, { empty: true })]; G.ci = 0; G.fork = null; G.chaseVis = 0;
+  G.segs = [newSeg(null, { t: 'titleroom', d: 5 }, { empty: true })]; G.ci = 0; G.fork = null; G.segDue = 0; G.chaseVis = 0;
   buildTitleRoom(G.segs[0]);
   G.player.show = G.follow.show = true;
 }
@@ -5556,7 +5583,7 @@ function doRevive(kind) {
   save(); G.reviveN++;
   const seg = curSeg();
   for (const o of seg.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001;
-  if (G.cause === 'wall') { if (seg.fork) G.turnQueued = Math.random() < .5 ? -1 : 1; doTurn(); }
+  if (G.cause === 'wall') { if (seg.fork) G.turnQueued = Math.random() < .5 ? -1 : 1; try { doTurn(); } catch (e) { reportErr(e); } } // whatever happens here, the run goes on (the safety net puts the runner back if needed)
   G.mode = 'play'; G.invT = 2.5; G.chaseT = 0; G.chaseVis = 0; G.player.tilt = 0; G.follow.tilt = 0; G.pom.tilt = 0; G.y = Math.max(G.y, 0); G.vy = 0; G.slideT = 0;
   if (G.rush) G.rush = .5;
   hideAll(); show('hud'); musicStart(); banner('KEEP GOING!', t('keepGoing'), 'good');
@@ -5587,20 +5614,38 @@ function flashChoice(seg, d) {
   const cue = $('#turnCue'); cue.textContent = d < 0 ? '←' : '→'; cue.className = (d < 0 ? 'l' : 'r') + ' show locked';
   if (seg.fork && seg.forkLbl) banner(d < 0 ? '← LEFT' : 'RIGHT →', L(d < 0 ? seg.forkLbl.L : seg.forkLbl.R), 'good');
 }
+// the turn itself never fails half way: the street to turn into is found (or built) first; only then does the runner move onto it.
+// (A turn that broke off after the runner had left the old street but before arriving on the new one left the run pointing at a
+// street that did not exist: the picture stopped mid-turn, with no runner, and no swipe did anything.)
 function doTurn() {
-  const seg = curSeg(); const dir = seg.fork ? (G.turnQueued || -1) : seg.turn; const over = G.s - seg.len;
-  const ns = dir > 0 ? G.lat : -G.lat, nlat = dir > 0 ? -over : over;
-  onLeaveSeg(seg);
-  if (seg.fork && seg.fork.label === 'lunch') G.stats.lunch = 1;
-  if (seg.fork && G.fork) {
-    const pickL = dir < 0, chosen = pickL ? G.fork[0] : G.fork[1];
-    G.segs.push(chosen); G.planClock = chosen.t1; G.plan = (pickL ? G.forkRest.L : G.forkRest.R).concat(G.plan); G.fork = null; G.forkRest = null;
+  const seg = curSeg(); let dir = seg.fork ? (G.turnQueued || -1) : seg.turn; const over = clamp(G.s - seg.len, 0, 2);
+  let next = null;
+  if (seg.fork) {
+    if (!G.fork && !G.segs[G.ci + 1]) ensureSegs(); // its two streets are normally built long before: if that failed, once more now
+    if (G.fork) {
+      const pickL = dir < 0, chosen = pickL ? G.fork[0] : G.fork[1];
+      G.segs.push(chosen); G.planClock = chosen.t1; G.plan = (pickL ? G.forkRest.L : G.forkRest.R).concat(G.plan); G.fork = null; G.forkRest = null; next = chosen;
+    } else if (!G.segs[G.ci + 1]) { // still no fork: just the chosen side, so the run goes on
+      const step = G.plan[0];
+      try { if (step && step.fork) { const side = dir < 0 ? step.fork.L : step.fork.R, list = Array.isArray(side) ? side : [side]; G.plan.shift(); const t0 = G.planClock;
+          try { next = forkSide(seg, list, dir, t0, G.plan[0]); } catch (e) { G.plan.unshift(step); throw e; }
+          G.plan = list.slice(1).concat(G.plan); G.segs.push(next); G.planClock = next.t1; } } catch (e) { reportErr(e); }
+    }
   }
-  G.ci++; if (G.fork || G.segs.length - G.ci < 3) ensureSegs(); else G.segDue = .3; // the next street is built a moment after the turn, not on the turn's frame
-  const n = curSeg();
-  if (G.turnQT > 6) react('wink', 0);
+  if (!next) { next = G.segs[G.ci + 1]; if (!next) { ensureSegs(1); next = G.segs[G.ci + 1]; } }
+  if (!next) { G.s = Math.min(G.s, seg.len); G.segDue = Math.max(G.segDue || 0, .2); return; } // nothing to turn into yet: wait at the corner (the safety net ends the run if it never comes)
+  if (next.turnIn) dir = next.turnIn; // the street that was built decides the side
+  const ns = dir > 0 ? G.lat : -G.lat, nlat = clamp(dir > 0 ? -over : over, -ROAD, ROAD);
+  try { onLeaveSeg(seg); } catch (e) { reportErr(e); }
+  if (seg.fork && seg.fork.label === 'lunch') G.stats.lunch = 1;
+  const qt = G.turnQT;
+  G.ci = G.segs.indexOf(next);
   G.s = ns; G.lat = nlat; G.lane = clamp(Math.round(nlat / 1.5) + 1, 0, 2); G.prevLane = G.lane; G.turnQueued = 0; G.turnAuto = 0; G.turnQT = 0; G.turnT = .8; G.stats.turns++;
-  onEnterSeg(n);
+  // the streets after it: only what is needed right now on the turn's frame, the rest a moment later (one per frame)
+  if (G.segs.length - G.ci < 2 && !G.fork) ensureSegs(1); while (G.ci > 1) { G.segs.shift(); G.ci--; }
+  G.segDue = .3;
+  if (qt > 6) react('wink', 0);
+  try { onEnterSeg(next); } catch (e) { reportErr(e); }
 }
 function onEnterSeg(n) {
   BQ.length = Math.min(BQ.length, 1);
@@ -5735,7 +5780,7 @@ function tutorialScale(seg, dt) {
 
 /* ---------- per-frame update ---------- */
 function update(dt) {
-  if (G.segDue > 0 && (G.segDue -= dt) <= 0) { G.segDue = 0; ensureSegs(); }
+  if (G.segDue > 0 && G.mode !== 'title' && (G.segDue -= dt) <= 0) { G.segDue = 0; ensureSegs(1); if (!G.fork && G.segs.length - G.ci < 4 && !G.segDue) G.segDue = .05; } // one street per step, never a pile in one frame
   for (const sg of [G.segs[G.ci], G.segs[G.ci + 1]]) if (sg && sg.walkers) for (const w of sg.walkers) { w.s += w.vs * dt; if (w.s > w.a1) w.s = w.a0; else if (w.s < w.a0) w.s = w.a1; }
   G.t += dt; G.dtFX = dt;
   if (G.mode === 'title') { titleFrame(dt); return; }
@@ -5897,6 +5942,73 @@ function placeCamera(dt) {
       B.look = look ? .6 : 0; B.mood = look ? (k.t < 1.1 ? 'sparkle' : 'open') : 'open'; B.say = look && k.t < 1.4 ? (SV.pomMet ? t('pomPeekSay') : '？') : ''; B.big = 1.45;
       B.depth = (mp[0] - CAM.x) * CAM.s + (mp[1] - CAM.z) * CAM.c; B.show = true; } else B.show = false; }
   { const M = G.pom; if (M.on) { M.depth = (M.wx - CAM.x) * CAM.s + (M.wz - CAM.z) * CAM.c; if (M.tuck) M.depth = P.depth + .5; } }
+}
+/* ---------- safety net ----------
+   Whatever goes wrong in a frame (a street that could not be built, a picture the phone had no memory for, a number gone bad),
+   a run must never freeze. Every frame of play is checked: the runner must be on a street that exists, with sane numbers, and
+   moving. If not, the runner is put back on the street (with a moment of invincibility, like a revive); if that does not help
+   (it keeps happening), the run ends with the normal result screen. Screens are checked too: a dead run always shows the
+   revive or the result screen, and a countdown always ends. */
+const GUARD = { errN: 0, stillT: 0, s: 0, segId: -1, fixes: 0, fixT: -1e9, mode: '', modeT: 0 };
+function runOK() {
+  const seg = curSeg(); if (!seg || !seg.f || !(seg.len > 0)) return 'noseg';
+  for (const v of [G.s, G.lat, G.y, G.vy, G.speed, G.dist, G.score, G.rx, G.rz, G.camYaw, CAM.x, CAM.y, CAM.z, CAM.yaw, CAM.pitch]) if (!Number.isFinite(v)) return 'nan';
+  if (Math.abs(G.lat) > HW + .5 || G.s < -HW - 2 || G.s > seg.len + HW + 2) return 'offtrack';
+  if (G.y < -3 || G.y > 40) return 'height';
+  if (G.turnT <= 0) { const p = segPos(seg, G.s, G.lat); if (Math.hypot(p[0] - G.rx, p[1] - G.rz) > 4) return 'drift'; } // the picture follows the runner (it stops following when the frame breaks off)
+  return '';
+}
+function runGuard(rdt, err) {
+  if (GUARD.mode !== G.mode) { GUARD.mode = G.mode; GUARD.modeT = 0; } else GUARD.modeT += rdt;
+  if (G.mode === 'play') {
+    GUARD.errN = err ? GUARD.errN + 1 : 0;
+    const seg = curSeg(), id = seg ? seg.id : -1;
+    if (id !== GUARD.segId || Math.abs(G.s - GUARD.s) > .01 || G.hitStop > 0) { GUARD.stillT = 0; GUARD.segId = id; GUARD.s = G.s; } else GUARD.stillT += rdt;
+    const why = GUARD.errN >= 20 ? 'errors' : GUARD.stillT > 2.5 ? 'still' : runOK();
+    if (why) rescueRun(why);
+    return;
+  }
+  GUARD.errN = 0; GUARD.stillT = 0; GUARD.segId = -1;
+  const hid = id => { const e = document.getElementById(id); return !e || e.hidden; };
+  if (G.mode === 'dying' && GUARD.modeT > 3) { G.dyingT = 0; G.mode = 'dead'; GUARD.modeT = 0; try { if (canRevive()) openRevive(); else endRun(); } catch (e) { reportErr(e); finishRun('dying'); } }
+  else if (G.mode === 'dead' && GUARD.modeT > 1.5 && hid('sRevive') && hid('sResult') && hid('sPanel')) finishRun('dead');
+  else if (G.mode === 'result' && GUARD.modeT > 1.5 && hid('sResult') && hid('sPanel')) { try { hideAll(); show('sResult'); } catch (e) { goTitle(); } }
+  else if (G.mode === 'countdown' && GUARD.modeT > 4) { G.mode = 'play'; G.invT = Math.max(G.invT, 1); const c = document.getElementById('tutCue'); if (c) c.className = ''; }
+}
+function rescueRun(why) {
+  GUARD.errN = 0; GUARD.stillT = 0; G.stats.rescues = (G.stats.rescues || 0) + 1; window.__rescue = (window.__rescue || 0) + 1; window.__rescueWhy = why;
+  GUARD.fixes = G.t - GUARD.fixT < 15 ? GUARD.fixes + 1 : 1; GUARD.fixT = G.t;
+  if (GUARD.fixes <= 2) { try { if (snapBack()) return; } catch (e) { reportErr(e); } }
+  finishRun(why); // it keeps going wrong: end the run the normal way (score, hay and missions are kept)
+}
+// put the runner back on the street they are on, in a lane, on the ground, with the camera right behind them
+function snapBack() {
+  if (!curSeg()) G.ci = Math.max(0, Math.min(G.ci | 0, G.segs.length - 1));
+  const seg = curSeg(); if (!seg || !seg.f || !(seg.len > 0)) return false;
+  if (!seg.fork && !G.segs[G.ci + 1]) ensureSegs(1);
+  if (!Number.isFinite(G.s)) G.s = 0;
+  G.s = clamp(G.s, 0, Math.max(0, seg.len - 8));
+  if (!seg.fork && !G.segs[G.ci + 1] && seg.len - G.s < 30) return false; // a corner with nothing after it: no way on
+  for (const k of ['speed', 'dist', 'score', 'hay']) if (!Number.isFinite(G[k])) G[k] = k === 'speed' ? 12 : 0;
+  G.speed = clamp(G.speed, 8, MAXSPD * 1.6);
+  G.lane = clamp(Number.isFinite(G.lat) ? Math.round(G.lat / LANE) + 1 : 1, 0, 2); G.lat = LANES[G.lane]; G.prevLane = G.lane;
+  G.y = 0; G.vy = 0; G.air = false; G.slideT = 0; G.vault = 0; G.vaultDown = 0; G.jumpBuf = 0; G.pow.fly = 0;
+  G.turnQueued = 0; G.turnAuto = 0; G.turnQT = 0; G.turnT = 0; G.hitStop = 0; G.shake = 0;
+  for (const B of [G.follow, G.pom]) { B.y = 0; B.vy = 0; B.air = false; if (!Number.isFinite(B.lat)) B.lat = 0; if (!Number.isFinite(B.back)) B.back = 1; }
+  const p = segPos(seg, G.s, G.lat); G.rx = p[0]; G.rz = p[1]; G.camYaw = seg.dir * Math.PI / 2; G.ey = G.camE = null; G.camSl = 0;
+  G.invT = Math.max(G.invT, 2.5);
+  for (const o of seg.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001;
+  { const fc = document.getElementById('forkCards'); if (fc) fc.hidden = true; const cue = document.getElementById('turnCue'); if (cue) cue.className = ''; }
+  placeCamera(.016);
+  if (runOK()) return false;
+  banner('KEEP GOING!', t('keepGoing'), 'good');
+  return true;
+}
+function finishRun(why) {
+  window.__finish = (window.__finish || 0) + 1; window.__finishWhy = why;
+  if (!curSeg()) G.ci = Math.max(0, G.segs.length - 1);
+  G.cause = 'quit'; G.mode = 'dead';
+  try { hideAll(); if (!curSeg()) throw new Error('no street'); endRun(); } catch (e) { reportErr(e); try { goTitle(); } catch (e2) { } }
 }
 // the other bunny runs beside you and dodges on its own; Pom trots along behind, on the other side
 function buddy(dt, seg) {
@@ -6071,7 +6183,7 @@ function missionHTML() {
 function takePhoto(tid) {
   try {
     const c = document.createElement('canvas'); const w = 280, h = Math.round(w * Math.min(1.25, H / W));
-    c.width = w; c.height = h; const g = c.getContext('2d');
+    c.width = w; c.height = h; const g = c.getContext('2d') || noCtx();
     const sw = cv.width, sh = Math.round(cv.width * h / w); g.drawImage(cv, 0, Math.max(0, (cv.height - sh) * .35), sw, Math.min(sh, cv.height), 0, 0, w, h);
     g.fillStyle = 'rgba(251,246,238,.92)'; g.fillRect(0, h - 34, w, 34); g.fillStyle = '#3B2A20'; g.font = '900 15px "Zen Maru Gothic",sans-serif'; g.textBaseline = 'middle';
     g.fillText(L(THEMES[tid].stamp) + '  ' + clockStr(G.clock), 10, h - 17); g.drawImage(stampSprite(tid), w - 44, h - 70, 40, 40);
@@ -6200,7 +6312,7 @@ function prepShareFiles(sq, story) {
 }
 function fitFont(g, txt, maxW, size, tpl) { let s = size; g.font = tpl.replace('{}', s); while (s > 12 && g.measureText(txt).width > maxW) { s -= 2; g.font = tpl.replace('{}', s); } return s; } // the biggest size (up to `size`) that fits maxW
 function buildShareCard(cap, place, gained) {
-  const c = document.createElement('canvas'); c.width = 1080; c.height = 1080; const g = c.getContext('2d');
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1080; const g = c.getContext('2d') || noCtx();
   g.fillStyle = '#F6EBDC'; g.fillRect(0, 0, 1080, 1080);
   try { const sh = Math.round(cv.width * .62); g.drawImage(cv, 0, Math.max(0, (cv.height - sh) / 2), cv.width, Math.min(sh, cv.height), 60, 260, 960, 595); } catch (e) { }
   g.strokeStyle = '#3B2A20'; g.lineWidth = 8; g.strokeRect(60, 260, 960, 595);
@@ -6221,7 +6333,7 @@ function buildShareCard(cap, place, gained) {
   { const L2 = shareLinks(); $('#shX').href = L2.x; $('#shLine').href = L2.line; $('#shTh').href = L2.th; $('#shFb').href = L2.fb; $('#igNote').textContent = ''; $('#tCopy').textContent = SHARE.phone() && SHARE.canSheet() ? t('shareMore') : t('copy'); }
   G.shareCanvas = c;
   { // a tall 9:16 version for Instagram Stories: the square card on a warm backdrop, the title above, the hashtag below
-    const t = document.createElement('canvas'); t.width = 1080; t.height = 1920; const q = t.getContext('2d');
+    const t = document.createElement('canvas'); t.width = 1080; t.height = 1920; const q = t.getContext('2d') || noCtx();
     const bg = q.createLinearGradient(0, 0, 0, 1920); bg.addColorStop(0, '#F6E7C8'); bg.addColorStop(1, '#F2C9A6'); q.fillStyle = bg; q.fillRect(0, 0, 1080, 1920);
     q.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 40; i++) { q.beginPath(); q.arc((i * 263) % 1080, (i * 397) % 1920, 6 + (i % 5) * 4, 0, Math.PI * 2); q.fill(); }
     q.save(); q.translate(540, 980); q.rotate(-.03); q.shadowColor = 'rgba(59,42,32,.35)'; q.shadowBlur = 40; q.shadowOffsetY = 18; q.drawImage(c, -470, -470, 940, 940); q.restore();
@@ -6458,11 +6570,11 @@ function rankIconFor(r, ch) {
   const key = who + ':' + JSON.stringify(pw); if (RANK_ICON_W[key] !== undefined) return RANK_ICON_W[key] || RANK_ICON[who];
   const keep = Object.assign({}, WEAR[who]), seed = SEED; let url = '';
   try { Object.assign(WEAR[who], pw.w); SEED = 6; const fr = paint(g => drawBody(g, who, { lift: 0, sq: 1, feet: 0, ear: 0, view: 'front', mood: 'open', mug: pw.mug ? 1 : 0 }));
-    const c = mk(64); iconCrop(c.getContext('2d'), fr, who); url = c.toDataURL(); } catch (e) { url = ''; }
+    const c = mk(64); iconCrop(c.getContext('2d') || noCtx(), fr, who); url = c.toDataURL(); } catch (e) { url = ''; }
   finally { Object.assign(WEAR[who], keep); SEED = seed; }
   RANK_ICON_W[key] = url; return url || RANK_ICON[who];
 }
-function rankIcons() { for (const w of ['ren', 'jill', 'pom']) { const c = mk(64), g = c.getContext('2d'); iconCrop(g, bunFrame(w, 'front_open'), w); try { RANK_ICON[w] = c.toDataURL(); } catch (e) { RANK_ICON[w] = ''; } } }
+function rankIcons() { for (const w of ['ren', 'jill', 'pom']) { const c = mk(64), g = c.getContext('2d') || noCtx(); iconCrop(g, bunFrame(w, 'front_open'), w); try { RANK_ICON[w] = c.toDataURL(); } catch (e) { RANK_ICON[w] = ''; } } }
 // after a run: submit, then show this month's position and the top five
 async function rankAfterRun(score) {
   const box = $('#resRank'); if (!box) return;
@@ -6766,7 +6878,7 @@ function shopHTML() {
 const CLOSET_ICON = {};
 function closetIcon(c) { // a small picture of the item
   if (CLOSET_ICON[c.id]) return CLOSET_ICON[c.id];
-  const cv = mk(64), g = cv.getContext('2d'); g.translate(32, 40);
+  const cv = mk(64), g = cv.getContext('2d') || noCtx(); g.translate(32, 40);
   if (c.slot === 'tie') { const keep = WEAR.ren.tie; WEAR.ren.tie = c.v; g.scale(.7, .7); g.translate(0, -36); tie(g, 0, 0, 60, 0); WEAR.ren.tie = keep; }
   else if (c.slot === 'frame') { const keep = WEAR.jill.frame; WEAR.jill.frame = c.v; g.scale(.9, .9); glasses(g, -14, 14, -6, 12); WEAR.jill.frame = keep; }
   else if (c.slot === 'band') { const keep = WEAR.pom.band; WEAR.pom.band = c.v; g.scale(.55, .55); g.translate(0, -10); headband(g, 0, 0, 48, 0); WEAR.pom.band = keep; }
@@ -7047,16 +7159,25 @@ $('#btnShare').onclick = () => { SFX.ui(); shareMore(); };
 let last = performance.now();
 let perfAcc = 0, perfN = 0, lowQ = 0;
 // the loop must never die: an error in one frame is reported once and the next frame goes on
-let FRAME_ERRS = 0;
+let FRAME_ERRS = 0, FRAME_BAD = 0;
 function frame(now) {
-  try { frameBody(now); } catch (e) { FRAME_ERRS++; window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (FRAME_ERRS < 4) console.error('frame error', e); try { for (let i = 0; i < 12; i++) ctx.restore(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none'; } catch (e2) { } }
+  try { frameBody(now); FRAME_BAD = 0; } catch (e) { FRAME_ERRS++; window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (FRAME_ERRS < 4) console.error('frame error', e); try { for (let i = 0; i < 12; i++) ctx.restore(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none'; } catch (e2) { } frameTrouble(); }
   requestAnimationFrame(frame);
 }
+// the picture breaks off frame after frame (on a phone: usually out of picture memory): free the kept pictures, then draw more simply;
+// if it still cannot be drawn, the run ends the normal way rather than leave a frozen, half-drawn screen
+function frameTrouble() {
+  FRAME_BAD++;
+  if (FRAME_BAD === 3 || FRAME_BAD % 60 === 0) { try { freePictures(); } catch (e) { } }
+  if (FRAME_BAD === 30 && !lowQ) { lowQ = 1; DPR = 1; try { resizeKeep(); } catch (e) { } }
+  if (FRAME_BAD >= 150 && G.mode === 'play') { FRAME_BAD = 0; finishRun('draw'); }
+}
 function frameBody(now) {
-  const raw = (now - last) / 1000, dt = Math.min(.05, raw); last = now;
+  const raw = (now - last) / 1000, dt = Math.min(.05, Math.max(0, raw)); last = now; // never backwards (the first frame after a countdown can be stamped a hair before it)
   if (G.mode === 'play' && raw < .25) { perfAcc += raw; perfN++; if (perfN >= 90) { const avg = perfAcc / perfN; perfAcc = perfN = 0; if (avg > 1 / 42 && lowQ < 2 && !G.lockQ) { lowQ++; if (lowQ === 1) { DPR = 1; resizeKeep(); } } } }
   TEXN = 0; TEXB = performance.now() + 3;
-  if (G.mode !== 'pause' && G.mode !== 'dead' && G.mode !== 'result') update(dt);
+  { let bad = null; if (G.mode !== 'pause' && G.mode !== 'dead' && G.mode !== 'result') { try { update(dt); } catch (e) { bad = e; } }
+    if (bad) reportErr(bad); runGuard(Math.min(.1, Math.max(0, raw)), bad); } // a broken frame still draws, and the safety net looks at every frame
   render();
   if (G.mode === 'play') texWarm(Math.max(0, Math.min(3, TEXB - performance.now())));
   if (G.capture && G.capture.t <= 0) { takePhoto(G.capture.tid); G.capture = null; }
