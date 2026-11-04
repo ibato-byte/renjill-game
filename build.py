@@ -16,7 +16,8 @@ print(len(head+body+script))
 # ---- the app (PWA): a folder to put on any static host; installable, plays offline ----
 import os, json, hashlib, seo
 pass
-ver = hashlib.sha1((head + body + rel_js).encode()).hexdigest()[:10]
+_icons = b''.join(open('app/' + f, 'rb').read() for f in ('icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png', 'favicon.png') if os.path.exists('app/' + f))
+ver = hashlib.sha1((head + body + rel_js).encode() + _icons).hexdigest()[:10]  # a new icon also refreshes the offline copy
 # the season's events from app/feed.json go into the page itself, so a new player sees the event on the very first start
 # (the feed is also fetched at runtime; whichever copy is newer wins)
 try:
