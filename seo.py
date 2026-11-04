@@ -4,6 +4,10 @@ import json, html, datetime, os
 SITE = 'https://hay-dash.coana.co.jp/'
 TODAY = datetime.date.today().isoformat()
 PLACES = json.load(open('seo_places.json')) if os.path.exists('seo_places.json') else []
+# the official Ren & Jill profiles (the same links as the game's "Follow" row)
+SNS = [('Instagram', 'https://www.instagram.com/renjill_office/'), ('TikTok', 'https://www.tiktok.com/@renjill_office'), ('YouTube', 'https://www.youtube.com/@renjill_office'),
+       ('Threads', 'https://www.threads.net/@renjill_office'), ('Facebook', 'https://www.facebook.com/1358515160686321')]
+OFFICIAL = 'https://renjill.coana.co.jp/'
 INDEXNOW_KEY = '7f3c9b2e5a1d4c8e9b6a2f1e3d5c7a9b'  # public by design: proves the site owner pings IndexNow (Bing etc.)
 
 TITLE_JA = 'レンとジルのチモシーダッシュ｜無料のうさぎランゲーム（スマホ・PCですぐ遊べる）'
@@ -20,6 +24,7 @@ def game_ld():
     'playMode': 'SinglePlayer', 'isAccessibleForFree': True, 'offers': {'@type': 'Offer', 'price': '0', 'priceCurrency': 'JPY'},
     'character': [{'@type': 'Person', 'name': 'レン（Ren）', 'description': 'ホーランドロップのうさぎの課長'}, {'@type': 'Person', 'name': 'ジル（Jill）', 'description': 'ネザーランド・ドワーフのうさぎの部下'}],
     'dateModified': TODAY,
+    'author': {'@type': 'Organization', 'name': 'Ren & Jill', 'url': OFFICIAL, 'sameAs': [u for _, u in SNS]},
   }
 
 def head_tags():
@@ -44,6 +49,7 @@ h2{font-size:21px;margin:0 0 8px}h3{font-size:17px;margin:12px 0 2px}p{margin:6p
 .chars img{width:100%;max-width:200px;height:auto;aspect-ratio:1/1}.chars figcaption{font-size:14px;text-align:left}.chars b{font-size:17px}
 ul{padding-left:1.2em;margin:6px 0 10px}.places{columns:2;column-gap:20px;font-size:14px}.places li{break-inside:avoid;margin:0 0 6px}
 dt{font-weight:900;margin-top:10px}dd{margin:2px 0 8px}footer{text-align:center;color:var(--soft);font-size:13px;margin-top:24px}
+.sns{display:flex;flex-wrap:wrap;gap:8px}.sns a{display:inline-block;padding:6px 14px;border-radius:999px;background:#fff;border:2px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800;font-size:14px}
 @media (max-width:480px){.places{columns:1}}'''
 
 def page(lang):
@@ -65,7 +71,7 @@ def page(lang):
   e = html.escape
   body = f'''<main>
 <header><small>REN &amp; JILL ・ HAY DASH</small><h1>{L('レンとジルの<wbr>チモシーダッシュ', 'Ren &amp; Jill: Hay Dash')}</h1><p>{L('寝坊した課長と、東京をかけぬけて出社！ 無料のうさぎランゲーム', 'Two office bunnies, one mad dash across Tokyo. A free runner game.')}</p></header>
-<a class="play" href="./{'' if ja else '?lang=en'}">{L('今すぐ無料で遊ぶ ▶', 'Play free now ▶')}</a>
+<a class="play" href="./{'?ref=guide' if ja else '?lang=en&amp;ref=guide'}">{L('今すぐ無料で遊ぶ ▶', 'Play free now ▶')}</a>
 <p class="lang">{L('<a href="guide-en" hreflang="en">English</a>', '<a href="guide" hreflang="ja">日本語</a>')} ・ <a href="ranking">{L('みんなのランキング', 'Leaderboard')}</a></p>
 <section><h2>{L('どんなゲーム？', 'What is it?')}</h2>
 <p>{L('朝8時、うさぎの課長レンが寝坊！ 部下のジルといっしょに、家から駅、電車、オフィス、そして夕方の東京の名所までを走りぬけます。道に落ちているチモシー（うさぎの主食の牧草）を集め、障害物をよけて、できるだけ遠くまで進みましょう。',
@@ -84,7 +90,9 @@ def page(lang):
 <figure><img src="img/pom.webp" width="200" height="200" alt="{L('ポム：赤いはちまきのキンクマハムスター', 'Pom: a golden hamster in a red sweatband')}" loading="lazy"><figcaption><b>{L('ポム', 'Pom')}</b><br>{L('体育会系の新入社員、キンクマハムスター。走っていると、どこかで会えるかも。会えたら、ポムでも走れるようになる。', 'The sporty new hire, a golden hamster. You might bump into him on the road, and once you have, you can run as Pom too.')}</figcaption></figure></div></section>
 <section><h2>{L('走れる東京の名所', 'Tokyo spots on the way')}</h2><p>{L(f'スタンプ帳に集められる場所は{len(PLACES)}か所。一部を紹介します。', f'{len(PLACES)} places to collect in the stamp book. Some of them:')}</p><ul class="places">{places}</ul></section>
 <section><h2>{L('よくある質問', 'FAQ')}</h2><dl>{''.join(f'<dt>{e(q)}</dt><dd>{e(a)}</dd>' for q, a in faq)}</dl></section>
-<a class="play" href="./{'' if ja else '?lang=en'}">{L('今すぐ無料で遊ぶ ▶', 'Play free now ▶')}</a>
+<a class="play" href="./{'?ref=guide' if ja else '?lang=en&amp;ref=guide'}">{L('今すぐ無料で遊ぶ ▶', 'Play free now ▶')}</a>
+<section class="follow"><h2>{L('レンとジルをフォロー', 'Follow Ren &amp; Jill')}</h2><p>{L('レンとジルのアニメは、SNSで新しい話を公開しています（@renjill_office）。ゲームの「あいことば」もここで発表します。', 'New Ren &amp; Jill anime episodes are posted on social media (@renjill_office). Secret words for the game are posted there too.')}</p>
+<p class="sns">{' '.join(f'<a href="{u}" rel="noopener" target="_blank">{n}</a>' for n, u in SNS)} <a href="{OFFICIAL}?ref=haydash" rel="noopener" target="_blank">{L('公式サイト', 'Official site')}</a></p></section>
 <footer>{L('えさの情報は一般的な目安です（出典：長野県動物愛護センター）。', 'Food notes are general guidance (source: Nagano Prefecture Animal Welfare Center).')}<br>© Ren &amp; Jill</footer>
 </main>'''
   return f'''<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
