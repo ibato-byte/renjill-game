@@ -23,7 +23,7 @@ const SH = process.env.SHOTS || 'shots';
     const w = await p.evaluate(() => ({ won: window.__hayDash.G.chalWon, banner: document.querySelector('#banner').textContent, hud: document.querySelector('#hChal').textContent }));
     if (!w.won || !/挑戦状クリア|CHALLENGE BEATEN/.test(w.banner) || w.hud) errs.push(tag + lang + ' WIN ' + JSON.stringify(w));
     await p.screenshot({ path: SH + `/chal_win_${tag}_${lang}.png` });
-    await p.evaluate(() => window.__die('obstacle')); await p.waitForTimeout(1500); await p.evaluate(() => { const D = window.__hayDash; if (D.G.mode === 'dead') D.ev('hideAll(); endRun()'); }); await p.waitForTimeout(800);
+    await p.evaluate(() => window.__die('obstacle')); await p.waitForTimeout(1500); await p.waitForFunction(() => !['play', 'dying'].includes(window.__hayDash.G.mode), null, { timeout: 15000 }).catch(() => { }); await p.evaluate(() => { const D = window.__hayDash; if (D.G.mode === 'dead') D.ev('hideAll(); endRun()'); }); await p.waitForTimeout(800);
     const r = await p.evaluate(() => ({ note: document.querySelector('#resNote').textContent, url: window.__hayDash.ev('SHARE.url()'), text: window.__hayDash.ev('SHARE.text()') }));
     if (!/挑戦状クリア|Challenge beaten/.test(r.note) || !/[?&]beat=\d+&c=(ren|jill|pom)$/.test(r.url) || !/500/.test(r.text)) errs.push(tag + lang + ' RESULT ' + JSON.stringify(r));
     await p.screenshot({ path: SH + `/chal_result_${tag}_${lang}.png` });
@@ -33,7 +33,7 @@ const SH = process.env.SHOTS || 'shots';
     // not beaten: the result says how far you were
     await p.goto(base + '?beat=999999&c=ren'); await p.waitForTimeout(500);
     await p.click('#btnStart'); await p.evaluate(() => { window.__hayDash.G.invT = 999; }); await p.waitForTimeout(800);
-    await p.evaluate(() => { window.__hayDash.G.invT = 0; window.__die('obstacle'); }); await p.waitForTimeout(1500); await p.evaluate(() => { const D = window.__hayDash; if (D.G.mode === 'dead') D.ev('hideAll(); endRun()'); }); await p.waitForTimeout(800);
+    await p.evaluate(() => { window.__hayDash.G.invT = 0; window.__die('obstacle'); }); await p.waitForTimeout(1500); await p.waitForFunction(() => !['play', 'dying'].includes(window.__hayDash.G.mode), null, { timeout: 15000 }).catch(() => { }); await p.evaluate(() => { const D = window.__hayDash; if (D.G.mode === 'dead') D.ev('hideAll(); endRun()'); }); await p.waitForTimeout(800);
     const r2 = await p.evaluate(() => ({ note: document.querySelector('#resNote').textContent, text: window.__hayDash.ev('SHARE.text()') }));
     if (!/あと|more to beat/.test(r2.note) || !/こえられる|Can you beat/.test(r2.text)) errs.push(tag + lang + ' LEFT ' + JSON.stringify(r2));
     out[tag + lang] = { t1, h1, w, r, r2 }; await ctx.close();

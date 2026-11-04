@@ -32,6 +32,7 @@ const T = [
   { n: 'en_audit', why: '英語版の日本語混入・はみ出し', ok: has('EN_ISSUES 0') },
   { n: 'sizes', why: '画面サイズ4種', ok: o => (o.match(/ ok/g) || []).length >= 4 },
   { n: 'xfer', why: 'データ引き継ぎ', ok: noErr },
+  { n: 'xferfull', why: 'データ引き継ぎをすみずみまで（4言語×スマホ/PC・LINEやメモから貼ったコード・古い版のセーブ・古いiPhone・この端末にも記録があるとき・ランキングの行が2つにならない・8文字のコードの入れ方・LINEから外のブラウザへ）', ok: has('XFER FULL OK'), timeout: 1000 },
   { n: 'rankpage', why: 'だれでも見られるランキングのページ', ok: noErr },
   { n: 'apptest', why: 'アプリ版（ランキング・オフライン）', ok: has('"offlinePlay": true') },
   { n: 'pomplay', why: 'ポムで走れる（会う前は出ない・3人そろう）', ok: has('POM PLAY OK'), timeout: 400 },
