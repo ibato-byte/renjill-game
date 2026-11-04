@@ -1,5 +1,6 @@
 import glob, os
 os.makedirs("dist", exist_ok=True); os.makedirs("app", exist_ok=True)
+import sys; sys.path.insert(0, 'tools'); import i18n; i18n.write() # Chinese/Korean text from i18n.json
 head=open('src/head.html').read(); body=open('src/body.html').read()
 js='\n'.join(open(f).read() for f in sorted(glob.glob('src/*.js')))
 import re
@@ -16,6 +17,13 @@ print(len(head+body+script))
 import os, json, hashlib, seo
 pass
 ver = hashlib.sha1((head + body + rel_js).encode()).hexdigest()[:10]
+# the season's events from app/feed.json go into the page itself, so a new player sees the event on the very first start
+# (the feed is also fetched at runtime; whichever copy is newer wins)
+try:
+  _f = json.load(open('app/feed.json'))
+  ev_inline = '<script>window.HAYDASH_EVENTS=' + json.dumps({k: _f[k] for k in ('updated', 'events', 'eventsOnly') if k in _f}, ensure_ascii=False).replace('</', '<\\/') + '</script>'
+except Exception:
+  ev_inline = ''
 app_head = ('<!doctype html><html lang="ja"><head><meta charset="utf-8">'
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
   '<meta name="theme-color" content="#3B2A20"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">'
@@ -28,7 +36,7 @@ app_head = ('<!doctype html><html lang="ja"><head><meta charset="utf-8">'
   '<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="レンとジルのチモシーダッシュ｜Ren &amp; Jill: Hay Dash"><meta name="twitter:image" content="https://hay-dash.coana.co.jp/og.png">'
   '<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="./apple-touch-icon.png"><link rel="icon" href="./favicon.png">'
   '<style>html,body{margin:0;height:100%;background:#3B2A20;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}</style>'
-  '<script>window.HAYDASH_APP=1</script><script src="config.js"></script>')
+  '<script>window.HAYDASH_APP=1</script>' + ev_inline + '<script src="config.js"></script>')
 app_sw_reg = ('<script>if("serviceWorker" in navigator&&location.protocol!=="file:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>')
 open('app/index.html','w').write(app_head + head.replace('<title>レンとジルのチモシーダッシュ</title>', '') + '</head><body>' + seo.noscript() + body + rel_script + app_sw_reg + '</body></html>')
 seo.write('app')
