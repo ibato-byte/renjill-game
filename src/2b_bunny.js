@@ -68,7 +68,7 @@ function zebraTail(g, x, y, ph) {
 const TIE_COL = { gold: ['#D6A23C', '#A97A1E', '#E0AE48'], red: ['#C8463C', '#8E2E27', '#D95A4F'], navy: ['#2F4F7F', '#1E3556', '#3E6AA6'], green: ['#3E8E5A', '#2B6540', '#55A872'], sakura: ['#F2A7BD', '#C97490', '#F7C6D5'] };
 const FRAME_COL = { brown: '#9C7A52', red: '#C8463C', gold: '#C9962F', navy: '#2F4F7F', pink: '#E86A75' };
 // hats drawn with the origin at the top of the head (y grows down)
-function hat(g, kind, w) {
+function hat(g, kind, w, H) { // H = half the width of the head where the brim sits (hat units); covering hats are sized to it
   if (kind === 'laurel') { g.save(); g.scale(w, w); // the Legendary bunny's golden laurel: a ring of leaves sitting on the head, the two sprays rising to points at the back, a red gem in front
     const leaf = (x, y, a, L) => { g.save(); g.translate(x, y); g.rotate(a); const gr = g.createLinearGradient(-L * .4, -L, L * .4, 0); gr.addColorStop(0, '#FFF0A8'); gr.addColorStop(.55, '#F2C230'); gr.addColorStop(1, '#B98A22'); g.fillStyle = gr;
       g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(L * .42, -L * .5, 0, -L); g.quadraticCurveTo(-L * .42, -L * .5, 0, 0); g.fill(); g.strokeStyle = 'rgba(120,85,20,.6)'; g.lineWidth = 1.2; g.stroke(); g.beginPath(); g.moveTo(0, -1); g.lineTo(0, -L * .8); g.strokeStyle = 'rgba(255,248,210,.6)'; g.stroke(); g.restore(); };
@@ -80,24 +80,31 @@ function hat(g, kind, w) {
     for (const sd of [-1, 1]) for (let i = 0; i < 4; i++) { const ang = Math.PI * (.5 - sd * (.12 + i * .1)); leaf(Math.cos(ang) * 40, -6 + Math.sin(ang) * 12, sd * (.9 + i * .15), 14); }
     g.fillStyle = '#C8263C'; g.beginPath(); g.ellipse(0, 6, 6.5, 5.5, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.arc(-2, 4, 1.8, 0, Math.PI * 2); g.fill();
     g.restore(); return; }
-  w = w || 1;
+  w = w || 1; H = H || 46;
   if (kind === 'mug') { mugHat(g, 0); return; }
-  if (kind === 'beret') { g.save(); g.scale(w, w); g.fillStyle = '#C8463C'; g.beginPath(); g.ellipse(4, -8, 46, 18, -.12, 0, Math.PI * 2); g.fill(); g.fillStyle = '#A8352C'; g.beginPath(); g.ellipse(0, 2, 40, 9, 0, 0, Math.PI); g.fill(); g.fillStyle = '#7A241E'; g.fillRect(4, -30, 4, 8); g.restore(); return; }
-  if (kind === 'straw') { g.save(); g.scale(w, w); g.fillStyle = '#E8D28A'; g.beginPath(); g.ellipse(0, 0, 70, 14, 0, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#C9B06A'; g.lineWidth = 2; g.stroke();
-    g.fillStyle = '#EFDB98'; g.beginPath(); g.roundRect ? g.roundRect(-36, -34, 72, 36, [20, 20, 6, 6]) : g.rect(-36, -34, 72, 36); g.fill(); g.stroke(); g.fillStyle = '#2F4F7F'; g.fillRect(-36, -12, 72, 8); g.restore(); return; }
-  if (kind === 'santa') { g.save(); g.scale(w, w); g.fillStyle = '#C8463C'; g.beginPath(); g.moveTo(-40, 0); g.quadraticCurveTo(-30, -50, 10, -62); g.quadraticCurveTo(40, -70, 52, -50); g.quadraticCurveTo(30, -52, 20, -30); g.quadraticCurveTo(30, -10, 40, 0); g.closePath(); g.fill();
+  if (kind === 'beret') { g.save(); g.scale(w, w); // a soft beret pulled down over the top of the head, tipped to one side
+    const gr = g.createRadialGradient(-H * .2, -H * .5, 2, 0, -H * .3, H * 1.1); gr.addColorStop(0, '#DA5A4E'); gr.addColorStop(1, '#B63A30'); g.fillStyle = gr;
+    g.beginPath(); g.ellipse(H * .1, -H * .3, H * 1.1, H * .44, -.1, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#A8352C'; g.beginPath(); g.ellipse(0, -3, H * .96, 8, 0, 0, Math.PI); g.fill(); g.beginPath(); g.ellipse(0, -3, H * .96, 3, 0, Math.PI, 0); g.fill();
+    g.fillStyle = '#7A241E'; g.fillRect(H * .12, -H * .76, 4, 8); g.restore(); return; }
+  if (kind === 'straw') { g.save(); g.scale(w, w); // the crown fits over the head, the wide brim at the brow
+    g.fillStyle = '#E8D28A'; g.strokeStyle = '#C9B06A'; g.lineWidth = 2; g.beginPath(); g.ellipse(0, -2, H * 1.5, H * .27, 0, Math.PI, Math.PI * 2); g.fill(); g.stroke();
+    g.fillStyle = '#EFDB98'; g.beginPath(); g.roundRect ? g.roundRect(-H * .78, -H * .78, H * 1.56, H * .78, [H * .42, H * .42, 4, 4]) : g.rect(-H * .78, -H * .78, H * 1.56, H * .78); g.fill(); g.stroke();
+    g.fillStyle = '#2F4F7F'; g.fillRect(-H * .78, -H * .3, H * 1.56, H * .17);
+    g.fillStyle = '#E8D28A'; g.beginPath(); g.ellipse(0, -2, H * 1.5, H * .27, 0, 0, Math.PI); g.fill(); g.stroke(); g.restore(); return; }
+  if (kind === 'santa') { g.save(); g.scale(w * H / 44, w * H / 44); g.fillStyle = '#C8463C'; g.beginPath(); g.moveTo(-40, 0); g.quadraticCurveTo(-30, -50, 10, -62); g.quadraticCurveTo(40, -70, 52, -50); g.quadraticCurveTo(30, -52, 20, -30); g.quadraticCurveTo(30, -10, 40, 0); g.closePath(); g.fill();
     g.fillStyle = '#FBF6EE'; g.beginPath(); g.ellipse(0, 0, 46, 10, 0, 0, Math.PI * 2); g.fill(); g.beginPath(); g.arc(54, -50, 9, 0, Math.PI * 2); g.fill(); g.restore(); return; }
   if (kind === 'crown') { g.save(); g.scale(w, w); g.fillStyle = '#F2C230'; g.strokeStyle = '#B08A3E'; g.lineWidth = 2; g.beginPath(); g.moveTo(-34, 0); g.lineTo(-38, -34); g.lineTo(-20, -16); g.lineTo(0, -40); g.lineTo(20, -16); g.lineTo(38, -34); g.lineTo(34, 0); g.closePath(); g.fill(); g.stroke();
     for (const [x, c] of [[-20, '#C8463C'], [0, '#4E77A0'], [20, '#5F9E5A']]) { g.fillStyle = c; g.beginPath(); g.arc(x, -8, 4, 0, Math.PI * 2); g.fill(); } g.restore(); return; }
   if (kind === 'ribbon') { g.save(); g.scale(w, w); g.translate(26, -8); g.fillStyle = '#E86A75'; g.beginPath(); g.ellipse(-14, 0, 14, 9, -.4, 0, Math.PI * 2); g.ellipse(14, 0, 14, 9, .4, 0, Math.PI * 2); g.fill(); g.fillStyle = '#C8463C'; g.beginPath(); g.arc(0, 0, 5, 0, Math.PI * 2); g.fill(); g.restore(); return; }
-  if (kind === 'witch') { g.save(); g.scale(w, w); // a soft, slightly bent wizard hat with a gold band and a little star
+  if (kind === 'witch') { g.save(); g.scale(w * H / 48, w * H / 48); // a soft, slightly bent wizard hat with a gold band and a little star
     g.fillStyle = '#3B3350'; g.beginPath(); g.ellipse(0, 0, 58, 13, 0, 0, Math.PI * 2); g.fill();
     const gr = g.createLinearGradient(-30, 0, 30, -80); gr.addColorStop(0, '#2E2842'); gr.addColorStop(1, '#5A4E7E'); g.fillStyle = gr;
     g.beginPath(); g.moveTo(-32, -4); g.quadraticCurveTo(-14, -44, 4, -78); g.quadraticCurveTo(16, -92, 40, -84); g.quadraticCurveTo(22, -78, 18, -60); g.quadraticCurveTo(26, -30, 32, -4); g.closePath(); g.fill();
     g.fillStyle = '#E0A93A'; g.beginPath(); g.moveTo(-31, -8); g.quadraticCurveTo(0, -16, 31, -8); g.lineTo(30, -18); g.quadraticCurveTo(0, -26, -28, -18); g.closePath(); g.fill();
     g.fillStyle = '#F6D36B'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 4 : 9; g.lineTo(-6 + Math.cos(a) * r, -44 + Math.sin(a) * r); } g.closePath(); g.fill();
     g.restore(); return; }
-  if (kind === 'pumpkin') { g.save(); g.scale(w, w); // a little pumpkin worn like a cap, with a leaf
+  if (kind === 'pumpkin') { g.save(); g.scale(w * H / 36, w * H / 36); // a little pumpkin worn like a cap, with a leaf
     for (const [x, rx, c] of [[-20, 18, '#D9661C'], [20, 18, '#D9661C'], [-8, 18, '#EE8526'], [8, 18, '#EE8526'], [0, 15, '#F59A3A']]) { g.fillStyle = c; g.beginPath(); g.ellipse(x, -18, rx, 20, 0, 0, Math.PI * 2); g.fill(); }
     g.strokeStyle = 'rgba(140,60,10,.35)'; g.lineWidth = 2; for (const x of [-12, 12]) { g.beginPath(); g.moveTo(x, -36); g.quadraticCurveTo(x * 1.3, -18, x, 0); g.stroke(); }
     g.fillStyle = 'rgba(255,255,255,.25)'; g.beginPath(); g.ellipse(-10, -28, 7, 4, -.4, 0, Math.PI * 2); g.fill();
@@ -117,8 +124,23 @@ function hat(g, kind, w) {
     for (const sd of [-1, 1]) { g.save(); g.translate(sd * 22, -34); g.strokeStyle = '#9E2B3A'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 26); g.lineTo(0, 8); g.stroke(); g.fillStyle = '#E8465E'; g.beginPath(); g.moveTo(0, 6); g.bezierCurveTo(-14, -6, -6, -18, 0, -9); g.bezierCurveTo(6, -18, 14, -6, 0, 6); g.fill(); g.restore(); } g.restore(); return; }
   if (kind === 'starband') { g.save(); g.scale(w, w); g.strokeStyle = '#355F86'; g.lineWidth = 8; g.lineCap = 'round'; g.beginPath(); g.moveTo(-46, 2); g.quadraticCurveTo(0, -12, 46, 2); g.stroke();
     g.fillStyle = '#F2C230'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 6 : 14; g.lineTo(Math.cos(a) * r, -10 + Math.sin(a) * r); } g.closePath(); g.fill(); g.restore(); return; }
-  if (kind === 'helmet') { g.save(); g.scale(w, w); g.fillStyle = '#F2C230'; g.beginPath(); g.ellipse(0, -8, 52, 30, 0, Math.PI, 0); g.fill(); g.fillStyle = '#D9A21B'; g.fillRect(-56, -10, 112, 7); g.fillStyle = '#FBF6EE'; g.fillRect(-4, -36, 8, 26); g.restore(); return; }
+  if (kind === 'helmet') { g.save(); g.scale(w, w); // a site hard hat: the shell covers the head down to the brow, a short visor in front
+    const gr = g.createLinearGradient(-H, -H, H * .6, 0); gr.addColorStop(0, '#FBD957'); gr.addColorStop(1, '#E6B21F'); g.fillStyle = gr;
+    g.beginPath(); g.ellipse(0, -3, H * 1.06, H * .86, 0, Math.PI, 0); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.ellipse(-H * .42, -H * .55, H * .26, H * .12, -.5, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#E8B624'; g.fillRect(-H * .09, -H * .86, H * .18, H * .83); // the ridge
+    { const cx = -H * .5, cy = -H * .42, a = H * .2, t = H * .075; g.fillStyle = '#3FA34D'; g.fillRect(cx - a / 2, cy - t / 2, a, t); g.fillRect(cx - t / 2, cy - a / 2, t, a); } // a small green safety cross
+    g.fillStyle = '#D29B16'; g.beginPath(); g.roundRect ? g.roundRect(-H * 1.16, -6, H * 2.32, 8, 4) : g.rect(-H * 1.16, -6, H * 2.32, 8); g.fill();
+    g.fillStyle = '#C48E12'; g.beginPath(); g.ellipse(0, 1, H * .62, 6, 0, 0, Math.PI); g.fill(); g.restore(); return; }
 }
+// put a hat on a head: x,y = the top of the head as before, hw = half the head's width at the brow, sink = how far the brow is below x,y
+const HAT_COVER = { helmet: 1, beret: 1, straw: 1, santa: 1, witch: 1, pumpkin: 1 }, HAT_PERCH = { crown: 1, kagami: 1 };
+function wearHat(g, kind, x, y, w, hw, sink) {
+  const dy = HAT_COVER[kind] ? sink : HAT_PERCH[kind] ? sink * .4 : 0;
+  g.save(); g.translate(x, y + dy); hat(g, kind, w, hw / w); g.restore();
+}
+function earHoles(g, x, y, dx, rot) { g.save(); g.fillStyle = 'rgba(60,30,20,.28)'; for (const sd of [-1, 1]) { g.beginPath(); g.ellipse(x + sd * (dx + 4), y, 15, 7, sd * rot, 0, Math.PI * 2); g.fill(); } g.restore(); }
+const hatCovers = k => !!HAT_COVER[k]; // big enough to hide where the ears grow, so the ears are drawn again on top
 let SEED = 1; const srand = () => (SEED = (SEED * 16807) % 2147483647) / 2147483647;
 function shade(hex, k) { const c = hexRgb(hex); return `rgb(${clamp(c[0] * k, 0, 255) | 0},${clamp(c[1] * k, 0, 255) | 0},${clamp(c[2] * k, 0, 255) | 0})`; }
 // a soft, furry ellipse: gradient, inner strokes, fluffy rim
@@ -289,12 +311,13 @@ function faceRen(g, cx, cy, sc, mood, mug) {
   g.beginPath(); g.moveTo(-7, 18); g.quadraticCurveTo(0, 16, 7, 18); g.lineTo(0, 25); g.closePath(); g.fillStyle = '#E0959A'; g.fill();
   mouth(g, 0, 33, 7, mood === 'sick' ? 'wavy' : mood === 'worry' ? 'o' : mood === 'sparkle' || mood === 'cheer' ? 1 : mood === 'yawn' ? 'o' : mood === 'open' || mood === 'blink' ? 'w' : 'smile');
   whiskers(g, 0, 28, 20, 62); moodFx(g, mood, -48, 58);
-  { const hk = mug ? 'mug' : WEAR.ren.hat; if (hk) { g.save(); g.translate(0, -62); hat(g, hk, 1); g.restore(); } else if (WEAR.ren.suit === 'bee') antennae(g, 0, -60, 1); }
+  { const hk = mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 0, -62, 1, 58, 22); else if (WEAR.ren.suit === 'bee') antennae(g, 0, -60, 1); }
   g.restore();
 }
 function faceJill(g, cx, cy, sc, mood) {
   const P = PAL.jill; g.save(); g.translate(cx, cy); g.scale(sc, sc);
-  for (const sd of [-1, 1]) { g.save(); g.translate(sd * 24, -40); g.rotate(sd * .2); fur(g, 0, -22, 16, 30, 0, '#D9B48B', '#B48D64', { vert: 1 }); blob(g, 0, -20, 8, 21, 0, '#EBB1A8'); g.restore(); }
+  const ears = () => { for (const sd of [-1, 1]) { g.save(); g.translate(sd * 24, -40); g.rotate(sd * .2); fur(g, 0, -22, 16, 30, 0, '#D9B48B', '#B48D64', { vert: 1 }); blob(g, 0, -20, 8, 21, 0, '#EBB1A8'); g.restore(); } };
+  ears();
   fur(g, 0, 0, 62, 52, 0, '#EBCDA8', P.b);
   { const gl = g.createRadialGradient(0, 10, 4, 0, 10, 42); gl.addColorStop(0, 'rgba(255,244,228,.26)'); gl.addColorStop(1, 'rgba(255,244,228,0)'); g.fillStyle = gl; g.beginPath(); g.ellipse(0, 10, 44, 38, 0, 0, Math.PI * 2); g.fill(); }
   eyes(g, 'jill', -23, 23, -4, 11, mood);
@@ -304,7 +327,7 @@ function faceJill(g, cx, cy, sc, mood) {
   g.beginPath(); g.moveTo(-5, 15); g.quadraticCurveTo(0, 13.5, 5, 15); g.lineTo(0, 21); g.closePath(); g.fillStyle = '#E0959A'; g.fill();
   mouth(g, 0, 29, 5.5, mood === 'sick' ? 'wavy' : mood === 'worry' ? 'o' : mood === 'sparkle' || mood === 'cheer' ? 1 : mood === 'yawn' ? 'o' : mood === 'open' || mood === 'blink' ? 'w' : 'smile');
   whiskers(g, 0, 22, 15, 54); moodFx(g, mood, -40, 56);
-  if (WEAR.jill.hat) { g.save(); g.translate(0, -48); hat(g, WEAR.jill.hat, .9); g.restore(); } else if (WEAR.jill.suit === 'zebra') zebraMane(g, 0, -60, 22, .8);
+  if (WEAR.jill.hat) { wearHat(g, WEAR.jill.hat, 0, -48, .9, 50, 18); if (hatCovers(WEAR.jill.hat)) { earHoles(g, 0, -36, 24, .2); ears(); } } else if (WEAR.jill.suit === 'zebra') zebraMane(g, 0, -60, 22, .8);
   g.restore();
 }
 function pomEar(g, x, y, r, rot, back) { g.save(); g.translate(x, y); g.rotate(rot); g.beginPath(); g.ellipse(0, 0, r, r * 1.05, 0, 0, Math.PI * 2); g.fillStyle = '#8E786C'; g.fill(); g.beginPath(); g.ellipse(0, r * .12, r * .72, r * .78, 0, 0, Math.PI * 2); g.fillStyle = back ? '#A8928A' : '#E9A9A2'; g.fill();
@@ -329,7 +352,7 @@ function facePom(g, cx, cy, sc, mood) {
   mouth(g, 0, 21, 6, mood === 'sick' ? 'wavy' : mood === 'worry' ? 'o' : mood === 'sparkle' || mood === 'cheer' ? 1 : mood === 'yawn' ? 'o' : mood === 'open' || mood === 'blink' ? 'w' : 'smile');
   whiskers(g, 0, 16, 14, 46);
   headband(g, 0, -34, 52, 0);
-  if (WEAR.pom.hat) { g.save(); g.translate(0, -50); hat(g, WEAR.pom.hat, .95); g.restore(); } else if (WEAR.pom.suit === 'bee') antennae(g, 0, -52, .9);
+  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 0, -50, .95, 42, 12); // his round ears stay tucked under the brim, the outer halves peeking out else if (WEAR.pom.suit === 'bee') antennae(g, 0, -52, .9);
   moodFx(g, mood, -40, 54);
   g.restore();
 }
@@ -356,7 +379,7 @@ function drawPom(g, p) {
   if (p.view === 'look') { facePom(g, 156, hy - 24, .98, p.mood); if (p.mood === 'cheer') { fur(g, 150 + 56, hy + 10, 9, 16, -.6, P.a, P.b); blob(g, 150 + 64, hy - 6, 10, 8, -.3, '#F2B8B0'); } return; }
   pomEar(g, 150 - 40, hy - 26, 16 + p.ear * 2, -.3 - p.ear * .3, 1); pomEar(g, 150 + 40, hy - 26, 16 + p.ear * 2, .3 + p.ear * .3, 1);
   headband(g, 150, hy - 4, 58, 1, p.tiePh);
-  if (WEAR.pom.hat) { g.save(); g.translate(150, hy - 22); hat(g, WEAR.pom.hat, 1.0); g.restore(); } else if (WEAR.pom.suit === 'bee') antennae(g, 150, hy - 24, 1);
+  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 150, hy - 22, 1, 48, 12); else if (WEAR.pom.suit === 'bee') antennae(g, 150, hy - 24, 1);
 }
 function mugHat(g, y) { g.save(); g.translate(0, y); rr(g, -22, -38, 44, 38, 6, '#FBF6EE', '#9AA9B6', 3); g.beginPath(); g.ellipse(27, -19, 9, 12, 0, 0, Math.PI * 2); g.strokeStyle = '#9AA9B6'; g.lineWidth = 5; g.stroke(); rr(g, -22, -30, 44, 7, 0, '#4E77A0'); g.restore(); }
 
@@ -407,13 +430,14 @@ function drawBody(g, who, p) {
       windTie(g, 152, hy + 50, p);
       fur(g, 150, hy + 44, 30, 13, 0, '#D6AE82', '#BE9369', { sparse: 1, rim: 1 }); // the chin/neck fur tucks the root in
     }
-    { const hk = p.mug ? 'mug' : WEAR.ren.hat; if (hk) { g.save(); g.translate(150, hy - 50); hat(g, hk, 1); g.restore(); } else if (WEAR.ren.suit === 'bee') antennae(g, 150, hy - 50, 1); }
+    { const hk = p.mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 150, hy - 50, 1, 54, 18); else if (WEAR.ren.suit === 'bee') antennae(g, 150, hy - 50, 1); }
   } else {
-    for (const sd of [-1, 1]) { g.save(); g.translate(150 + sd * 24, hy - 32); g.rotate(sd * (.2 + p.ear * .4)); fur(g, 0, -22, 16, 30, 0, '#D3AE84', '#AE885F', { vert: 1 }); g.restore(); }
+    const ears = () => { for (const sd of [-1, 1]) { g.save(); g.translate(150 + sd * 24, hy - 32); g.rotate(sd * (.2 + p.ear * .4)); fur(g, 0, -22, 16, 30, 0, '#D3AE84', '#AE885F', { vert: 1 }); g.restore(); } };
+    ears();
     fur(g, 150, hy, 52, 46, 0, '#E5C59F', P.b);
     g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(112, hy + 34); g.quadraticCurveTo(150, hy + 50, 188, hy + 34); g.stroke();
     if (WEAR.jill.suit === 'zebra') zebraMane(g, 150, hy - 44, 52, 1);
-    if (WEAR.jill.hat) { g.save(); g.translate(150, hy - 40); hat(g, WEAR.jill.hat, .9); g.restore(); }
+    if (WEAR.jill.hat) { wearHat(g, WEAR.jill.hat, 150, hy - 40, .9, 43, 14); if (hatCovers(WEAR.jill.hat)) { earHoles(g, 150, hy - 30, 24, .2 + p.ear * .4); ears(); } }
   }
 }
 function lanyard(g, x, y) { g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.lineWidth = 4; g.beginPath(); g.moveTo(x - 34, y - 16); g.lineTo(x - 3, y + 22); g.moveTo(x + 34, y - 16); g.lineTo(x + 3, y + 22); g.stroke(); rr(g, x - 13, y + 20, 26, 34, 4, '#FBF6EE', '#355F86', 3); rr(g, x - 8, y + 25, 16, 10, 2, '#C9A176'); rr(g, x - 8, y + 39, 16, 2.5, 1, '#9AA9B6'); rr(g, x - 3, y + 44, 11, 2.5, 1, '#9AA9B6'); }
