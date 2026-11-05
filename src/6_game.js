@@ -1,4 +1,5 @@
 const MAXSPD = 17.5;
+const lowTop = o => o.k === 'high' && !o.full && o.top < 1.1; // low tables (slide under them, or jump onto / over them)
 /* ================= game state ================= */
 const GAME_URL = (window.HAYDASH_CONFIG && window.HAYDASH_CONFIG.url) || (window.HAYDASH_APP && /^https?:/.test(location.href) ? location.href.split('#')[0].split('?')[0] : 'https://hay-dash.coana.co.jp/');
 const WEATHERS = ['clear', 'rain', 'clear', 'snow']; // by season: spring, rainy summer, autumn, winter
@@ -403,7 +404,7 @@ function update(dt) {
   for (const o of seg.obs) {
     if (o.dead) { o.dead += dt * 2.4; continue; }
     if (o.mv) { if (o.s0 + (o.ds || 0) - G.s < 42) { o.ds = (o.ds || 0) - o.mv * dt; if (o.roar && !o.roared) { o.roared = 1; SFX.roar(); } } }
-    if (o.k === 'deco' || o.k === 'high') continue;
+    if (o.k === 'deco' || (o.k === 'high' && !lowTop(o))) continue; // a low table top can be landed on, like a cushion
     const os0 = o.s0 + (o.ds || 0), os1 = o.s1 + (o.ds || 0);
     if (!o.car && G.s + .3 > os0 && G.s - .3 < os1 && pl1 > o.l0 && pl0 < o.l1 && prevY >= o.top - .22) ground = Math.max(ground, o.top);
   }
@@ -430,7 +431,7 @@ function update(dt) {
     if (!(sHit && latHit)) continue;
     const oTop = o.hitTop != null ? o.hitTop : o.top, yHit = o.k === 'high' ? (G.y + ph > o.yb && G.y < o.top) : (G.y < oTop - .02 - (G.vy < 0 ? .12 : 0));
     if (!yHit) { if (!o.nm && !o.full && G.invT <= 0 && G.fever <= 0) { o.nm = 1; nice(o.k === 'high' ? 'slide' : 'jump'); } continue; }
-    if (o.k !== 'high' && prevY >= oTop - .22) continue;
+    if ((o.k !== 'high' || lowTop(o)) && prevY >= oTop - .22) continue;
     const frontal = prevS + .3 <= os0 + (o.mv ? o.mv * dt : 0) + .06 + step * .1;
     if (frontal || o.full) hit(o);
     else { if (G.pow.dash > 0 || G.fever > 0) smash(o); else { let nl = G.prevLane; if (nl === G.lane) { const c = (o.l0 + o.l1) / 2; nl = clamp(G.lane + (G.lat >= c ? 1 : -1), 0, 2); if (nl === G.lane) nl = clamp(G.lane - (G.lat >= c ? 1 : -1), 0, 2); } G.lane = nl; G.prevLane = nl; stumble(); } }
