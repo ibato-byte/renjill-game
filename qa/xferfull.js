@@ -31,6 +31,17 @@ const PASTE = [
   ['as-is', c => c],
 ];
 const deep = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+// 季節の企画（feed.json の events）で、引き継ぎの後にゲームが正しく起こす変化だけは「引き継げていない」としない（Automation Hub 依頼 #230）：
+//  ① 開催中の企画のプレゼント（1_data.js で ev: の付いた品）が持ち物に増える ② 終わった企画の帽子を、かぶっていた人がいつもの姿に戻る
+// それ以外の違い（品が減る・ほかの品が増える・ほかの着せ替えが変わる）は、今までどおり不合格にする。
+const EV_ITEMS = {}; for (const m of require('fs').readFileSync(require('path').resolve(__dirname, '../src/1_data.js'), 'utf8').matchAll(/id: '([a-z_0-9]+)', who: '([a-z]+)', slot: '([a-z]+)', v: '([a-z_0-9]+)'[^}]*?ev: '([a-z0-9_]+)'/g)) EV_ITEMS[m[1]] = { who: m[2], slot: m[3], v: m[4], ev: m[5] };
+function seasonAdjust(f, a, b) {
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return b;
+  if (f === 'closet') { const c = { ...b }; for (const k of Object.keys(c)) if (!(k in a) && EV_ITEMS[k]) delete c[k]; return c; }
+  if (f === 'wear') { const w = JSON.parse(JSON.stringify(b)); for (const who of Object.keys(a)) { const ah = a[who] && a[who].hat, bh = w[who] && w[who].hat; if (ah && bh === '' && Object.values(EV_ITEMS).some(x => x.who === who && x.slot === 'hat' && x.v === ah)) w[who].hat = ah; } return w; }
+  return b;
+}
+const sameAfterSeason = (f, a, b) => deep(a, seasonAdjust(f, a, b));
 const mk = (() => { const j = new Date(Date.now() + 9 * 3600e3); return 'm' + j.getUTCFullYear() + String(j.getUTCMonth() + 1).padStart(2, '0'); })();
 // an RJ1 code made outside the browser (Node's zlib): any correct deflate must open
 const nodeCode = o => { const b64 = zlib.deflateRawSync(Buffer.from(JSON.stringify(Object.assign({ _v: 1, _at: Date.now() }, o)))).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -91,7 +102,7 @@ const nodeCode0 = o => { const b64 = Buffer.from(JSON.stringify(Object.assign({ 
     await B.p.click('#pClose'); await B.p.waitForTimeout(150);
     await restore(B.p, how[1](code), more, tag + ' [' + how[0] + ']');
     const svB = await SVof(B.p);
-    for (const f of SAME) if (!deep(svA[f], svB[f])) fail(`${tag} [${how[0]}] "${f}" not carried: ${JSON.stringify(svA[f])} → ${JSON.stringify(svB[f])}`);
+    for (const f of SAME) if (!sameAfterSeason(f, svA[f], svB[f])) fail(`${tag} [${how[0]}] "${f}" not carried: ${JSON.stringify(svA[f])} → ${JSON.stringify(svB[f])}`);
     const ui = await B.p.evaluate(() => ({ title: !document.querySelector('#sTitle').hidden, best: document.querySelector('#tBest').textContent, bank: document.querySelector('#tBank').textContent, lang: document.documentElement.lang, pom: !document.querySelector('#pickPom').hidden && document.querySelector('#pickPom').getAttribute('aria-pressed'), mute: document.querySelector('#btnMute').textContent, hay: window.__hayDash.SV.bank }));
     if (!ui.title || !/123/.test(ui.best) || ui.bank.replace(/\D/g, '') !== String(svA.bank) || ui.lang.slice(0, 2) !== lang || ui.pom !== 'true') fail(tag + ' title after restore ' + JSON.stringify(ui));
     if (ui.hay !== svA.bank) fail(tag + ' hay changed on the first start after restore ' + svA.bank + ' → ' + ui.hay); // no second legend/daily/event gift
@@ -151,7 +162,7 @@ const nodeCode0 = o => { const b64 = Buffer.from(JSON.stringify(Object.assign({ 
     const B = await page({ noDS: true, name: 'old iPhone' }); await B.p.goto(DIST); await B.p.waitForTimeout(700);
     if (await B.p.evaluate(() => typeof DecompressionStream === 'function')) fail('could not remove DecompressionStream for the test');
     await restore(B.p, code, null, 'old iPhone');
-    const svB = await SVof(B.p); for (const f of SAME.concat(['seen', 'seenN'])) if (!deep(svA[f], svB[f])) fail('old iPhone: "' + f + '" not carried');
+    const svB = await SVof(B.p); for (const f of SAME.concat(['seen', 'seenN'])) if (!sameAfterSeason(f, svA[f], svB[f])) fail('old iPhone: "' + f + '" not carried');
     log.push('long save ' + code.length + ' chars; read without DecompressionStream ok');
     // and the other way: an older iPhone makes RJ0, a new phone reads it
     const C = await page({ noDS: true, seed: RICH('en'), name: 'RJ0 maker' }); await C.p.addInitScript(() => { window.CompressionStream = undefined; }); await C.p.goto(DIST); await C.p.waitForTimeout(700);
