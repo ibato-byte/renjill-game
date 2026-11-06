@@ -53,7 +53,8 @@ jobs:
         with: { name: qa-report, path: "qa-report.*\nkpi.json\n/tmp/rj-shots/**" }
       - name: 結果をまとめに出す
         if: always()
-        run: cat qa-report.md >> "$GITHUB_STEP_SUMMARY"
+        # ログにも出す：不合格の詳しい理由を、成果物をダウンロードせずに読めるように（Hub 依頼 #230）
+        run: cat qa-report.md | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Automation Hub に記録（失敗したら「修正」の依頼・遊んだ人の数を表示）
         if: always() && github.event_name != 'pull_request'
         env:
