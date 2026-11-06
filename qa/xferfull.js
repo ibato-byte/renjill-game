@@ -110,7 +110,13 @@ const nodeCode0 = o => { const b64 = Buffer.from(JSON.stringify(Object.assign({ 
     if (vp.width === 390) { await B.p.click('#btnStart'); await B.p.waitForTimeout(1500);
     await B.p.evaluate(() => { window.__hayDash.G.invT = 0; window.__die('obstacle'); }); await B.p.waitForTimeout(1200);
     await B.p.evaluate(() => { const r = document.querySelector('#btnRvNo'); if (r && !document.querySelector('#sRevive').hidden) r.click(); }); await B.p.waitForTimeout(1200);
-    const after = await SVof(B.p); if (!(after.runs === svA.runs + 1) || !(after.bank >= svA.bank) || after.pid !== svA.pid || !deep(after.wear, svA.wear)) fail(tag + ' after one run ' + JSON.stringify({ runs: after.runs, bank: after.bank, pid: after.pid })); }
+    // 季節の企画が終わった帽子は、引き継ぎのときと同じく外れてよい（sameAfterSeason）。不合格のときは、どこが違うかを全部出す
+    const after = await SVof(B.p), bad = [];
+    if (after.runs !== svA.runs + 1) bad.push('runs ' + svA.runs + '→' + after.runs);
+    if (!(after.bank >= svA.bank)) bad.push('bank ' + svA.bank + '→' + after.bank);
+    if (after.pid !== svA.pid) bad.push('pid ' + svA.pid + '→' + after.pid);
+    if (!sameAfterSeason('wear', svA.wear, after.wear)) bad.push('wear ' + JSON.stringify(svA.wear) + '→' + JSON.stringify(after.wear));
+    if (bad.length) fail(tag + ' after one run: ' + bad.join(' / ')); }
     log.push(tag + ' ' + how[0] + ' ok (' + code.length + ' chars)');
     await A.ctx.close(); await B.ctx.close();
   }
