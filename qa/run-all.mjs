@@ -92,5 +92,7 @@ const failed = results.filter(r => !r.pass);
 const report = { mode: MODE, at: new Date().toISOString(), sec: Math.round((Date.now() - t0) / 1000), passed: results.length - failed.length, total: results.length, failed: failed.map(f => f.name), results };
 writeFileSync(path.join(ROOT, 'qa-report.json'), JSON.stringify(report, null, 1));
 writeFileSync(path.join(ROOT, 'qa-report.md'), `# QA（${MODE}）${failed.length ? '不合格 ' + failed.length + '件' : '全部合格'}\n\n${results.map(r => `- ${r.pass ? '✅' : '❌'} ${r.why}（${r.name}・${r.sec}秒）`).join('\n')}\n\n${failed.map(f => `## ❌ ${f.name}\n\`\`\`\n${f.tail}\n\`\`\``).join('\n\n')}\n`);
+// 不合格の中身をログにも出す（まとめ画面が見られないときも原因が分かるように。2026-11-06 #230）
+for (const f of failed) console.log('\n--- ' + f.name + ' の最後の出力 ---\n' + f.tail);
 console.log(failed.length ? 'QA FAILED: ' + failed.map(f => f.name).join(', ') : 'QA ALL PASSED ' + results.length);
 process.exit(failed.length ? 1 : 0);
