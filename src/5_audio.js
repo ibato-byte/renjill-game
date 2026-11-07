@@ -4,9 +4,12 @@ function audioInit() {
   if (AU.ctx) { if (AU.ctx.state === 'suspended') AU.ctx.resume(); return; }
   try {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-    AU.ctx = new AC(); AU.master = AU.ctx.createGain(); AU.master.gain.value = SV.mute ? 0 : .6; AU.master.connect(AU.ctx.destination);
-    AU.music = AU.ctx.createGain(); AU.music.gain.value = OPT().music ? .32 : 0; AU.music.connect(AU.master);
-    AU.sfx = AU.ctx.createGain(); AU.sfx.gain.value = OPT().sfx ? 1 : 0; AU.sfx.connect(AU.master);
+    AU.ctx = new AC(); AU.master = AU.ctx.createGain(); AU.master.gain.value = SV.mute ? 0 : .6;
+    // 2026-11：軽いコンプレッサーで音割れを防ぎ、短い響き（部屋鳴り）を少し足す。音の数が増えても耳に痛くならない
+    try { const comp = AU.ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 18; comp.ratio.value = 3; comp.attack.value = .004; comp.release.value = .12; AU.master.connect(comp); comp.connect(AU.ctx.destination); AU.comp = comp; } catch (e) { AU.master.connect(AU.ctx.destination); }
+    try { const sr = AU.ctx.sampleRate, n = Math.floor(sr * .7), ir = AU.ctx.createBuffer(2, n, sr); for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); let lp = 0; for (let i = 0; i < n; i++) { const w = (Math.random() * 2 - 1); lp += (w - lp) * .35; d[i] = lp * Math.pow(1 - i / n, 2.6) * (i < 40 ? i / 40 : 1); } } const cv = AU.ctx.createConvolver(); cv.buffer = ir; const vg = AU.ctx.createGain(); vg.gain.value = .22; cv.connect(vg); vg.connect(AU.master); AU.verb = cv; } catch (e) { AU.verb = null; }
+    AU.music = AU.ctx.createGain(); AU.music.gain.value = OPT().music ? .32 : 0; AU.music.connect(AU.master); if (AU.verb) { const s = AU.ctx.createGain(); s.gain.value = .5; AU.music.connect(s); s.connect(AU.verb); }
+    AU.sfx = AU.ctx.createGain(); AU.sfx.gain.value = OPT().sfx ? 1 : 0; AU.sfx.connect(AU.master); if (AU.verb) { const s = AU.ctx.createGain(); s.gain.value = .35; AU.sfx.connect(s); s.connect(AU.verb); }
     const nb = AU.ctx.createBuffer(1, 800, AU.ctx.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < 800; i++) nd[i] = (Math.random() * 2 - 1) * (1 - i / 800); AU.hat = nb;
   } catch (e) { AU.ctx = null; }
 }
@@ -14,9 +17,34 @@ function setMute(m) { SV.mute = m; save(); if (AU.master) AU.master.gain.value =
 function applyAudioOpt() { if (!AU.ctx) return; AU.music.gain.value = OPT().music ? .32 : 0; AU.sfx.gain.value = OPT().sfx ? 1 : 0; }
 function tone(freq, dur, type, vol, when, slide, dest) {
   if (!AU.ctx) return; const t = when || AU.ctx.currentTime;
+  if (type === 'pluck') return pluck(freq, dur, vol, t, dest);
+  if (type === 'bell') return bell(freq, dur, vol, t, dest);
   const o = AU.ctx.createOscillator(), g = AU.ctx.createGain();
   o.type = type || 'square'; o.frequency.setValueAtTime(freq, t); if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || .2, t + .008); g.gain.exponentialRampToValueAtTime(.0008, t + dur);
+  o.connect(g); g.connect(dest || AU.sfx || AU.master); o.start(t); o.stop(t + dur + .02);
+}
+// はじいた弦（ウクレレ風）：倍音を含む波形を、明るさが落ちていくローパスで
+function pluck(freq, dur, vol, t, dest) {
+  const o = AU.ctx.createOscillator(), f = AU.ctx.createBiquadFilter(), g = AU.ctx.createGain();
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(freq, t); o.detune.setValueAtTime(4, t);
+  f.type = 'lowpass'; f.Q.value = 1.2; f.frequency.setValueAtTime(Math.min(12000, freq * 7), t); f.frequency.exponentialRampToValueAtTime(Math.max(200, freq * 1.3), t + Math.max(.08, dur * .9));
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime((vol || .2) * 1.3, t + .004); g.gain.exponentialRampToValueAtTime(.0006, t + dur);
+  o.connect(f); f.connect(g); g.connect(dest || AU.sfx || AU.master); o.start(t); o.stop(t + dur + .02);
+}
+// 鉄琴：基音＋2つの非整数倍音
+function bell(freq, dur, vol, t, dest) {
+  for (const [r, a, d] of [[1, 1, 1], [2.76, .35, .45], [5.4, .12, .22]]) {
+    const o = AU.ctx.createOscillator(), g = AU.ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(freq * r, t);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime((vol || .2) * a, t + .003); g.gain.exponentialRampToValueAtTime(.0005, t + dur * d);
+    o.connect(g); g.connect(dest || AU.sfx || AU.master); o.start(t); o.stop(t + dur * d + .02);
+  }
+}
+// 太鼓・足音：音程が下がる短い音
+function thump(f0, f1, dur, vol, when, dest) {
+  if (!AU.ctx) return; const t = when || AU.ctx.currentTime; const o = AU.ctx.createOscillator(), g = AU.ctx.createGain();
+  o.type = 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || .3, t + .003); g.gain.exponentialRampToValueAtTime(.0008, t + dur);
   o.connect(g); g.connect(dest || AU.sfx || AU.master); o.start(t); o.stop(t + dur + .02);
 }
 function noise(dur, vol, hp) {
@@ -26,20 +54,20 @@ function noise(dur, vol, hp) {
   const g = AU.ctx.createGain(); g.gain.value = vol || .2; src.connect(f); f.connect(g); g.connect(AU.sfx || AU.master); src.start(t);
 }
 const SFX = {
-  hay(n) { tone(880 * Math.pow(1.0595, Math.min(n, 12)), .07, 'square', .07); },
-  food() { tone(660, .06, 'triangle', .14); tone(990, .09, 'triangle', .12, AU.ctx && AU.ctx.currentTime + .05); },
-  treat() { [784, 988, 1175, 1568].forEach((f, i) => tone(f, .1, 'triangle', .13, AU.ctx && AU.ctx.currentTime + i * .05)); },
-  power() { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .12, 'square', .09, AU.ctx && AU.ctx.currentTime + i * .045)); },
-  jump() { tone(320, .16, 'sine', .14, 0, 640); },
-  slide() { noise(.18, .12, 1200); },
-  turn() { tone(1047, .06, 'square', .08); tone(1319, .08, 'square', .08, AU.ctx && AU.ctx.currentTime + .06); },
-  bump() { tone(180, .18, 'square', .18, 0, 90); noise(.12, .15, 300); },
+  hay(n) { const f = 880 * Math.pow(1.0595, Math.min(n, 12)); tone(f, .14, 'pluck', .11); tone(f * 2, .08, 'sine', .03, AU.ctx && AU.ctx.currentTime + .01); },
+  food() { tone(660, .12, 'pluck', .16); tone(990, .16, 'pluck', .14, AU.ctx && AU.ctx.currentTime + .06); noise(.05, .06, 2500); },
+  treat() { [784, 988, 1175, 1568].forEach((f, i) => tone(f, .5, 'bell', .14, AU.ctx && AU.ctx.currentTime + i * .06)); },
+  power() { [523, 659, 784, 1047, 1319].forEach((f, i) => { tone(f, .18, 'pluck', .12, AU.ctx && AU.ctx.currentTime + i * .05); tone(f, .6, 'bell', .05, AU.ctx && AU.ctx.currentTime + i * .05); }); },
+  jump() { tone(320, .16, 'sine', .14, 0, 640); noise(.12, .05, 1800); },
+  slide() { noise(.22, .14, 900); thump(140, 80, .12, .08); },
+  turn() { tone(1047, .12, 'pluck', .1); tone(1319, .16, 'pluck', .1, AU.ctx && AU.ctx.currentTime + .06); noise(.08, .05, 3000); },
+  bump() { thump(170, 60, .22, .3); noise(.1, .16, 400); tone(900, .04, 'triangle', .05); },
   bad() { tone(392, .14, 'sawtooth', .1, 0, 196); tone(311, .2, 'sawtooth', .1, AU.ctx && AU.ctx.currentTime + .14, 150); },
-  crash() { noise(.45, .3, 200); tone(220, .5, 'sawtooth', .16, 0, 55); },
+  crash() { noise(.45, .3, 200); thump(220, 45, .5, .35); tone(220, .5, 'sawtooth', .08, 0, 55); },
   rumble() { if (!AU.ctx) return; const t0 = AU.ctx.currentTime; for (let i = 0; i < 6; i++) { tone(55 + (i % 2) * 8, .22, 'sawtooth', .07, t0 + i * .16); } noise(1.0, .08, 120); },
   roar() { if (!AU.ctx) return; tone(70, 1.1, 'sawtooth', .09, 0, 160); tone(140, .9, 'square', .03, 0, 320); },
-  ui() { tone(740, .05, 'triangle', .1); },
-  mission() { [659, 784, 1047, 1319].forEach((f, i) => tone(f, .16, 'triangle', .14, AU.ctx && AU.ctx.currentTime + i * .09)); },
+  ui() { tone(740, .07, 'pluck', .09); },
+  mission() { [659, 784, 1047, 1319].forEach((f, i) => { tone(f, .2, 'pluck', .14, AU.ctx && AU.ctx.currentTime + i * .09); tone(f, .7, 'bell', .06, AU.ctx && AU.ctx.currentTime + i * .09); }); },
   chime() { // the classic school/office chime
     if (!AU.ctx) return; const t = AU.ctx.currentTime; const N = [659, 523, 587, 392, 392, 587, 659, 523];
     N.forEach((f, i) => { tone(f, 1.1, 'sine', .22, t + i * .5); tone(f * 2, .6, 'sine', .05, t + i * .5); });
@@ -60,7 +88,9 @@ function musicTick() {
   const spb = 60 / (sg.bpm + Math.min(30, (G.speed - 10) * 1.5)) / 2;
   while (AU.nextT < AU.ctx.currentTime + .12) {
     const st = AU.step, base = 261.63 * Math.pow(2, musicKey / 12);
-    const m = sg.mel[st % sg.mel.length]; if (m > -50) tone(base * 2 * Math.pow(2, m / 12), spb * (sg.lead === 'square' ? .8 : 1.4), sg.lead, sg.lv, AU.nextT, 0, AU.music);
+    const m = sg.mel[st % sg.mel.length]; if (m > -50) tone(base * 2 * Math.pow(2, m / 12), spb * (sg.lead === 'square' ? .8 : 1.4), sg.lead === 'triangle' ? 'pluck' : sg.lead, sg.lv * (sg.lead === 'triangle' ? 1.6 : 1), AU.nextT, 0, AU.music);
+    if (st % 8 === 0 || st % 8 === 4) thump(120, 48, .14, .22, AU.nextT, AU.music);   // キック
+    if (sg.hat && (st % 8 === 2 || st % 8 === 6)) { const n = AU.ctx.createBufferSource(); n.buffer = AU.hat; const g = AU.ctx.createGain(); g.gain.value = .07; const f = AU.ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800; n.connect(f); f.connect(g); g.connect(AU.music); n.start(AU.nextT); }   // 軽いスネア
     if (st % 2 === 0) tone(base / 2 * Math.pow(2, sg.bass[(st / 4 | 0) % 8] / 12), spb * 1.7, sg.bw, .15, AU.nextT, 0, AU.music);
     if (sg.chord && st % 8 === 0) for (const iv of [4, 7, 11]) tone(base * Math.pow(2, (sg.bass[(st / 4 | 0) % 8] + iv) / 12), spb * 7, 'sine', .025, AU.nextT, 0, AU.music);
     if (sg.hat && st % 2 === 1 && AU.hat) { const n = AU.ctx.createBufferSource(); n.buffer = AU.hat; const g = AU.ctx.createGain(); g.gain.value = st % 4 === 3 ? .05 : .025; n.connect(g); g.connect(AU.music); n.start(AU.nextT); }
