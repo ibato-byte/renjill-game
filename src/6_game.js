@@ -658,7 +658,7 @@ function collect(it, seg) {
   G.stats.foods[it.type] = (G.stats.foods[it.type] || 0) + 1;
   G.score += (def.pts + (G.fever > 0 ? 0 : Math.min(G.combo, 20) * 1.5)) * (G.fever > 0 ? mult * .75 : mult);
   if (def.kind === 'hay' && (pomOn() || G.char === 'pom')) pomPouch(def.gold ? 5 : 1);
-  if (def.kind === 'hay') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; G.feverG += (def.gold ? 25 : .55) * feverK(); SFX.hay(G.combo % 13); burst(sx, sy, def.gold ? '#F2C230' : '#9BB85A', def.gold ? 16 : 5); if (!def.gold) FX.push({ x: sx, y: sy, vx: 0, vy: -40, life: .18, t: 0, c: 'rgba(255,255,230,.9)', r: 7 }); // a soft glint on every hay if (def.gold) { floatText(sx, sy - 20, '+30', '#F2C230'); react('sparkle', 0); } }
+  if (def.kind === 'hay') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; G.feverG += (def.gold ? 25 : .55) * feverK(); SFX.hay(G.combo % 13); burst(sx, sy, def.gold ? '#F2C230' : '#9BB85A', def.gold ? 16 : 5); if (!def.gold) FX.push({ x: sx, y: sy, vx: 0, vy: -40, life: .18, t: 0, c: 'rgba(255,255,230,.9)', r: 7 }); /* a soft glint on every hay */ if (def.gold) { floatText(sx, sy - 20, '+30', '#F2C230'); react('sparkle', 0); } }
   else if (def.kind === 'food') { G.feverG += 3 * feverK(); SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#F6EBDC'); }
   else if (def.kind === 'veg') { G.feverG += 5 * feverK(); G.stats.veg++; SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#B8D98A'); burst(sx, sy, '#5F9E5A', 6); }
   else if (def.kind === 'treat') { G.feverG += 9 * feverK(); G.stats.treats++; SFX.treat(); floatText(sx, sy, L(def) + '!', '#F2C230'); burst(sx, sy, '#E2434B', 10); if (Math.random() < .4) react('happy', 0); }
