@@ -51,7 +51,9 @@ const nodeCode0 = o => { const b64 = Buffer.from(JSON.stringify(Object.assign({ 
     const p = await ctx.newPage(); p.on('pageerror', e => fail((o.name || '') + ' pageerror ' + e.message)); await p.route('**/fonts.googleapis.com/**', r => r.abort());
     return { ctx, p };
   }
-  const SVof = p => p.evaluate(k => JSON.parse(localStorage.getItem(k) || '{}'), KEY);
+  // 季節の配布品（帽子など）は、読んだ瞬間に配られたかどうかで A と B に差が出る（2026-11-08、ko/1280 と old iPhone で発見）ので、比べる前に取り除く
+  const SVof = async p => { const sv = await p.evaluate(k => JSON.parse(localStorage.getItem(k) || '{}'), KEY); let ev = []; try { ev = await p.evaluate(() => window.__hayDash.ev('CLOSET.filter(c => c.ev).map(c => [c.id, c.who, c.slot, c.v])')); } catch (e) { }
+    if (sv.closet) for (const [id] of ev) delete sv.closet[id]; if (sv.wear) for (const [, who, slot, v] of ev) if (sv.wear[who] && sv.wear[who][slot] === v) sv.wear[who][slot] = ''; return sv; };
   async function restore(p, text, expectWarn, tag) { // settings → paste → tap once (see what the code holds) → tap again (restore) → the page starts again
     await p.click('#btnSet'); await p.waitForTimeout(250);
     await p.evaluate(() => document.querySelector('#xferIn').scrollIntoView({ block: 'center' }));
