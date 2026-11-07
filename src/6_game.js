@@ -289,7 +289,7 @@ function pomPouch(n) { // Pom stuffs the hay you pass into its cheek pouches; wh
 function pomJoin() {
   const M = G.pom; if (M.on) { G.score += 200 * SV.mlevel; return; }
   M.on = 1; M.show = true; M.lat = G.lat; M.back = 6; M.y = 0; M.vy = 0; M.air = false; M.pouch = 0; G.stats.pom = 1;
-  SFX.mission(); burst(W / 2, H * .55, '#F2C230', 26); buzz(40); G.hitStop = .06;
+  SFX.pom(); burst(W / 2, H * .55, '#F2C230', 26); buzz(40); G.hitStop = .06;
   const first = !SV.pomMet; SV.pomMet = (SV.pomMet || 0) + 1; save(); G.pomPeek = null;
   bannerNow(first ? (tr('ナゾの新人あらわる！', 'A MYSTERY ROOKIE!')) : (tr('ポム合流！', 'POM JOINS!')), t(first ? 'pomJoin' : 'pomJoin2'), 'good');
   const id = G.runId; setTimeout(() => { if (G.runId === id) pomSay(t(first ? 'pomHi' : 'pomHi2'), 'sparkle', 1.8); }, 500);
@@ -414,7 +414,7 @@ function update(dt) {
     if (!G.air && G.y > ground + .001 && G.vy <= 0) G.coyote = .1; // coyote time: a jump still counts for a tenth of a second after running off an edge
     if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault || 1); G.y += G.vy * dt; G.air = true; }
     if (G.y <= ground + .001 && G.vy <= 0) { // land: also when the fall stops a hair above the floor (a height of 0.0005 used to leave the runner 'in the air' forever: no gravity, no landing, no jump)
-      if (G.air && G.vy < -4) { const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
+      if (G.air && G.vy < -4) { SFX.land(); const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
       if (G.air) { G.landT = .14; G.landK = clamp(-G.vy / 16, .4, 1); } // the landing squash (drawn in drawBunnyWorld)
       G.y = ground; G.vy = 0;
       if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; G.vaultDown = 0; } else { G.air = false; G.vault = 0; G.vaultDown = 0; }
@@ -492,6 +492,7 @@ function update(dt) {
   G.clock = seg.t0 + (seg.t1 - seg.t0) * clamp(G.s / seg.len, 0, 1);
   // animation
   P.ph += dt * (6 + G.speed * .55);
+  { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1); } } // a soft footstep on every stride
   P.air = G.air && !flying; P.slide = sliding; P.fly = flying; P.flash = G.invT > 0 && G.invT < 2.4 && !flying; P.glow = G.shield ? '#5FB05A' : G.pow.dash > 0 ? '#F08A2E' : null;
   if (P.look > 0) P.look = Math.max(0, P.look - dt);
   if (G.follow.look > 0) G.follow.look = Math.max(0, G.follow.look - dt);
