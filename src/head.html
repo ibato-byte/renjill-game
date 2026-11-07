@@ -86,7 +86,7 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 #turnCue{position:absolute;top:44%;font-family:var(--f-display);font-size:clamp(46px,14vw,80px);color:var(--tie);text-shadow:0 4px 0 var(--ink);opacity:0;transition:opacity .12s}
 #turnCue.l{left:8%}#turnCue.r{right:8%}#turnCue.show{opacity:1}
 #hChal{display:block;font-size:10px;font-weight:900;color:#C8463C;letter-spacing:.02em}#hChal:empty{display:none}
-#combo{display:block;font-weight:900;font-size:11px;color:var(--tie);min-height:0;transform-origin:left center}#combo:empty{display:none}#combo.pop{animation:comboPop .22s ease-out}@keyframes comboPop{0%{transform:scale(1.4)}100%{transform:scale(1)}}
+#combo{display:block;font-weight:900;font-size:11px;color:var(--tie);min-height:0}#combo:empty{display:none}#combo.pop{animation:comboPop .22s ease-out}@keyframes comboPop{0%{transform:translateY(-3px);filter:brightness(1.7)}100%{transform:none;filter:none}}
 
 html[lang="ja"] .mini em{white-space:nowrap;font-size:10px;letter-spacing:-.02em}.shop-item p{font-size:13px;line-height:1.35}
 /* short screens: tighten the title so START is on screen */
