@@ -13,7 +13,7 @@ const { chromium } = require('playwright');
   for (const C of CASES) for (const lang of ['ja-JP', 'en-US']) {
     const ctx = await b.newContext({ viewport: { width: 375, height: 667 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, locale: lang });
     const p = await ctx.newPage();
-    const errs = []; p.on('pageerror', e => errs.push('ERR ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('CON ' + m.text().slice(0, 160)); });
+    const errs = []; p.on('pageerror', e => errs.push('ERR ' + e.message)); p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|ERR_FAILED|ERR_INTERNET_DISCONNECTED/.test(m.text())) errs.push('CON ' + m.text().slice(0, 160)); }); // 検査環境ではネットにつながらない読み込み失敗は数えない
     await p.route('**/fonts.googleapis.com/**', r => r.abort());
     await p.goto('file://' + process.cwd() + '/dist/test.html'); await p.waitForTimeout(800);
     await p.evaluate(best => { const H = window.__hayDash; H.SV.nickAsked = 1; H.SV.tutDone = 1; H.SV.pomMet = 1; H.SV.runs = Math.max(H.SV.runs || 0, 10); H.SV.best = best; }, C.best);
