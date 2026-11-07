@@ -47,16 +47,24 @@ function thump(f0, f1, dur, vol, when, dest) {
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || .3, t + .003); g.gain.exponentialRampToValueAtTime(.0008, t + dur);
   o.connect(g); g.connect(dest || AU.sfx || AU.master); o.start(t); o.stop(t + dur + .02);
 }
-function noise(dur, vol, hp) {
+function noise(dur, vol, hp, dest) {
   if (!AU.ctx) return; const t = AU.ctx.currentTime, n = Math.floor(AU.ctx.sampleRate * dur);
   const buf = AU.ctx.createBuffer(1, n, AU.ctx.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
   const src = AU.ctx.createBufferSource(); src.buffer = buf; const f = AU.ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp || 800;
-  const g = AU.ctx.createGain(); g.gain.value = vol || .2; src.connect(f); f.connect(g); g.connect(AU.sfx || AU.master); src.start(t);
+  const g = AU.ctx.createGain(); g.gain.value = vol || .2; src.connect(f); f.connect(g); g.connect(dest || AU.sfx || AU.master); src.start(t);
+}
+// 左右：いまのレーンの位置に合わせて、取る音を少しだけ左右に振る（真ん中のレーンは真ん中）
+function lanePan() {
+  if (!AU.ctx || !AU.ctx.createStereoPanner || typeof G === 'undefined' || !Number.isFinite(G.lat)) return null;
+  try { const p = AU.ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, G.lat / 2.5)) * .35; p.connect(AU.sfx || AU.master); return p; } catch (e) { return null; }
 }
 const SFX = {
-  hay(n) { const f = 880 * Math.pow(1.0595, Math.min(n, 12)); tone(f, .14, 'pluck', .11); tone(f * 2, .08, 'sine', .03, AU.ctx && AU.ctx.currentTime + .01); },
-  food() { tone(660, .12, 'pluck', .16); tone(990, .16, 'pluck', .14, AU.ctx && AU.ctx.currentTime + .06); noise(.05, .06, 2500); },
-  treat() { [784, 988, 1175, 1568].forEach((f, i) => tone(f, .5, 'bell', .14, AU.ctx && AU.ctx.currentTime + i * .06)); },
+  hay(n) { const d = lanePan(), f = 880 * Math.pow(1.0595, Math.min(n, 12)); tone(f, .14, 'pluck', .11, 0, 0, d); tone(f * 2, .08, 'sine', .03, AU.ctx && AU.ctx.currentTime + .01, 0, d); },
+  food() { const d = lanePan(); tone(660, .12, 'pluck', .16, 0, 0, d); tone(990, .16, 'pluck', .14, AU.ctx && AU.ctx.currentTime + .06, 0, d); noise(.05, .06, 2500, d); },
+  treat() { const d = lanePan(); [784, 988, 1175, 1568].forEach((f, i) => tone(f, .5, 'bell', .14, AU.ctx && AU.ctx.currentTime + i * .06, 0, d)); },
+  step(k) { thump(k ? 150 : 135, 70, .06, .035); noise(.03, .012, 1200); },        // 足音（走りの拍に合わせて 6_game から）
+  land() { thump(170, 70, .1, .1); noise(.06, .05, 600); },                        // 着地
+  pom() { const t = AU.ctx && AU.ctx.currentTime; tone(420, .09, 'sine', .14, 0, 900); tone(470, .1, 'sine', .14, t + .13, 980); noise(.08, .05, 1500); tone(1568, .4, 'bell', .06, t + .26); },   // ポムの登場（ほおぶくろ「ぽん、ぽん」）
   power() { [523, 659, 784, 1047, 1319].forEach((f, i) => { tone(f, .18, 'pluck', .12, AU.ctx && AU.ctx.currentTime + i * .05); tone(f, .6, 'bell', .05, AU.ctx && AU.ctx.currentTime + i * .05); }); },
   jump() { tone(320, .16, 'sine', .14, 0, 640); noise(.12, .05, 1800); },
   slide() { noise(.22, .14, 900); thump(140, 80, .12, .08); },
@@ -70,25 +78,26 @@ const SFX = {
   mission() { [659, 784, 1047, 1319].forEach((f, i) => { tone(f, .2, 'pluck', .14, AU.ctx && AU.ctx.currentTime + i * .09); tone(f, .7, 'bell', .06, AU.ctx && AU.ctx.currentTime + i * .09); }); },
   chime() { // the classic school/office chime
     if (!AU.ctx) return; const t = AU.ctx.currentTime; const N = [659, 523, 587, 392, 392, 587, 659, 523];
-    N.forEach((f, i) => { tone(f, 1.1, 'sine', .22, t + i * .5); tone(f * 2, .6, 'sine', .05, t + i * .5); });
+    N.forEach((f, i) => { tone(f, 1.1, 'sine', .2, t + i * .5); tone(f, 1.3, 'bell', .07, t + i * .5); });   // 鐘の倍音を少し（鉄琴型）
   },
 };
 // one little original theme per part of the day (melody in semitones, -99 = rest)
 const SONGS = {
-  home:    { bpm: 104, lead: 'triangle', lv: .07, mel: [0, 4, 7, 4, 9, 7, 4, -99, 2, 5, 9, 5, 7, -99, 4, 2, 0, 4, 7, 12, 11, 9, 7, -99, 5, 4, 2, 4, 0, -99, -99, -99], bass: [0, 0, 5, 5, 7, 7, 0, 0], bw: 'sine', hat: 0 },
-  commute: { bpm: 132, lead: 'square', lv: .05, mel: [0, 4, 7, 9, 7, 4, 2, 4, 0, 4, 7, 12, 9, 7, 4, 2, 0, 2, 4, 7, 9, 12, 9, 7, 5, 4, 2, 4, 2, 0, -1, -3], bass: [0, 0, 7, 7, 5, 5, 7, 7], bw: 'triangle', hat: 1 },
-  office:  { bpm: 118, lead: 'square', lv: .04, mel: [7, -99, 7, 9, 7, 4, -99, 2, 4, -99, 4, 5, 4, 0, -99, -99, 2, -99, 2, 4, 2, -1, -99, 0, 2, 4, 7, 4, 2, 0, -99, -99], bass: [0, 4, 5, 7, 9, 7, 5, 4], bw: 'triangle', hat: 1 },
-  evening: { bpm: 112, lead: 'triangle', lv: .07, mel: [11, 9, 7, 4, 7, -99, 9, 11, 12, 11, 9, 7, 9, -99, -99, 4, 7, 9, 11, 14, 12, 11, 9, 7, 4, 2, 4, 7, -99, -99, -99, -99], bass: [0, 0, -3, -3, 5, 5, 7, 7], bw: 'sine', hat: 1, chord: 1 },
-  night:   { bpm: 92, lead: 'sine', lv: .08, mel: [7, -99, 4, -99, 2, 4, -99, -99, 9, -99, 7, -99, 4, 2, -99, -99, 0, -99, 2, 4, 7, -99, 9, -99, 7, 4, 2, -99, 0, -99, -99, -99], bass: [0, 0, 5, 5, -3, -3, 7, 7], bw: 'sine', hat: 0, chord: 1 },
+  home:    { bpm: 104, inst: 'bell', lv: .06, mel: [0, 4, 7, 4, 9, 7, 4, -99, 2, 5, 9, 5, 7, -99, 4, 2, 0, 4, 7, 12, 11, 9, 7, -99, 5, 4, 2, 4, 0, -99, -99, -99], bass: [0, 0, 5, 5, 7, 7, 0, 0], bw: 'sine', hat: 0 },
+  commute: { bpm: 132, inst: 'pluck', lv: .08, mel: [0, 4, 7, 9, 7, 4, 2, 4, 0, 4, 7, 12, 9, 7, 4, 2, 0, 2, 4, 7, 9, 12, 9, 7, 5, 4, 2, 4, 2, 0, -1, -3], bass: [0, 0, 7, 7, 5, 5, 7, 7], bw: 'triangle', hat: 1 },
+  office:  { bpm: 118, inst: 'pluck', lv: .07, mel: [7, -99, 7, 9, 7, 4, -99, 2, 4, -99, 4, 5, 4, 0, -99, -99, 2, -99, 2, 4, 2, -1, -99, 0, 2, 4, 7, 4, 2, 0, -99, -99], bass: [0, 4, 5, 7, 9, 7, 5, 4], bw: 'triangle', hat: 1 },
+  evening: { bpm: 112, inst: 'bell', lv: .05, mel: [11, 9, 7, 4, 7, -99, 9, 11, 12, 11, 9, 7, 9, -99, -99, 4, 7, 9, 11, 14, 12, 11, 9, 7, 4, 2, 4, 7, -99, -99, -99, -99], bass: [0, 0, -3, -3, 5, 5, 7, 7], bw: 'sine', hat: 1, chord: 1 },
+  night:   { bpm: 92, inst: 'sine', lv: .07, mel: [7, -99, 4, -99, 2, 4, -99, -99, 9, -99, 7, -99, 4, 2, -99, -99, 0, -99, 2, 4, 7, -99, 9, -99, 7, 4, 2, -99, 0, -99, -99, -99], bass: [0, 0, 5, 5, -3, -3, 7, 7], bw: 'sine', hat: 0, chord: 1 },
 };
 let musicKey = 0, musicArea = 'home';
 function musicTick() {
   if (!AU.ctx || !AU.on) return;
   const sg = SONGS[musicArea] || SONGS.commute;
-  const spb = 60 / (sg.bpm + Math.min(30, (G.speed - 10) * 1.5)) / 2;
+  const fev = typeof G !== 'undefined' && G.fever > 0;   // フィーバー中：主旋律を1オクターブ上、テンポ +10%
+  const spb = 60 / ((sg.bpm + Math.min(30, (G.speed - 10) * 1.5)) * (fev ? 1.1 : 1)) / 2;
   while (AU.nextT < AU.ctx.currentTime + .12) {
-    const st = AU.step, base = 261.63 * Math.pow(2, musicKey / 12);
-    const m = sg.mel[st % sg.mel.length]; if (m > -50) tone(base * 2 * Math.pow(2, m / 12), spb * (sg.lead === 'square' ? .8 : 1.4), sg.lead === 'triangle' ? 'pluck' : sg.lead, sg.lv * (sg.lead === 'triangle' ? 1.6 : 1), AU.nextT, 0, AU.music);
+    const st = AU.step, base = 261.63 * Math.pow(2, musicKey / 12), inst = sg.inst || 'pluck';
+    const m = sg.mel[st % sg.mel.length]; if (m > -50) tone(base * (fev ? 4 : 2) * Math.pow(2, m / 12), spb * (inst === 'bell' ? 2.2 : inst === 'sine' ? 1.6 : 1.4), inst, sg.lv * (inst === 'pluck' ? 1.6 : 1), AU.nextT, 0, AU.music);
     if (st % 8 === 0 || st % 8 === 4) thump(120, 48, .14, .22, AU.nextT, AU.music);   // キック
     if (sg.hat && (st % 8 === 2 || st % 8 === 6)) { const n = AU.ctx.createBufferSource(); n.buffer = AU.hat; const g = AU.ctx.createGain(); g.gain.value = .07; const f = AU.ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800; n.connect(f); f.connect(g); g.connect(AU.music); n.start(AU.nextT); }   // 軽いスネア
     if (st % 2 === 0) tone(base / 2 * Math.pow(2, sg.bass[(st / 4 | 0) % 8] / 12), spb * 1.7, sg.bw, .15, AU.nextT, 0, AU.music);
