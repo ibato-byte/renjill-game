@@ -21,6 +21,18 @@ const ACH = [
   { id: 'stamps5', hay: 300, n: { ja: '東京さんぽ', en: 'Tokyo stroller' }, d: { ja: '観光スタンプを5種類集める', en: 'Collect 5 different stamps' }, ok: (s, sv) => Object.keys(sv.stamps).length >= 5 },
   { id: 'stampsAll', hay: 1500, n: { ja: '東京マスター', en: 'Tokyo master' }, d: { ja: '観光スタンプを全部集める', en: 'Collect every stamp' }, ok: (s, sv) => STAMP_ORDER.every(k => sv.stamps[k]) },
   { id: 'bookAll', hay: 1000, n: { ja: 'うさぎ博士', en: 'Bunny food expert' }, d: { ja: 'えさ図鑑をすべてうめる', en: 'Complete the food book' }, ok: (s, sv) => ZUKAN_ORDER.every(k => sv.zukan[k]) },
+  // 2026-11-08: titles for the new moves, the food groups and each part of Tokyo
+  { id: 'perfect3', hay: 200, n: { ja: 'ぜんぶ取る派', en: 'Leave none behind' }, d: { ja: '1回のランでパーフェクトラインを3回', en: '3 perfect lines in one run' }, ok: s => (s.perfect || 0) >= 3 },
+  { id: 'airCatch', hay: 150, n: { ja: '空中キャッチ', en: 'Air catch' }, d: { ja: '1回のジャンプで牧草を5本取る', en: 'Grab 5 hay in a single jump' }, ok: s => (s.airCatch || 0) >= 1 },
+  { id: 'slideMaster', hay: 150, n: { ja: 'すべりこみ名人', en: 'Slide master' }, d: { ja: 'スライディングで3つ続けてくぐる', en: 'Slide under 3 in a row' }, ok: s => (s.slideMaster || 0) >= 1 },
+  { id: 'corner5', hay: 200, n: { ja: 'コーナーの達人', en: 'Corner ace' }, d: { ja: '1回のランでナイスコーナーを5回', en: '5 nice corners in one run' }, ok: s => (s.niceCorner || 0) >= 5 },
+  { id: 'quick20k', hay: 250, n: { ja: '1分の達人', en: 'One-minute wonder' }, d: { ja: '1分ダッシュで20,000点', en: 'Score 20,000 in the 1-minute dash' }, ok: s => s.timed && s.score >= 20000 },
+  { id: 'vegAll', hay: 200, n: { ja: '野菜ソムリエ', en: 'Veggie expert' }, d: { ja: '野菜を図鑑に全部のせる', en: 'Put every vegetable in the food book' }, ok: (s, sv) => VEG.every(k => sv.zukan[k]) },
+  { id: 'fruitAll', hay: 200, n: { ja: 'くだもの通', en: 'Fruit fan' }, d: { ja: 'くだものを図鑑に全部のせる', en: 'Put every fruit in the food book' }, ok: (s, sv) => TREATS.every(k => sv.zukan[k]) },
+  { id: 'bond5', hay: 300, n: { ja: 'なかよしコンビ', en: 'Best buddies' }, d: { ja: 'レンとジルのなかよし度を Lv.5 に', en: 'Get Ren & Jill to Buddies Lv.5' }, ok: (s, sv) => 1 + Math.floor(Math.sqrt((sv.bond || 0) / 3)) >= 5 },
+  { id: 'areaEast', hay: 400, n: { ja: '下町さんぽ', en: 'Old town walker' }, d: { ja: '東エリア（浅草・上野など）のスタンプを全部', en: 'Every stamp in the east (Asakusa, Ueno…)' }, ok: (s, sv) => STAMP_ORDER.filter(k => AREA.east.includes(k)).every(k => sv.stamps[k]) },
+  { id: 'areaWest', hay: 400, n: { ja: '西エリア通', en: 'West side regular' }, d: { ja: '西エリア（渋谷・新宿など）のスタンプを全部', en: 'Every stamp in the west (Shibuya, Shinjuku…)' }, ok: (s, sv) => STAMP_ORDER.filter(k => AREA.west.includes(k)).every(k => sv.stamps[k]) },
+  { id: 'areaCentral', hay: 400, n: { ja: '丸の内っ子', en: 'Downtown regular' }, d: { ja: '真ん中のエリア（銀座・皇居など）のスタンプを全部', en: 'Every stamp downtown (Ginza, the Palace…)' }, ok: (s, sv) => STAMP_ORDER.filter(k => AREA.central.includes(k)).every(k => sv.stamps[k]) },
 ];
 function checkAch(live) {
   SV.ach = SV.ach || {};
@@ -46,6 +58,9 @@ const DAILY = [
   { k: 'fly', n: () => 2, t: n => ({ ja: `紙ひこうきに${n}回乗る`, en: `Fly the paper plane ${n} times`, zh: `搭乘紙飛機${n}次`, ko: `종이비행기 ${n}번 타기` }), v: s => s.flights },
   { k: 'lunch', n: () => 1, t: () => ({ ja: 'お昼休みまで走る', en: 'Make it to the lunch break' }), v: s => s.lunch ? 1 : 0 },
   { k: 'look', n: () => 6, t: n => ({ ja: `振り向いた顔を${n}回見る`, en: `See ${n} look-backs`, zh: `看到${n}次回頭的臉`, ko: `뒤돌아보는 얼굴 ${n}번 보기` }), v: s => s.looks },
+  { k: 'perfect', n: () => 2, t: n => ({ ja: `パーフェクトラインを${n}回`, en: `Get ${n} perfect lines`, zh: `完美收集${n}列`, ko: `퍼펙트 라인 ${n}번` }), v: s => s.perfect || 0 }, // 2026-11-08: the new moves as daily challenges
+  { k: 'air', n: () => 1, t: () => ({ ja: '空中キャッチを決める（1回のジャンプで牧草5本）', en: 'Get an air catch (5 hay in one jump)', zh: '完成空中接住（一次跳躍5根牧草）', ko: '공중 캐치 성공 (한 번 점프로 건초 5개)' }), v: s => s.airCatch || 0 },
+  { k: 'corner', n: () => 3, t: n => ({ ja: `ナイスコーナーを${n}回`, en: `Take ${n} nice corners`, zh: `漂亮轉彎${n}次`, ko: `나이스 코너 ${n}번` }), v: s => s.niceCorner || 0 },
 ];
 function dailyToday() { const d = new Date(); const seed = d.getFullYear() * 400 + d.getMonth() * 32 + d.getDate(); const c = DAILY[seed % DAILY.length]; return { c, n: c.n(), key: todayStr() }; }
 function dailyCheck(live) {

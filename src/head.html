@@ -86,7 +86,7 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 #turnCue{position:absolute;top:44%;font-family:var(--f-display);font-size:clamp(46px,14vw,80px);color:var(--tie);text-shadow:0 4px 0 var(--ink);opacity:0;transition:opacity .12s}
 #turnCue.l{left:8%}#turnCue.r{right:8%}#turnCue.show{opacity:1}
 #hChal{display:block;font-size:10px;font-weight:900;color:#C8463C;letter-spacing:.02em}#hChal:empty{display:none}
-#combo{display:block;font-weight:900;font-size:11px;color:var(--tie);min-height:0}#combo:empty{display:none}
+#combo{display:block;font-weight:900;font-size:11px;color:var(--tie);min-height:0}#combo:empty{display:none}#combo.pop{animation:comboPop .22s ease-out}@keyframes comboPop{0%{transform:translateY(-3px);filter:brightness(1.7)}100%{transform:none;filter:none}}
 
 html[lang="ja"] .mini em{white-space:nowrap;font-size:10px;letter-spacing:-.02em}.shop-item p{font-size:13px;line-height:1.35}
 /* short screens: tighten the title so START is on screen */
@@ -192,15 +192,16 @@ html[lang="ja"] .mini span{display:none}html[lang="ja"] .ph small{display:none}
 .small-print{font-size:10px;color:var(--paper);opacity:.75;text-align:center;margin-top:8px;font-weight:700}
 @media (prefers-reduced-motion:reduce){.toast{animation:none}}
 #sTitle>.small-print{margin-bottom:auto}
-#banner{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 150px);transform:translate(-50%,-8px);opacity:0;transition:opacity .18s,transform .18s;
+#banner{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 158px);transform:translate(-50%,-8px);opacity:0;transition:opacity .18s,transform .18s;
   display:flex;align-items:baseline;gap:8px;max-width:calc(100% - 32px);padding:5px 12px;border-radius:999px;background:rgba(59,42,32,.78);color:var(--paper);white-space:nowrap;overflow:hidden;pointer-events:none}
+#banner.long{white-space:normal;border-radius:14px;align-items:center;width:min(calc(100% - 24px),440px);max-width:none;box-sizing:border-box}#banner.long .ja{flex:1}#banner.long .ja{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25;text-overflow:clip}
 #banner.show{opacity:1;transform:translate(-50%,0)}
 #banner .en{font-family:var(--f-display);font-size:13px;letter-spacing:.03em;flex:none}
 #banner .ja{font-size:12px;font-weight:700;opacity:.92;overflow:hidden;text-overflow:ellipsis;min-width:0}
 #banner.good{background:rgba(169,122,30,.88)} #banner.bad{background:rgba(200,70,60,.88)} #banner.room .en{color:var(--tie)}
 #routeBar{position:relative;margin:7px auto 0;width:min(320px,70%);height:4px;border-radius:2px;background:rgba(251,246,238,.45)}
 #routeFill{position:absolute;inset:0 auto 0 0;width:0;border-radius:2px;background:var(--paper)}
-#routeBar i{position:absolute;top:5px;transform:translateX(-50%);font-style:normal;font-size:9px;font-weight:900;color:var(--paper);text-shadow:0 1px 0 rgba(0,0,0,.4)}
+#routeBar i{position:absolute;top:5px;transform:translateX(-50%);font-style:normal;font-size:10px;font-weight:900;color:var(--paper);text-shadow:0 1px 0 rgba(0,0,0,.4)}
 #routeBar i::before{content:"";position:absolute;left:50%;top:-7px;width:2px;height:6px;background:var(--paper);transform:translateX(-50%)}
 #feverBar{margin-top:16px}
 #turnCue.c{left:0;right:0;text-align:center}
@@ -321,7 +322,7 @@ details.more[open]>summary{margin-bottom:8px}
 details.more>*:not(summary){margin-top:8px}
 @media (max-height:720px){.char canvas{max-width:92px;margin:0 auto}.logo h1{font-size:clamp(30px,8vh,48px)}.logo .ja{margin-top:4px;font-size:13px}.card{gap:8px;padding:12px}.big{padding:10px;font-size:20px}}
 @media (max-height:620px){.story{display:none}.logo{padding-top:6px}.logo .k{display:none}.logo h1{font-size:28px}.logo .ja{display:none}.char{padding:4px 6px 6px}.char canvas{max-width:64px}.chars{gap:6px}.char .perk{font-size:10px}.char .role{display:none}.card{gap:6px;padding:10px}.big{padding:8px;font-size:18px}.daily{font-size:11px}.small-print{display:none}}
-@media (max-height:500px){#hud .hud-top{gap:4px}#routeBar,#lives{display:none!important}#feverBar{height:10px;margin-top:4px}#feverBar span,#feverBar b{display:none}#banner{top:calc(env(safe-area-inset-top,0px) + 86px)!important}}
+@media (max-height:500px){#hud .hud-top{gap:4px}#routeBar{display:none!important}#lives{margin-top:3px}#lives em{display:none}#feverBar{height:10px;margin-top:4px}#feverBar span,#feverBar b{display:none}#banner{top:calc(env(safe-area-inset-top,0px) + 116px)!important}}
 
 /* ---- brush-up 2026-11: no words broken in the middle, the follow row, the share bar in two rows ---- */
 .tog .sub.small{white-space:nowrap;padding:6px 8px}.card>.bank{flex-wrap:wrap;gap:6px 8px}.card>.bank .tog{margin-left:auto}
@@ -345,11 +346,25 @@ html[lang="ja"] #tResMore,html[lang="ja"] .newbest,html[lang="ja"] .fol-ask,html
 .fol-chips a:active{transform:scale(.95)}
 .fol-ep{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:var(--ink);color:var(--paper);text-decoration:none;text-align:left}
 .fol-ep i{font-style:normal;flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#C8463C;color:#fff;font-size:12px}
-.fol-ep span{display:flex;flex-direction:column;min-width:0}.fol-ep small{font-size:10.5px;font-weight:900;opacity:.8}.fol-ep b{font-size:13px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fol-ep span{display:flex;flex-direction:column;min-width:0}.fol-ep small{font-size:10.5px;font-weight:900;opacity:.8}.fol-ep b{font-size:13px;font-weight:900;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
 .small-print.fol{margin-top:2px;line-height:1.9}.small-print.fol .fol-h{font-weight:900}
 .m.xfer.sns .fol-chips{justify-content:flex-start;margin-top:4px}
 .feedcard .newtag{font-style:normal;flex:none;background:#C8463C;color:#fff;font-size:10px;font-weight:900;border-radius:6px;padding:1px 6px}
 a:focus-visible,summary:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 /* inside CrazyGames: nothing that leads out to a playable web version (their rule). The game itself is unchanged */
 .portal-cg #tGuide,.portal-cg #tSite,.portal-cg #tFollow,.portal-cg .sharebar,.portal-cg #resFollow,.portal-cg #tFeed,.portal-cg .notelink,.portal-cg #btnShare,.portal-cg .fol-chips,.portal-cg .xfer.sns,.portal-cg #btnLinkCopy,.portal-cg #shareBox,.portal-cg #tFeed{display:none!important}
+
+/* 2026-11-08 点検で見つけた所 */
+@media (max-width:340px){.shbtns a,.sharebar .shbtns #shIg,#app .shbtns #shIg{font-size:9px;letter-spacing:-.05em;padding-left:0;padding-right:0;white-space:nowrap}} /* 320px で「Instagram」が切れていた */
+.mini{min-height:42px;justify-content:center} .sub.small{min-height:34px} #btnSet{min-width:36px} .buy{min-height:36px} /* 押しやすい大きさ（小さい画面で 26〜28px しかなかった） */
+#nickSave,#btnRank2,#resNameToggle{min-height:34px}
+@media (max-height:500px) and (orientation:landscape){.ttoast{top:auto!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important}} /* 横向き：あいさつの帯が題名にかぶっていた */
+.ttoast .ja{word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance} /* 「50 / 本」のように数字と単位が別の行に分かれていた */
+.daygoal{display:flex;align-items:center;gap:8px;justify-content:center;font-size:11px;font-weight:900;color:var(--ink-soft);margin-top:4px}.daygoal i{display:block;width:90px;height:6px;border-radius:3px;background:rgba(59,42,32,.15);overflow:hidden}.daygoal b{display:block;height:100%;background:#7DB46A;border-radius:3px}.daygoal.done em{color:#4C8A48}
+@media (max-height:620px){.daygoal{display:none}}
+#btnQuick{display:block;margin:6px auto 0;padding:6px 16px;font-weight:900}#btnQuick[hidden]{display:none}
+@media (max-height:620px){#btnQuick{display:none}}
+#app .m.cal{display:block}.cal p{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.cal .calg b{font-size:10px;font-weight:900;text-align:center;color:var(--ink-soft)}.cal .calg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}.cal .calg i{font-style:normal;font-size:11px;font-weight:800;text-align:center;padding:5px 0;border-radius:8px;background:rgba(59,42,32,.06);color:var(--ink-soft)}.cal .calg i.on{background:var(--tie);color:#fff}.cal .calg i.fut{opacity:.35}.cal .calg i.today{outline:2px solid var(--ink)}
+#hHay{display:inline-block}#hHay.pop{animation:hayPop .18s ease-out}@keyframes hayPop{0%{transform:translateY(-3px);color:#5F9E5A}100%{transform:none}}
+#forkCards .fc.rich{display:grid;grid-template-columns:auto auto;column-gap:6px;align-items:center;box-shadow:0 0 0 3px #9BB85A inset,0 3px 0 rgba(59,42,32,.35)}#forkCards .fc.rich i{grid-row:1/3;grid-column:1}#forkCards .fc.rich b,#forkCards .fc.rich small{grid-column:2}#forkCards .fc.r.rich{grid-template-columns:auto auto}#forkCards .fc.r.rich i{grid-column:2}#forkCards .fc.r.rich b,#forkCards .fc.r.rich small{grid-column:1}#forkCards .fc.rich small{display:block;font-size:10px;line-height:1.1;color:#3F7A3A;font-weight:900;white-space:nowrap;text-align:center}
 </style>

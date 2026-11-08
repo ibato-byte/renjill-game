@@ -259,6 +259,7 @@ function drawSky(seg) {
   const N = LT.night;
   if (N > .5) { ctx.fillStyle = 'rgba(255,255,255,.8)'; for (let i = 0; i < 50; i++) { const x = ((i * 97.3 - CAM.yaw * 80) % W + W) % W, y = (i * 53.7) % (horizon * .85); ctx.fillRect(x, y, 1.5, 1.5); } }
   drawSunGlow(horizon);
+  if (N > .6 && G.weather === 'clear' && adSeason() === 'summer') drawFireworks(horizon);
   drawClouds2(horizon);
   if (N < .6 && G.weather === 'clear') drawBirds(horizon);
   const climb = !!th.climb, drop = climb ? (altitude(seg, G.mode === 'title' ? 0 : G.s) / 450) * H * .24 + 8 : 0;
@@ -274,6 +275,20 @@ function drawSky(seg) {
   skyline(seg, yb, 1);
   ctx.fillStyle = N > .4 ? 'rgb(36,44,74)' : `rgb(${(LT.bot[0] * .82) | 0},${(LT.bot[1] * .85) | 0},${(LT.bot[2] * .88) | 0})`; ctx.fillRect(0, yb, W, H - yb);
   if (climb && N > .4) { ctx.fillStyle = 'rgba(255,214,140,.8)'; const r = rnd(5); for (let i = 0; i < 160; i++) { const x = ((r() * W * 3 - CAM.yaw * 300) % W + W) % W, y = yb + 2 + r() * (H - yb); ctx.fillRect(x, y, 1.6, 1.6); } }
+}
+// summer nights: fireworks far away over the city (2026-11-08)
+const FW_COL = ['255,206,96', '255,128,140', '140,210,255', '190,255,160', '255,170,90'];
+function drawFireworks(hz) {
+  const SL = 1.7; ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (let j = 0; j < 2; j++) { const tt = G.t - j * SL * .5, slot = Math.floor(tt / SL), k = (tt - slot * SL) / SL, rn = n => { const v = Math.sin(slot * 12.9898 + j * 78.233 + n * 37.719) * 43758.5453; return v - Math.floor(v); };
+    if (rn(9) < .25) continue; // now and then a quiet gap
+    const x = ((rn(1) * 1.6 - CAM.yaw * .25) % 1.6 + 1.6) % 1.6 * W - W * .3, y = hz * (.7 + rn(2) * .16), R = Math.min(W, H) * (.08 + rn(3) * .06), c = FW_COL[(rn(4) * FW_COL.length) | 0];
+    if (k < .22) { const u = k / .22; ctx.fillStyle = `rgba(${c},.8)`; ctx.fillRect(x - 1, hz - (hz - y) * u, 2, 5); continue; } // the trail going up
+    const u = (k - .22) / .78, r = R * (1 - Math.pow(1 - u, 3)), a = Math.max(0, 1 - u * 1.15);
+    ctx.fillStyle = `rgba(${c},${(a * .9).toFixed(3)})`;
+    for (let i = 0; i < 22; i++) { const an = i / 22 * Math.PI * 2 + rn(5), px = x + Math.cos(an) * r, py = y + Math.sin(an) * r + u * u * R * .35; ctx.beginPath(); ctx.arc(px, py, 1.6 + (1 - u) * 1.2, 0, Math.PI * 2); ctx.fill(); }
+    if (u < .3) { ctx.fillStyle = `rgba(255,250,230,${((.3 - u) * 1.6).toFixed(3)})`; ctx.beginPath(); ctx.arc(x, y, R * .25, 0, Math.PI * 2); ctx.fill(); } }
+  ctx.restore();
 }
 function drawBirds(hz) { // a few birds drifting across the sky
   ctx.strokeStyle = 'rgba(40,40,50,.55)'; ctx.lineWidth = 1.4; ctx.lineCap = 'round';

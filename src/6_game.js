@@ -40,6 +40,7 @@ function ensureSegs(max) {
         G.distEst = G.dist + (G.segs.length - G.ci) * 90;
         const a = forkSide(last, Ls, -1, t0, G.plan[0]), b = forkSide(last, Rs, 1, t0, G.plan[0]);
         G.fork = [a, b]; G.forkRest = { L: Ls.slice(1), R: Rs.slice(1), d0: Ls[0].d, d1: Rs[0].d };
+        { const rs = Math.random() < .5 ? 0 : 1; richHay(G.fork[rs]); if (last) last.richSide = rs ? 1 : -1; } // one way has more hay, and its sign says so (2026-11-08)
         break;
       }
       const nf = G.plan[0] && G.plan[0].fork;
@@ -108,7 +109,7 @@ function startRun() {
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
     fork: null, forkRest: null, rush: 0, chimed: 0, soonTold: 0, gaugeTold: 0, gainT: 0, feverMax: 6, hitStop: 0, jumpBuf: 0, tut: null, tutDid: '', fovK: 0, look: 0, lookCD: 4, photoT: 0, capture: null, rumbleT: 8, shake: 0, announce: [] });
-  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.chalWon = 0;
+  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.chalWon = 0; G.spTier = 0; G.slowT = 0; G.easy = !!OPT().easy; G.timed = G.quickNext ? 60 : 0; G.quickNext = 0; if (G.easy) banner('RELAXED', t('easyY'), 'room'); G.stats.timed = G.timed ? 1 : 0; if (G.timed) banner('1 MINUTE', t('quick'), 'good');
   G.legend = !!(SV.lgMode && legendOn('mode') && SV.tutDone); G.aura = !!(SV.lgAura !== 0 && legendOn('aura')); // the Legendary bunny's own run: faster, x1.5 score / a golden sparkle trail
   if (G.legend) banner('LEGEND MODE', tr('伝説モード：速さ＋15%・スコア×1.5', 'Legend mode: 15% faster, score x1.5'), 'good');
   G.stats = { hay: 0, dist: 0, jumps: 0, slides: 0, treats: 0, veg: 0, powers: 0, turns: 0, score: 0, fevers: 0, clean: 0, cleanCur: 0, office: 0, chime: 0, looks: 0, flights: 0, bads: [], foods: {}, spots: [], stampsNew: [] };
@@ -151,8 +152,10 @@ function nice(kind) {
   const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1), pts = (40 + 30 * Math.min(G.niceN - 1, 4)) * mult; G.score += pts; G.stats.nice = (G.stats.nice || 0) + 1;
   const lbl = lab(kind === 'jump' ? 'NICE JUMP!' : kind === 'slide' ? 'NICE SLIDE!' : 'CLOSE!');
   floatText(W / 2, H * .5, G.niceN > 1 ? `${lbl} ×${G.niceN}` : lbl, G.niceN > 2 ? '#FF8A5C' : '#F2C230');
-  tone(880 + G.niceN * 110, .08, 'triangle', .07); G.hitStop = Math.max(G.hitStop, .03);
+  tone(523 * Math.pow(1.0595, Math.min(G.niceN, 5) * 2), .12, 'bell', .05); G.hitStop = Math.max(G.hitStop, .03);
   if (G.niceN >= 3 && Math.random() < .6) react(pick(['wink', 'happy']), 0);
+  if (G.niceN === 3) G.slowT = .45;
+  if (kind === 'slide') { G.slideRow = (now - (G.slideRowT || -9) < 4) ? (G.slideRow || 0) + 1 : 1; G.slideRowT = now; if (G.slideRow === 3) { G.stats.slideMaster = (G.stats.slideMaster || 0) + 1; const p2 = 200 * SV.mlevel; G.score += p2; floatText(W / 2, H * .34, lab('SLIDE MASTER!') + ' +' + fmt(p2), '#F2C230'); tone(523, .1, 'bell', .045); tone(784, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .08); } } // three slide-unders in a row (2026-11-08)
 }
 function smash(o) { if (o.dead) return; o.dead = .001; o.vx = Math.random() < .5 ? -1 : 1; G.score += 30 * SV.mlevel; SFX.bump(); G.hitStop = .05; G.shake = Math.max(G.shake, .35); }
 function die(cause) {
@@ -163,7 +166,7 @@ function die(cause) {
 }
 // retry as many times as your charms or hay allow (the price rises a little each time)
 function freeRevive() { return SV.runs <= 3 && G.reviveN === 0 && G.cause !== 'quit'; } // the first fail of your first three runs: one free retry
-function canRevive() { if (freeRevive()) return true; const c = reviveCost(); return SV.clovers >= c.clover || SV.bank + Math.floor(G.hay) >= c.hay || (typeof PORTAL !== 'undefined' && PORTAL.adOK()); } // (inside a game portal: or a rewarded ad)
+function canRevive() { if (G.cause === 'time') return false; if (freeRevive()) return true; const c = reviveCost(); return SV.clovers >= c.clover || SV.bank + Math.floor(G.hay) >= c.hay || (typeof PORTAL !== 'undefined' && PORTAL.adOK()); } // (inside a game portal: or a rewarded ad)
 function reviveCost() { return { clover: G.reviveN + 1, hay: 400 * (G.reviveN + 1) }; }
 function doRevive(kind) {
   const c = reviveCost();
@@ -190,11 +193,11 @@ function act(a) {
     G.lastSwipe = d;
     if (G.s > turnWindow(seg) && (seg.fork || d === seg.turn) && (!G.turnQueued || G.turnAuto || (seg.fork && G.turnQueued !== d))) {
       G.turnQueued = d; G.turnAuto = 0; G.turnQT = seg.len - G.s; SFX.turn(); flashChoice(seg, d); return; }
-    const nl = clamp(G.lane + d, 0, 2); if (nl !== G.lane) { G.prevLane = G.lane; G.lane = nl; G.laneT = .35; G.tutDid = 'side'; tone(520 + d * 40, .04, 'triangle', .06); }
+    const nl = clamp(G.lane + d, 0, 2); if (nl !== G.lane) { G.prevLane = G.lane; G.lane = nl; G.laneT = .35; G.tutDid = 'side'; tone(392 + d * 30, .05, 'pluck', .045); }
   } else if (a === 'up') {
     if (G.pow.fly > 0) return;
-    if (!G.air) { G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up'; } // one plain jump for everything (low things are cleared by its normal height)
-    else G.jumpBuf = .16;
+    if (!G.air || G.coyote > 0) { G.coyote = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up'; if (G.pow.jump > 0 && G.y < .2) skyHay(G.vy); } // one plain jump for everything (low things are cleared by its normal height)
+    else G.jumpBuf = .2; // a jump pressed a moment before landing still counts (.16 → .2, 2026-11-08)
   } else if (a === 'down') {
     if (G.pow.fly > 0) return;
     if (G.air) { G.vy = -22; G.slideT = .62; G.jumpBuf = 0; } else { if (G.slideT <= 0) { G.stats.slides++; SFX.slide(); } G.slideT = .68; }
@@ -209,6 +212,7 @@ function flashChoice(seg, d) {
 // (A turn that broke off after the runner had left the old street but before arriving on the new one left the run pointing at a
 // street that did not exist: the picture stopped mid-turn, with no runner, and no swipe did anything.)
 function doTurn() {
+  if (!G.turnAuto && G.turnQT > 0 && G.turnQT < 4.5 && !curSeg().fork) { const p3 = 80 * SV.mlevel; G.score += p3; G.stats.niceCorner = (G.stats.niceCorner || 0) + 1; floatText(W / 2, H * .36, lab('NICE CORNER!') + ' +' + fmt(p3), '#F2C230'); tone(587, .1, 'bell', .04); } // a corner taken right at the last moment (2026-11-08)
   const seg = curSeg(); let dir = seg.fork ? (G.turnQueued || -1) : seg.turn; const over = clamp(G.s - seg.len, 0, 2);
   let next = null;
   if (seg.fork) {
@@ -282,6 +286,13 @@ function startFly() {
 const POM_BIG = 1.7; // Pom as the runner is drawn about Jill's size, so a table or a curtain reads as something to slide under
 function pomOn() { return G.pom.on && G.pom.who === 'pom'; } // the rookie runs with you (not the bunny that catches up when you play as Pom)
 function pomSay(line, mood, dur) { const M = G.pom; if (!pomOn()) return; M.look = dur || 1.3; M.mood = mood || 'happy'; M.say = line; }
+// super jump: a little arc of hay in the sky along the jump, with a golden one at the top (2026-11-08)
+function skyHay(v) { const seg = curSeg(); if (!seg || seg.fork || !(v > 0)) return 0; const t1 = v / GRAV, h = v * v / (2 * GRAV), t2 = Math.sqrt(2 * h / (GRAV * 1.25)), T = t1 + t2; let n = 0;
+  for (let k = 1; k <= 5; k++) { const tt = T * k / 6, q = G.s + G.speed * tt; if (q > seg.len - 3) break; const y = tt <= t1 ? v * tt - .5 * GRAV * tt * tt : h - .5 * GRAV * 1.25 * (tt - t1) * (tt - t1);
+    const yy = Math.max(0, y) + .45, near = seg.items.filter(x => !x.got && x.lane === G.lane && Math.abs(x.s - q) < 1);
+    if (near.some(x => ITEMS[x.type].kind !== 'hay')) continue; // a carrot or a power-up stays where it is
+    if (near.length) { near.forEach(x => { x.y = yy; x.s = q; if (k === 3) x.type = 'goldhay'; }); n++; continue; } // hay already there is lifted into the arc
+    addItem(seg, k === 3 ? 'goldhay' : 'hay', q, G.lane, yy); n++; } return n; }
 function pomPouch(n) { // Pom stuffs the hay you pass into its cheek pouches; when they are full it shares a bonus
   const M = G.pom, me = G.char === 'pom'; M.pouch = (M.pouch || 0) + n; if (M.pouch < (me ? 60 : 80)) return; M.pouch = 0; G.stats.pomPuff = (G.stats.pomPuff || 0) + 1;
   const b = 600 * SV.mlevel; G.score += b; if (me) { const P = G.player; P.look = 1.2; P.mood = 'puff'; P.say = t('pomPuff'); G.lookCD = Math.max(G.lookCD, 2); } else pomSay(t('pomPuff'), 'puff', 1.5); floatText(W / 2, H * .36, (tr('ほお袋ボーナス +', 'POUCH BONUS +')) + fmt(b), '#F2C230'); SFX.treat();
@@ -290,7 +301,7 @@ function pomPouch(n) { // Pom stuffs the hay you pass into its cheek pouches; wh
 function pomJoin() {
   const M = G.pom; if (M.on) { G.score += 200 * SV.mlevel; return; }
   M.on = 1; M.show = true; M.lat = G.lat; M.back = 6; M.y = 0; M.vy = 0; M.air = false; M.pouch = 0; G.stats.pom = 1;
-  SFX.mission(); burst(W / 2, H * .55, '#F2C230', 26); buzz(40); G.hitStop = .06;
+  SFX.pom(); burst(W / 2, H * .55, '#F2C230', 26); buzz(40); G.hitStop = .06;
   const first = !SV.pomMet; SV.pomMet = (SV.pomMet || 0) + 1; save(); G.pomPeek = null;
   bannerNow(first ? (tr('ナゾの新人あらわる！', 'A MYSTERY ROOKIE!')) : (tr('ポム合流！', 'POM JOINS!')), t(first ? 'pomJoin' : 'pomJoin2'), 'good');
   const id = G.runId; setTimeout(() => { if (G.runId === id) pomSay(t(first ? 'pomHi' : 'pomHi2'), 'sparkle', 1.8); }, 500);
@@ -315,7 +326,7 @@ function feelSick() {
     F.say = P.who === 'jill' ? t('worryRen') : P.who === 'pom' ? t('worryPom') : t('worryJill'); }
   if (pomOn() && G.pom.show) pomSay(t('pomWorry'), 'worry', 1.7);
   if (G.char === 'pom' && G.pom.on && G.pom.show && !pomOn()) { const M = G.pom; M.look = 1.6; M.mood = 'worry'; M.say = t('worryPom'); }
-  tone(392, .16, 'triangle', .08); tone(330, .2, 'triangle', .07, AU.ctx && AU.ctx.currentTime + .14);
+  tone(392, .16, 'pluck', .07); tone(330, .2, 'pluck', .06, AU.ctx && AU.ctx.currentTime + .14);
 }
 // the bunny turns around with a cute face
 function react(mood, both) {
@@ -324,7 +335,7 @@ function react(mood, both) {
   { const seg = curSeg(), ahead = G.speed * 1.3; if (!both && seg.obs.some(o => !o.dead && o.k !== 'deco' && o.s0 + (o.ds || 0) > G.s - 1 && o.s0 + (o.ds || 0) < G.s + ahead)) return; }
   G.lookCD = both ? 2.5 : 10; G.player.look = 1.05; G.player.mood = mood; G.player.say = ''; G.stats.looks++;
   if (both) { G.follow.look = 1.05; G.follow.mood = pick(['happy', 'sparkle', 'open']); }
-  tone(1175, .08, 'sine', .08); tone(1568, .12, 'sine', .06, AU.ctx && AU.ctx.currentTime + .08);
+  tone(784, .12, 'bell', .05); tone(1047, .16, 'bell', .04, AU.ctx && AU.ctx.currentTime + .08);
 }
 
 /* ---------- first-run tutorial ----------
@@ -350,7 +361,7 @@ function tutorialScale(seg, dt) {
   if (seg !== G.tutSeg) { cue.className = ''; return 1; }
   const d = cur.s - G.s;
   if (cur.need === 'turn') {
-    if (G.turnQueued === seg.turn) { cur.done = 1; cue.className = ''; tone(988, .08, 'sine', .08); tutFinish(cue); return 1; }
+    if (G.turnQueued === seg.turn) { cur.done = 1; cue.className = ''; tone(659, .12, 'bell', .05); tutFinish(cue); return 1; }
     const inWin = G.s > turnWindow(seg);
     if (inWin) { cue.innerHTML = `<b>${lab(cur.en)}</b><span>${esc(L(cur.ja))}</span>`; cue.className = 'show turn'; return clamp(.35 + (d - 4) * .05, .35, .65); }
     if (d < 34) { cue.innerHTML = `<b>${seg.turn > 0 ? '↱' : '↰'}</b><span>${esc(L(cur.pre))}</span>`; cue.className = 'show'; }
@@ -359,7 +370,7 @@ function tutorialScale(seg, dt) {
   if (d < 0) { cur.done = 1; return 1; }
   if (d < 11) {
     const okWin = true;
-    if ((G.tutDid === cur.need && okWin) || (cur.need === 'side' && G.lane !== 1)) { cur.done = 1; G.tutDid = ''; cue.className = ''; tone(988, .08, 'sine', .08); return 1; }
+    if ((G.tutDid === cur.need && okWin) || (cur.need === 'side' && G.lane !== 1)) { cur.done = 1; G.tutDid = ''; cue.className = ''; tone(659, .12, 'bell', .05); return 1; }
     if (G.tutDid === cur.need && !okWin) G.tutDid = ''; // too early: keep waiting
     cue.innerHTML = `<b>${lab(cur.en)}</b><span>${esc(L(cur.ja))}</span>`; cue.className = 'show';
     if (G.air || G.slideT > 0) return 1;
@@ -388,16 +399,20 @@ function update(dt) {
   if (G.hitStop > 0) { G.hitStop -= dt; G.shake = Math.max(0, G.shake - dt); placeCamera(0); return; }
   const seg = curSeg(), P = G.player;
   dt *= tutorialScale(seg, dt);
+  if (G.timed && G.t >= G.timed) { G.cause = 'time'; G.mode = 'dead'; SFX.mission(); endRun(); return; } // the 1-minute dash ends on the clock (2026-11-08)
+  if (G.slowT > 0) { G.slowT -= dt; if (!OPT().calm) dt *= .6; } // a beat of slow motion after three close calls in a row (2026-11-08)
 
   // speed rises gently and levels off (it used to reach 24 m/s mid-run, which got too hard)
-  const base = Math.min(MAXSPD, (SV.tutDone ? 12.4 : 11) + G.dist * .0024 + (G.day - 1) * .7);
+  const base = Math.min(G.easy ? 12.6 : MAXSPD, (SV.tutDone ? 12.4 : 11) + G.dist * .0024 + (G.day - 1) * .7);
+  { const tier = Math.floor((base - 12.4) / 1.8); if (tier > (G.spTier || 0) && SV.tutDone) { G.spTier = tier; banner('SPEED UP!', tr('少し速くなった！', 'A little faster now!'), 'good'); tone(523, .1, 'bell', .04); tone(784, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .09); } } // so it never just 'gets hard' without a word (2026-11-08)
   const target = base * (G.legend ? 1.15 : 1) * (G.pow.dash > 0 ? 1.4 : 1) * (G.fever > 0 ? 1.18 : 1) * (G.pow.fly > 0 ? 1.1 : 1);
   G.speed = lerp(G.speed, target, 1 - Math.exp(-dt * 2.5));
+  if (AU.music && OPT().music) { const cm = G.clock % 1440, night = cm >= 1200 || cm < 360, tg = musicLv() * (night ? .8 : 1); AU.music.gain.value += (tg - AU.music.gain.value) * Math.min(1, dt * .6); } // the music settles down at night (2026-11-08)
   const step = G.speed * dt, prevS = G.s, prevY = G.y;
   G.s += step; G.dist += step; G.stats.cleanCur += step; G.stats.clean = Math.max(G.stats.clean, G.stats.cleanCur);
   const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
   G.score += step * mult * (3 + G.speed * .12); // distance is the backbone: about 4-6 points per metre, more when fast
-  const tl = LANES[G.lane]; const dl = tl - G.lat; G.lat += Math.sign(dl) * Math.min(Math.abs(dl), dt * 15);
+  const tl = LANES[G.lane]; const dl = tl - G.lat; G.lat += Math.sign(dl) * Math.min(Math.abs(dl), dt * 17);
   if (G.laneT > 0) G.laneT -= dt;
   // support + movers
   let ground = 0;
@@ -412,9 +427,11 @@ function update(dt) {
   // vertical
   if (flying) { G.y = lerp(G.y, G.flyY, 1 - Math.exp(-dt * 4)); G.vy = 0; G.air = true; }
   else {
+    if (!G.air && G.y > ground + .001 && G.vy <= 0) G.coyote = .1; // coyote time: a jump still counts for a tenth of a second after running off an edge
     if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault || 1); G.y += G.vy * dt; G.air = true; }
     if (G.y <= ground + .001 && G.vy <= 0) { // land: also when the fall stops a hair above the floor (a height of 0.0005 used to leave the runner 'in the air' forever: no gravity, no landing, no jump)
-      if (G.air && G.vy < -4) { const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
+      if (G.air && G.vy < -4) { SFX.land(); const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
+      if (G.air) { G.landT = .14; G.landK = clamp(-G.vy / 16, .4, 1); G.airN = 0; } // the landing squash (drawn in drawBunnyWorld)
       G.y = ground; G.vy = 0;
       if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; G.vaultDown = 0; } else { G.air = false; G.vault = 0; G.vaultDown = 0; }
     }
@@ -457,7 +474,7 @@ function update(dt) {
   const cue = $('#turnCue');
   { // fork cards: both destinations on screen well before the junction, lit up when the swipe window opens
     const fc = $('#forkCards'), showF = seg.fork && seg.forkLbl && G.s > seg.len - 42 && G.s < seg.len;
-    if (showF) { if (fc.hidden) { fc.hidden = false; $('#fcL b').textContent = L(seg.forkLbl.L); $('#fcR b').textContent = L(seg.forkLbl.R); const q = seg.fork.label === 'lunch' ? t('lunch') : seg.fork.label === 'errand' ? t('errandQ') : t('detour'); $('#fcL small').textContent = q; $('#fcR small').textContent = t('hintFork'); banner(seg.fork.label === 'lunch' ? 'LUNCH?' : 'WHICH WAY?', q + (tr('　', ' ')) + t('hintFork'), 'good'); $('#fcL').className = 'fc l'; $('#fcR').className = 'fc r'; }
+    if (showF) { if (fc.hidden) { fc.hidden = false; $('#fcL b').textContent = L(seg.forkLbl.L); $('#fcR b').textContent = L(seg.forkLbl.R); const q = seg.fork.label === 'lunch' ? t('lunch') : seg.fork.label === 'errand' ? t('errandQ') : t('detour'); $('#fcL small').textContent = q; $('#fcR small').textContent = t('hintFork'); if (seg.richSide) { const c = seg.richSide < 0 ? '#fcL' : '#fcR'; $(c + ' small').textContent = t('richHay'); } banner(seg.fork.label === 'lunch' ? 'LUNCH?' : 'WHICH WAY?', q + (tr('　', ' ')) + t('hintFork'), 'good'); $('#fcL').className = 'fc l' + (seg.richSide < 0 ? ' rich' : ''); $('#fcR').className = 'fc r' + (seg.richSide > 0 ? ' rich' : ''); }
       fc.classList.toggle('now', G.s > win && !G.turnQueued);
       if (G.turnQueued && !G.turnAuto) { $('#fcL').classList.toggle('pick', G.turnQueued < 0); $('#fcR').classList.toggle('pick', G.turnQueued > 0); $('#fcL').classList.toggle('dim', G.turnQueued > 0); $('#fcR').classList.toggle('dim', G.turnQueued < 0); } }
     else if (!fc.hidden) fc.hidden = true;
@@ -466,7 +483,8 @@ function update(dt) {
   else if (G.s > win && G.s < seg.len && !G.turnQueued) { cue.textContent = seg.fork ? '←  →' : seg.turn > 0 ? '→' : '←'; cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + (Math.floor(G.t * 8) % 2 ? ' show' : ''); }
   else cue.className = '';
   // events inside a stretch
-  for (const a of G.announce) if (!a.done && G.s > a.s) { a.done = 1; const st = LANG === 'ja' || LANG === 'zh' ? a.st : stEn(a.st); banner('NEXT: ' + stEn(a.st).toUpperCase(), LANG === 'en' ? '' : t('nextStation', st), 'room'); tone(880, .12, 'sine', .08); tone(660, .18, 'sine', .08, AU.ctx && AU.ctx.currentTime + .14); }
+  if (seg.goldRoad && !seg.goldTold && G.s > seg.goldRoad - 34) { seg.goldTold = 1; banner('GOLDEN ROAD!', tr('金のチモシーの道！', 'A road of golden hay!'), 'good'); }
+  for (const a of G.announce) if (!a.done && G.s > a.s) { a.done = 1; const st = LANG === 'ja' || LANG === 'zh' ? a.st : stEn(a.st); banner('NEXT: ' + stEn(a.st).toUpperCase(), LANG === 'en' ? '' : t('nextStation', st), 'room'); tone(659, .14, 'bell', .06); tone(523, .2, 'bell', .06, AU.ctx && AU.ctx.currentTime + .14); }
   if (seg.movers) for (const m of seg.movers) { if (m.cross) { m.dl = (m.dl == null ? -20 : m.dl) - m.v * dt * .6; if (m.dl > 90) m.dl = -40; continue; } m.ds += m.v * dt; if (m.ds < -60) m.ds = seg.len + 30; }
   if (seg.th.rumble) { G.rumbleT -= dt; if (G.rumbleT <= 0) { G.rumbleT = rand(5, 8); G.shake = 1; SFX.rumble(); } }
   if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 1.6);
@@ -474,12 +492,15 @@ function update(dt) {
   if (G.capture) { G.capture.t -= dt; }
   // timers
   for (const k in G.pow) if (G.pow[k] > 0) { G.pow[k] = Math.max(0, G.pow[k] - dt); if (k === 'fly' && G.pow.fly === 0) { G.invT = Math.max(G.invT, 1.2); G.vy = 0; } }
-  if (G.fever > 0) { G.fever = Math.max(0, G.fever - dt); if (G.fever === 0) { banner('', t('feverEnd'), ''); G.invT = Math.max(G.invT, 1); } } // a moment's grace as the fever ends, so it never ends in a crash
+  if (G.fever > 0) { const f0 = G.fever; G.fever = Math.max(0, G.fever - dt); if (G.fever > 0 && G.fever < 2.2 && Math.ceil(f0 * 2) !== Math.ceil(G.fever * 2)) tone(784, .06, 'pluck', .035); // the fever's last seconds tick (2026-11-08)
+    if (G.fever === 0) { banner('', t('feverEnd'), ''); G.invT = Math.max(G.invT, 1); } } // a moment's grace as the fever ends, so it never ends in a crash
   if (G.gainT > 0) G.gainT -= dt;
   if (G.invT > 0) G.invT -= dt;
   if (G.turnT > 0) G.turnT -= dt;
   if (G.lookCD > 0) G.lookCD -= dt;
   if (G.jumpBuf > 0) G.jumpBuf -= dt;
+  if (G.coyote > 0) G.coyote -= dt;
+  if (G.landT > 0) G.landT -= dt;
   if (G.comboT > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
   if (G.chaseT > 0) G.chaseT = Math.max(0, G.chaseT - dt);
   const chaseTarget = G.rush ? .55 + .1 * Math.sin(G.t * 3) : G.chaseT > 0 ? Math.min(1, G.chaseT) : 0;
@@ -489,6 +510,7 @@ function update(dt) {
   G.clock = seg.t0 + (seg.t1 - seg.t0) * clamp(G.s / seg.len, 0, 1);
   // animation
   P.ph += dt * (6 + G.speed * .55);
+  { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1, seg.th.kind); } } // a soft footstep on every stride
   P.air = G.air && !flying; P.slide = sliding; P.fly = flying; P.flash = G.invT > 0 && G.invT < 2.4 && !flying; P.glow = G.shield ? '#5FB05A' : G.pow.dash > 0 ? '#F08A2E' : null;
   if (P.look > 0) P.look = Math.max(0, P.look - dt);
   if (G.follow.look > 0) G.follow.look = Math.max(0, G.follow.look - dt);
@@ -504,7 +526,7 @@ function placeCamera(dt) {
   const k = G.turnT > 0 ? 1 - Math.exp(-dt * 14) : 1;
   G.rx = lerp(G.rx, p[0], k); G.rz = lerp(G.rz, p[1], k);
   const eP = segE(seg, G.s); G.ey = G.ey == null || G.turnT <= 0 && Math.abs(G.ey - eP) > 3 ? eP : lerp(G.ey, eP, Math.min(1, dt * 18));
-  P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * .06);
+  P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * (.045 + Math.min(.035, G.speed * .002))); // the run bob grows a little with speed
   if (G.aura && G.mode === 'play' && !OPT().calm && (G.auraT = (G.auraT || 0) + (G.dtFX || .016)) > .045) { G.auraT = 0; const sp = spriteAt(P.wx + rand(-.35, .35), P.wy + rand(.2, 1.1) * (P.big || 1), P.wz + .2); if (sp) FX.push({ x: sp.sx, y: sp.sy, vx: rand(-25, 25), vy: rand(-70, -20), life: rand(.35, .7), t: 0, c: Math.random() < .5 ? 'rgba(255,214,90,.95)' : 'rgba(255,246,200,.95)', r: rand(1.5, 3.2) }); } P.vy = P.who === 'pom' ? G.vy : null;
   const fp = segPos(seg, G.s - F.back, F.lat); F.wx = fp[0]; F.wz = fp[1]; F.wy = fp[2] + (F.y || 0) + (F.air ? 0 : Math.abs(Math.sin(F.ph)) * .06);
   F.fly = P.fly; if (P.fly) { F.wy = G.ey + G.y - .3; }
@@ -524,7 +546,7 @@ function placeCamera(dt) {
   if (F.tuck) F.depth = P.depth + .3;
   if (G.pomPeek && G.pomPeek.seg === seg) { // the teaser: a hamster trots into the road, runs alongside staring at you for a moment, then dashes off
     const k = G.pomPeek, B = k.b; G.peekSlow = 0;
-    if (!k.ph && G.s > k.s - 32) { k.ph = 'in'; k.stop = LANES[G.lane === 1 ? (G.follow.side > 0 ? 0 : 2) : G.lane === 0 ? 2 : 0]; bannerNow(SV.pomMet ? (tr('あっ、ポム！', 'POM!')) : (tr('！？', '!?')), t(SV.pomMet ? 'pomPeek2' : 'pomPeek'), 'room'); tone(1320, .07, 'square', .05); tone(1760, .09, 'square', .05, AU.ctx && AU.ctx.currentTime + .09); }
+    if (!k.ph && G.s > k.s - 32) { k.ph = 'in'; k.stop = LANES[G.lane === 1 ? (G.follow.side > 0 ? 0 : 2) : G.lane === 0 ? 2 : 0]; bannerNow(SV.pomMet ? (tr('あっ、ポム！', 'POM!')) : (tr('！？', '!?')), t(SV.pomMet ? 'pomPeek2' : 'pomPeek'), 'room'); tone(784, .08, 'pluck', .045); tone(1047, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .09); }
     let ps = k.s, lat = 0, look = 0; const side = -k.dir * (HW + .4);
     if (k.ph === 'in') { const q = clamp((G.s - (k.s - 32)) / 20, 0, 1); lat = lerp(side, k.stop, Math.min(1, q * 1.4)); if (G.s > k.s - 1.8) { k.ph = 'look'; k.t = 1.7; } }
     if (k.ph === 'look') { ps = G.s + 1.8; lat = k.stop; look = 1; G.peekSlow = 1; k.t -= dt; if (k.t <= 0) { k.ph = 'out'; k.t = .45; } }
@@ -605,7 +627,7 @@ function finishRun(why) {
 function buddy(dt, seg) {
   const F = G.follow;
   if (G.lane === 0) F.side = 1; else if (G.lane === 2) F.side = -1;
-  buddyMove(F, dt, seg, clamp(G.lat + F.side * 1.25, -ROAD + .45, ROAD - .45), G.char === 'pom' ? -.35 : .9); // with Pom running, the senpai leads half a step ahead (and stays out of the way of the camera)
+  buddyMove(F, dt, seg, clamp(G.lat + F.side * (W / H < .62 ? 1.02 : 1.25), -ROAD + .45, ROAD - .45), G.char === 'pom' ? -.35 : .9); // with Pom running, the senpai leads half a step ahead (and stays out of the way of the camera)
   const M = G.pom; if (M.on) { buddyMove(M, dt, seg, clamp(G.lat - F.side * 1.2, -ROAD + .35, ROAD - .35), M.who === 'pom' ? .25 : -.15); if (M.look > 0) M.look = Math.max(0, M.look - dt); if (M.look <= 0) M.say = ''; }
 }
 function buddyMove(F, dt, seg, tlat0, back0) {
@@ -639,7 +661,7 @@ function collect(it, seg) {
   }
   if (def.kind === 'pom') { pomJoin(); return; }
   // golden hay is a hay, but it has its own page in the food book (it used to never be recorded, so the book could never be completed)
-  if ((def.kind !== 'hay' || it.type === 'goldhay') && !SV.zukan[it.type]) { SV.zukan[it.type] = 1; save(); if (def.kind !== 'bad') floatText(W / 2, H * .24, t('newBook', L(def)), '#F2C230'); }
+  if ((def.kind !== 'hay' || it.type === 'goldhay') && !SV.zukan[it.type]) { SV.zukan[it.type] = 1; save(); if (def.kind !== 'bad') floatText(W / 2, Math.max(H * .3, 214), t('newBook', L(def)), '#F2C230'); }
   if (it.type === 'hay' && !SV.zukan.hay) { SV.zukan.hay = 1; save(); }
   if (def.kind === 'bad') {
     SFX.bad(); G.stats.bads.push(it.type); G.feverG = Math.max(0, G.feverG - 25);
@@ -648,13 +670,16 @@ function collect(it, seg) {
     feelSick();
     return;
   }
-  G.combo++; G.comboT = 1.3; G.stats.maxCombo = Math.max(G.stats.maxCombo || 0, G.combo);
+  G.combo++; G.comboT = 1.3; comboPop(); G.stats.maxCombo = Math.max(G.stats.maxCombo || 0, G.combo);
+  if ([25, 50, 100, 200, 300, 500].includes(G.combo)) { banner(G.combo + ' COMBO!', tr(pick(['その調子！', 'すごい、止まらない！', 'いい流れです！']), pick(['Keep it going!', 'Unstoppable!', 'What a streak!'])), 'good'); burst(W / 2, H * .35, '#F2C230', 26); burst(W / 2, H * .35, '#E86A75', 12); react('sparkle', 1); tone(659, .12, 'bell', .05); tone(988, .18, 'bell', .04, AU.ctx && AU.ctx.currentTime + .1); }
+  if (it.line && (def.kind === 'hay' || def.kind === 'veg' || def.kind === 'food')) { const ln = seg.items.filter(x => x.line === it.line); if (ln.length >= 8 && ln.every(x => x.got === 1)) { const pts = 15 * ln.length * SV.mlevel; G.score += pts; G.stats.perfect = (G.stats.perfect || 0) + 1; floatText(W / 2, H * .42, lab('PERFECT LINE!') + ' +' + fmt(pts), '#F2C230'); tone(523, .1, 'bell', .05); tone(659, .1, 'bell', .05, AU.ctx && AU.ctx.currentTime + .07); tone(784, .16, 'bell', .05, AU.ctx && AU.ctx.currentTime + .14); } }
   if (G.combo > 0 && G.combo % 30 === 0) react(pick(['happy', 'sparkle', 'wink']), 0);
   if (pomOn() && G.combo > 0 && G.combo % 50 === 0) pomSay(pick([t('pomNice'), t('pomNice2')]), 'happy', 1.2);
   G.stats.foods[it.type] = (G.stats.foods[it.type] || 0) + 1;
   G.score += (def.pts + (G.fever > 0 ? 0 : Math.min(G.combo, 20) * 1.5)) * (G.fever > 0 ? mult * .75 : mult);
   if (def.kind === 'hay' && (pomOn() || G.char === 'pom')) pomPouch(def.gold ? 5 : 1);
-  if (def.kind === 'hay') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; G.feverG += (def.gold ? 25 : .55) * feverK(); SFX.hay(G.combo % 13); burst(sx, sy, def.gold ? '#F2C230' : '#9BB85A', def.gold ? 16 : 3); if (def.gold) { floatText(sx, sy - 20, '+30', '#F2C230'); react('sparkle', 0); } }
+  if (def.kind === 'hay' && G.air && G.pow.fly <= 0) { G.airN = (G.airN || 0) + 1; if (G.airN === 5) { const pts = 120 * SV.mlevel; G.score += pts; G.stats.airCatch = (G.stats.airCatch || 0) + 1; floatText(W / 2, H * .38, lab('AIR CATCH!') + ' +' + fmt(pts), '#9BD3F0'); tone(659, .1, 'bell', .045); tone(880, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .08); } } // five hay in one jump (2026-11-08)
+  if (def.kind === 'hay') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; G.feverG += (def.gold ? 25 : .55) * feverK(); SFX.hay(G.combo % 13); burst(sx, sy, def.gold ? '#F2C230' : '#9BB85A', def.gold ? 16 : 3); leaves(sx, sy, def.gold ? 6 : 3); if (!def.gold) FX.push({ x: sx, y: sy, vx: 0, vy: -40, life: .18, t: 0, c: 'rgba(255,255,230,.9)', r: 7 }); /* a soft glint on every hay */ if (def.gold) { floatText(sx, sy - 20, '+30', '#F2C230'); react('sparkle', 0); } }
   else if (def.kind === 'food') { G.feverG += 3 * feverK(); SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#F6EBDC'); }
   else if (def.kind === 'veg') { G.feverG += 5 * feverK(); G.stats.veg++; SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#B8D98A'); burst(sx, sy, '#5F9E5A', 6); }
   else if (def.kind === 'treat') { G.feverG += 9 * feverK(); G.stats.treats++; SFX.treat(); floatText(sx, sy, L(def) + '!', '#F2C230'); burst(sx, sy, '#E2434B', 10); if (Math.random() < .4) react('happy', 0); }
@@ -682,9 +707,10 @@ function fitScore() {
   const gap = parseFloat(getComputedStyle(top).columnGap) || 8, half = (top.clientWidth - clock.offsetWidth) / 2 - gap;
   for (const [e, pad] of [[sc, 22], [hy, 22 + 32]]) { e.style.fontSize = ''; const base = parseFloat(getComputedStyle(e).fontSize), avail = half - pad; if (e.scrollWidth > avail) e.style.fontSize = Math.max(10, Math.floor(base * avail / e.scrollWidth)) + 'px'; }
 }
+function comboPop() { const e = el('combo'); if (!e || G.combo < 5) return; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } // the combo count bounces on every pickup
 function hud() {
-  chalTick(); setText('hChal', CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
-  setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay)));
+  chalTick(); setText('hChal', G.timed ? t('quickHud', Math.max(0, Math.ceil(G.timed - G.t))) : CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
+  setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay))); { const hn = Math.floor(G.hay); if (hn !== HUDC.hayN) { const up = hn > (HUDC.hayN || 0); HUDC.hayN = hn; const e = el('hHay'); if (up && e && !OPT().calm) { e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } } } // the hay count hops a little when it goes up (2026-11-08)
   setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
   setText('hClock', clockStr(G.clock)); setText('hDay', t('dayN', G.day));
   { const sg = curSeg(); setText('hRoom', sg.th.climb ? `${L(sg.th)} ${altitude(sg, G.s)}m` : L(sg.th)); }
@@ -698,7 +724,7 @@ function hud() {
   setText('feverLbl', G.fever > 0 ? (tr('もぐもぐフィーバー中！', 'FEVER!')) : t('gauge'));
   setText('feverPct', G.fever > 0 ? G.fever.toFixed(1) + 's' : Math.floor(pct) + '%');
   if (pct >= 15 && !G.gaugeTold && SV.runs <= 3) { G.gaugeTold = 1; banner('', t('gaugeHint'), ''); }
-  if (!G.bestTold && SV.best > 500 && G.score > SV.best) { G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.mission(); react('sparkle', 1); }
+  if (!G.bestTold && SV.best > 500 && G.score > SV.best) { G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.mission(); react('sparkle', 1); if (!OPT().calm) { burst(W / 2, H * .3, '#F2C230', 40); burst(W / 2, H * .3, '#E86A75', 24); burst(W / 2, H * .3, '#6FC3DF', 18); } }
   if (G.fever <= 0 && pct >= 80 && !G.soonTold) { G.soonTold = 1; banner('ALMOST!', t('feverSoon'), 'good'); }
   const on = Object.keys(G.pow).filter(k => G.pow[k] > 0);
   const key = on.join(',') + (G.shield ? ',s' : '');
@@ -721,7 +747,7 @@ function banner(en, ja, cls) {
 let bTimer = 0;
 function nextBanner() {
   const m = BQ.shift(); const el = $('#banner'); if (!m) { bOn = null; el.classList.remove('show'); return; }
-  bOn = m; el.className = 'show ' + (m.cls || '');
+  bOn = m; el.className = 'show ' + (m.cls || '') + (((m.ja || '').length > (LANG === 'ja' ? 20 : 34)) ? ' long' : '');
   el.querySelector('.en').textContent = lab(m.en); el.querySelector('.ja').textContent = m.ja;
   clearTimeout(bTimer); bTimer = setTimeout(() => { el.classList.remove('show'); bTimer = setTimeout(nextBanner, 220); }, BQ.length ? 1300 : 2000);
 }
@@ -766,7 +792,8 @@ function checkMissions(live) {
 }
 function missionHTML() {
   if (!SV.missions) newMissions();
-  return SV.missions.slots.map(sl => { const m = MT.find(x => x.id === sl.id); if (!m) return ''; const p = Math.min(sl.target, Math.floor(missionProg(sl, G.mode === 'play' || G.mode === 'pause'))); const done = sl.done || p >= sl.target;
+  const live = G.mode === 'play' || G.mode === 'pause', ratio = sl => sl.done ? -1 : Math.min(1, missionProg(sl, live) / Math.max(1, sl.target));
+  return [...SV.missions.slots].sort((a, b) => ratio(b) - ratio(a)).map(sl => { const m = MT.find(x => x.id === sl.id); if (!m) return ''; const p = Math.min(sl.target, Math.floor(missionProg(sl, live))); const done = sl.done || p >= sl.target; // the one you are closest to comes first (2026-11-08)
     return `<div class="m${done ? ' done' : ''}"><p>${esc(L(m.t(sl.target)))}</p><span class="n">${done ? 'CLEAR' : fmt(p) + ' / ' + fmt(sl.target)}</span><div class="prog"><i style="width:${(done ? 1 : p / sl.target) * 100}%"></i></div></div>`; }).join('');
 }
 
@@ -787,22 +814,28 @@ function takePhoto(tid) {
 const CAPS = {
   obstacle: { ren: ['EYES FRONT, BOSS.', '課長、前です'], jill: ['NOBODY’S PERFECT.', 'ジルにも、たまには'], pom: ['ROOKIE MISTAKE!', '新人、まだまだっす'] },
   papers: { ren: ['BURIED IN PAPERS.', '書類に埋もれた'], jill: ['BURIED IN PAPERS.', '書類に埋もれた'], pom: ['BURIED IN PAPERS.', '書類に埋もれた'] },
+  time: { ren: ['TIME! NICE RUN.', '1分、おつかれさま！'], jill: ['TIME! NICE RUN.', '1分、おつかれさまでした'], pom: ['TIME! NICE RUN.', '1分、走りきったっす！'] },
   wall: { ren: ['THAT’S A WALL.', 'そっちは壁です'], jill: ['THAT’S A WALL.', 'そっちは壁です'], pom: ['THAT’S A WALL.', 'そっちは壁です'] },
   quit: { ren: ['LEFT EARLY.', '早退しました'], jill: ['LEFT EARLY.', '早退しました'], pom: ['LEFT EARLY.', '早退しました'] },
 };
+const DAY_GOAL = 300;
+const bondLv = () => 1 + Math.floor(Math.sqrt((SV.bond || 0) / 3));
 function endRun() {
   chalSave();
   if (!SV.tutDone && (!G.tut || G.tut.every(x => x.done) || G.dist > 150)) { SV.tutDone = 1; } // the lesson is done once it was played through
   G.mode = 'result'; musicStop();
   const bonus = hasPerk('ren') ? Math.floor(G.hay * .2) : 0, gained = Math.floor(G.hay) + bonus;
   SV.bank += gained;
+  let bondMsg = ''; if (G.char !== 'pom' && G.dist > 150) { const lv0 = bondLv(); SV.bond = (SV.bond || 0) + 1; if (bondLv() > lv0) bondMsg = t('bondUp', bondLv()); } // Ren & Jill's buddies level (2026-11-08)
+  { const td = todayStr(); SV.playDays = (SV.playDays || []).filter(k => k !== td).concat(td).slice(-60); } // days you played, for the calendar
+  let dayGoalMsg = ''; { const td = todayStr(); if (!SV.dayHay || SV.dayHay.d !== td) SV.dayHay = { d: td, n: 0 }; const b4 = SV.dayHay.n; SV.dayHay.n += gained; if (b4 < DAY_GOAL && SV.dayHay.n >= DAY_GOAL) { SV.bank += 100; dayGoalMsg = tr('今日の目標達成！ +100', 'Daily goal done! +100'); } } // today's hay goal (2026-11-08)
   const st = G.stats; st.score = G.score; st.dist = G.dist;
   checkMissions(true);
   for (const k of ['jumps', 'slides', 'treats', 'powers', 'fevers', 'hay', 'veg', 'turns', 'looks', 'flights']) SV.totals[k] = (SV.totals[k] || 0) + (st[k] || 0);
   for (const sl of SV.missions.slots) { const m = MT.find(x => x.id === sl.id); if (m && m.scope === 'run') sl.prog = Math.max(sl.prog, m.stat === 'score' ? G.score : m.stat === 'dist' ? G.dist : (st[m.stat] || 0)); }
   checkAch(false); dailyCheck(false);
-  const prevBest = SV.best || 0, newBest = G.score > SV.best; if (newBest) SV.best = Math.floor(G.score);
-  SV.bestClock = Math.max(SV.bestClock || 480, G.clock + (G.day - 1) * 1440); SV.bestDay = Math.max(SV.bestDay || 1, G.day);
+  const bk = G.timed ? 'bestT' : 'best', prevBest = G.easy ? 0 : (SV[bk] || 0), newBest = !G.easy && G.score > (SV[bk] || 0); if (newBest) SV[bk] = Math.floor(G.score);
+  if (!G.easy && !G.timed) SV.bestClock = Math.max(SV.bestClock || 480, G.clock + (G.day - 1) * 1440); SV.bestDay = Math.max(SV.bestDay || 1, G.day);
   let lvlMsg = '';
   if (SV.missions.slots.every(sl => sl.done)) { SV.mlevel++; const rw = 150 * SV.mlevel; SV.bank += rw; lvlMsg = t('lvlUp', SV.mlevel, rw); newMissions(); }
   { const pm = careerCheck(); if (pm) { lvlMsg = pm + (lvlMsg ? '　' + lvlMsg : ''); $('#resPromo').textContent = pm; $('#resPromo').hidden = false; } else $('#resPromo').hidden = true; }
@@ -811,13 +844,13 @@ function endRun() {
   $('#resEn').textContent = tr(cap[1], cap[0]); $('#resJa').textContent = '';
   $('#resBest').hidden = !newBest;
   { const el = $('#resScore'), total = Math.floor(G.score), t0 = performance.now(), dur = Math.min(1400, 500 + total / 60); el.textContent = '0';
-    const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); if (k < 1) { if (Math.random() < .5) tone(600 + 600 * e, .03, 'square', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); SFX.mission(); } }; requestAnimationFrame(tick); }
+    const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); if (k < 1) { if (Math.random() < .5) tone(440 + 220 * e, .04, 'pluck', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); SFX.mission(); } }; requestAnimationFrame(tick); }
   { const hi = []; if ((st.maxCombo || 0) >= 20) hi.push(t('hiCombo', st.maxCombo)); if ((st.nice || 0) >= 3) hi.push(t('hiNice', st.nice)); if ((st.fevers || 0) >= 2) hi.push(t('hiFever', st.fevers)); if ((st.looks || 0) >= 3) hi.push(t('hiLook', st.looks));
     $('#resHi').innerHTML = st.stampsNew.map(tid => `<span class="new">${esc(t('hiNew', L(THEMES[tid].stamp)))}</span>`).join('') + hi.map(x => `<span>${esc(x)}</span>`).join(''); }
   SV.last = { score: Math.floor(G.score), place: { ja: curSeg().th.ja, en: curSeg().th.en } }; // the place in every language (shown in whatever language the title is in later)
   save(); $('#resClock').textContent = (G.day > 1 ? t('dayN', G.day) + ' ' : '') + clockStr(G.clock); $('#resHay').textContent = fmt(gained);
   const vsBest = prevBest > 0 ? (newBest ? t('bestUp', fmt(Math.floor(G.score) - prevBest)) : t('bestShort', fmt(prevBest - Math.floor(G.score)))) : '';
-  $('#resNote').textContent = (CHAL ? (G.chalWon ? t('chalDone', fmt(CHAL.s)) : t('chalLeft', fmt(Math.ceil(CHAL.s - G.score) + 1))) : '') + (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '');
+  $('#resNote').textContent = (CHAL ? (G.chalWon ? t('chalDone', fmt(CHAL.s)) : t('chalLeft', fmt(Math.ceil(CHAL.s - G.score) + 1))) : '') + (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '') + (dayGoalMsg ? '　' + dayGoalMsg : '') + (bondMsg ? '　' + bondMsg : '') + (G.easy ? '　' + t('easyRes') : '') + (G.timed ? '　' + t('quickBest', fmt(SV.bestT || 0)) : '');
   $('#resSpots').innerHTML = st.spots.length ? st.spots.map(tid => `<span class="spot${st.stampsNew.includes(tid) ? ' new' : ''}"><img src="${stampURL(tid)}" alt="">${esc(L(THEMES[tid].stamp))}</span>`).join('') : '';
   $('#resMissions').innerHTML = missionHTML();
   const seen = st.bads.length ? st.bads[st.bads.length - 1] : pick(Object.keys(st.foods).length ? Object.keys(st.foods) : ['hay']);
