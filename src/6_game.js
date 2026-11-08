@@ -192,7 +192,7 @@ function act(a) {
     const nl = clamp(G.lane + d, 0, 2); if (nl !== G.lane) { G.prevLane = G.lane; G.lane = nl; G.laneT = .35; G.tutDid = 'side'; tone(520 + d * 40, .04, 'triangle', .06); }
   } else if (a === 'up') {
     if (G.pow.fly > 0) return;
-    if (!G.air) { G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up'; } // one plain jump for everything (low things are cleared by its normal height)
+    if (!G.air || G.coyote > 0) { G.coyote = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up'; } // one plain jump for everything (low things are cleared by its normal height)
     else G.jumpBuf = .16;
   } else if (a === 'down') {
     if (G.pow.fly > 0) return;
@@ -289,7 +289,7 @@ function pomPouch(n) { // Pom stuffs the hay you pass into its cheek pouches; wh
 function pomJoin() {
   const M = G.pom; if (M.on) { G.score += 200 * SV.mlevel; return; }
   M.on = 1; M.show = true; M.lat = G.lat; M.back = 6; M.y = 0; M.vy = 0; M.air = false; M.pouch = 0; G.stats.pom = 1;
-  SFX.mission(); burst(W / 2, H * .55, '#F2C230', 26); buzz(40); G.hitStop = .06;
+  SFX.pom(); burst(W / 2, H * .55, '#F2C230', 26); buzz(40); G.hitStop = .06;
   const first = !SV.pomMet; SV.pomMet = (SV.pomMet || 0) + 1; save(); G.pomPeek = null;
   bannerNow(first ? (tr('ナゾの新人あらわる！', 'A MYSTERY ROOKIE!')) : (tr('ポム合流！', 'POM JOINS!')), t(first ? 'pomJoin' : 'pomJoin2'), 'good');
   const id = G.runId; setTimeout(() => { if (G.runId === id) pomSay(t(first ? 'pomHi' : 'pomHi2'), 'sparkle', 1.8); }, 500);
@@ -396,7 +396,7 @@ function update(dt) {
   G.s += step; G.dist += step; G.stats.cleanCur += step; G.stats.clean = Math.max(G.stats.clean, G.stats.cleanCur);
   const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
   G.score += step * mult * (3 + G.speed * .12); // distance is the backbone: about 4-6 points per metre, more when fast
-  const tl = LANES[G.lane]; const dl = tl - G.lat; G.lat += Math.sign(dl) * Math.min(Math.abs(dl), dt * 15);
+  const tl = LANES[G.lane]; const dl = tl - G.lat; G.lat += Math.sign(dl) * Math.min(Math.abs(dl), dt * 17);
   if (G.laneT > 0) G.laneT -= dt;
   // support + movers
   let ground = 0;
@@ -411,9 +411,11 @@ function update(dt) {
   // vertical
   if (flying) { G.y = lerp(G.y, G.flyY, 1 - Math.exp(-dt * 4)); G.vy = 0; G.air = true; }
   else {
+    if (!G.air && G.y > ground + .001 && G.vy <= 0) G.coyote = .1; // coyote time: a jump still counts for a tenth of a second after running off an edge
     if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault || 1); G.y += G.vy * dt; G.air = true; }
     if (G.y <= ground + .001 && G.vy <= 0) { // land: also when the fall stops a hair above the floor (a height of 0.0005 used to leave the runner 'in the air' forever: no gravity, no landing, no jump)
-      if (G.air && G.vy < -4) { const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
+      if (G.air && G.vy < -4) { SFX.land(); const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
+      if (G.air) { G.landT = .14; G.landK = clamp(-G.vy / 16, .4, 1); } // the landing squash (drawn in drawBunnyWorld)
       G.y = ground; G.vy = 0;
       if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; G.vaultDown = 0; } else { G.air = false; G.vault = 0; G.vaultDown = 0; }
     }
@@ -479,6 +481,8 @@ function update(dt) {
   if (G.turnT > 0) G.turnT -= dt;
   if (G.lookCD > 0) G.lookCD -= dt;
   if (G.jumpBuf > 0) G.jumpBuf -= dt;
+  if (G.coyote > 0) G.coyote -= dt;
+  if (G.landT > 0) G.landT -= dt;
   if (G.comboT > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
   if (G.chaseT > 0) G.chaseT = Math.max(0, G.chaseT - dt);
   const chaseTarget = G.rush ? .55 + .1 * Math.sin(G.t * 3) : G.chaseT > 0 ? Math.min(1, G.chaseT) : 0;
@@ -488,6 +492,7 @@ function update(dt) {
   G.clock = seg.t0 + (seg.t1 - seg.t0) * clamp(G.s / seg.len, 0, 1);
   // animation
   P.ph += dt * (6 + G.speed * .55);
+  { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1); } } // a soft footstep on every stride
   P.air = G.air && !flying; P.slide = sliding; P.fly = flying; P.flash = G.invT > 0 && G.invT < 2.4 && !flying; P.glow = G.shield ? '#5FB05A' : G.pow.dash > 0 ? '#F08A2E' : null;
   if (P.look > 0) P.look = Math.max(0, P.look - dt);
   if (G.follow.look > 0) G.follow.look = Math.max(0, G.follow.look - dt);
@@ -503,7 +508,7 @@ function placeCamera(dt) {
   const k = G.turnT > 0 ? 1 - Math.exp(-dt * 14) : 1;
   G.rx = lerp(G.rx, p[0], k); G.rz = lerp(G.rz, p[1], k);
   const eP = segE(seg, G.s); G.ey = G.ey == null || G.turnT <= 0 && Math.abs(G.ey - eP) > 3 ? eP : lerp(G.ey, eP, Math.min(1, dt * 18));
-  P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * .06);
+  P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * (.045 + Math.min(.035, G.speed * .002))); // the run bob grows a little with speed
   if (G.aura && G.mode === 'play' && !OPT().calm && (G.auraT = (G.auraT || 0) + (G.dtFX || .016)) > .045) { G.auraT = 0; const sp = spriteAt(P.wx + rand(-.35, .35), P.wy + rand(.2, 1.1) * (P.big || 1), P.wz + .2); if (sp) FX.push({ x: sp.sx, y: sp.sy, vx: rand(-25, 25), vy: rand(-70, -20), life: rand(.35, .7), t: 0, c: Math.random() < .5 ? 'rgba(255,214,90,.95)' : 'rgba(255,246,200,.95)', r: rand(1.5, 3.2) }); } P.vy = P.who === 'pom' ? G.vy : null;
   const fp = segPos(seg, G.s - F.back, F.lat); F.wx = fp[0]; F.wz = fp[1]; F.wy = fp[2] + (F.y || 0) + (F.air ? 0 : Math.abs(Math.sin(F.ph)) * .06);
   F.fly = P.fly; if (P.fly) { F.wy = G.ey + G.y - .3; }
@@ -647,13 +652,13 @@ function collect(it, seg) {
     feelSick();
     return;
   }
-  G.combo++; G.comboT = 1.3; G.stats.maxCombo = Math.max(G.stats.maxCombo || 0, G.combo);
+  G.combo++; G.comboT = 1.3; comboPop(); G.stats.maxCombo = Math.max(G.stats.maxCombo || 0, G.combo);
   if (G.combo > 0 && G.combo % 30 === 0) react(pick(['happy', 'sparkle', 'wink']), 0);
   if (pomOn() && G.combo > 0 && G.combo % 50 === 0) pomSay(pick([t('pomNice'), t('pomNice2')]), 'happy', 1.2);
   G.stats.foods[it.type] = (G.stats.foods[it.type] || 0) + 1;
   G.score += (def.pts + (G.fever > 0 ? 0 : Math.min(G.combo, 20) * 1.5)) * (G.fever > 0 ? mult * .75 : mult);
   if (def.kind === 'hay' && (pomOn() || G.char === 'pom')) pomPouch(def.gold ? 5 : 1);
-  if (def.kind === 'hay') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; G.feverG += (def.gold ? 25 : .55) * feverK(); SFX.hay(G.combo % 13); burst(sx, sy, def.gold ? '#F2C230' : '#9BB85A', def.gold ? 16 : 3); if (def.gold) { floatText(sx, sy - 20, '+30', '#F2C230'); react('sparkle', 0); } }
+  if (def.kind === 'hay') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; G.feverG += (def.gold ? 25 : .55) * feverK(); SFX.hay(G.combo % 13); burst(sx, sy, def.gold ? '#F2C230' : '#9BB85A', def.gold ? 16 : 5); if (!def.gold) FX.push({ x: sx, y: sy, vx: 0, vy: -40, life: .18, t: 0, c: 'rgba(255,255,230,.9)', r: 7 }); /* a soft glint on every hay */ if (def.gold) { floatText(sx, sy - 20, '+30', '#F2C230'); react('sparkle', 0); } }
   else if (def.kind === 'food') { G.feverG += 3 * feverK(); SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#F6EBDC'); }
   else if (def.kind === 'veg') { G.feverG += 5 * feverK(); G.stats.veg++; SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#B8D98A'); burst(sx, sy, '#5F9E5A', 6); }
   else if (def.kind === 'treat') { G.feverG += 9 * feverK(); G.stats.treats++; SFX.treat(); floatText(sx, sy, L(def) + '!', '#F2C230'); burst(sx, sy, '#E2434B', 10); if (Math.random() < .4) react('happy', 0); }
@@ -681,6 +686,7 @@ function fitScore() {
   const gap = parseFloat(getComputedStyle(top).columnGap) || 8, half = (top.clientWidth - clock.offsetWidth) / 2 - gap;
   for (const [e, pad] of [[sc, 22], [hy, 22 + 32]]) { e.style.fontSize = ''; const base = parseFloat(getComputedStyle(e).fontSize), avail = half - pad; if (e.scrollWidth > avail) e.style.fontSize = Math.max(10, Math.floor(base * avail / e.scrollWidth)) + 'px'; }
 }
+function comboPop() { const e = el('combo'); if (!e || G.combo < 5) return; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } // the combo count bounces on every pickup
 function hud() {
   chalTick(); setText('hChal', CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
   setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay)));
@@ -697,7 +703,7 @@ function hud() {
   setText('feverLbl', G.fever > 0 ? (tr('もぐもぐフィーバー中！', 'FEVER!')) : t('gauge'));
   setText('feverPct', G.fever > 0 ? G.fever.toFixed(1) + 's' : Math.floor(pct) + '%');
   if (pct >= 15 && !G.gaugeTold && SV.runs <= 3) { G.gaugeTold = 1; banner('', t('gaugeHint'), ''); }
-  if (!G.bestTold && SV.best > 500 && G.score > SV.best) { G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.mission(); react('sparkle', 1); }
+  if (!G.bestTold && SV.best > 500 && G.score > SV.best) { G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.mission(); react('sparkle', 1); if (!OPT().calm) { burst(W / 2, H * .3, '#F2C230', 40); burst(W / 2, H * .3, '#E86A75', 24); burst(W / 2, H * .3, '#6FC3DF', 18); } }
   if (G.fever <= 0 && pct >= 80 && !G.soonTold) { G.soonTold = 1; banner('ALMOST!', t('feverSoon'), 'good'); }
   const on = Object.keys(G.pow).filter(k => G.pow[k] > 0);
   const key = on.join(',') + (G.shield ? ',s' : '');

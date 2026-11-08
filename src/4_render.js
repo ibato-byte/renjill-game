@@ -98,7 +98,7 @@ function computeLight(seg) {
   computeSun();
 }
 function lit(c, k) { return [c[0] * k * LT.amb[0], c[1] * k * LT.amb[1], c[2] * k * LT.amb[2]]; }
-function fogK(d) { return clamp((d - 40) / (FAR - 40), 0, 1) * (LT.indoor ? .55 : 1); }
+function fogK(d) { return clamp((d - 34) / (FAR - 34), 0, 1) * (LT.indoor ? .55 : 1); } // the haze starts a little nearer: more depth down the street
 const c255 = x => x > 255 ? 255 : x < 0 ? 0 : x | 0; // out-of-range rgb() values put the canvas on a very slow path
 function fogged(c, k, d, glow) { const t = fogK(d); const q = glow ? [c[0], c[1], c[2]] : lit(c, k); return `rgb(${c255(lerp(q[0], LT.fog[0], t))},${c255(lerp(q[1], LT.fog[1], t))},${c255(lerp(q[2], LT.fog[2], t))})`; }
 const TC = new Map(); let TCK = '';
@@ -387,7 +387,7 @@ function drawSpr(s, sg, d) {
 function drawItem(it, sg, d) {
   const p = segPos(sg, it.s, it.lat); const sp = spriteAt(p[0], p[2] + it.y + Math.sin(G.t * 3 + it.ph) * .06, p[1]); if (!sp) return;
   const def = ITEMS[it.type]; const isPow = def.kind === 'power' || def.kind === 'stamp' || def.kind === 'pom', bad = def.kind === 'bad';
-  const size = (it.type === 'hay' ? .62 : isPow ? .82 : .6) * sp.k;
+  const size = (it.type === 'hay' ? .74 : isPow ? .9 : .7) * sp.k; // a little bigger: the hay was hard to see on a phone
   const spin = it.type === 'hay' || it.type === 'goldhay' || isPow ? .72 + .28 * Math.cos(G.t * 3.2 + it.ph) : 1;
   ctx.globalAlpha = 1 - fogK(d) * .9;
   if (isPow || it.type === 'goldhay') { ctx.beginPath(); ctx.fillStyle = def.kind === 'stamp' ? 'rgba(255,120,110,.45)' : 'rgba(255,236,150,.5)'; ctx.arc(sp.sx, sp.sy, size * .62 * (1 + .08 * Math.sin(G.t * 6)), 0, Math.PI * 2); ctx.fill(); }
@@ -417,9 +417,10 @@ function objShadows(sg) {
     ctx.globalCompositeOperation = 'source-over';
   }
 }
+let SHG = null; function softShadow() { if (SHG) return SHG; SHG = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); SHG.addColorStop(0, 'rgba(30,22,16,.34)'); SHG.addColorStop(.55, 'rgba(30,22,16,.2)'); SHG.addColorStop(1, 'rgba(30,22,16,0)'); return SHG; }
 function drawShadows(seg) {
   ctx.fillStyle = 'rgba(30,22,16,.22)';
-  const sh = (s, lat, r, a) => { const p = segPos(seg, s, lat); const sp = spriteAt(p[0], p[2], p[1]); if (!sp) return; ctx.globalAlpha = a; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, r * sp.k, r * sp.k * .3, 0, 0, Math.PI * 2); ctx.fill(); };
+  const sh = (s, lat, r, a) => { const p = segPos(seg, s, lat); const sp = spriteAt(p[0], p[2], p[1]); if (!sp) return; ctx.save(); ctx.globalAlpha = a; ctx.translate(sp.sx, sp.sy); ctx.scale(r * sp.k * 1.15, r * sp.k * .34); ctx.fillStyle = softShadow(); ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }; // a soft-edged pool, darkest under the feet
   if (G.player.show && G.mode !== 'title') { sh(G.s, G.lat, .55, clamp(1 - G.y * .3, .25, 1)); if (G.follow.show) sh(G.s - G.follow.back, G.follow.lat, .46, .8); if (G.pom.on && G.pom.show) sh(G.s - G.pom.back, G.pom.lat, G.pom.who === 'pom' ? .32 : .46, .75); }
   ctx.globalAlpha = 1;
 }
@@ -434,6 +435,9 @@ function drawBunnyWorld(b) {
   const img = bunFrame(b.who, pose, SV.mugOn);
   ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc);
   if (b.tilt) ctx.rotate(b.tilt);
+  if (b === G.player && G.mode === 'play' && !OPT().calm) { // squash on landing, a touch of stretch at the top of a jump
+    if (G.landT > 0 && !b.air && !b.slide) { const q = Math.sin(G.landT / .14 * Math.PI) * .2 * (G.landK || 1); ctx.scale(1 + q, 1 - q); }
+    else if (b.air && !b.fly && G.vy > 5) { const q = Math.min(.08, (G.vy - 5) * .008); ctx.scale(1 - q, 1 + q); } }
   if (b.who === 'pom' && b.air && !b.fly && b.vy != null) { ctx.translate(0, -140); ctx.rotate(-(1 - clamp((b.vy + JUMPV) / (2 * JUMPV), 0, 1)) * Math.PI * 2); ctx.translate(0, 140); } // Pom flips on every jump
   if (b.who === 'pom' && b.slide) { ctx.translate(0, -110); ctx.rotate((G.t * 14) % (Math.PI * 2)); ctx.translate(0, 110); } // and rolls under things
   if (b.look > 0 && b.mood === 'sick') ctx.rotate(Math.sin(G.t * 7) * .07);
@@ -510,8 +514,9 @@ function drawFX() {
     else { ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
   }
   ctx.globalAlpha = 1;
-  if (G.mode === 'play' && !OPT().calm && (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0)) {
-    ctx.strokeStyle = G.fever > 0 ? 'rgba(242,194,48,.55)' : 'rgba(255,255,255,.55)'; ctx.lineWidth = 2; ctx.beginPath();
+  const spdK = (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : clamp((G.speed - 15.5) / 2, 0, .4); // faint speed lines once the run gets fast, full ones on a dash
+  if (G.mode === 'play' && !OPT().calm && spdK > 0) {
+    ctx.strokeStyle = G.fever > 0 ? `rgba(242,194,48,${(.55 * spdK).toFixed(2)})` : `rgba(255,255,255,${(.55 * spdK).toFixed(2)})`; ctx.lineWidth = 2; ctx.beginPath();
     for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2 + G.t * .5, r0 = Math.min(W, H) * (.32 + ((G.t * 3 + k * .37) % 1) * .5); ctx.moveTo(W / 2 + Math.cos(a) * r0, HORIZON + Math.sin(a) * r0 * .8); ctx.lineTo(W / 2 + Math.cos(a) * (r0 + 40), HORIZON + Math.sin(a) * (r0 + 40) * .8); }
     ctx.stroke();
   }

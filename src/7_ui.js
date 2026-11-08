@@ -255,7 +255,7 @@ stage.addEventListener('pointerdown', e => {
 });
 stage.addEventListener('pointermove', e => {
   if (!tp || tp.id !== e.pointerId) return;
-  const dx = e.clientX - tp.x, dy = e.clientY - tp.y, th = OPT().sens === 'high' ? 14 : Math.max(20, Math.min(W, H) * .04);
+  const dx = e.clientX - tp.x, dy = e.clientY - tp.y, th = OPT().sens === 'high' ? 12 : Math.max(16, Math.min(W, H) * .04); // a shorter swipe counts (20px felt slow on a phone)
   if (Math.abs(dx) > th || Math.abs(dy) > th) { const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'); if (dir !== tp.last || performance.now() - tp.t > 160) { act(dir); tp.last = dir; tp.t = performance.now(); tp.fired = true; } tp.x = e.clientX; tp.y = e.clientY; }
 });
 const endTouch = e => { if (!tp || tp.id !== e.pointerId) return; // a fast flick on a busy frame may arrive as just down + up: read it from the whole stroke
