@@ -235,8 +235,9 @@ function render() {
   groundDust(seg);
   drawFX();
   drawWeather(seg);
-  // 室内の昼：窓からの光がうっすら斜めに（C-35）。手前の下のほうは少しだけ暗く、奥行きを出す（C-32）
-  if (G.mode !== 'title') { if (LT.indoor && seg.th.kind === 'room' && LT.night < .5) { ctx.save(); ctx.globalAlpha = .07 * (1 - LT.night * 2); ctx.fillStyle = '#FFF4D6'; for (const [a, w] of [[.08, .1], [.3, .06], [.62, .09]]) { ctx.beginPath(); ctx.moveTo(W * a, H * .38); ctx.lineTo(W * (a + w), H * .38); ctx.lineTo(W * (a + w + .32), H); ctx.lineTo(W * (a + .32), H); ctx.closePath(); ctx.fill(); } ctx.restore(); G.shaftN = (G.shaftN || 0) + 1; }
+  // 手前の下のほうは少しだけ暗く、奥行きを出す（C-32）
+  //  室内の斜めの光（C-35）はやめた：画面に固定の帯なので、走っていると「薄い斜めの残像」に見える（遊んだ方の報告 2026-11-08）。qa/visfx で 0 本を確認
+  if (G.mode !== 'title') {
     const vg = ctx.createLinearGradient(0, H * .66, 0, H); vg.addColorStop(0, 'rgba(30,22,16,0)'); vg.addColorStop(1, 'rgba(30,22,16,.13)'); ctx.fillStyle = vg; ctx.fillRect(0, H * .66, W, H * .34); }
   if (LT.night > .5 && !LT.indoor) { const g = ctx.createRadialGradient(W / 2, H * .55, H * .2, W / 2, H * .55, H * .8); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(8,10,30,.35)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
   postFX();
