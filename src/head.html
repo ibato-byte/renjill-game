@@ -86,6 +86,9 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 .toast.bad .ja{color:var(--paper)}
 @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes fade{to{opacity:0;transform:translateY(-14px)}}
+.gig{position:absolute;left:50%;bottom:calc(112px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 10px;width:min(300px,78vw);padding:6px 12px 7px;border-radius:14px;background:rgba(251,246,238,.94);color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.25);font-weight:900;font-size:12px;animation:gigIn .3s ease-out}.gig[hidden]{display:none}
+.gig b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gig em{font-style:normal;font-variant-numeric:tabular-nums;color:#C8463C}.gig i{grid-column:1/-1;display:block;height:5px;border-radius:99px;background:rgba(90,58,30,.15);overflow:hidden}.gig s{display:block;height:100%;border-radius:99px;background:#E8A33A;text-decoration:none;transition:width .2s linear}.gig.rain s{background:var(--leaf)}.gig.boss s{background:#C8463C}
+@keyframes gigIn{from{transform:translate(-50%,8px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
 #hint{position:absolute;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));text-align:center;font-weight:900;font-size:14px;color:var(--paper);text-shadow:0 2px 0 rgba(0,0,0,.35);transition:opacity .4s}
 #turnCue{position:absolute;top:44%;font-family:var(--f-display);font-size:clamp(46px,14vw,80px);color:var(--tie);text-shadow:0 4px 0 var(--ink);opacity:0;transition:opacity .12s}
 #turnCue.l{left:8%}#turnCue.r{right:8%}#turnCue.show{opacity:1}
@@ -145,6 +148,7 @@ html[lang="ja"] .mini span{display:none}html[lang="ja"] .ph small{display:none}
 .m .n{font-size:12px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--ink-soft)}
 .m.done{background:#E7F0DC}
 .m.done .n{color:var(--leaf)}
+.m .wkbar{display:block;height:6px;margin:6px 0 2px;border-radius:99px;background:rgba(90,58,30,.14);overflow:hidden}.m .wkbar i{display:block;height:100%;border-radius:99px;background:var(--leaf)}
 .lvl{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;color:var(--ink-soft)}
 .lvl b{font-family:var(--f-display);font-weight:400;font-size:28px;color:var(--stamp)}
 .shop-item{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:10px;border-radius:14px;background:var(--cream)}
@@ -337,7 +341,7 @@ details.more>*:not(summary){margin-top:8px}
 @media (max-height:620px){.story{display:none}.logo{padding-top:6px}.logo .k{display:none}.logo h1{font-size:28px}.logo .ja{display:none}.char{padding:4px 6px 6px}.char canvas{max-width:64px}.chars{gap:6px}.char .perk{font-size:10px}.char .role{display:none}.card{gap:6px;padding:10px}.big{padding:8px;font-size:18px}.daily{font-size:11px}.small-print{display:none}}
 /* タブレット（幅・高さとも 700px 以上）：上の枠と数字を少し大きく（C-25） */
 @media (min-width:700px) and (min-height:700px){.hud-top{padding-top:16px;gap:14px}.chip{padding:8px 14px;border-radius:16px}.score b{font-size:38px}.score small{font-size:14px}.clock{min-width:130px}.clock .day{font-size:12px}.clock b{font-size:32px}.clock .room{font-size:13px}.hay img{width:34px;height:34px}.hay b{font-size:31px}#feverBar{width:min(440px,60%);height:22px}}
-@media (max-height:500px){#hud .hud-top{gap:4px}#routeBar{display:none!important}#lives{margin-top:3px}#lives em{display:none}#feverBar{height:10px;margin-top:4px}#feverBar span,#feverBar b{display:none}#banner{top:calc(env(safe-area-inset-top,0px) + 116px)!important}}
+@media (max-height:500px){#hud .hud-top{gap:4px}#routeBar{display:none!important}#lives{margin-top:3px}#lives em{display:none}#feverBar{height:10px;margin-top:4px}#feverBar span,#feverBar b{display:none}#banner{top:calc(env(safe-area-inset-top,0px) + 116px)!important}.gig{bottom:calc(64px + env(safe-area-inset-bottom,0px))}}
 
 /* ---- brush-up 2026-11: no words broken in the middle, the follow row, the share bar in two rows ---- */
 .tog .sub.small{white-space:nowrap;padding:6px 8px}.card>.bank{flex-wrap:wrap;gap:6px 8px}.card>.bank .tog{margin-left:auto}

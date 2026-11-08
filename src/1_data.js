@@ -32,7 +32,7 @@ const SNS = [{ id: 'ig', name: 'Instagram', url: 'https://www.instagram.com/renj
 const OFFICIAL_SITE = 'https://renjill.coana.co.jp/', SITE_REF = OFFICIAL_SITE + '?ref=haydash'; // the official site can count visits that came from the game
 /* ---- where a new player came from: ?ref=<channel> on a shared link (one short word from this list, nothing personal).
    Kept once (the first visit) and sent with the ranking row as "src", so qa/kpi.mjs can count players per channel. */
-const REF_OK = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr', 'itch', 'gamejolt', 'newgrounds', 'freem', 'plicy', 'portal', 'indiedb', 'crazygames'];
+const REF_OK = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr', 'itch', 'gamejolt', 'newgrounds', 'freem', 'plicy', 'portal', 'indiedb', 'crazygames', 'gamenora', 'addicting'];
 // played inside a game portal that has its own rules (CrazyGames: no links out to a playable web version, ads only through its SDK).
 // Decided once per tab: the address (?ref=crazygames) or the page that framed us; kept in sessionStorage because the address is cleaned right after
 const HOST_PORTAL = (() => { try { const r = (new URLSearchParams(location.search).get('ref') || '').toLowerCase(), anc = [...(location.ancestorOrigins || [])].join(' ') + ' ' + (document.referrer || '');
@@ -123,7 +123,6 @@ const STR = {
   pomHi2: ['先輩！今日もお供するっす！', 'Senpai! Reporting for duty again!'], pomJoin2: ['新人のポムが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Pom is back! Fill those cheek pouches for a bonus (score ×1.2)'], pomPuff: ['ほお袋MAXっす！おすそわけ！', 'Pouches full! Sharing!'], pomPeek: ['道のまん中に…ハムスター!? こっちを見てる…', 'A hamster... in the road!? It’s looking at you...'],
   pomJoin: ['体育会系の新入社員、キンクマハムスターのポムが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Meet Pom, the sporty new hire (a golden hamster)! Fill those cheek pouches for a bonus (score ×1.2)'], pomHi: ['押忍！新人のポムっす！', 'Osu! Pom, the new hire, reporting for duty!'],
   pomWorry: ['先輩!? 大丈夫っすか!?', 'Senpai!? You OK!?'], pomDonmai: ['ドンマイっす！', "Shake it off!"], pomFever: ['ファイトーー！', 'Go, go, gooo!'], pomNice: ['ナイスっす！', 'Nice one!'], pomNice2: ['まだまだいけるっす！', 'Keep it up!'], pomStamp: ['スタンプ、映えるっす！', 'Ooh, picture-perfect!'],
-  errand: ['電話：「{0}をひとつ、とってきて！」15秒', 'Phone: "Grab one {0}, please!" 15 sec'], errandOk: ['おつかい完了！', 'Errand done!'], errandNg: ['おつかい、間に合わなかった…', 'Missed the errand...'],
   bigText: ['文字の大きさ', 'Text size'], bigN: ['ふつう', 'Normal'], bigY: ['大きめ', 'Large'], bigNote: ['画面の上の数字・お知らせの帯・この画面の文字を少し大きくします', 'Makes the top numbers, the message strip and these menus a little bigger'],
   sensNote: ['「敏感」にすると、短いスワイプでも反応します', 'High: shorter swipes count'], calmNote: ['画面のゆれ・フラッシュ・残像をおさえます', 'Less shaking, flashing and trails'],
   hitWhat: ['ぶつかったのは、これ', 'You bumped into this'], hitWhatN: ['ぶつかったのは「{0}」', 'You bumped into this'],
@@ -131,7 +130,6 @@ const STR = {
   errLogH: ['エラーの記録', 'Error log'], errLogNote: ['うまく動かなかったときの記録です（この端末だけに残ります）。お問い合わせのときに見せてください', 'Problems this device ran into (kept only here). Handy if you contact us'], errLogNone: ['記録はありません', 'Nothing recorded'],
   plantLv: ['机の観葉植物 Lv.{0}', 'Desk plant Lv.{0}'], plantNext: ['あと牧草{0}本で育つ', '{0} more hay to grow'], plantNote: ['集めた牧草で育ちます', 'Grows with all the hay you collect'],
   plantUp: ['机の観葉植物が大きくなった！（集めた牧草で育つ）', 'Your desk plant grew! (It grows with all the hay you collect)'], bestPics: ['自己ベストの記念写真', 'Personal best photos'], bestPicCap: ['自己ベスト {0}点', 'Best {0}'],
-  presStart: ['社長が見てる！ 8秒、ぶつからずに牧草10本', "The president's watching! 8 sec: 10 hay, no bumps"], presWho: ['あっ、社長！', 'The president!'], presOk: ['社長「いい走りだね」ボーナス！', 'President: "Fine running!" Bonus!'], presNg: ['社長、行っちゃった…', 'The president walked on...'],
   memoJill: ['課長、助かります！', 'Thanks, boss!'], memoRen: ['おお、助かった！', 'Oh, a lifesaver!'], memoPom: ['先輩、助かるっす！', 'Thanks, chief!'],
   worryRen: ['ジル、大丈夫か!?', 'Jill, are you OK!?'], worryJill: ['課長、大丈夫ですか!?', 'Boss, are you OK!?'],
   start: ['スタート', 'START'], again: ['もう一回！', 'ONE MORE RUN'], resume: ['つづける', 'RESUME'],
@@ -425,11 +423,12 @@ const EVENT_INFO = (() => {
 })();
 const EVENT = EVENT_INFO.id || '';
 /* ---- in Japanese mode the English labels give way to Japanese ones ---- */
-const JA_LBL = { 'PHONE!': '電話！', 'THANKS!': 'ありがとう！', 'PRESIDENT!': '社長が見てる！', 'GOOD WORK!': 'よくやった！', 'OOPS': 'あらら', 'LUNCH?': 'お昼休み', 'WHICH WAY?': '分かれ道', 'JUMP': 'ジャンプ', 'SLIDE': 'スライディング', 'DODGE': 'よける', 'NEW TITLE!': '称号ゲット！', 'ALMOST!': 'もう少し！', 'DAILY CLEAR!': '今日のチャレンジ達成！', 'GOOD!': 'いいね！', 'FIRST-RUN BONUS!': '初回ボーナス！', 'KEEP GOING!': 'まだまだ！', 'LAST TRAIN': '終電', 'LUCKY!': 'ラッキー！',
+const JA_LBL = { 'LUNCH?': 'お昼休み', 'WHICH WAY?': '分かれ道', 'JUMP': 'ジャンプ', 'SLIDE': 'スライディング', 'DODGE': 'よける', 'NEW TITLE!': '称号ゲット！', 'ALMOST!': 'もう少し！', 'DAILY CLEAR!': '今日のチャレンジ達成！', 'GOOD!': 'いいね！', 'FIRST-RUN BONUS!': '初回ボーナス！', 'KEEP GOING!': 'まだまだ！', 'LAST TRAIN': '終電', 'LUCKY!': 'ラッキー！',
   'MISSION CLEAR': 'ミッション達成', 'PHOTO': '記念写真', 'SAVED!': 'セーフ！', 'STAMP!': 'スタンプ！', 'BUMP!': 'ぶつかった！', 'MUNCH MUNCH FEVER!': 'もぐもぐフィーバー！', "IT'S 6 PM! FEVER": '定時！ フィーバー',
   'NEW BEST!': '自己ベスト！', '8:00 AM': '朝 8:00', '9:00 ON TIME!': '9:00 出社！', '← LEFT': '← 左へ', 'RIGHT →': '右へ →', 'FEVER!': 'フィーバー！', 'NICE JUMP!': 'ナイスジャンプ！', 'NICE SLIDE!': 'ナイススライド！',
   'CLOSE!': 'ギリギリ！', '← SWIPE →': '← スワイプ →', '↑ JUMP': '↑ ジャンプ', '↓ SLIDE': '↓ スライディング', 'TURN →': '右へ曲がる →', '← TURN': '← 左へ曲がる', '450 m!': '地上450m！', '150 m DECK!': '地上150m！',
-  'GOAL': 'あそびかた', '♥ BUMPS': 'ぶつかったら', 'FEVER': 'もぐもぐフィーバー', 'TAP A FOOD': 'タップすると解説', 'BUNNY FOOD NOTE': 'うさぎごはんメモ', 'NG FOOD': 'あげちゃダメ', 'GO!': 'GO！', 'OOPS.': 'あっ。', 'PAUSE': 'ひと休み' };
+  'GOAL': 'あそびかた', '♥ BUMPS': 'ぶつかったら', 'FEVER': 'もぐもぐフィーバー', 'TAP A FOOD': 'タップすると解説', 'BUNNY FOOD NOTE': 'うさぎごはんメモ', 'NG FOOD': 'あげちゃダメ', 'GO!': 'GO！', 'OOPS.': 'あっ。', 'PAUSE': 'ひと休み',
+  'GOOD WORK!': 'おしごと完了！', 'SO CLOSE!': 'おしい！', 'THE PRESIDENT IS WATCHING!': '社長が見てる！', 'PHONE CALL: AN ERRAND!': 'おつかいの電話！', 'PAPERWORK RUSH!': '書類の山！', 'SNACK TIME!': '差し入れタイム！' };
 function lab(en) {
   if (LANG === 'en' || !en) return en;
   if (LANG !== 'ja') { // Chinese / Korean: the same patterns as Japanese, or the Japanese label's translation
