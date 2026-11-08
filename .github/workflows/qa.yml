@@ -1,5 +1,5 @@
-# 自動チェック（AI なし・無料）。GitHub の無料時間（月2000分）に収まるよう：main への変更ごとは短いチェック（smoke・約1分）だけで公開、
-# くわしいチェック（quick）は週3回、全部（full）は週1回。変更する前に手元で quick を全部通すのが約束（CLAUDE.md）。
+# 自動チェック（AI なし・無料）。GitHub の無料時間に収まるよう：main への変更ごと・PR ごとは短いチェック（smoke・約1分）だけ、
+# くわしいチェック（quick）は週3回、全部（full）は週1回（2026-11-08 Hub 依頼 #241：PR ごとの quick をやめて分を減らす）。変更する前に手元で quick を全部通すのが約束（CLAUDE.md）。
 name: qa
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
       - run: sudo apt-get install -y fonts-noto-cjk ffmpeg >/dev/null
       - run: python3 build.py && cp app/feed.json dist/feed.json
       - name: QA
-        run: node qa/run-all.mjs ${{ github.event.schedule == '27 18 * * 0' && 'full' || (github.event_name == 'push' && 'smoke') || (github.event.inputs.mode || 'quick') }}
+        run: node qa/run-all.mjs ${{ github.event.schedule == '27 18 * * 0' && 'full' || ((github.event_name == 'push' || github.event_name == 'pull_request') && 'smoke') || (github.event.inputs.mode || 'quick') }}
       - name: 遊んだ人の数（KPI）と毎日の記録（data/kpi.csv）
         if: always()
         run: |
