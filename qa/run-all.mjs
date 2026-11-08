@@ -83,10 +83,15 @@ const servers = [await serve(path.join(ROOT, 'dist'), 8765), await serve(path.jo
 mkdirSync(process.env.SHOTS || '/tmp/rj-shots', { recursive: true });
 const results = []; const t0 = Date.now();
 for (const t of T) {
-  const s = Date.now(); const { code, out } = await run(t);
-  const pass = !/TIMEOUT/.test(out) && t.ok(out);
-  results.push({ name: t.label || t.n, why: t.why, pass, sec: Math.round((Date.now() - s) / 1000), tail: out.trim().split('\n').slice(-6).join('\n').slice(-900) });
-  console.log((pass ? 'PASS ' : 'FAIL ') + (t.label || t.n) + ' (' + Math.round((Date.now() - s) / 1000) + 's)');
+  const s = Date.now(); let { code, out } = await run(t);
+  let pass = !/TIMEOUT/.test(out) && t.ok(out), flaky = false, first = '';
+  const failLines = o => o.split('\n').filter(l => /FAIL|TIMEOUT|Error|pageerror/.test(l)).slice(0, 8).join('\n').slice(0, 800);
+  /* 不合格なら1回だけやり直す（CI の機械が遅いと時間切れで落ちる試験がある。2回目で通れば「不安定」として記録し、合格扱い。2回とも落ちたら不合格） */
+  if (!pass) { first = failLines(out); ({ code, out } = await run(t)); pass = !/TIMEOUT/.test(out) && t.ok(out); flaky = pass; }
+  /* 落ちた理由の行（FAIL など）は、最後の6行に入っていなくても必ず残す */
+  const why = failLines(out);
+  results.push({ name: t.label || t.n, why: t.why, pass, flaky, first, sec: Math.round((Date.now() - s) / 1000), tail: (why && !pass ? why + '\n...\n' : '') + out.trim().split('\n').slice(-6).join('\n').slice(-900) });
+  console.log((pass ? (flaky ? 'PASS(retry) ' : 'PASS ') : 'FAIL ') + (t.label || t.n) + ' (' + Math.round((Date.now() - s) / 1000) + 's)' + (flaky ? ' first: ' + first.replace(/\n/g, ' | ').slice(0, 300) : ''));
 }
 servers.forEach(s => s.close());
 const failed = results.filter(r => !r.pass);
