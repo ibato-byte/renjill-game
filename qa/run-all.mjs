@@ -57,6 +57,8 @@ const T = [
   { n: 'soundcheck', why: '耳ざわりな音がない（むき出しの電子音・高すぎる音・牧草の音の大きさ）', ok: has('SOUND OK'), timeout: 30 },
   { n: 'tapcheck', why: 'ボタンが押しやすい大きさで、文字が切れていない（320・390 幅、日英）', ok: has('TAP OK'), timeout: 300 },
   { n: 'funcheck', why: '面白くなる機能が動く（パーフェクトライン・コンボの節目・SPEED UP・スロー・金の道・今日の目標）', ok: has('FUN OK'), timeout: 200 },
+  { n: 'gigcheck', why: '走っている途中のおしごと（30〜45秒ごと・4種類とも成功と失敗・ごほうび・表示が日英で切れない）', ok: has('GIG OK'), timeout: 200 },
+  { n: 'weekgoal', why: '今週の目標（週の合計・1回だけのごほうび・週が変わると0から・ミッション画面に出る）', ok: has('WEEK GOAL OK'), timeout: 200 },
   { n: 'modecheck', why: 'のんびりモード・1分ダッシュ・なかよし度が動く（自己ベストとランキングを分ける）', ok: has('MODE OK'), timeout: 200 },
   { n: 'hatfit', why: '帽子が頭にのっているだけにならない・ジルの耳が帽子から出る（全キャラの着せ替え一覧も撮る）', ok: has('HAT FIT OK'), timeout: 200 },
   { n: 'i18n_audit', why: '中国語・韓国語に訳のない文・カナが残っていない（全画面・走行中）', ok: has('I18N OK'), timeout: 400 },
