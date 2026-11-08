@@ -49,6 +49,7 @@ const T = [
   { n: 'seasonal', why: '季節の企画がもれなく切り替わる（初回から・古いリンクで戻らない・終わった帽子）', ok: has('SEASONAL OK'), timeout: 300 },
   { n: 'legend', why: '伝説のうさぎの特典（到達ずみの人にも・二重にもらえない・まだの人は買えない）', ok: has('LEGEND OK'), timeout: 300 },
   { n: 'pomwear', why: 'ポムの着せ替え（会ってから・買う・かぶる・はずす）', ok: has('POM WEAR OK'), timeout: 200 },
+  { n: 'featureguard', why: '入れた機能が消えていない（古い版のファイルで上書きして、機能が気づかずに消えた事故の再発防止）', ok: has('FEATURE OK'), timeout: 60 },
   { n: 'portal', why: 'CrazyGames の中だけ：外へのリンクを出さない・遊んでいる合図・見たい人だけの広告。自社サイト版は広告なし', ok: has('PORTAL OK'), timeout: 200 },
   { n: 'jumpfair', why: '飛び越えられそうなのに越えられない障害物がない（見た目と当たりの高さが合う）', ok: has('JUMP FAIR OK'), timeout: 120 },
   { n: 'wallcheck', why: '3レーンとも壁（飛び越えられない）の列が出ない', ok: has('WALL OK'), timeout: 200 },
@@ -64,7 +65,7 @@ const T = [
   { n: 'pbtest', why: '自己ベストを更新した瞬間に終わらない（1位の方からの報告・2026-11）', ok: has('PB OK'), timeout: 600 },
   { n: 'seo', why: '検索で見つけてもらう（タイトル・説明・ガイド・地図）', ok: has('SEO OK'), timeout: 200 },
 ];
-if (MODE === 'smoke') { const keep = new Set(['dupcheck', 'qa', 'reltest', 'apptest', 'seo', 'reach', 'soundcheck']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
+if (MODE === 'smoke') { const keep = new Set(['featureguard', 'dupcheck', 'qa', 'reltest', 'apptest', 'seo', 'reach', 'soundcheck']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
 if (MODE === 'full') {
   for (let i = 0; i < 6; i++) T.push({ n: 'qa_stage', env: { NP: '6', PI: String(i) }, label: 'qa_stage#' + i, why: '全ステージ×5場面の表示（' + (i + 1) + '/6）', ok: has('bad 0'), timeout: 700 });
   T.push({ n: 'stuck', args: ['300'], env: { LATE: '0' }, label: 'stuck-long', why: 'とても長く走っても動けなくならない（5分×3人）', ok: has('NO STUCK'), timeout: 1200 });
