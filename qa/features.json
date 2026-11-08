@@ -152,6 +152,26 @@
       "has": "def.kind === 'memo'"
     },
     {
+      "name": "場所の環境音・雨の音",
+      "file": "src/5_audio.js",
+      "has": "function ambTick()"
+    },
+    {
+      "name": "雪の日の雪玉",
+      "file": "src/3_world.js",
+      "has": "lane3.push(['snowball', 'low'])"
+    },
+    {
+      "name": "フィーバーの残像",
+      "file": "src/4_render.js",
+      "has": "G.ghostN = (G.ghostN || 0) + 1"
+    },
+    {
+      "name": "社長が通りかかる",
+      "file": "src/6_game.js",
+      "has": "function presTick(dt)"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"

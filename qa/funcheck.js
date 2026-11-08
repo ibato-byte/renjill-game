@@ -38,8 +38,16 @@ const { chromium } = require('playwright'); const path = require('path');
     const memo = D.ev(`JSON.stringify((() => { let seen = 0; G.t = 60; for (let i = 0; i < 60 && !seen; i++) { G.memoAt = 0; const a = newSeg(null, { t: 'shinjuku', d: 60 }, {}); if (a.items.some(x => x.type === 'memo')) seen = 1; }
       const sg = curSeg(); addItem(sg, 'memo', G.s + 40, 1, .45); const it = sg.items[sg.items.length - 1]; const s0 = G.score, m0 = G.stats.memos || 0; G.follow.show = true; collect(it, sg);
       return { seen, got: (G.stats.memos || 0) - m0, pts: G.score - s0, say: G.follow.say, book: !!SV.zukan.memo }; })())`);
-    return { memo: JSON.parse(memo), sky, rich: JSON.parse(rich), air, slideM, corner, perfect, scoreUp: G.score > sc0, slow, gold, spTier: G.spTier, banners: seen.banner.join(' | ').slice(0, 400) };
+    // president walks by (B-22): ten hay with no bumps inside the window earns the bonus; a bump ends it
+    const pres = D.ev(`JSON.stringify((() => { const s0 = G.score, p0 = G.stats.pres || 0; G.pres = { t: 8, hay0: G.stats.hay, bump0: G.bumps || 0 }; G.stats.hay += 10; presTick(.016); const ok = (G.stats.pres || 0) - p0;
+      G.pres = { t: 8, hay0: G.stats.hay, bump0: G.bumps || 0 }; G.bumps = (G.bumps || 0) + 1; presTick(.016); return { ok, pts: G.score - s0, endsOnBump: G.pres === null }; })())`);
+    // snow days (B-28): snowballs roll on streets; rain (C-52) and the sea (C-50) have their own sound
+    const snow = D.ev(`JSON.stringify((() => { const w = G.weather; G.weather = 'snow'; let n = 0; for (let i = 0; i < 40 && !n; i++) { const a = newSeg(null, { t: 'shinjuku', d: 60 }, {}); n = a.obs.filter(o => o.art === 'snowball' && o.mv > 0).length; }
+      G.weather = 'clear'; let m = 0; for (let i = 0; i < 20; i++) { const a = newSeg(null, { t: 'shinjuku', d: 60 }, {}); m += a.obs.filter(o => o.art === 'snowball').length; } G.weather = w; return { n, m }; })())`);
+    const amb = D.ev(`JSON.stringify((() => { if (!AU.ctx) return { skip: 1 }; const w = G.weather; G.weather = 'rain'; ambTick(); const r = AU.amb && AU.amb.level ? AU.amb.level.rain : -1; G.weather = 'clear'; ambTick(); const r0 = AU.amb.level.rain; G.weather = w; return { r, r0 }; })())`);
+    return { pres: JSON.parse(pres), snow: JSON.parse(snow), amb: JSON.parse(amb), memo: JSON.parse(memo), sky, rich: JSON.parse(rich), air, slideM, corner, perfect, scoreUp: G.score > sc0, slow, gold, spTier: G.spTier, banners: seen.banner.join(' | ').slice(0, 400) };
   });
+  ok.pres = r.pres.ok === 1 && r.pres.pts > 0 && r.pres.endsOnBump; ok.snowball = r.snow.n > 0 && r.snow.m === 0; ok.rainSound = !!r.amb.skip || (r.amb.r > 0 && r.amb.r0 === 0); if (!ok.pres || !ok.snowball || !ok.rainSound) console.log('new', JSON.stringify([r.pres, r.snow, r.amb]));
   ok.memo = r.memo.seen === 1 && r.memo.got === 1 && r.memo.pts > 0 && !!r.memo.say && !r.memo.book; if (!ok.memo) console.log('memo', JSON.stringify(r.memo));
   ok.perfect = r.perfect >= 1 && r.scoreUp; ok.combo = /25 COMBO/.test(r.banners); ok.speed = r.spTier >= 1 && /SPEED UP/.test(r.banners); ok.slow = r.slow; ok.gold = !!r.gold; ok.air = !!r.air; ok.slideMaster = r.slideM; ok.corner = r.corner; ok.sky = r.sky >= 4; ok.rich = r.rich.n === 30 && r.rich.more >= 20 && r.rich.noLine === 1;
   // the daily goal adds up at the end of a run
