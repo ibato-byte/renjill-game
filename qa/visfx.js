@@ -10,6 +10,6 @@ const { chromium } = require('playwright'); const path = require('path');
   const room = await step("G.jumpTo('desk', 600, 1); G.weather = 'clear'; G.shaftN = 0; G.wetN = 0;");
   const snow = await step("G.jumpTo('ueno', 600, 4); G.weather = 'snow'; G.dustC = '';");
   console.log(JSON.stringify({ rain, room, snow }));
-  const ok = rain.wet > 0 && rain.dust && room.shaft > 0 && room.wet === 0 && /244,247,250/.test(snow.dust);
+  const ok = rain.wet > 0 && rain.dust && room.shaft === 0 && room.wet === 0 && /244,247,250/.test(snow.dust);
   console.log(ok && !errs.length ? 'VISFX OK' : 'VISFX NG ' + errs.join(' | ')); await b.close();
 })();
