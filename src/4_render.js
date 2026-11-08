@@ -390,6 +390,7 @@ function drawItem(it, sg, d) {
   const size = (it.type === 'hay' ? .74 : isPow ? .9 : .7) * sp.k; // a little bigger: the hay was hard to see on a phone
   const spin = it.type === 'hay' || it.type === 'goldhay' || isPow ? .72 + .28 * Math.cos(G.t * 3.2 + it.ph) : 1;
   ctx.globalAlpha = 1 - fogK(d) * .9;
+  if (d < 40 && !lowQ) { const gp = spriteAt(p[0], p[2], p[1]); if (gp) { const hk = clamp(1 - it.y / 3, .35, 1); ctx.fillStyle = `rgba(30,22,16,${(.16 * hk).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(gp.sx, gp.sy, size * .34 * hk, size * .09 * hk, 0, 0, Math.PI * 2); ctx.fill(); } } // a soft shadow on the ground under each item (2026-11-08)
   if (isPow || it.type === 'goldhay') { ctx.beginPath(); ctx.fillStyle = def.kind === 'stamp' ? 'rgba(255,120,110,.45)' : 'rgba(255,236,150,.5)'; ctx.arc(sp.sx, sp.sy, size * .62 * (1 + .08 * Math.sin(G.t * 6)), 0, Math.PI * 2); ctx.fill(); }
   const img = def.kind === 'stamp' ? stampSprite(sg.tid) : SPR[bad ? it.type + 'NG' : it.type];
   ctx.drawImage(img, sp.sx - size * spin / 2, sp.sy - size / 2, size * spin, size);
@@ -435,6 +436,7 @@ function drawBunnyWorld(b) {
   const img = bunFrame(b.who, pose, SV.mugOn);
   ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc);
   if (b.tilt) ctx.rotate(b.tilt);
+  if (b === G.player && G.mode === 'play' && !OPT().calm && !b.fly) { const lc = G.laneT > 0 ? Math.sign(G.lane - G.prevLane) * Math.sin(G.laneT / .35 * Math.PI) * .09 : 0, tc = G.turnT > 0 && G.turnDir ? G.turnDir * Math.sin(G.turnT / .8 * Math.PI) * .12 : 0; if (lc || tc) ctx.rotate(lc + tc); } // lean into a lane change and a corner (2026-11-08)
   if (b === G.player && G.mode === 'play' && !OPT().calm) { // squash on landing, a touch of stretch at the top of a jump
     if (G.landT > 0 && !b.air && !b.slide) { const q = Math.sin(G.landT / .14 * Math.PI) * .2 * (G.landK || 1); ctx.scale(1 + q, 1 - q); }
     else if (b.air && !b.fly && G.vy > 5) { const q = Math.min(.08, (G.vy - 5) * .008); ctx.scale(1 - q, 1 + q); } }
@@ -466,6 +468,7 @@ function heart(g, x, y, r) { g.beginPath(); g.moveTo(x, y + r * .9); g.bezierCur
 
 /* ================= screen-space effects ================= */
 const FX = [];
+function leaves(x, y, n) { if (OPT().calm || lowQ) n = Math.min(n, 2); for (let i = 0; i < n; i++) FX.push({ x, y, vx: rand(-110, 110), vy: rand(-170, -60), life: rand(.55, .9), t: 0, c: pick(['#B8D98A', '#9BB85A', '#C9C46A', '#D9C27A']), r: rand(2.2, 3.4), leaf: 1, rot: rand(0, 6.3), vr: rand(-9, 9) }); }
 function burst(x, y, color, n) { for (let i = 0; i < n; i++) FX.push({ x, y, vx: rand(-160, 160), vy: rand(-260, -60), life: rand(.35, .7), t: 0, c: color, r: rand(2, 5) }); }
 function floatText(x, y, txt, color) { FX.push({ x, y, vx: 0, vy: -60, life: .9, t: 0, txt, c: color }); }
 let paper = [];
@@ -508,9 +511,10 @@ function drawFX() {
   } else paper.length = 0;
   for (let i = FX.length - 1; i >= 0; i--) {
     const p = FX[i]; p.t += dt; if (p.t > p.life) { FX.splice(i, 1); continue; }
-    p.x += p.vx * dt; p.y += p.vy * dt; if (!p.txt) p.vy += 600 * dt;
+    p.x += p.vx * dt; p.y += p.vy * dt; if (p.leaf) { p.vy += 140 * dt; p.vx *= 1 - dt * 2.5; p.x += Math.sin(p.t * 9 + p.r) * 30 * dt; p.rot += p.vr * dt; } else if (!p.txt) p.vy += 600 * dt;
     ctx.globalAlpha = 1 - p.t / p.life;
     if (p.txt) { ctx.font = '900 15px "Zen Maru Gothic",sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(59,42,32,.85)'; ctx.strokeText(p.txt, p.x, p.y); ctx.fillStyle = p.c; ctx.fillText(p.txt, p.x, p.y); }
+    else if (p.leaf) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.c; ctx.beginPath(); ctx.ellipse(0, 0, p.r * 1.9, p.r * .55, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = 'rgba(80,110,40,.55)'; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(-p.r * 1.6, 0); ctx.lineTo(p.r * 1.6, 0); ctx.stroke(); ctx.restore(); } // hay blades flutter down (2026-11-08)
     else { ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
   }
   ctx.globalAlpha = 1;

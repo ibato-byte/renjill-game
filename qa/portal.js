@@ -10,6 +10,8 @@ const FAKE = `window.CrazyGames={SDK:{environment:'crazygames',calls:[],init(){r
     const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } }); const p = await ctx.newPage(); p.on('pageerror', e => errs.push(mode + ' ' + e.message));
     let sdkAsked = 0; await p.route('**/sdk.crazygames.com/**', r => { sdkAsked++; r.fulfill({ contentType: 'text/javascript', body: FAKE }); });
     await p.route('**/fonts.googleapis.com/**', r => r.abort());
+    // 公開中の feed.json（cgAds なし）がネットから届くと、試したい設定が上書きされる（CI だけ落ちていた。2026-11-08）。試験の設定で答える
+    await p.route('**/feed.json*', r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(ads ? { cgAds: true } : {}) }));
     await ctx.addInitScript(([ads]) => { if (sessionStorage.getItem('s')) return; sessionStorage.setItem('s', 1); localStorage.setItem('renjill-hay-dash-v1', JSON.stringify({ tutDone: 1, nickAsked: 1, runs: 9, bank: 0, clovers: 0 })); if (ads) localStorage.setItem('rjFeed', JSON.stringify({ cgAds: true })); }, [ads]);
     await p.goto('file://' + path.resolve(__dirname, '../dist') + '/test.html' + (mode === 'cg' ? '?ref=crazygames' : '')); await p.waitForTimeout(1500);
     const outLinks = () => p.evaluate(() => [...document.querySelectorAll('a[href^="http"]')].filter(a => a.offsetParent !== null && a.getClientRects().length).map(a => a.id || a.textContent.trim().slice(0, 20)));

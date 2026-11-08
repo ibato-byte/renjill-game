@@ -1,0 +1,47 @@
+// 2026-11-08 に入れた「面白くなる機能」が本当に動くか：パーフェクトライン・コンボの節目・SPEED UP・スローモーション・金の道・今日の牧草の目標・空中キャッチ・すべりこみ名人・ナイスコーナー
+const { chromium } = require('playwright'); const path = require('path');
+(async () => {
+  const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined }); const errs = []; const ok = {};
+  const p = await b.newPage({ viewport: { width: 390, height: 844 } }); p.on('pageerror', e => errs.push(e.message)); await p.route('**/fonts.googleapis.com/**', r => r.abort());
+  await p.addInitScript(() => { localStorage.setItem('renjill-hay-dash-v1', JSON.stringify({ tutDone: 1, nickAsked: 1, runs: 9 })); });
+  await p.goto('file://' + path.resolve(__dirname, '../dist') + '/test.html'); await p.waitForTimeout(800);
+  ok.goalTitle = await p.evaluate(() => !!document.querySelector('#tDayGoal') && /300/.test(document.querySelector('#tDayGoal').textContent));
+  await p.click('#btnStart'); await p.waitForTimeout(600);
+  const r = await p.evaluate(async () => { const D = window.__hayDash, G = D.G; const seen = { banner: [], float: [] };
+    const bn = document.querySelector('#banner'); new MutationObserver(() => seen.banner.push(bn.textContent)).observe(bn, { childList: true, subtree: true, characterData: true });
+    // perfect line: collect every piece of one line by hand
+    const sg = D.ev('curSeg()'); const lines = {}; for (const it of sg.items) if (it.line) (lines[it.line] = lines[it.line] || []).push(it);
+    const ln = Object.values(lines).find(a => a.length >= 8); const sc0 = G.score;
+    if (ln) for (const it of ln) D.ev(`collect(curSeg().items[${sg.items.indexOf(it)}], curSeg())`);
+    const perfect = G.stats.perfect || 0;
+    // combo milestone
+    G.combo = 24; const hay = sg.items.find(it => !it.got && it.type === 'hay'); if (hay) D.ev(`collect(curSeg().items[${sg.items.indexOf(hay)}], curSeg())`);
+    // slow motion after three NICE in a row
+    D.ev("nice('jump'); nice('jump'); nice('jump')"); const slow = G.slowT > 0;
+    // speed up: push the distance on
+    G.dist += 2000; G.invT = 99; await new Promise(r => setTimeout(r, 900));
+    // golden road: build a few stretches until one turns up
+    let gold = 0; D.ev('G.t = 60'); for (let i = 0; i < 400 && !gold; i++) { const s = D.ev("newSeg(curSeg(), { t: 'shinjuku', d: 60 }, {})"); if (s.goldRoad && s.items.filter(x => x.type === 'goldhay').length === 6) gold = 1; }
+    await new Promise(r => setTimeout(r, 2500));
+    // air catch: five hay in one jump
+    G.air = true; G.airN = 0; G.pow.fly = 0; const cs = D.ev('curSeg()'); let air = 0; for (const it of cs.items) { if (it.got || it.type !== 'hay') continue; D.ev(`collect(curSeg().items[${cs.items.indexOf(it)}], curSeg())`); if ((G.stats.airCatch || 0) > 0) { air = 1; break; } }
+    G.air = false;
+    // slide master: three slide-unders in a row
+    G.niceT = -9; D.ev("nice('slide'); G.niceT = -9; nice('slide'); G.niceT = -9; nice('slide')"); const slideM = G.slideRow >= 3;
+    // nice corner: a turn queued in the last metres
+    D.ev('G.turnAuto = 0; G.turnQT = 3'); const nc0 = G.stats.niceCorner || 0; try { D.ev('if (!curSeg().fork) { const sg = curSeg(); sg.turn = sg.turn || 1; G.turnQueued = sg.turn; doTurn(); }'); } catch (e) { }
+    const corner = (G.stats.niceCorner || 0) > nc0 || !!D.ev('curSeg().fork');
+    // fork: one side gets more hay (twins that do not break a PERFECT LINE)
+    const rich = D.ev(`JSON.stringify((()=>{ let n = 0, more = 0, noLine = 1; for (let i = 0; i < 30; i++) { const a = newSeg(null, { t: curSeg().step.t, d: 60 }, {}), c = newSeg(null, { t: curSeg().step.t, d: 60 }, {}); const h0 = a.items.filter(x => x.type === 'hay').length; richHay(a); const add = a.items.filter(x => x.type === 'hay').length - h0; if (a.rich) n++; if (add > 0) more++; a.items.slice(-add).forEach(x => { if (add > 0 && x.line) noLine = 0; }); } return { n, more, noLine }; })())`);
+    const sky = D.ev('(() => { const sg = curSeg(); if (sg.fork) return 5; const keep = G.s; G.s = 4; sg.items = sg.items.filter(x => x.s < 3 || x.s > 20); const n = skyHay(SUPERV); const g = sg.items.some(x => x.type === "goldhay" && x.y > 1.5); G.s = keep; return g ? n : 0; })()');
+    return { sky, rich: JSON.parse(rich), air, slideM, corner, perfect, scoreUp: G.score > sc0, slow, gold, spTier: G.spTier, banners: seen.banner.join(' | ').slice(0, 400) };
+  });
+  ok.perfect = r.perfect >= 1 && r.scoreUp; ok.combo = /25 COMBO/.test(r.banners); ok.speed = r.spTier >= 1 && /SPEED UP/.test(r.banners); ok.slow = r.slow; ok.gold = !!r.gold; ok.air = !!r.air; ok.slideMaster = r.slideM; ok.corner = r.corner; ok.sky = r.sky >= 4; ok.rich = r.rich.n === 30 && r.rich.more >= 20 && r.rich.noLine === 1;
+  // the daily goal adds up at the end of a run
+  await p.evaluate(() => { const D = window.__hayDash; D.G.hay = 350; D.ev('G.invT = 0; G.lives = 0; G.reviveN = 9; hideAll(); endRun()'); });
+  await p.waitForTimeout(800);
+  ok.goalCount = await p.evaluate(() => { const S = window.__hayDash.SV; return !!(S.dayHay && S.dayHay.n >= 300); });
+  console.log(JSON.stringify(ok), r.banners.slice(0, 200));
+  console.log(Object.values(ok).every(Boolean) && !errs.length ? 'FUN OK' : 'FUN NG ' + errs.slice(0, 3).join(' | '));
+  await b.close();
+})();

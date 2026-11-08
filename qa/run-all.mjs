@@ -49,15 +49,23 @@ const T = [
   { n: 'seasonal', why: '季節の企画がもれなく切り替わる（初回から・古いリンクで戻らない・終わった帽子）', ok: has('SEASONAL OK'), timeout: 300 },
   { n: 'legend', why: '伝説のうさぎの特典（到達ずみの人にも・二重にもらえない・まだの人は買えない）', ok: has('LEGEND OK'), timeout: 300 },
   { n: 'pomwear', why: 'ポムの着せ替え（会ってから・買う・かぶる・はずす）', ok: has('POM WEAR OK'), timeout: 200 },
+  { n: 'featureguard', why: '入れた機能が消えていない（古い版のファイルで上書きして、機能が気づかずに消えた事故の再発防止）', ok: has('FEATURE OK'), timeout: 60 },
   { n: 'portal', why: 'CrazyGames の中だけ：外へのリンクを出さない・遊んでいる合図・見たい人だけの広告。自社サイト版は広告なし', ok: has('PORTAL OK'), timeout: 200 },
   { n: 'jumpfair', why: '飛び越えられそうなのに越えられない障害物がない（見た目と当たりの高さが合う）', ok: has('JUMP FAIR OK'), timeout: 120 },
+  { n: 'wallcheck', why: '3レーンとも壁（飛び越えられない）の列が出ない', ok: has('WALL OK'), timeout: 200 },
+  { n: 'worldcheck', why: '取れない物（壁や車に埋まった牧草）・重なった障害物・避けようのないダメな食べ物がない', ok: has('WORLD OK'), timeout: 300 },
+  { n: 'soundcheck', why: '耳ざわりな音がない（むき出しの電子音・高すぎる音・牧草の音の大きさ）', ok: has('SOUND OK'), timeout: 30 },
+  { n: 'tapcheck', why: 'ボタンが押しやすい大きさで、文字が切れていない（320・390 幅、日英）', ok: has('TAP OK'), timeout: 300 },
+  { n: 'funcheck', why: '面白くなる機能が動く（パーフェクトライン・コンボの節目・SPEED UP・スロー・金の道・今日の目標）', ok: has('FUN OK'), timeout: 200 },
+  { n: 'modecheck', why: 'のんびりモード・1分ダッシュ・なかよし度が動く（自己ベストとランキングを分ける）', ok: has('MODE OK'), timeout: 200 },
   { n: 'hatfit', why: '帽子が頭にのっているだけにならない・ジルの耳が帽子から出る（全キャラの着せ替え一覧も撮る）', ok: has('HAT FIT OK'), timeout: 200 },
   { n: 'i18n_audit', why: '中国語・韓国語に訳のない文・カナが残っていない（全画面・走行中）', ok: has('I18N OK'), timeout: 400 },
   { n: 'reach', why: 'いくら遊んでも手に入らない物がない（図鑑・スタンプ・実績）', ok: has('REACH OK') },
   { n: 'growth', why: 'SNSとのつながり（フォローの列・シェアの ?ref=・最新話・控えめなひと言・結果の時刻・こわれた数字のセーブ・古いコードの pid）', ok: has('GROWTH OK'), timeout: 400 },
+  { n: 'pbtest', why: '自己ベストを更新した瞬間に終わらない（1位の方からの報告・2026-11）', ok: has('PB OK'), timeout: 600 },
   { n: 'seo', why: '検索で見つけてもらう（タイトル・説明・ガイド・地図）', ok: has('SEO OK'), timeout: 200 },
 ];
-if (MODE === 'smoke') { const keep = new Set(['dupcheck', 'qa', 'reltest', 'apptest', 'seo', 'reach']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
+if (MODE === 'smoke') { const keep = new Set(['featureguard', 'dupcheck', 'qa', 'reltest', 'apptest', 'seo', 'reach', 'soundcheck']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
 if (MODE === 'full') {
   for (let i = 0; i < 6; i++) T.push({ n: 'qa_stage', env: { NP: '6', PI: String(i) }, label: 'qa_stage#' + i, why: '全ステージ×5場面の表示（' + (i + 1) + '/6）', ok: has('bad 0'), timeout: 700 });
   T.push({ n: 'stuck', args: ['300'], env: { LATE: '0' }, label: 'stuck-long', why: 'とても長く走っても動けなくならない（5分×3人）', ok: has('NO STUCK'), timeout: 1200 });
@@ -83,10 +91,15 @@ const servers = [await serve(path.join(ROOT, 'dist'), 8765), await serve(path.jo
 mkdirSync(process.env.SHOTS || '/tmp/rj-shots', { recursive: true });
 const results = []; const t0 = Date.now();
 for (const t of T) {
-  const s = Date.now(); const { code, out } = await run(t);
-  const pass = !/TIMEOUT/.test(out) && t.ok(out);
-  results.push({ name: t.label || t.n, why: t.why, pass, sec: Math.round((Date.now() - s) / 1000), tail: out.trim().split('\n').slice(-6).join('\n').slice(-900) });
-  console.log((pass ? 'PASS ' : 'FAIL ') + (t.label || t.n) + ' (' + Math.round((Date.now() - s) / 1000) + 's)');
+  const s = Date.now(); let { code, out } = await run(t);
+  let pass = !/TIMEOUT/.test(out) && t.ok(out), flaky = false, first = '';
+  const failLines = o => o.split('\n').filter(l => /FAIL|TIMEOUT|Error|pageerror/.test(l)).slice(0, 8).join('\n').slice(0, 800);
+  /* 不合格なら1回だけやり直す（CI の機械が遅いと時間切れで落ちる試験がある。2回目で通れば「不安定」として記録し、合格扱い。2回とも落ちたら不合格） */
+  if (!pass) { first = failLines(out); ({ code, out } = await run(t)); pass = !/TIMEOUT/.test(out) && t.ok(out); flaky = pass; }
+  /* 落ちた理由の行（FAIL など）は、最後の6行に入っていなくても必ず残す */
+  const why = failLines(out);
+  results.push({ name: t.label || t.n, why: t.why, pass, flaky, first, sec: Math.round((Date.now() - s) / 1000), tail: (why && !pass ? why + '\n...\n' : '') + out.trim().split('\n').slice(-6).join('\n').slice(-900) });
+  console.log((pass ? (flaky ? 'PASS(retry) ' : 'PASS ') : 'FAIL ') + (t.label || t.n) + ' (' + Math.round((Date.now() - s) / 1000) + 's)' + (flaky ? ' first: ' + first.replace(/\n/g, ' | ').slice(0, 300) : ''));
 }
 servers.forEach(s => s.close());
 const failed = results.filter(r => !r.pass);

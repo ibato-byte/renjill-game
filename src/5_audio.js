@@ -8,13 +8,16 @@ function audioInit() {
     // 2026-11：軽いコンプレッサーで音割れを防ぎ、短い響き（部屋鳴り）を少し足す。音の数が増えても耳に痛くならない
     try { const comp = AU.ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 18; comp.ratio.value = 3; comp.attack.value = .004; comp.release.value = .12; AU.master.connect(comp); comp.connect(AU.ctx.destination); AU.comp = comp; } catch (e) { AU.master.connect(AU.ctx.destination); }
     try { const sr = AU.ctx.sampleRate, n = Math.floor(sr * .7), ir = AU.ctx.createBuffer(2, n, sr); for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); let lp = 0; for (let i = 0; i < n; i++) { const w = (Math.random() * 2 - 1); lp += (w - lp) * .35; d[i] = lp * Math.pow(1 - i / n, 2.6) * (i < 40 ? i / 40 : 1); } } const cv = AU.ctx.createConvolver(); cv.buffer = ir; const vg = AU.ctx.createGain(); vg.gain.value = .22; cv.connect(vg); vg.connect(AU.master); AU.verb = cv; } catch (e) { AU.verb = null; }
-    AU.music = AU.ctx.createGain(); AU.music.gain.value = OPT().music ? .36 : 0; AU.music.connect(AU.master); if (AU.verb) { const s = AU.ctx.createGain(); s.gain.value = .5; AU.music.connect(s); s.connect(AU.verb); }
-    AU.sfx = AU.ctx.createGain(); AU.sfx.gain.value = OPT().sfx ? 1 : 0; AU.sfx.connect(AU.master); if (AU.verb) { const s = AU.ctx.createGain(); s.gain.value = .35; AU.sfx.connect(s); s.connect(AU.verb); }
+    AU.music = AU.ctx.createGain(); AU.music.gain.value = musicLv(); AU.music.connect(AU.master); if (AU.verb) { const s = AU.ctx.createGain(); s.gain.value = .5; AU.music.connect(s); s.connect(AU.verb); }
+    AU.sfx = AU.ctx.createGain(); AU.sfx.gain.value = sfxLv(); AU.sfx.connect(AU.master); if (AU.verb) { const s = AU.ctx.createGain(); s.gain.value = .35; AU.sfx.connect(s); s.connect(AU.verb); }
     const nb = AU.ctx.createBuffer(1, 800, AU.ctx.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < 800; i++) nd[i] = (Math.random() * 2 - 1) * (1 - i / 800); AU.hat = nb;
   } catch (e) { AU.ctx = null; }
 }
 function setMute(m) { SV.mute = m; save(); if (AU.master) AU.master.gain.value = m ? 0 : .6; }
-function applyAudioOpt() { if (!AU.ctx) return; AU.music.gain.value = OPT().music ? .36 : 0; AU.sfx.gain.value = OPT().sfx ? 1 : 0; }
+// volume in three steps: normal / quiet / off (old saves keep true = normal) (2026-11-08)
+function musicLv() { const m = OPT().music; return m === 'low' ? .17 : m ? .36 : 0; }
+function sfxLv() { const m = OPT().sfx; return m === 'low' ? .5 : m ? 1 : 0; }
+function applyAudioOpt() { if (!AU.ctx) return; AU.music.gain.value = musicLv(); AU.sfx.gain.value = sfxLv(); }
 function tone(freq, dur, type, vol, when, slide, dest) {
   if (!AU.ctx) return; const t = when || AU.ctx.currentTime;
   if (type === 'pluck') return pluck(freq, dur, vol, t, dest);
@@ -56,13 +59,13 @@ function noise(dur, vol, hp, dest) {
 // 左右：いまのレーンの位置に合わせて、取る音を少しだけ左右に振る（真ん中のレーンは真ん中）
 function lanePan() {
   if (!AU.ctx || !AU.ctx.createStereoPanner || typeof G === 'undefined' || !Number.isFinite(G.lat)) return null;
-  try { const p = AU.ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, G.lat / 2.5)) * .35; p.connect(AU.sfx || AU.master); return p; } catch (e) { return null; }
+  try { const p = AU.ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, G.lat / 2.5)) * .5; p.connect(AU.sfx || AU.master); return p; } catch (e) { return null; }
 }
 const SFX = {
   hay(n) { const d = lanePan(), f = 660 * Math.pow(1.0595, Math.min(n, 7)); tone(f, .12, 'pluck', .07, 0, 0, d); tone(f * 2, .06, 'sine', .018, AU.ctx && AU.ctx.currentTime + .01, 0, d); }, /* いちばん多く鳴る音なので小さく・低めに（BGM より大きく聞こえた・2026-11-08） */
   food() { const d = lanePan(); tone(660, .12, 'pluck', .16, 0, 0, d); tone(990, .16, 'pluck', .14, AU.ctx && AU.ctx.currentTime + .06, 0, d); noise(.05, .06, 2500, d); },
   treat() { const d = lanePan(); [784, 988, 1175, 1568].forEach((f, i) => tone(f, .5, 'bell', .14, AU.ctx && AU.ctx.currentTime + i * .06, 0, d)); },
-  step(k) { thump(k ? 150 : 135, 70, .06, .035); noise(.03, .012, 1200); },        // 足音（走りの拍に合わせて 6_game から）
+  step(k, fl) { if (fl === 'room' || fl === 'deck') { thump(k ? 120 : 110, 60, .07, .03); noise(.04, .008, 500); } else if (fl === 'glass' || fl === 'train') { thump(k ? 170 : 160, 80, .05, .03); noise(.025, .014, 2400); } else { thump(k ? 150 : 135, 70, .06, .035); noise(.03, .012, 1200); } }, // footsteps by floor: soft on tatami and wood, crisp on tiles, plain on the street (2026-11-08)        // 足音（走りの拍に合わせて 6_game から）
   land() { thump(170, 70, .1, .1); noise(.06, .05, 600); },                        // 着地
   pom() { const t = AU.ctx && AU.ctx.currentTime; tone(420, .09, 'sine', .14, 0, 900); tone(470, .1, 'sine', .14, t + .13, 980); noise(.08, .05, 1500); tone(1568, .4, 'bell', .06, t + .26); },   // ポムの登場（ほおぶくろ「ぽん、ぽん」）
   power() { [523, 659, 784, 1047, 1319].forEach((f, i) => { tone(f, .18, 'pluck', .12, AU.ctx && AU.ctx.currentTime + i * .05); tone(f, .6, 'bell', .05, AU.ctx && AU.ctx.currentTime + i * .05); }); },
@@ -110,4 +113,4 @@ function musicTick() {
 function jingle() { if (!AU.ctx) return; const t0 = AU.ctx.currentTime; [0, 4, 7, 12, 7, 9, 11, 12].forEach((iv, i) => tone(523.25 * Math.pow(2, iv / 12), .22, 'sine', .07, t0 + i * .13)); }
 function musicStart() { if (!AU.ctx) return; AU.on = true; AU.nextT = AU.ctx.currentTime + .05; AU.step = 0; }
 function musicStop() { AU.on = false; }
-function buzz(ms) { if (!OPT().vib) return; try { navigator.vibrate && navigator.vibrate(ms); } catch (e) { } }
+function buzz(ms) { const v = OPT().vib; if (!v) return; if (v === 'low') ms = Math.max(8, Math.round(ms * .4)); try { navigator.vibrate && navigator.vibrate(ms); } catch (e) { } }

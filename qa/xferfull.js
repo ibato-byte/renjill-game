@@ -265,7 +265,8 @@ const nodeCode0 = o => { const b64 = Buffer.from(JSON.stringify(Object.assign({ 
     // the transfer link opened with no connection: say it did not work (before, nothing happened and the code was dropped from the address)
     { const C = await page({ lang, fb, seed: { tutDone: 1, daily: today, streak: 1, lang }, name: 'offline link' }); await C.ctx.route('https://identitytoolkit.googleapis.com/**', r => r.abort()); await C.ctx.route('https://securetoken.googleapis.com/**', r => r.abort());
       await C.p.goto(APP + '?link=' + lc.replace('-', '')); await C.p.waitForTimeout(2500);
-      const tx = await C.p.evaluate(() => [...document.querySelectorAll('.toast')].map(e => e.textContent).join(' '));
+      // お知らせは1つずつ順番に出る（4秒ずつ）。先に別のお知らせがあると遅れて出るので、最大10秒まで待って確かめる（2026-11-08）
+      let tx = ''; for (let w = 0; w < 10; w++) { tx = await C.p.evaluate(() => [...document.querySelectorAll('.toast')].map(e => e.textContent).join(' ')); if (/うまくいきません|다시 시도/.test(tx)) break; await C.p.waitForTimeout(1000); }
       if (!/うまくいきません|다시 시도/.test(tx)) fail(lang + ' a transfer link opened offline shows nothing'); await C.ctx.close(); }
     await A.ctx.close(); await B.ctx.close();
     log.push('app ' + lang + ' ok');

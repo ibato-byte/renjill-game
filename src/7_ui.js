@@ -8,7 +8,7 @@ function applyLang() {
   { const a = $('#tSite'); if (a) { a.textContent = tr('REN & JILL 公式サイト', 'Ren & Jill official site'); a.href = SITE_REF; } } { const f = $('#tFollow'); if (f) f.innerHTML = followLinks(); } // タイトル画面の下の小さな文字：アニメの公式サイト（2026-10-31 オーナー指示）
   document.documentElement.lang = ({ zh: 'zh-Hant', ko: 'ko' })[LANG] || LANG; $('#cv').setAttribute('aria-label', tr('レンとジルのチモシーダッシュ', 'Ren & Jill: Hay Dash'));
   $('#tStory').innerHTML = t('story'); $('#tStory').hidden = false; const lr = $('#tLast'); if (SV.runs > 0 && SV.last) { lr.hidden = false; lr.textContent = t('lastRun', fmt(SV.last.score), L(SV.last.place)) + (SV.best ? (tr('　', ' · ')) + t('lastBest', fmt(SV.best)) : ''); } else lr.hidden = true; $('#tSub').textContent = tr('レンとジル　チモシーダッシュ', 'Two office bunnies, one mad dash across Tokyo');
-  cardTxt('#tRenRole', t('renRole')); cardTxt('#tRenPerk', t('renPerk')); cardTxt('#tJillRole', t('jillRole')); cardTxt('#tJillPerk', t('jillPerk')); { const met = !!SV.pomMet; cardTxt('#tPomRole', t('pomRole')); cardTxt('#tPomPerk', t('pomPerk')); $('#pickPom').hidden = !met; $('#pickPom').parentNode.classList.toggle('three', met); } // the rookie stays a secret until you have met him on the road
+  cardTxt('#tRenRole', t('renRole')); cardTxt('#tRenPerk', t('renPerk') + (SV.bond ? '・' + t('bondLbl', bondLv()) : '')); cardTxt('#tJillRole', t('jillRole')); cardTxt('#tJillPerk', t('jillPerk') + (SV.bond ? '・' + t('bondLbl', bondLv()) : '')); { const met = !!SV.pomMet; cardTxt('#tPomRole', t('pomRole')); cardTxt('#tPomPerk', t('pomPerk')); $('#pickPom').hidden = !met; $('#pickPom').parentNode.classList.toggle('three', met); } // the rookie stays a secret until you have met him on the road
   $('#tMis').textContent = t('missions'); $('#tSta').textContent = t('stamps'); $('#tBook').textContent = t('book'); $('#tShop').textContent = t('shop'); $('#tHow').textContent = t('how');
   $('#tBestL').textContent = t('best'); $('#sTitle .chars').setAttribute('aria-label', t('pickChar')); $('#sResult .shbtns').setAttribute('aria-label', tr('友だちに挑戦状を送ろう', 'Challenge a friend')); $('#sResult .shbtns').setAttribute('role', 'group'); $('#chatIn').setAttribute('aria-label', tr('ゲームについて質問してね', 'Ask about the game')); $('#btnRank').textContent = tr('ランキング', 'Ranking'); $('#btnRank2').textContent = tr('ランキングをもっと見る', 'See the full ranking'); $('#btnLang').textContent = '🌐 ' + LANG_NAME[LANG]; $('#btnLang').setAttribute('aria-label', t('langLbl', LANG_NAME[LANG])); $('#pauseBtn').setAttribute('aria-label', t('pauseLbl')); $('#btnSet').setAttribute('aria-label', t('settings')); $('#btnSet').title = t('settings'); for (const id of ['pClose', 'chatClose']) $('#' + id).setAttribute('aria-label', t('close')); $('#tPause').textContent = t('pause'); $('#btnQuit').textContent = t('quit');
   $('#btnRvNo').textContent = t('seeResult'); $('#btnMenu').textContent = t('menu'); { const m = $('#tResMore'); if (m) m.textContent = t('resMore'); } $('#tCopy').textContent = t('copy'); { const sb = $('#tShareBar'); if (sb) sb.textContent = tr('友だちに挑戦状を送ろう', 'Challenge a friend');} $('#tShare').textContent = t('share'); $('#tShareImg').textContent = t('shareImg');
@@ -25,6 +25,9 @@ function refreshTitle() {
   applyLang();
   $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
   { const dly = dailyToday(), done = SV.dailyDone === dly.key; $('#tDaily').textContent = (tr('今日のチャレンジ：', 'Today: ')) + L(dly.c.t(dly.n)) + (done ? ' ✓' : (tr('（チモシー300本＋お守り）', ' (300 hay + charm)'))); }
+  { let q = $('#btnQuick'); if (!q) { q = document.createElement('button'); q.id = 'btnQuick'; q.className = 'sub small quick'; q.onclick = () => { SFX.ui(); G.quickNext = 1; hideAll(); startRun(); }; $('#tDaily').after(q); } q.textContent = t('quick') + (SV.bestT ? '　' + tr('ベスト ', 'best ') + fmt(SV.bestT) : ''); q.hidden = !SV.tutDone; } // a short game for a short break (2026-11-08)
+  { let e = $('#tDayGoal'); if (!e) { e = document.createElement('div'); e.id = 'tDayGoal'; $('#tDaily').after(e); } const n = SV.dayHay && SV.dayHay.d === todayStr() ? SV.dayHay.n : 0, k = Math.min(1, n / DAY_GOAL);
+    e.className = 'daygoal' + (n >= DAY_GOAL ? ' done' : ''); e.innerHTML = `<span>${esc(tr('今日の牧草', 'Hay today'))}</span><i><b style="width:${(k * 100).toFixed(0)}%"></b></i><em>${fmt(Math.min(n, DAY_GOAL))} / ${DAY_GOAL}${n >= DAY_GOAL ? ' ✓' : ''}</em>`; } // today's hay goal (2026-11-08)
   $('#pickRen').setAttribute('aria-pressed', G.char === 'ren'); $('#pickJill').setAttribute('aria-pressed', G.char === 'jill'); $('#pickPom').setAttribute('aria-pressed', G.char === 'pom');
   if (SV.pomMet && !SV.pomTold) { SV.pomTold = 1; save(); setTimeout(() => { if (G.mode === 'title') toastTitle(t('pomUnlock')); }, 600); }
   $('#dotZukan').hidden = Object.keys(SV.zukan).length <= (SV.seenZukan || 0);
@@ -35,7 +38,13 @@ let PANEL_FROM = null;
 function openPanel(title, sub, html) { if ($('#sPanel').hidden) { const a = document.activeElement; PANEL_FROM = a && a !== document.body && !a.closest('#sPanel') ? a : null; } if (LANG !== 'en' && sub) { title = esc(sub); sub = ''; } document.querySelectorAll('.toast').forEach(x => x.remove()); if (sub && sub.toUpperCase() === title) sub = ''; $('#pTitle').innerHTML = `${title}<small>${esc(sub)}</small>`; $('#pBody').innerHTML = html; $('#pBody').scrollTop = 0; show('sPanel'); $('#pClose').focus(); }
 function closePanel() { $('#sPanel').hidden = true; if (G.mode === 'title') refreshTitle(); const f = PANEL_FROM; PANEL_FROM = null; if (f && f.isConnected && !f.closest('[hidden]')) try { f.focus({ preventScroll: true }); } catch (e) { } }
 
-function openMissions() { SFX.ui(); openPanel('MISSIONS', t('missions'), `<div class="lvl"><b>×${SV.mlevel}</b><span>${esc(t('missionNote'))}</span></div>${missionHTML()}${dailyHTML()}${achHTML()}`); }
+function openMissions() { SFX.ui(); openPanel('MISSIONS', t('missions'), `<div class="lvl"><b>×${SV.mlevel}</b><span>${esc(t('missionNote'))}</span></div>${missionHTML()}${dailyHTML()}${calHTML()}${achHTML()}`); }
+// the days you came to work: the last four weeks as a little calendar of stamps (2026-11-08)
+function calHTML() { const days = new Set(SV.playDays || []), cells = []; const now = new Date(); const ds = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  const start = new Date(now); start.setDate(now.getDate() - 27 - ((now.getDay() + 6) % 7) + 6); // 4 rows of 7, ending this week
+  for (let i = 0; i < 28; i++) { const d = new Date(start); d.setDate(start.getDate() + i); const k = ds(d), fut = d > now; cells.push(`<i class="${days.has(k) ? 'on' : ''}${fut ? ' fut' : ''}${k === ds(now) ? ' today' : ''}" title="${d.getMonth() + 1}/${d.getDate()}">${d.getDate()}</i>`); }
+  const n = [...days].filter(k => { const [y, m, dd] = k.split('-').map(Number); return (now - new Date(y, m - 1, dd)) / 864e5 < 28; }).length;
+  return `<div class="m cal"><p><b>${esc(t('calH'))}</b> <span class="n">${esc(t('calN', n))}</span></p><div class="calg">${tr('月火水木金土日', 'MTWTFSS').split('').map(w => `<b>${w}</b>`).join('')}${cells.join('')}</div></div>`; }
 function shopHTML() {
   const ups = Object.keys(POW).map(k => {
     const lv = SV.upg[k] || 0, cost = UPG_COST[lv], d = POW[k];
@@ -108,8 +117,9 @@ function settingsHTML() {
   const o = OPT(), row = (lbl, key, opts) => `<div class="m"><p><b>${esc(lbl)}</b></p><span class="seg">${opts.map(([v, txt]) => `<button class="buy${o[key] === v ? '' : ' off'}" data-opt="${key}" data-v="${v}">${esc(txt)}</button>`).join('')}</span></div>`;
   const langRow = `<div class="m langrow"><p><b>🌐 Language</b></p><span class="seg langseg">${LANGS.map(l => `<button class="buy${LANG === l ? '' : ' off'}" data-lang="${l}" lang="${({ zh: 'zh-Hant' })[l] || l}">${LANG_NAME[l]}</button>`).join('')}</span></div>`; // all four, side by side (the title button cycles)
   return langRow + row(t('ctrl'), 'ctrl', [['swipe', t('ctrlSwipe')], ['tap', t('ctrlTap')]]) + `<p class="note">${esc(t('ctrlNote'))}</p>` +
-    row(t('sens'), 'sens', [['normal', t('sensN')], ['high', t('sensH')]]) + row(t('vib'), 'vib', [[true, t('on')], [false, t('off')]]) +
-    row(t('calm'), 'calm', [[true, t('on')], [false, t('off')]]) + row(t('music'), 'music', [[true, t('on')], [false, t('off')]]) + row(t('sfx'), 'sfx', [[true, t('on')], [false, t('off')]]) +
+    row(t('sens'), 'sens', [['normal', t('sensN')], ['high', t('sensH')]]) + row(t('vib'), 'vib', [[true, t('on')], ['low', t('vibLow')], [false, t('off')]]) +
+    row(t('easy'), 'easy', [[false, t('easyN')], [true, t('easyY')]]) + `<p class="note">${esc(t('easyNote'))}</p>` +
+    row(t('calm'), 'calm', [[true, t('on')], [false, t('off')]]) + row(t('music'), 'music', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) + row(t('sfx'), 'sfx', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) +
     `<button class="sub" id="btnNameSet">${esc(SV.nick ? t('nameBtn', SV.nick) : t('nameNone'))}</button> <button class="sub" id="btnTut">${esc(t('resetTut'))}</button>` +
     `<div class="m xfer"><p><b>${esc(t('codeH'))}</b></p><p class="note">${esc(t('codeNote'))}</p><div class="btns" style="display:flex;gap:8px"><input id="codeIn" aria-label="${esc(t('codeH'))}" maxlength="24" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="${esc(t('codePh'))}" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px"><button class="sub" id="btnCode" style="width:auto">${esc(t('codeOk'))}</button></div><p class="note" id="codeMsg" aria-live="polite"></p></div>` +
     `<div class="m xfer sns"><p><b>${esc(t('snsH'))}</b></p><p class="note">${esc(t('snsNote'))}</p>${followLinks('chips')}</div>` + linkHTML() + `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" aria-label="${esc(t('xfer'))}" readonly rows="3" hidden></textarea>` +
@@ -256,7 +266,7 @@ stage.addEventListener('pointerdown', e => {
 });
 stage.addEventListener('pointermove', e => {
   if (!tp || tp.id !== e.pointerId) return;
-  const dx = e.clientX - tp.x, dy = e.clientY - tp.y, th = OPT().sens === 'high' ? 14 : Math.max(20, Math.min(W, H) * .04);
+  const dx = e.clientX - tp.x, dy = e.clientY - tp.y, th = OPT().sens === 'high' ? 12 : Math.max(16, Math.min(W, H) * .04); // a shorter swipe counts (20px felt slow on a phone)
   if (Math.abs(dx) > th || Math.abs(dy) > th) { const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'); if (dir !== tp.last || performance.now() - tp.t > 160) { act(dir); tp.last = dir; tp.t = performance.now(); tp.fired = true; } tp.x = e.clientX; tp.y = e.clientY; }
 });
 const endTouch = e => { if (!tp || tp.id !== e.pointerId) return; // a fast flick on a busy frame may arrive as just down + up: read it from the whole stroke
@@ -360,7 +370,8 @@ function frameBody(now) {
   TEXN = 0; TEXB = performance.now() + 3;
   { let bad = null; if (G.mode !== 'pause' && G.mode !== 'dead' && G.mode !== 'result') { try { update(dt); } catch (e) { bad = e; } }
     if (bad) reportErr(bad); runGuard(Math.min(.1, Math.max(0, raw)), bad); } // a broken frame still draws, and the safety net looks at every frame
-  render();
+  // battery: while paused nothing on the stage moves, so it is drawn only a couple of times a second (2026-11-08)
+  if (G.mode !== 'pause' || now - (G.pauseDrawT || 0) > 500) { G.pauseDrawT = now; render(); }
   if (G.mode === 'play') texWarm(Math.max(0, Math.min(3, TEXB - performance.now())));
   if (G.capture && G.capture.t <= 0) { takePhoto(G.capture.tid); G.capture = null; }
   if (G.mode === 'title') { drawCharCard($('#cvRen'), 'ren', G.t); drawCharCard($('#cvJill'), 'jill', G.t + 1.3); if (SV.pomMet) drawCharCard($('#cvPom'), 'pom', G.t + .6); }
@@ -368,6 +379,8 @@ function frameBody(now) {
   musicTick();
 }
 addEventListener('pagehide', () => { try { saveNow(); } catch (e) { } });
+// a computer: clicking another window (the game keeps running behind it) pauses, like switching tabs does (2026-11-08)
+addEventListener('blur', () => { try { if (G.mode === 'play' && !matchMedia('(pointer:coarse)').matches) pause(); } catch (e) { } });
 function resizeKeep() { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
 function boot() {
   buildItemSprites(); buildWorldSprites(); buildBunnies(); applyWear(); rankIcons(); rankInit(); chatInit(); resize(); addEventListener('resize', resize);

@@ -1,0 +1,32 @@
+{
+  "_comment": "入れた機能の「しるし」。どれかが消えたら featureguard が落ちる（2026-11-08：古い版のファイルを上げて、操作感の改善が気づかずに消えた事故の再発防止）。機能をわざと外すときは、ここからも消して理由を書く。",
+  "features": [
+    { "name": "端から落ちた直後のジャンプ（コヨーテ）", "file": "src/6_game.js", "has": "G.coyote = .1" },
+    { "name": "ジャンプの先行入力 .2 秒", "file": "src/6_game.js", "has": "G.jumpBuf = .2" },
+    { "name": "足音（床で変わる）", "file": "src/6_game.js", "has": "SFX.step(c & 1, seg.th.kind)" },
+    { "name": "着地の音", "file": "src/6_game.js", "has": "SFX.land()" },
+    { "name": "着地の沈み込み", "file": "src/6_game.js", "has": "G.landT = .14" },
+    { "name": "コンボの弾み", "file": "src/6_game.js", "has": "function comboPop()" },
+    { "name": "コンボの弾みの見た目", "file": "src/head.html", "has": "#combo.pop" },
+    { "name": "ポムの合流の音", "file": "src/6_game.js", "has": "SFX.pom()" },
+    { "name": "自己ベストの花吹雪", "file": "src/6_game.js", "has": "burst(W / 2, H * .3, '#E86A75', 24)" },
+    { "name": "レーン移動のやわらかい音", "file": "src/6_game.js", "has": "'pluck', .045); }" },
+    { "name": "短いスワイプで反応", "file": "src/7_ui.js", "has": "Math.max(16, Math.min(W, H) * .04)" },
+    { "name": "PERFECT LINE", "file": "src/6_game.js", "has": "PERFECT LINE!" },
+    { "name": "空中キャッチ", "file": "src/6_game.js", "has": "AIR CATCH!" },
+    { "name": "すべりこみ名人", "file": "src/6_game.js", "has": "SLIDE MASTER!" },
+    { "name": "スピードアップ", "file": "src/6_game.js", "has": "SPEED UP" },
+    { "name": "1分ダッシュ", "file": "src/6_game.js", "has": "G.timed" },
+    { "name": "スーパージャンプの空の牧草", "file": "src/6_game.js", "has": "function skyHay(" },
+    { "name": "分かれ道の牧草多め", "file": "src/3_world.js", "has": "function richHay(" },
+    { "name": "3レーンとも壁にしない", "file": "src/3_world.js", "has": "blocks >= 2" },
+    { "name": "夏の夜の花火", "file": "src/4b_patterns.js", "has": "function drawFireworks(" },
+    { "name": "葉っぱが舞う", "file": "src/4_render.js", "has": "function leaves(" },
+    { "name": "体の傾き", "file": "src/4_render.js", "has": "G.turnDir" },
+    { "name": "音量3段階", "file": "src/5_audio.js", "has": "function musicLv()" },
+    { "name": "不安定な試験は1回やり直し", "file": "qa/run-all.mjs", "has": "flaky" },
+    { "name": "自己ベストで終わらない試験", "file": "qa/run-all.mjs", "has": "n: 'pbtest'" },
+    { "name": "壁の試験", "file": "qa/run-all.mjs", "has": "n: 'wallcheck'" },
+    { "name": "この見張り自身", "file": "qa/run-all.mjs", "has": "n: 'featureguard'" }
+  ]
+}

@@ -105,7 +105,7 @@ let RESETTING = 0; // set while the player wipes their data: nothing may write i
 function saveNow() { if (RESETTING) return; // if storage is full, give up the oldest photos one by one (never the progress)
   SAVE_DIRTY = 0;
   for (let k = 0; k < 100; k++) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); return; } catch (e) { const ks = Object.keys(SV.album || {}); if (!ks.length) return; delete SV.album[ks[0]]; } } }
-const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true }, SV.opt || {}));
+const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true, easy: false }, SV.opt || {}));
 /* ---- languages: the same four as the official site (日本語・English・繁體中文・한국어) ----
    Chinese and Korean come from I18N (src/0_i18n.js, keyed by the Japanese text); anything missing falls back to English. */
 const LANGS = ['ja', 'en', 'zh', 'ko'], LANG_NAME = { ja: '日本語', en: 'English', zh: '繁體中文', ko: '한국어' };
@@ -247,7 +247,11 @@ const STR = {
   settings: ['設定', 'Settings'], ctrl: ['操作', 'Controls'], ctrlSwipe: ['スワイプ', 'Swipe'], ctrlTap: ['タップ', 'Tap'],
   ctrlNote: ['タップ：画面の左右をタップでレーン移動、真ん中の上半分でジャンプ、下半分でスライディング。', 'Tap: tap the left or right side to change lanes, the upper middle to jump, the lower middle to slide.'],
   sens: ['スワイプの感度', 'Swipe sensitivity'], sensN: ['ふつう', 'Normal'], sensH: ['敏感', 'High'],
-  vib: ['振動', 'Vibration'], calm: ['画面の揺れ・演出をひかえめに', 'Reduce screen shake and flashes'], music: ['音楽', 'Music'], sfx: ['効果音', 'Sound effects'], on: ['オン', 'On'], off: ['オフ', 'Off'],
+  easy: ['あそびの速さ', 'Pace'], easyN: ['ふつう', 'Normal'], easyY: ['のんびり', 'Relaxed'], easyNote: ['のんびり：速くならず、障害物も少なめ。小さな子や、はじめての人に。ランキングと自己ベストには入りません', 'Relaxed: the speed stays gentle and there are fewer obstacles. Good for small children and first-timers. Not counted for the ranking or your best.'],
+  richHay: ['こっちは牧草多め！', 'More hay this way!'],
+  calH: ['出社カレンダー', 'Days at work'], calN: ['この4週間で {0} 日', '{0} days in the last 4 weeks'],
+  quick: ['⏱ 1分ダッシュ', '⏱ 1-minute dash'], quickHud: ['のこり {0} 秒', '{0}s left'], quickBest: ['1分ダッシュの自己ベスト：{0}', '1-minute best: {0}'], easyRes: ['のんびりモード（ランキング・自己ベストには入りません）', 'Relaxed mode (not counted for the ranking or your best)'], bond: ['なかよし', 'Buddies'], bondUp: ['レンとジルのなかよし度が上がった！ Lv.{0}', 'Ren & Jill are better buddies! Lv.{0}'], bondLbl: ['なかよし Lv.{0}', 'Buddies Lv.{0}'],
+  vib: ['振動', 'Vibration'], calm: ['画面の揺れ・演出をひかえめに', 'Reduce screen shake and flashes'], music: ['音楽', 'Music'], sfx: ['効果音', 'Sound effects'], on: ['オン', 'On'], off: ['オフ', 'Off'], lvLow: ['小さめ', 'Low'], vibLow: ['弱め', 'Light'],
   resetTut: ['チュートリアルをもう一度', 'Replay the tutorial'], xfer: ['記録のバックアップ（予備）', 'Backup of your progress (spare)'], xferNote: ['ネットにつながらないときなどの予備です。長いコードをメモ帳などに保存しておけば、あとで記録をもどせます。ふだんの引き継ぎは上の「記録の引き継ぎ」が簡単です。（写真アルバムは入りません）', 'A spare for when you are offline: save the long code somewhere and restore it later. For everyday moves, “Move your progress” above is easier. (Photos are not included.)'], xferMake: ['バックアップのコードを作る', 'Make a backup code'], xferCopied: ['コードをコピーしました。メモ帳などに保存しておいてください', 'Code copied. Keep it somewhere safe'], xferPaste: ['ここにバックアップのコードを貼り付け', 'Paste a backup code here'], xferLoad: ['このコードで復元', 'Restore from this code'], xferDone: ['記録をもどしました！', 'Restored!'], xferBad: ['コードが正しくありません。最後まで貼り付けられているか確認してください', 'That code does not look right. Check it was pasted in full'], xferConfirm: ['今の記録はこのコードの記録で上書きされます。もう一度押すと復元します', 'Your current progress will be replaced. Tap again to restore'], xferMine: ['この端末にも記録があります（ベスト {0}点・チモシー {1}本・{2}回プレイ）。続けると、この端末の記録は上の記録に入れかわります', 'This device has progress too (best {0}, hay {1}, {2} runs). It will be replaced by the progress above.'], resetDone: ['次のスタートでチュートリアルが始まります', 'The tutorial will play on your next run'],
 };
 const t = (k, ...a) => { const s = STR[k] ? tr(STR[k][0], STR[k][1]) : k; return s.replace(/\{(\d)\}/g, (_, i) => a[i] ?? ''); };
