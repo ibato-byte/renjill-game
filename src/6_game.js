@@ -109,7 +109,7 @@ function startRun() {
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
     fork: null, forkRest: null, rush: 0, chimed: 0, soonTold: 0, gaugeTold: 0, gainT: 0, feverMax: 6, hitStop: 0, jumpBuf: 0, tut: null, tutDid: '', fovK: 0, look: 0, lookCD: 4, photoT: 0, capture: null, rumbleT: 8, shake: 0, announce: [] });
-  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.prints = []; G.chalWon = 0; G.spTier = 0; G.slowT = 0; G.easy = !!OPT().easy; G.timed = G.quickNext ? 60 : 0; G.quickNext = 0; if (G.easy) banner('RELAXED', t('easyY'), 'room'); G.stats.timed = G.timed ? 1 : 0; if (G.timed) banner('1 MINUTE', t('quick'), 'good');
+  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.gig = null; G.gigNext = 24; G.gigLast = ''; G.bumpN = 0; G.prints = []; G.chalWon = 0; G.spTier = 0; G.slowT = 0; G.easy = !!OPT().easy; G.timed = G.quickNext ? 60 : 0; G.quickNext = 0; if (G.easy) banner('RELAXED', t('easyY'), 'room'); G.stats.timed = G.timed ? 1 : 0; if (G.timed) banner('1 MINUTE', t('quick'), 'good');
   G.legend = !!(SV.lgMode && legendOn('mode') && SV.tutDone); G.aura = !!(SV.lgAura !== 0 && legendOn('aura')); // the Legendary bunny's own run: faster, x1.5 score / a golden sparkle trail
   if (G.legend) banner('LEGEND MODE', tr('伝説モード：速さ＋15%・スコア×1.5', 'Legend mode: 15% faster, score x1.5'), 'good');
   G.stats = { hay: 0, dist: 0, jumps: 0, slides: 0, treats: 0, veg: 0, powers: 0, turns: 0, score: 0, fevers: 0, clean: 0, cleanCur: 0, office: 0, chime: 0, looks: 0, flights: 0, bads: [], foods: {}, spots: [], stampsNew: [] };
@@ -135,6 +135,7 @@ function startRun() {
 function stumble() {
   if (G.invT > 0) return;
   if (G.tut && G.tut.some(x => !x.done) && curSeg() === G.tutSeg) return;
+  G.bumpN = (G.bumpN || 0) + 1;
   SFX.bump(); buzz(60); G.flashT = .6; G.combo = 0; G.stats.cleanCur = 0; G.invT = .9; G.hitStop = .08; G.shake = .7;
   if ((G.chaseT > 0 && !G.chaseIntro) || G.rush) { die('papers'); return; }
   G.chaseT = 5.5; G.chaseIntro = 0; bannerNow('BUMP!', t('bump1', 5), 'bad');
@@ -143,7 +144,7 @@ function stumble() {
 function hit(o) {
   if (G.tut && G.tut.some(x => !x.done) && curSeg() === G.tutSeg) { smash(o); return; } // the first lesson never kills
   if (G.pow.dash > 0 || G.fever > 0 || G.invT > 0 || G.pow.fly > 0) { smash(o); return; }
-  if (G.shield) { G.shield = 0; smash(o); G.invT = 1.2; SFX.bump(); banner('SAVED!', t('saved'), 'good'); return; }
+  if (G.shield) { G.bumpN = (G.bumpN || 0) + 1; G.shield = 0; smash(o); G.invT = 1.2; SFX.bump(); banner('SAVED!', t('saved'), 'good'); return; }
   die('obstacle');
 }
 // skill chain: close dodges, jump-overs and slide-unders within a second of each other
@@ -181,6 +182,43 @@ function doRevive(kind) {
   G.mode = 'play'; G.invT = 2.5; G.chaseT = 0; G.chaseVis = 0; G.player.tilt = 0; G.follow.tilt = 0; G.pom.tilt = 0; G.y = Math.max(G.y, 0); G.vy = 0; G.slideT = 0;
   if (G.rush) G.rush = .5;
   hideAll(); show('hud'); musicStart(); banner('KEEP GOING!', t('keepGoing'), 'good');
+}
+
+/* ---------- work calls during a run (2026-11-08) ----------
+   So a run is not just running: every 30-45 seconds a short job comes in, each with its own rule for a few seconds
+   (like the set pieces of other runners). Done = bonus points; missed = a gentle word, the run goes on. */
+const GIGS = {
+  boss: { dur: 10, pts: 600, en: 'THE PRESIDENT IS WATCHING!', ja: '10秒、ぶつからずに走ろう', enL: 'No bumps for 10 seconds', jaS: '社長が見てる：ぶつからない', enS: 'The president is watching: no bumps' },
+  call: { dur: 15, need: 35, pts: 500, en: 'PHONE CALL: AN ERRAND!', ja: '15秒でチモシーを35本あつめて', enL: 'Grab 35 hay in 15 seconds', jaS: 'おつかい：チモシー', enS: 'Errand: hay' },
+  memo: { dur: 14, need: 3, pts: 700, en: 'PAPERWORK RUSH!', ja: '14秒でナイスジャンプ・スライドを3回', enL: '3 nice jumps or slides in 14 seconds', jaS: '書類の山：ナイス', enS: 'Paperwork: nice moves' },
+  rain: { dur: 9, pts: 0, en: 'SNACK TIME!', ja: '9秒間、チモシーが2倍！', enL: 'Double hay for 9 seconds', jaS: '差し入れ：チモシー2倍', enS: 'Snack time: hay x2' },
+};
+function gigFree() { return G.mode === 'play' && SV.tutDone && !(G.tut && G.tut.some(x => !x.done)) && !(G.pow.fly > 0) && !(G.fever > 0) && !G.rush && !(G.chaseT > 0 && !G.chaseIntro) && !(G.turnT > 0); }
+function gigStart() {
+  const ks = Object.keys(GIGS).filter(k => k !== G.gigLast), k = pick(ks), d = GIGS[k];
+  G.gig = { k, t: 0, b0: k === 'boss' ? (G.bumpN || 0) : k === 'call' ? G.stats.hay : k === 'memo' ? (G.stats.nice || 0) : 0, n: 0 }; G.gigLast = k;
+  bannerNow(d.en, tr(d.ja, d.enL), 'good'); tone(659, .1, 'bell', .045); tone(880, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .1);
+}
+function gigEnd(ok) {
+  const g = G.gig, d = GIGS[g.k]; G.gig = null; G.gigNext = rand(30, 44);
+  if (ok) { G.stats.gigs = (G.stats.gigs || 0) + 1; const p = d.pts * SV.mlevel;
+    if (p) { G.score += p; floatText(W / 2, H * .36, lab('GOOD WORK!') + ' +' + fmt(p), '#F2C230'); }
+    if (g.k !== 'rain') { banner('GOOD WORK!', tr('ボーナスゲット！', 'Bonus earned!'), 'good'); SFX.mission(); burst(W / 2, H * .4, '#F2C230', 22); react('happy', 1); } }
+  else banner('SO CLOSE!', tr('次のおしごとでがんばろう', 'Get the next one.'), 'room');
+}
+function gigTick(dt) {
+  if (!G.gig) { if (!gigFree()) return; G.gigNext -= dt; if (G.gigNext <= 0) gigStart(); return; }
+  if (G.mode !== 'play') return;
+  const g = G.gig, d = GIGS[g.k]; g.t += dt;
+  if (g.k === 'boss') { if ((G.bumpN || 0) > g.b0) return gigEnd(false); g.n = Math.min(d.dur, g.t); if (g.t >= d.dur) return gigEnd(true); }
+  else if (g.k === 'call' || g.k === 'memo') { g.n = (g.k === 'call' ? G.stats.hay : (G.stats.nice || 0)) - g.b0; if (g.n >= d.need) return gigEnd(true); if (g.t >= d.dur) return gigEnd(false); }
+  else if (g.t >= d.dur) return gigEnd(true);
+}
+function gigHud() {
+  const e = el('gigCard'); if (!e) return; const g = G.gig; if (!g || G.mode !== 'play') { if (!e.hidden) e.hidden = true; return; }
+  const d = GIGS[g.k]; if (e.hidden) e.hidden = false; e.className = 'gig ' + g.k;
+  setText('gigT', tr(d.jaS, d.enS)); setText('gigN', d.need ? fmt(Math.min(g.n, d.need)) + ' / ' + fmt(d.need) : Math.max(0, Math.ceil(d.dur - g.t)) + tr('秒', 's'));
+  const b = el('gigBar'); if (b) b.style.width = (Math.max(0, 1 - g.t / d.dur) * 100).toFixed(1) + '%';
 }
 
 /* ---------- input actions ---------- */
@@ -521,6 +559,7 @@ function update(dt) {
   mateCheck();
   buddy(dt, seg);
   placeCamera(dt);
+  gigTick(dt);
   G.missionCheck -= dt; if (G.missionCheck <= 0) { G.missionCheck = .5; checkMissions(true); checkAch(true); dailyCheck(true); }
   hud();
 }
@@ -689,7 +728,7 @@ function collect(it, seg) {
   G.score += (def.pts + (G.fever > 0 ? 0 : Math.min(G.combo, 20) * 1.5)) * (G.fever > 0 ? mult * .75 : mult);
   if (def.kind === 'hay' && (pomOn() || G.char === 'pom')) pomPouch(def.gold ? 5 : 1);
   if (def.kind === 'hay' && G.air && G.pow.fly <= 0) { G.airN = (G.airN || 0) + 1; if (G.airN === 5) { const pts = 120 * SV.mlevel; G.score += pts; G.stats.airCatch = (G.stats.airCatch || 0) + 1; floatText(W / 2, H * .38, lab('AIR CATCH!') + ' +' + fmt(pts), '#9BD3F0'); tone(659, .1, 'bell', .045); tone(880, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .08); } } // five hay in one jump (2026-11-08)
-  if (def.kind === 'hay') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; G.feverG += (def.gold ? 25 : .55) * feverK(); SFX.hay(G.combo % 13); burst(sx, sy, def.gold ? '#F2C230' : '#9BB85A', def.gold ? 16 : 3); leaves(sx, sy, def.gold ? 6 : 3); if (!def.gold) FX.push({ x: sx, y: sy, vx: 0, vy: -40, life: .18, t: 0, c: 'rgba(255,255,230,.9)', r: 7 }); /* a soft glint on every hay */ if (def.gold) { floatText(sx, sy - 20, '+30', '#F2C230'); react('sparkle', 0); } }
+  if (def.kind === 'hay') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; if (G.gig && G.gig.k === 'rain') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; } G.feverG += (def.gold ? 25 : .55) * feverK(); SFX.hay(G.combo % 13); burst(sx, sy, def.gold ? '#F2C230' : '#9BB85A', def.gold ? 16 : 3); leaves(sx, sy, def.gold ? 6 : 3); if (!def.gold) FX.push({ x: sx, y: sy, vx: 0, vy: -40, life: .18, t: 0, c: 'rgba(255,255,230,.9)', r: 7 }); /* a soft glint on every hay */ if (def.gold) { floatText(sx, sy - 20, '+30', '#F2C230'); react('sparkle', 0); } }
   else if (def.kind === 'food') { G.feverG += 3 * feverK(); SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#F6EBDC'); }
   else if (def.kind === 'veg') { G.feverG += 5 * feverK(); G.stats.veg++; SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#B8D98A'); burst(sx, sy, '#5F9E5A', 6); }
   else if (def.kind === 'treat') { G.feverG += 9 * feverK(); G.stats.treats++; SFX.treat(); floatText(sx, sy, L(def) + '!', '#F2C230'); burst(sx, sy, '#E2434B', 10); if (Math.random() < .4) react('happy', 0); }
@@ -719,7 +758,7 @@ function fitScore() {
 }
 function comboPop() { const e = el('combo'); if (!e || G.combo < 5) return; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } // the combo count bounces on every pickup
 function hud() {
-  chalTick(); setText('hChal', G.timed ? t('quickHud', Math.max(0, Math.ceil(G.timed - G.t))) : CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
+  gigHud(); chalTick(); setText('hChal', G.timed ? t('quickHud', Math.max(0, Math.ceil(G.timed - G.t))) : CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
   setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay))); { const hn = Math.floor(G.hay); if (hn !== HUDC.hayN) { const up = hn > (HUDC.hayN || 0); HUDC.hayN = hn; const e = el('hHay'); if (up && e && !OPT().calm) { e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } } } // the hay count hops a little when it goes up (2026-11-08)
   setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
   setText('hClock', clockStr(G.clock)); setText('hDay', t('dayN', G.day));
@@ -844,6 +883,7 @@ function endRun() {
   for (const k of ['jumps', 'slides', 'treats', 'powers', 'fevers', 'hay', 'veg', 'turns', 'looks', 'flights']) SV.totals[k] = (SV.totals[k] || 0) + (st[k] || 0);
   for (const sl of SV.missions.slots) { const m = MT.find(x => x.id === sl.id); if (m && m.scope === 'run') sl.prog = Math.max(sl.prog, m.stat === 'score' ? G.score : m.stat === 'dist' ? G.dist : (st[m.stat] || 0)); }
   checkAch(false); dailyCheck(false);
+  let weekMsg = ''; if (!G.easy) { try { weekMsg = weekAdd(st); } catch (e) { reportErr(e); } } // this week's goal (2026-11-08)
   const bk = G.timed ? 'bestT' : 'best', prevBest = G.easy ? 0 : (SV[bk] || 0), newBest = !G.easy && G.score > (SV[bk] || 0); if (newBest) SV[bk] = Math.floor(G.score);
   if (!G.easy && !G.timed) SV.bestClock = Math.max(SV.bestClock || 480, G.clock + (G.day - 1) * 1440); SV.bestDay = Math.max(SV.bestDay || 1, G.day);
   let lvlMsg = '';
@@ -860,7 +900,7 @@ function endRun() {
   SV.last = { score: Math.floor(G.score), place: { ja: curSeg().th.ja, en: curSeg().th.en } }; // the place in every language (shown in whatever language the title is in later)
   save(); $('#resClock').textContent = (G.day > 1 ? t('dayN', G.day) + ' ' : '') + clockStr(G.clock); $('#resHay').textContent = fmt(gained);
   const vsBest = prevBest > 0 ? (newBest ? t('bestUp', fmt(Math.floor(G.score) - prevBest)) : t('bestShort', fmt(prevBest - Math.floor(G.score)))) : '';
-  $('#resNote').textContent = (CHAL ? (G.chalWon ? t('chalDone', fmt(CHAL.s)) : t('chalLeft', fmt(Math.ceil(CHAL.s - G.score) + 1))) : '') + (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '') + (dayGoalMsg ? '　' + dayGoalMsg : '') + (bondMsg ? '　' + bondMsg : '') + (G.easy ? '　' + t('easyRes') : '') + (G.timed ? '　' + t('quickBest', fmt(SV.bestT || 0)) : '');
+  $('#resNote').textContent = (CHAL ? (G.chalWon ? t('chalDone', fmt(CHAL.s)) : t('chalLeft', fmt(Math.ceil(CHAL.s - G.score) + 1))) : '') + (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '') + (dayGoalMsg ? '　' + dayGoalMsg : '') + (weekMsg ? '　' + weekMsg : '') + (bondMsg ? '　' + bondMsg : '') + (G.easy ? '　' + t('easyRes') : '') + (G.timed ? '　' + t('quickBest', fmt(SV.bestT || 0)) : '');
   $('#resSpots').innerHTML = st.spots.length ? st.spots.map(tid => `<span class="spot${st.stampsNew.includes(tid) ? ' new' : ''}"><img src="${stampURL(tid)}" alt="">${esc(L(THEMES[tid].stamp))}</span>`).join('') : '';
   $('#resMissions').innerHTML = missionHTML();
   const seen = st.bads.length ? st.bads[st.bads.length - 1] : pick(Object.keys(st.foods).length ? Object.keys(st.foods) : ['hay']);
