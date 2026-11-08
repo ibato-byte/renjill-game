@@ -122,7 +122,9 @@ function openStamps() { SFX.ui(); SV.seenStamps = Object.keys(SV.stamps).length 
 function openHow() {
   SFX.ui();
   const ic = k => `<kbd><img src="${SPR_URL[k]}" width="28" alt=""></kbd>`;
-  openPanel('HOW TO PLAY', t('how'), `<div class="how">
+  // 動く絵（C-74）：指が左右・上・下にスワイプして、うさぎがよける・跳ぶ・すべる。「動きを減らす」設定・OS の設定では止まる
+  const demo = `<div class="howanim${OPT().calm ? ' still' : ''}" aria-hidden="true"><div class="ha-road"><i class="ha-l"></i><i class="ha-l r"></i></div><img class="ha-bun" src="${(() => { try { return bunFrame(SV.char === 'jill' ? 'jill' : 'ren', 'run0', false).toDataURL(); } catch (e) { return SPR_URL.hay; } })()}" alt=""><b class="ha-box"></b><span class="ha-finger"></span><em class="ha-cap"><span>${esc(t('howA1'))}</span><span>${esc(t('howA2'))}</span><span>${esc(t('howA3'))}</span></em></div>`;
+  openPanel('HOW TO PLAY', t('how'), demo + `<div class="how">
     <kbd>← →</kbd><span>${t('howSwipeLR')}</span><kbd>↑</kbd><span>${t('howUp')}</span><kbd>↓</kbd><span>${t('howDown')}</span><kbd>ESC</kbd><span>${t('howKeys')}</span></div>
     <div class="zdetail"><b>${lab('GOAL')}</b>${esc(t('howGoal'))}</div>
     <div class="zdetail"><b>${lab('♥ BUMPS')}</b>${esc(t('howBump'))}</div>

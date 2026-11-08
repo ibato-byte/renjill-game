@@ -461,7 +461,7 @@ function update(dt) {
   G.s += step; G.dist += step; G.stats.cleanCur += step; G.stats.clean = Math.max(G.stats.clean, G.stats.cleanCur);
   const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
   G.score += step * mult * (3 + G.speed * .12); // distance is the backbone: about 4-6 points per metre, more when fast
-  const tl = LANES[G.lane]; const dl = tl - G.lat; G.lat += Math.sign(dl) * Math.min(Math.abs(dl), dt * 17);
+  const tl = LANES[G.lane]; const dl = tl - G.lat; if (G.pushT > 0) G.pushT -= dt; G.lat += Math.sign(dl) * Math.min(Math.abs(dl), dt * (G.pushT > 0 ? 7 : 17));
   if (G.laneT > 0) G.laneT -= dt;
   // support + movers
   let ground = 0;
@@ -501,7 +501,7 @@ function update(dt) {
     if ((o.k !== 'high' || lowTop(o)) && prevY >= oTop - .22) continue;
     const frontal = prevS + .3 <= os0 + (o.mv ? o.mv * dt : 0) + .06 + step * .1;
     if (frontal || o.full) hit(o);
-    else { if (G.pow.dash > 0 || G.fever > 0) smash(o); else { let nl = G.prevLane; if (nl === G.lane) { const c = (o.l0 + o.l1) / 2; nl = clamp(G.lane + (G.lat >= c ? 1 : -1), 0, 2); if (nl === G.lane) nl = clamp(G.lane - (G.lat >= c ? 1 : -1), 0, 2); } G.lane = nl; G.prevLane = nl; G.lastHit = o; stumble(); } }
+    else { if (G.pow.dash > 0 || G.fever > 0) smash(o); else { let nl = G.prevLane; if (nl === G.lane) { const c = (o.l0 + o.l1) / 2; nl = clamp(G.lane + (G.lat >= c ? 1 : -1), 0, 2); if (nl === G.lane) nl = clamp(G.lane - (G.lat >= c ? 1 : -1), 0, 2); } G.lane = nl; G.prevLane = nl; G.lastHit = o; G.pushT = .3; stumble(); } } // 横からの押し戻しは 0.3 秒ゆっくり（C-9）
     if (G.mode !== 'play') return;
   }
   // a puddle on a rainy day: a splash when you run through it (2026-11-08)
@@ -533,7 +533,7 @@ function update(dt) {
     else if (!fc.hidden) fc.hidden = true;
   }
   if (G.turnQueued && !G.turnAuto && G.s < seg.len) { /* chosen: keep the locked arrow */ }
-  else if (G.s > win && G.s < seg.len && !G.turnQueued) { cue.textContent = seg.fork ? '←  →' : seg.turn > 0 ? '→' : '←'; cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + (Math.floor(G.t * 8) % 2 ? ' show' : ''); }
+  else if (G.s > win && G.s < seg.len && !G.turnQueued) { cue.textContent = seg.fork ? '←  →' : seg.turn > 0 ? '→' : '←'; cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + ' win' + (Math.floor(G.t * 8) % 2 ? ' show' : ''); cue.style.setProperty('--left', clamp((seg.len - G.s) / Math.max(1, seg.len - win), 0, 1).toFixed(3)); } // 曲がれる残り（C-6）：矢印の下の線が短くなっていく
   else cue.className = '';
   // events inside a stretch
   if (seg.goldRoad && !seg.goldTold && G.s > seg.goldRoad - 34) { seg.goldTold = 1; banner('GOLDEN ROAD!', tr('金のチモシーの道！', 'A road of golden hay!'), 'good'); }
