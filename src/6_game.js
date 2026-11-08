@@ -67,6 +67,8 @@ function setupTitle() {
   G.player.show = G.follow.show = true;
 }
 // the boss's bedroom at 8:00, laid out by hand: the futon he has just left, his jacket waiting, the morning sun through the shoji
+const PLANT_STEPS = [0, 300, 2000, 8000, 30000];
+function plantLv() { const h = (SV.totals || {}).hay || 0; let lv = 0; while (lv < PLANT_STEPS.length - 1 && h >= PLANT_STEPS[lv + 1]) lv++; return lv; }
 function buildTitleRoom(seg) {
   const sp = (type, v, s, lat, w, h, y) => seg.spr.push({ lat, s, y: y || 0, w, h, img: artKey(type, v || ''), keep: 1, gnd: w * .4 });
   const dec = (type, sd, s, w, y0, y1, extra) => { const lat = sd * (HW - .03), n = [-sd * seg.r[0], -sd * seg.r[1]], a = s, b = s + w; const pts = sd < 0 ? [[a, lat, y0], [b, lat, y0], [b, lat, y1], [a, lat, y1]] : [[b, lat, y0], [a, lat, y0], [a, lat, y1], [b, lat, y1]]; seg.decos.push(Object.assign({ v: quad(seg, pts), n, pat: type, v2: 1, seg, w }, extra || {})); };
@@ -79,7 +81,7 @@ function buildTitleRoom(seg) {
   seg.floor.push({ v: quad(seg, [[1.3, 1.3, .02], [4.1, 1.3, .02], [4.1, 3.3, .02], [1.3, 3.3, .02]]), c: [0, 0, 0], dec: 'futonD', ti: 0, a: 1.3, b: 4.1 });
   seg.spr.push({ lat: 0, s: 3.4, y: 2.05, w: .9, h: .95, img: artKey('pendant', ''), keep: 1 });
   sp('lowtable', '', 2.4, -2.5, 1.5, .62); // the low round table, his mug and the morning paper on it (one picture, so nothing floats)
-  sp('tZabuton', '', 3.4, -1.6, 1.0, .34); sp('plant', '', 5.6, 3.7, 1.0, 1.75); sp('futon', '', 5.3, -3.8, 1.5, 1.1);
+  sp('tZabuton', '', 3.4, -1.6, 1.0, .34); { const k = .6 + .2 * plantLv(); sp('plant', '', 5.6, 3.7, 1.0 * k, 1.75 * k); } /* 牧草で育つ観葉植物（B-12）：これまでに集めた牧草で 5 段階 */ sp('futon', '', 5.3, -3.8, 1.5, 1.1);
   if (EVENT) { const dk = EV_KITS[EVENT].deco; sp(dk, '', 3.9, -2.15, .46, .43); sp(dk, '', 2.75, -2.55, .36, .34); } // the season's decorations by the table
   dec('tansuW', 1, -1.2, 1.5, 0, 1.65); // the chest of drawers, painted flat against the wall so its lines stay true
   seg.spr.push({ lat: -4.0, s: .5, y: 0, w: .9, h: 1.9, img: artKey('andon', '0'), pn: 1, keep: 1, gnd: .3 });
@@ -121,7 +123,7 @@ function startRun() {
   Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '', off: G.char === 'pom' });
   // playing as Pom: the rookie sets off first; the boss and Jill catch up one by one (in a random order), bringing their perks
   G.mates = { ren: 0, jill: 0 }; G.mateOrder = Math.random() < .5 ? ['ren', 'jill'] : ['jill', 'ren']; G.mateAt = [rand(20, 28), rand(52, 64)];
-  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.pres = null; G.presDone = 0; G.bumps = 0; G.lastHit = null; G.errand = null; G.errandDone = 0; G.chalFlag = 0;
+  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.pres = null; G.presDone = 0; G.bumps = 0; G.lastHit = null; G.bestPic = 0; G.errand = null; G.errandDone = 0; G.chalFlag = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
   resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
@@ -769,7 +771,7 @@ function hud() {
   setText('feverLbl', G.fever > 0 ? (tr('もぐもぐフィーバー中！', 'FEVER!')) : t('gauge'));
   setText('feverPct', G.fever > 0 ? G.fever.toFixed(1) + 's' : Math.floor(pct) + '%');
   if (pct >= 15 && !G.gaugeTold && SV.runs <= 3) { G.gaugeTold = 1; banner('', t('gaugeHint'), ''); }
-  if (!G.bestTold && SV.best > 500 && G.score > SV.best) { G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.mission(); react('sparkle', 1); if (!OPT().calm) { burst(W / 2, H * .3, '#F2C230', 40); burst(W / 2, H * .3, '#E86A75', 24); burst(W / 2, H * .3, '#6FC3DF', 18); } }
+  if (!G.bestTold && SV.best > 500 && G.score > SV.best) { bestPhoto(); G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.mission(); react('sparkle', 1); if (!OPT().calm) { burst(W / 2, H * .3, '#F2C230', 40); burst(W / 2, H * .3, '#E86A75', 24); burst(W / 2, H * .3, '#6FC3DF', 18); } }
   if (G.fever <= 0 && pct >= 80 && !G.soonTold) { G.soonTold = 1; banner('ALMOST!', t('feverSoon'), 'good'); }
   const on = Object.keys(G.pow).filter(k => G.pow[k] > 0);
   const key = on.join(',') + (G.shield ? ',s' : '');
@@ -843,6 +845,12 @@ function missionHTML() {
 }
 
 /* ---------- photos ---------- */
+// 自己ベストの記念写真（B-19）：走っている途中で自己ベストをこえた瞬間の画面を、新しい順に 6 枚まで残す。点数は結果で最後の点に直す
+function bestPhoto() {
+  try { const c = document.createElement('canvas'); const w = 280, h = Math.round(w * Math.min(1.25, H / W)); c.width = w; c.height = h; const g = c.getContext('2d') || noCtx();
+    const sw = cv.width, sh = Math.round(cv.width * h / w); g.drawImage(cv, 0, Math.max(0, (cv.height - sh) * .35), sw, Math.min(sh, cv.height), 0, 0, w, h);
+    SV.bestPics = (SV.bestPics || []).filter(p => p && p.img).slice(0, 5); SV.bestPics.unshift({ img: c.toDataURL('image/jpeg', .6), s: Math.floor(G.score), d: Date.now(), at: L(curSeg().th) }); G.bestPic = 1; save(); } catch (e) { }
+}
 function takePhoto(tid) {
   try {
     const c = document.createElement('canvas'); const w = 280, h = Math.round(w * Math.min(1.25, H / W));
@@ -879,7 +887,7 @@ function endRun() {
   for (const k of ['jumps', 'slides', 'treats', 'powers', 'fevers', 'hay', 'veg', 'turns', 'looks', 'flights']) SV.totals[k] = (SV.totals[k] || 0) + (st[k] || 0);
   for (const sl of SV.missions.slots) { const m = MT.find(x => x.id === sl.id); if (m && m.scope === 'run') sl.prog = Math.max(sl.prog, m.stat === 'score' ? G.score : m.stat === 'dist' ? G.dist : (st[m.stat] || 0)); }
   checkAch(false); dailyCheck(false);
-  const bk = G.timed ? 'bestT' : 'best', prevBest = G.easy ? 0 : (SV[bk] || 0), newBest = !G.easy && G.score > (SV[bk] || 0); if (newBest) SV[bk] = Math.floor(G.score);
+  const bk = G.timed ? 'bestT' : 'best', prevBest = G.easy ? 0 : (SV[bk] || 0), newBest = !G.easy && G.score > (SV[bk] || 0); if (newBest) { SV[bk] = Math.floor(G.score); if (G.bestPic && SV.bestPics && SV.bestPics[0]) SV.bestPics[0].s = Math.floor(G.score); }
   if (!G.easy && !G.timed) SV.bestClock = Math.max(SV.bestClock || 480, G.clock + (G.day - 1) * 1440); SV.bestDay = Math.max(SV.bestDay || 1, G.day);
   let lvlMsg = '';
   if (SV.missions.slots.every(sl => sl.done)) { SV.mlevel++; const rw = 150 * SV.mlevel; SV.bank += rw; lvlMsg = t('lvlUp', SV.mlevel, rw); newMissions(); }

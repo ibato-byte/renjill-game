@@ -22,6 +22,7 @@ function applyLang() {
 function cardTxt(sel, txt) { const el = $(sel); el.textContent = ''; String(txt).split(/\s*[・：:·]\s*/).forEach((p, i) => { if (i) el.appendChild(document.createElement('br')); const s = document.createElement('span'); s.textContent = p; el.appendChild(s); }); }
 function refreshTitle() {
   refreshNameBtn();
+  { const lv = plantLv(); if (lv > (SV.plantLv || 0)) { SV.plantLv = lv; save(); setTimeout(() => toastTitle(t('plantUp')), 1600); } } // 観葉植物が育った（B-12）
   applyLang();
   $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
   { const dly = dailyToday(), done = SV.dailyDone === dly.key; $('#tDaily').textContent = (tr('今日のチャレンジ：', 'Today: ')) + L(dly.c.t(dly.n)) + (done ? ' ✓' : (tr('（チモシー300本＋お守り）', ' (300 hay + charm)'))); }
@@ -97,7 +98,8 @@ function stampsHTML(sel) {
   let det = `<div class="zdetail"><b>${tr('東京スタンプラリー', 'TOKYO STAMP RALLY')}</b>${esc(t('stampNote'))}</div>`;
   if (sel && SV.stamps[sel]) { const st = THEMES[sel].stamp; det = `<div class="zdetail"><b>${esc(L(st))}</b>${esc(L(st.note))}</div>`; }
   const pics = STAMP_ORDER.filter(id => SV.album[id]).map(id => `<figure><img src="${SV.album[id]}" alt="${esc(L(THEMES[id].stamp))}"><figcaption>${esc(L(THEMES[id].stamp))}</figcaption></figure>`).join('');
-  return `<div class="bank"><span>${n} / ${STAMP_ORDER.length}</span></div>${det}<div class="stamps">${tiles}</div><h3 class="ph" style="font-size:18px;margin-top:6px">${LANG === 'en' ? 'PHOTOS<small>' + t('photos') + '</small>' : t('photos')}</h3>${pics ? `<div class="album">${pics}</div>` : `<p class="note">${t('noPhoto')}</p>`}`;
+  const bp = (SV.bestPics || []).filter(p => p && p.img).map(p => `<figure><img src="${p.img}" alt=""><figcaption>${esc(t('bestPicCap', fmt(p.s)))}<br><small>${esc(new Date(p.d).toLocaleDateString())}</small></figcaption></figure>`).join('');
+  return `<div class="bank"><span>${n} / ${STAMP_ORDER.length}</span></div>${det}${bp ? `<h3 class="ph" style="font-size:18px;margin-top:6px">${esc(t('bestPics'))}</h3><div class="album best">${bp}</div>` : ''}<div class="stamps">${tiles}</div><h3 class="ph" style="font-size:18px;margin-top:6px">${LANG === 'en' ? 'PHOTOS<small>' + t('photos') + '</small>' : t('photos')}</h3>${pics ? `<div class="album">${pics}</div>` : `<p class="note">${t('noPhoto')}</p>`}`;
 }
 const STAMP_URL = {}; function stampURL(id) { const k = id + LANG; if (!STAMP_URL[k]) { try { STAMP_URL[k] = stampSprite(id).toDataURL(); } catch (e) { return ''; } } return STAMP_URL[k]; }
 function openStamps() { SFX.ui(); SV.seenStamps = Object.keys(SV.stamps).length + Object.keys(SV.album).length; save(); openPanel('TOKYO', t('stamps'), stampsHTML()); }
