@@ -257,6 +257,26 @@
       "has": "function tokyoMapHTML()"
     },
     {
+      "name": "曲がれる残りの線",
+      "file": "src/6_game.js",
+      "has": "cue.style.setProperty('--left'"
+    },
+    {
+      "name": "横の押し戻しをゆっくり",
+      "file": "src/6_game.js",
+      "has": "G.pushT = .3"
+    },
+    {
+      "name": "季節の立て看板",
+      "file": "src/3_world.js",
+      "has": "const SIGN_SEASON"
+    },
+    {
+      "name": "あそびかたの動く絵",
+      "file": "src/7_ui.js",
+      "has": "class=\"howanim"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
