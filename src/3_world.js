@@ -382,7 +382,7 @@ const PROPS = {
   papersS: (sd, s) => ({ w: 1.2, bx: [B(sd * 3.8, s, .9, .7, 0, .5 + Math.random() * .8, '#FFFFFF'), B(sd * 3.75, s + .05, .88, .66, .5, .9 + Math.random() * .6, '#F4F4F0')] }),
   shelf: (sd, s) => ({ w: 2.2, bx: [B(sd * 4.25, s, .6, 2.0, 0, 2.1, '#8A5A36'), ...[0, 1, 2, 3].map(r => B(sd * 3.94, s + .1, .02, 1.8, .2 + r * .5, .5 + r * .5, ['#C8463C', '#4E77A0', '#F2C230', '#5F9E5A'][r]))] }),
   plant: (sd, s) => ({ w: 1.4, bx: [B(sd * 3.8, s, .6, .6, 0, .55, '#B08155')], spr: [{ lat: sd * 3.8, s: s + .3, y: .5, h: 1.5, w: 1.3, img: 'canopy_green' }] }),
-  boxesS: (sd, s) => ({ w: 1.6, bx: [B(sd * 3.8, s, 1.1, 1.1, 0, .9, '#C79A6C'), B(sd * 3.85, s + .15, .8, .8, .9, 1.55, '#D3A777'), B(sd * 3.25, s + .4, .02, .3, 0, .9, '#E2BB8D')] }),
+  boxesS: (sd, s) => ({ w: 1.6, bx: [B(sd * 4.3, s, 1.0, 1.0, 0, .75, '#C79A6C'), B(sd * 4.35, s + .15, .7, .7, .75, 1.2, '#D3A777'), B(sd * 3.85, s + .4, .02, .3, 0, .75, '#E2BB8D')] }), /* 道ばたの段ボール：レーンの障害物の箱と同じ絵なので、道から離して低くする（レーンをふさいで見えた・2026-11-08） */
   umbrellaS: (sd, s) => ({ w: 1, bx: [B(sd * 4.0, s, .5, .5, 0, .7, '#4E77A0'), B(sd * 3.95, s + .2, .08, .08, .7, 1.35, '#C8463C'), B(sd * 4.05, s + .3, .08, .08, .7, 1.25, '#F2C230')] }),
   sofa: (sd, s) => ({ w: 2.8, bx: [B(sd * 3.9, s, 1.2, 2.4, 0, .5, '#4E77A0'), B(sd * 4.35, s, .3, 2.4, .5, 1.1, '#46699A'), B(sd * 3.9, s - .1, 1.3, .25, 0, .8, '#46699A'), B(sd * 3.9, s + 2.25, 1.3, .25, 0, .8, '#46699A')] }),
   tvstand: (sd, s) => ({ w: 2.2, bx: [B(sd * 4.1, s, .7, 2.0, 0, .55, '#6B4631'), B(sd * 4.2, s + .2, .12, 1.6, .55, 1.5, '#1C1919'), B(sd * 4.13, s + .28, .02, 1.44, .62, 1.43, '#3B6EA8', 1)] }),
@@ -637,7 +637,10 @@ function populate(seg) {
       for (const l of ls) {
         let [t, k] = pick(lane3);
         if (k === 'block' && cnt === 3 && blocks >= 2) { const alt = lane3.filter(e => e[1] !== 'block'); if (!alt.length) continue; [t, k] = pick(alt); }
-        const o = makeObs(seg, t, s + rand(-.3, .3), l); if (o.k === 'block') blocks++; row.lanes[l] = o.k;
+        let o = makeObs(seg, t, s + rand(-.3, .3), l);
+        /* 置いた後の実際の種類で数える：積んだ箱（crate）は置くときに高い（壁）か低いかが決まるので、選んだ時点の種類では「3レーンとも壁」を防げなかった（2026-11-08） */
+        if (o.k === 'block' && cnt === 3 && blocks >= 2) { seg.obs.splice(seg.obs.indexOf(o), 1); const alt = lane3.filter(e => e[1] !== 'block' && e[0] !== 'crate'); if (!alt.length) continue; o = makeObs(seg, pick(alt)[0], s + rand(-.3, .3), l); }
+        if (o.k === 'block') blocks++; row.lanes[l] = o.k;
       }
     }
     rows.push(row); n++;
@@ -649,7 +652,7 @@ function populate(seg) {
   for (const o of seg.obs) if (o.mv) { if (seg.obs.some(p => p !== o && p.lane === o.lane && p.s0 < o.s0 && p.s0 > o.s0 - 40)) o.mv = 0; }
   // hay lines that weave through the rows
   const rowAt = q => rows.find(rw => Math.abs(rw.s - q) < 1.6);
-  let lane = 1, q = seg.first ? 22 : HW + 8, on = true, runLeft = rand(14, 30);
+  let lane = 1, q = seg.first ? 22 : HW + 8, on = true, runLeft = rand(14, 30), lineN = ++LINE_ID;
   const span = spd * (2 * JUMPV / GRAV);
   while (q < L - 18) {
     const rw = rows.find(rw => rw.s > q - 1.4 && rw.s < q + 4);
@@ -663,11 +666,11 @@ function populate(seg) {
       if (!(isRow && isRow.lanes[lane] === 'block')) {
         let type = 'hay'; const rr = Math.random();
         if (rr < .006) type = 'goldhay'; else if (rr < .07) type = pick(VEG); else if (rr < .11) type = 'pellet';
-        addItem(seg, type, q, lane, y);
+        addItem(seg, type, q, lane, y); seg.items[seg.items.length - 1].line = lineN;
       }
     }
     q += 1.7; runLeft -= 1.7;
-    if (runLeft <= 0) { on = !on; runLeft = on ? rand(14, 34) : rand(4, 12); if (Math.random() < .5) lane = clamp(lane + (Math.random() < .5 ? -1 : 1), 0, 2); }
+    if (runLeft <= 0) { on = !on; if (on) lineN = ++LINE_ID; runLeft = on ? rand(14, 34) : rand(4, 12); if (Math.random() < .5) lane = clamp(lane + (Math.random() < .5 ? -1 : 1), 0, 2); }
   }
   // specials between rows
   for (let i = 0; i < rows.length - 1; i++) {
@@ -687,5 +690,23 @@ function populate(seg) {
     if (free.length && at < L - 20) { seg.items = seg.items.filter(it => !(Math.abs(it.s - at) < 2.5)); addItem(seg, 'pomseed', at, pick(free), .6); G.pomSeedAt = G.dist; G.pomSeedN = (G.pomSeedN || 0) + 1; } }
   // one sightseeing stamp per Tokyo spot, in the middle of the stretch
   if (th.stamp && rows.length > 2 && !(seg.step && seg.step.cont)) { const i = (rows.length / 2) | 0; const at = (rows[i].s + rows[i + 1 < rows.length ? i + 1 : i].s) / 2 + 1; const free = [0, 1, 2].filter(l => !rows[i].lanes[l]); addItem(seg, 'stamp', at, free.length ? pick(free) : 1, .6); }
+  // last pass: no item may sit inside an obstacle (cars are long, so a hay line or a treat could land in a car's back half — 2026-11-08)
+  //  inside a wall → move it to a free lane (or drop it); inside something you jump over → lift it above the top
+  for (const it of seg.items) {
+    const hit = seg.obs.find(o => !(o.k === 'gates' && !o.closed) && it.lat > o.l0 - .25 && it.lat < o.l1 + .25 && it.s > o.s0 - .2 && it.s < o.s1 + .2);
+    if (!hit) continue;
+    if (hit.k === 'low') { if (it.y < (hit.top || 0) + .3) it.y = (hit.top || 0) + .35; continue; }
+    if (hit.k !== 'block') continue;
+    const free = [0, 1, 2].filter(l => !seg.obs.some(o => o.k === 'block' && LANES[l] > o.l0 - .25 && LANES[l] < o.l1 + .25 && it.s > o.s0 - .2 && it.s < o.s1 + .2));
+    if (free.length) { it.lane = free.sort((a, b) => Math.abs(a - it.lane) - Math.abs(b - it.lane))[0]; it.lat = LANES[it.lane]; } else it.dead = 1;
+  }
+  seg.items = seg.items.filter(it => !it.dead);
+  // now and then, a short road of golden hay (a happy surprise; once the run is under way, never in the lesson) — 2026-11-08
+  if (!seg.first && G.mode === 'play' && G.t > 40 && SV.tutDone && Math.random() < .045) {
+    const byLine = {}; for (const it of seg.items) if (it.line && it.type === 'hay') (byLine[it.line] = byLine[it.line] || []).push(it);
+    const best = Object.values(byLine).sort((a, b) => b.length - a.length)[0];
+    if (best && best.length >= 8) { const a = ((best.length - 6) / 2) | 0; for (const it of best.slice(a, a + 6)) it.type = 'goldhay'; seg.goldRoad = best[a].s; }
+  }
 }
+let LINE_ID = 0; // every line of hay gets a number: take every piece of one line for a PERFECT LINE bonus (2026-11-08)
 function addItem(seg, type, s, lane, y) { seg.items.push({ type, s, lane, lat: LANES[lane], y, got: 0, ph: Math.random() * 6 }); }

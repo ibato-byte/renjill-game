@@ -108,7 +108,7 @@ function startRun() {
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
     fork: null, forkRest: null, rush: 0, chimed: 0, soonTold: 0, gaugeTold: 0, gainT: 0, feverMax: 6, hitStop: 0, jumpBuf: 0, tut: null, tutDid: '', fovK: 0, look: 0, lookCD: 4, photoT: 0, capture: null, rumbleT: 8, shake: 0, announce: [] });
-  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.chalWon = 0;
+  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.chalWon = 0; G.spTier = 0; G.slowT = 0;
   G.legend = !!(SV.lgMode && legendOn('mode') && SV.tutDone); G.aura = !!(SV.lgAura !== 0 && legendOn('aura')); // the Legendary bunny's own run: faster, x1.5 score / a golden sparkle trail
   if (G.legend) banner('LEGEND MODE', tr('伝説モード：速さ＋15%・スコア×1.5', 'Legend mode: 15% faster, score x1.5'), 'good');
   G.stats = { hay: 0, dist: 0, jumps: 0, slides: 0, treats: 0, veg: 0, powers: 0, turns: 0, score: 0, fevers: 0, clean: 0, cleanCur: 0, office: 0, chime: 0, looks: 0, flights: 0, bads: [], foods: {}, spots: [], stampsNew: [] };
@@ -151,8 +151,9 @@ function nice(kind) {
   const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1), pts = (40 + 30 * Math.min(G.niceN - 1, 4)) * mult; G.score += pts; G.stats.nice = (G.stats.nice || 0) + 1;
   const lbl = lab(kind === 'jump' ? 'NICE JUMP!' : kind === 'slide' ? 'NICE SLIDE!' : 'CLOSE!');
   floatText(W / 2, H * .5, G.niceN > 1 ? `${lbl} ×${G.niceN}` : lbl, G.niceN > 2 ? '#FF8A5C' : '#F2C230');
-  tone(880 + G.niceN * 110, .08, 'triangle', .07); G.hitStop = Math.max(G.hitStop, .03);
+  tone(523 * Math.pow(1.0595, Math.min(G.niceN, 5) * 2), .12, 'bell', .05); G.hitStop = Math.max(G.hitStop, .03);
   if (G.niceN >= 3 && Math.random() < .6) react(pick(['wink', 'happy']), 0);
+  if (G.niceN === 3) G.slowT = .45;
 }
 function smash(o) { if (o.dead) return; o.dead = .001; o.vx = Math.random() < .5 ? -1 : 1; G.score += 30 * SV.mlevel; SFX.bump(); G.hitStop = .05; G.shake = Math.max(G.shake, .35); }
 function die(cause) {
@@ -189,7 +190,7 @@ function act(a) {
     G.lastSwipe = d;
     if (G.s > turnWindow(seg) && (seg.fork || d === seg.turn) && (!G.turnQueued || G.turnAuto || (seg.fork && G.turnQueued !== d))) {
       G.turnQueued = d; G.turnAuto = 0; G.turnQT = seg.len - G.s; SFX.turn(); flashChoice(seg, d); return; }
-    const nl = clamp(G.lane + d, 0, 2); if (nl !== G.lane) { G.prevLane = G.lane; G.lane = nl; G.laneT = .35; G.tutDid = 'side'; tone(520 + d * 40, .04, 'triangle', .06); }
+    const nl = clamp(G.lane + d, 0, 2); if (nl !== G.lane) { G.prevLane = G.lane; G.lane = nl; G.laneT = .35; G.tutDid = 'side'; tone(392 + d * 30, .05, 'pluck', .045); }
   } else if (a === 'up') {
     if (G.pow.fly > 0) return;
     if (!G.air || G.coyote > 0) { G.coyote = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up'; } // one plain jump for everything (low things are cleared by its normal height)
@@ -314,7 +315,7 @@ function feelSick() {
     F.say = P.who === 'jill' ? t('worryRen') : P.who === 'pom' ? t('worryPom') : t('worryJill'); }
   if (pomOn() && G.pom.show) pomSay(t('pomWorry'), 'worry', 1.7);
   if (G.char === 'pom' && G.pom.on && G.pom.show && !pomOn()) { const M = G.pom; M.look = 1.6; M.mood = 'worry'; M.say = t('worryPom'); }
-  tone(392, .16, 'triangle', .08); tone(330, .2, 'triangle', .07, AU.ctx && AU.ctx.currentTime + .14);
+  tone(392, .16, 'pluck', .07); tone(330, .2, 'pluck', .06, AU.ctx && AU.ctx.currentTime + .14);
 }
 // the bunny turns around with a cute face
 function react(mood, both) {
@@ -323,7 +324,7 @@ function react(mood, both) {
   { const seg = curSeg(), ahead = G.speed * 1.3; if (!both && seg.obs.some(o => !o.dead && o.k !== 'deco' && o.s0 + (o.ds || 0) > G.s - 1 && o.s0 + (o.ds || 0) < G.s + ahead)) return; }
   G.lookCD = both ? 2.5 : 10; G.player.look = 1.05; G.player.mood = mood; G.player.say = ''; G.stats.looks++;
   if (both) { G.follow.look = 1.05; G.follow.mood = pick(['happy', 'sparkle', 'open']); }
-  tone(1175, .08, 'sine', .08); tone(1568, .12, 'sine', .06, AU.ctx && AU.ctx.currentTime + .08);
+  tone(784, .12, 'bell', .05); tone(1047, .16, 'bell', .04, AU.ctx && AU.ctx.currentTime + .08);
 }
 
 /* ---------- first-run tutorial ----------
@@ -349,7 +350,7 @@ function tutorialScale(seg, dt) {
   if (seg !== G.tutSeg) { cue.className = ''; return 1; }
   const d = cur.s - G.s;
   if (cur.need === 'turn') {
-    if (G.turnQueued === seg.turn) { cur.done = 1; cue.className = ''; tone(988, .08, 'sine', .08); tutFinish(cue); return 1; }
+    if (G.turnQueued === seg.turn) { cur.done = 1; cue.className = ''; tone(659, .12, 'bell', .05); tutFinish(cue); return 1; }
     const inWin = G.s > turnWindow(seg);
     if (inWin) { cue.innerHTML = `<b>${lab(cur.en)}</b><span>${esc(L(cur.ja))}</span>`; cue.className = 'show turn'; return clamp(.35 + (d - 4) * .05, .35, .65); }
     if (d < 34) { cue.innerHTML = `<b>${seg.turn > 0 ? '↱' : '↰'}</b><span>${esc(L(cur.pre))}</span>`; cue.className = 'show'; }
@@ -358,7 +359,7 @@ function tutorialScale(seg, dt) {
   if (d < 0) { cur.done = 1; return 1; }
   if (d < 11) {
     const okWin = true;
-    if ((G.tutDid === cur.need && okWin) || (cur.need === 'side' && G.lane !== 1)) { cur.done = 1; G.tutDid = ''; cue.className = ''; tone(988, .08, 'sine', .08); return 1; }
+    if ((G.tutDid === cur.need && okWin) || (cur.need === 'side' && G.lane !== 1)) { cur.done = 1; G.tutDid = ''; cue.className = ''; tone(659, .12, 'bell', .05); return 1; }
     if (G.tutDid === cur.need && !okWin) G.tutDid = ''; // too early: keep waiting
     cue.innerHTML = `<b>${lab(cur.en)}</b><span>${esc(L(cur.ja))}</span>`; cue.className = 'show';
     if (G.air || G.slideT > 0) return 1;
@@ -387,9 +388,11 @@ function update(dt) {
   if (G.hitStop > 0) { G.hitStop -= dt; G.shake = Math.max(0, G.shake - dt); placeCamera(0); return; }
   const seg = curSeg(), P = G.player;
   dt *= tutorialScale(seg, dt);
+  if (G.slowT > 0) { G.slowT -= dt; if (!OPT().calm) dt *= .6; } // a beat of slow motion after three close calls in a row (2026-11-08)
 
   // speed rises gently and levels off (it used to reach 24 m/s mid-run, which got too hard)
   const base = Math.min(MAXSPD, (SV.tutDone ? 12.4 : 11) + G.dist * .0024 + (G.day - 1) * .7);
+  { const tier = Math.floor((base - 12.4) / 1.8); if (tier > (G.spTier || 0) && SV.tutDone) { G.spTier = tier; banner('SPEED UP!', tr('少し速くなった！', 'A little faster now!'), 'good'); tone(523, .1, 'bell', .04); tone(784, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .09); } } // so it never just 'gets hard' without a word (2026-11-08)
   const target = base * (G.legend ? 1.15 : 1) * (G.pow.dash > 0 ? 1.4 : 1) * (G.fever > 0 ? 1.18 : 1) * (G.pow.fly > 0 ? 1.1 : 1);
   G.speed = lerp(G.speed, target, 1 - Math.exp(-dt * 2.5));
   const step = G.speed * dt, prevS = G.s, prevY = G.y;
@@ -467,7 +470,8 @@ function update(dt) {
   else if (G.s > win && G.s < seg.len && !G.turnQueued) { cue.textContent = seg.fork ? '←  →' : seg.turn > 0 ? '→' : '←'; cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + (Math.floor(G.t * 8) % 2 ? ' show' : ''); }
   else cue.className = '';
   // events inside a stretch
-  for (const a of G.announce) if (!a.done && G.s > a.s) { a.done = 1; const st = LANG === 'ja' || LANG === 'zh' ? a.st : stEn(a.st); banner('NEXT: ' + stEn(a.st).toUpperCase(), LANG === 'en' ? '' : t('nextStation', st), 'room'); tone(880, .12, 'sine', .08); tone(660, .18, 'sine', .08, AU.ctx && AU.ctx.currentTime + .14); }
+  if (seg.goldRoad && !seg.goldTold && G.s > seg.goldRoad - 34) { seg.goldTold = 1; banner('GOLDEN ROAD!', tr('金のチモシーの道！', 'A road of golden hay!'), 'good'); }
+  for (const a of G.announce) if (!a.done && G.s > a.s) { a.done = 1; const st = LANG === 'ja' || LANG === 'zh' ? a.st : stEn(a.st); banner('NEXT: ' + stEn(a.st).toUpperCase(), LANG === 'en' ? '' : t('nextStation', st), 'room'); tone(659, .14, 'bell', .06); tone(523, .2, 'bell', .06, AU.ctx && AU.ctx.currentTime + .14); }
   if (seg.movers) for (const m of seg.movers) { if (m.cross) { m.dl = (m.dl == null ? -20 : m.dl) - m.v * dt * .6; if (m.dl > 90) m.dl = -40; continue; } m.ds += m.v * dt; if (m.ds < -60) m.ds = seg.len + 30; }
   if (seg.th.rumble) { G.rumbleT -= dt; if (G.rumbleT <= 0) { G.rumbleT = rand(5, 8); G.shake = 1; SFX.rumble(); } }
   if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 1.6);
@@ -528,7 +532,7 @@ function placeCamera(dt) {
   if (F.tuck) F.depth = P.depth + .3;
   if (G.pomPeek && G.pomPeek.seg === seg) { // the teaser: a hamster trots into the road, runs alongside staring at you for a moment, then dashes off
     const k = G.pomPeek, B = k.b; G.peekSlow = 0;
-    if (!k.ph && G.s > k.s - 32) { k.ph = 'in'; k.stop = LANES[G.lane === 1 ? (G.follow.side > 0 ? 0 : 2) : G.lane === 0 ? 2 : 0]; bannerNow(SV.pomMet ? (tr('あっ、ポム！', 'POM!')) : (tr('！？', '!?')), t(SV.pomMet ? 'pomPeek2' : 'pomPeek'), 'room'); tone(1320, .07, 'square', .05); tone(1760, .09, 'square', .05, AU.ctx && AU.ctx.currentTime + .09); }
+    if (!k.ph && G.s > k.s - 32) { k.ph = 'in'; k.stop = LANES[G.lane === 1 ? (G.follow.side > 0 ? 0 : 2) : G.lane === 0 ? 2 : 0]; bannerNow(SV.pomMet ? (tr('あっ、ポム！', 'POM!')) : (tr('！？', '!?')), t(SV.pomMet ? 'pomPeek2' : 'pomPeek'), 'room'); tone(784, .08, 'pluck', .045); tone(1047, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .09); }
     let ps = k.s, lat = 0, look = 0; const side = -k.dir * (HW + .4);
     if (k.ph === 'in') { const q = clamp((G.s - (k.s - 32)) / 20, 0, 1); lat = lerp(side, k.stop, Math.min(1, q * 1.4)); if (G.s > k.s - 1.8) { k.ph = 'look'; k.t = 1.7; } }
     if (k.ph === 'look') { ps = G.s + 1.8; lat = k.stop; look = 1; G.peekSlow = 1; k.t -= dt; if (k.t <= 0) { k.ph = 'out'; k.t = .45; } }
@@ -609,7 +613,7 @@ function finishRun(why) {
 function buddy(dt, seg) {
   const F = G.follow;
   if (G.lane === 0) F.side = 1; else if (G.lane === 2) F.side = -1;
-  buddyMove(F, dt, seg, clamp(G.lat + F.side * 1.25, -ROAD + .45, ROAD - .45), G.char === 'pom' ? -.35 : .9); // with Pom running, the senpai leads half a step ahead (and stays out of the way of the camera)
+  buddyMove(F, dt, seg, clamp(G.lat + F.side * (W / H < .62 ? 1.02 : 1.25), -ROAD + .45, ROAD - .45), G.char === 'pom' ? -.35 : .9); // with Pom running, the senpai leads half a step ahead (and stays out of the way of the camera)
   const M = G.pom; if (M.on) { buddyMove(M, dt, seg, clamp(G.lat - F.side * 1.2, -ROAD + .35, ROAD - .35), M.who === 'pom' ? .25 : -.15); if (M.look > 0) M.look = Math.max(0, M.look - dt); if (M.look <= 0) M.say = ''; }
 }
 function buddyMove(F, dt, seg, tlat0, back0) {
@@ -643,7 +647,7 @@ function collect(it, seg) {
   }
   if (def.kind === 'pom') { pomJoin(); return; }
   // golden hay is a hay, but it has its own page in the food book (it used to never be recorded, so the book could never be completed)
-  if ((def.kind !== 'hay' || it.type === 'goldhay') && !SV.zukan[it.type]) { SV.zukan[it.type] = 1; save(); if (def.kind !== 'bad') floatText(W / 2, H * .24, t('newBook', L(def)), '#F2C230'); }
+  if ((def.kind !== 'hay' || it.type === 'goldhay') && !SV.zukan[it.type]) { SV.zukan[it.type] = 1; save(); if (def.kind !== 'bad') floatText(W / 2, Math.max(H * .3, 214), t('newBook', L(def)), '#F2C230'); }
   if (it.type === 'hay' && !SV.zukan.hay) { SV.zukan.hay = 1; save(); }
   if (def.kind === 'bad') {
     SFX.bad(); G.stats.bads.push(it.type); G.feverG = Math.max(0, G.feverG - 25);
@@ -653,6 +657,8 @@ function collect(it, seg) {
     return;
   }
   G.combo++; G.comboT = 1.3; comboPop(); G.stats.maxCombo = Math.max(G.stats.maxCombo || 0, G.combo);
+  if ([25, 50, 100, 200, 300, 500].includes(G.combo)) { banner(G.combo + ' COMBO!', tr(pick(['その調子！', 'すごい、止まらない！', 'いい流れです！']), pick(['Keep it going!', 'Unstoppable!', 'What a streak!'])), 'good'); burst(W / 2, H * .35, '#F2C230', 26); burst(W / 2, H * .35, '#E86A75', 12); react('sparkle', 1); tone(659, .12, 'bell', .05); tone(988, .18, 'bell', .04, AU.ctx && AU.ctx.currentTime + .1); }
+  if (it.line && (def.kind === 'hay' || def.kind === 'veg' || def.kind === 'food')) { const ln = seg.items.filter(x => x.line === it.line); if (ln.length >= 8 && ln.every(x => x.got === 1)) { const pts = 15 * ln.length * SV.mlevel; G.score += pts; G.stats.perfect = (G.stats.perfect || 0) + 1; floatText(W / 2, H * .42, lab('PERFECT LINE!') + ' +' + fmt(pts), '#F2C230'); tone(523, .1, 'bell', .05); tone(659, .1, 'bell', .05, AU.ctx && AU.ctx.currentTime + .07); tone(784, .16, 'bell', .05, AU.ctx && AU.ctx.currentTime + .14); } }
   if (G.combo > 0 && G.combo % 30 === 0) react(pick(['happy', 'sparkle', 'wink']), 0);
   if (pomOn() && G.combo > 0 && G.combo % 50 === 0) pomSay(pick([t('pomNice'), t('pomNice2')]), 'happy', 1.2);
   G.stats.foods[it.type] = (G.stats.foods[it.type] || 0) + 1;
@@ -726,7 +732,7 @@ function banner(en, ja, cls) {
 let bTimer = 0;
 function nextBanner() {
   const m = BQ.shift(); const el = $('#banner'); if (!m) { bOn = null; el.classList.remove('show'); return; }
-  bOn = m; el.className = 'show ' + (m.cls || '');
+  bOn = m; el.className = 'show ' + (m.cls || '') + (((m.ja || '').length > (LANG === 'ja' ? 20 : 34)) ? ' long' : '');
   el.querySelector('.en').textContent = lab(m.en); el.querySelector('.ja').textContent = m.ja;
   clearTimeout(bTimer); bTimer = setTimeout(() => { el.classList.remove('show'); bTimer = setTimeout(nextBanner, 220); }, BQ.length ? 1300 : 2000);
 }
@@ -795,12 +801,14 @@ const CAPS = {
   wall: { ren: ['THAT’S A WALL.', 'そっちは壁です'], jill: ['THAT’S A WALL.', 'そっちは壁です'], pom: ['THAT’S A WALL.', 'そっちは壁です'] },
   quit: { ren: ['LEFT EARLY.', '早退しました'], jill: ['LEFT EARLY.', '早退しました'], pom: ['LEFT EARLY.', '早退しました'] },
 };
+const DAY_GOAL = 300;
 function endRun() {
   chalSave();
   if (!SV.tutDone && (!G.tut || G.tut.every(x => x.done) || G.dist > 150)) { SV.tutDone = 1; } // the lesson is done once it was played through
   G.mode = 'result'; musicStop();
   const bonus = hasPerk('ren') ? Math.floor(G.hay * .2) : 0, gained = Math.floor(G.hay) + bonus;
   SV.bank += gained;
+  let dayGoalMsg = ''; { const td = todayStr(); if (!SV.dayHay || SV.dayHay.d !== td) SV.dayHay = { d: td, n: 0 }; const b4 = SV.dayHay.n; SV.dayHay.n += gained; if (b4 < DAY_GOAL && SV.dayHay.n >= DAY_GOAL) { SV.bank += 100; dayGoalMsg = tr('今日の目標達成！ +100', 'Daily goal done! +100'); } } // today's hay goal (2026-11-08)
   const st = G.stats; st.score = G.score; st.dist = G.dist;
   checkMissions(true);
   for (const k of ['jumps', 'slides', 'treats', 'powers', 'fevers', 'hay', 'veg', 'turns', 'looks', 'flights']) SV.totals[k] = (SV.totals[k] || 0) + (st[k] || 0);
@@ -816,13 +824,13 @@ function endRun() {
   $('#resEn').textContent = tr(cap[1], cap[0]); $('#resJa').textContent = '';
   $('#resBest').hidden = !newBest;
   { const el = $('#resScore'), total = Math.floor(G.score), t0 = performance.now(), dur = Math.min(1400, 500 + total / 60); el.textContent = '0';
-    const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); if (k < 1) { if (Math.random() < .5) tone(600 + 600 * e, .03, 'square', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); SFX.mission(); } }; requestAnimationFrame(tick); }
+    const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); if (k < 1) { if (Math.random() < .5) tone(440 + 220 * e, .04, 'pluck', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); SFX.mission(); } }; requestAnimationFrame(tick); }
   { const hi = []; if ((st.maxCombo || 0) >= 20) hi.push(t('hiCombo', st.maxCombo)); if ((st.nice || 0) >= 3) hi.push(t('hiNice', st.nice)); if ((st.fevers || 0) >= 2) hi.push(t('hiFever', st.fevers)); if ((st.looks || 0) >= 3) hi.push(t('hiLook', st.looks));
     $('#resHi').innerHTML = st.stampsNew.map(tid => `<span class="new">${esc(t('hiNew', L(THEMES[tid].stamp)))}</span>`).join('') + hi.map(x => `<span>${esc(x)}</span>`).join(''); }
   SV.last = { score: Math.floor(G.score), place: { ja: curSeg().th.ja, en: curSeg().th.en } }; // the place in every language (shown in whatever language the title is in later)
   save(); $('#resClock').textContent = (G.day > 1 ? t('dayN', G.day) + ' ' : '') + clockStr(G.clock); $('#resHay').textContent = fmt(gained);
   const vsBest = prevBest > 0 ? (newBest ? t('bestUp', fmt(Math.floor(G.score) - prevBest)) : t('bestShort', fmt(prevBest - Math.floor(G.score)))) : '';
-  $('#resNote').textContent = (CHAL ? (G.chalWon ? t('chalDone', fmt(CHAL.s)) : t('chalLeft', fmt(Math.ceil(CHAL.s - G.score) + 1))) : '') + (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '');
+  $('#resNote').textContent = (CHAL ? (G.chalWon ? t('chalDone', fmt(CHAL.s)) : t('chalLeft', fmt(Math.ceil(CHAL.s - G.score) + 1))) : '') + (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '') + (dayGoalMsg ? '　' + dayGoalMsg : '');
   $('#resSpots').innerHTML = st.spots.length ? st.spots.map(tid => `<span class="spot${st.stampsNew.includes(tid) ? ' new' : ''}"><img src="${stampURL(tid)}" alt="">${esc(L(THEMES[tid].stamp))}</span>`).join('') : '';
   $('#resMissions').innerHTML = missionHTML();
   const seen = st.bads.length ? st.bads[st.bads.length - 1] : pick(Object.keys(st.foods).length ? Object.keys(st.foods) : ['hay']);

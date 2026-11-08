@@ -657,16 +657,20 @@ function paintKaminarimon(g, W, H, night) { // the thunder gate: two vermilion p
 }
 ART.kaminarimon = (o, night) => artCanvas('kmon' + (night ? 'N' : ''), 720, 380, (g, w, h) => paintKaminarimon(g, w, h, night));
 
-const AD_WORDS = ['夏のおでかけ', '新発売', '週末セール', '読書の秋', '東京さんぽ', '朝活', '春の旅', 'お弁当特集', '温泉へ', '映画公開'];
-function paintAdPoster(g, W, H, v) { // a hanging train advertisement: a bright block of colour, a bold headline, a line of small print
+// the hanging ads follow the season of the day you are on (a 'summer outing' ad in winter, or a 'morning' ad at night, looked wrong — 2026-11-08)
+const AD_SEASON = { spring: ['春の旅', 'お花見へ', '新生活'], summer: ['夏のおでかけ', '花火大会', '冷たい麦茶'], autumn: ['読書の秋', '紅葉狩り', '新米の季節'], winter: ['冬のあったか', '年末セール', '温泉へ'] };
+const AD_ANY = ['新発売', '週末セール', '東京さんぽ', 'お弁当特集', '映画公開', '美術館へ', '牧草フェア'];
+const adSeason = () => { try { return seasonOf(G.planDay || 1); } catch (e) { return 'spring'; } };
+const adWords = se => [...(AD_SEASON[se] || AD_SEASON.spring), ...AD_ANY];
+function paintAdPoster(g, W, H, v, se) { // a hanging train advertisement: a bright block of colour, a bold headline, a line of small print
   const r = rnd(v * 53 + 9), bg = ['#F7E7B8', '#CFE6F5', '#F4CFD8', '#D7EFD0', '#FBF6EE', '#2B2B2B'][v % 6], ink = v % 6 === 5 ? '#FBF6EE' : '#2B2B2B';
   g.fillStyle = bg; g.fillRect(0, 0, W, H); g.fillStyle = ['#C8463C', '#355F86', '#F2C230', '#5F9E5A', '#E86A75'][(r() * 5) | 0]; g.fillRect(W * .08, H * .12, W * .84, H * .42);
   g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.arc(W * .7, H * .33, H * .14, 0, Math.PI * 2); g.fill();
-  g.fillStyle = ink; g.font = `900 ${Math.round(H * .17)}px "Zen Maru Gothic","Hiragino Sans",sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(AD_WORDS[v % AD_WORDS.length], W / 2, H * .7);
+  g.fillStyle = ink; g.font = `900 ${Math.round(H * .17)}px "Zen Maru Gothic","Hiragino Sans",sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; { const ws = adWords(se); g.fillText(ws[v % ws.length], W / 2, H * .7); }
   g.fillStyle = v % 6 === 5 ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.35)'; for (let k = 0; k < 3; k++) g.fillRect(W * .15, H * (.84 + k * .05), W * (.7 - k * .15), H * .02);
   g.fillStyle = '#9AA0A6'; g.fillRect(W * .2, 0, 3, H * .1); g.fillRect(W * .8, 0, 3, H * .1);
 }
-PROP_ART.ad = (n, v) => artCanvas('pad' + v, 300, 200, (g, w, h) => paintAdPoster(g, w, h, +v || 0));
+PROP_ART.ad = (n, v) => { const se = adSeason(); return artCanvas('pad' + v + se, 300, 200, (g, w, h) => paintAdPoster(g, w, h, +v || 0, se)); };
 
 /* ---- the last box-built obstacles, painted ---- */
 function paintFuton(g, W, H) { // a futon laid out on the floor, seen from the side: the mattress, the rumpled quilt, the pillow
