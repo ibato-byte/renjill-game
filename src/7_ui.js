@@ -27,6 +27,7 @@ function refreshTitle() {
   $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
   { const dly = dailyToday(), done = SV.dailyDone === dly.key; $('#tDaily').textContent = (tr('今日のチャレンジ：', 'Today: ')) + L(dly.c.t(dly.n)) + (done ? ' ✓' : (tr('（チモシー300本＋お守り）', ' (300 hay + charm)'))); }
   { let q = $('#btnQuick'); if (!q) { q = document.createElement('button'); q.id = 'btnQuick'; q.className = 'sub small quick'; q.onclick = () => { SFX.ui(); G.quickNext = 1; hideAll(); startRun(); }; $('#tDaily').after(q); } q.textContent = t('quick') + (SV.bestT ? '　' + tr('ベスト ', 'best ') + fmt(SV.bestT) : ''); q.hidden = !SV.tutDone; } // a short game for a short break (2026-11-08)
+  { let q = $('#btnPractice'); if (!q) { q = document.createElement('button'); q.id = 'btnPractice'; q.className = 'sub small quick'; q.onclick = openPractice; $('#btnQuick').after(q); } q.textContent = t('practice'); q.hidden = !SV.tutDone; } // 練習・場所えらび（B-31・B-38）
   { let e = $('#tDayGoal'); if (!e) { e = document.createElement('div'); e.id = 'tDayGoal'; $('#tDaily').after(e); } const n = SV.dayHay && SV.dayHay.d === todayStr() ? SV.dayHay.n : 0, k = Math.min(1, n / DAY_GOAL);
     e.className = 'daygoal' + (n >= DAY_GOAL ? ' done' : ''); e.innerHTML = `<span>${esc(tr('今日の牧草', 'Hay today'))}</span><i><b style="width:${(k * 100).toFixed(0)}%"></b></i><em>${fmt(Math.min(n, DAY_GOAL))} / ${DAY_GOAL}${n >= DAY_GOAL ? ' ✓' : ''}</em>`; } // today's hay goal (2026-11-08)
   $('#pickRen').setAttribute('aria-pressed', G.char === 'ren'); $('#pickJill').setAttribute('aria-pressed', G.char === 'jill'); $('#pickPom').setAttribute('aria-pressed', G.char === 'pom');
@@ -99,14 +100,32 @@ function stampsHTML(sel) {
   if (sel && SV.stamps[sel]) { const st = THEMES[sel].stamp; det = `<div class="zdetail"><b>${esc(L(st))}</b>${esc(L(st.note))}</div>`; }
   const pics = STAMP_ORDER.filter(id => SV.album[id]).map(id => `<figure><img src="${SV.album[id]}" alt="${esc(L(THEMES[id].stamp))}"><figcaption>${esc(L(THEMES[id].stamp))}</figcaption></figure>`).join('');
   const bp = (SV.bestPics || []).filter(p => p && p.img).map(p => `<figure><img src="${p.img}" alt=""><figcaption>${esc(t('bestPicCap', fmt(p.s)))}<br><small>${esc(new Date(p.d).toLocaleDateString())}</small></figcaption></figure>`).join('');
-  return `<div class="bank"><span>${n} / ${STAMP_ORDER.length}</span></div>${det}${bp ? `<h3 class="ph" style="font-size:18px;margin-top:6px">${esc(t('bestPics'))}</h3><div class="album best">${bp}</div>` : ''}<div class="stamps">${tiles}</div><h3 class="ph" style="font-size:18px;margin-top:6px">${LANG === 'en' ? 'PHOTOS<small>' + t('photos') + '</small>' : t('photos')}</h3>${pics ? `<div class="album">${pics}</div>` : `<p class="note">${t('noPhoto')}</p>`}`;
+  return `<div class="bank"><span>${n} / ${STAMP_ORDER.length}</span></div>${det}${tokyoMapHTML()}${bp ? `<h3 class="ph" style="font-size:18px;margin-top:6px">${esc(t('bestPics'))}</h3><div class="album best">${bp}</div>` : ''}<div class="stamps">${tiles}</div><h3 class="ph" style="font-size:18px;margin-top:6px">${LANG === 'en' ? 'PHOTOS<small>' + t('photos') + '</small>' : t('photos')}</h3>${pics ? `<div class="album">${pics}</div>` : `<p class="note">${t('noPhoto')}</p>`}`;
+}
+// 走った場所の地図（B-20）：東京の略図（湾・隅田川・山手線の輪）に、行った名所は足あと、まだの所は灰色の点
+const MAP_PT = { yamanote: [139.747, 35.646], tokyoeki: [139.767, 35.681], ginza: [139.765, 35.671], yurakucho: [139.762, 35.675], kokyo: [139.756, 35.682], chidori: [139.745, 35.690], nakadori: [139.766, 35.678], omotesando: [139.711, 35.666], gaien: [139.719, 35.675], asakusa: [139.796, 35.711], river: [139.802, 35.704], skytree: [139.811, 35.710], tower: [139.745, 35.659], shibuya: [139.701, 35.659], akihabara: [139.773, 35.698], ameyoko: [139.774, 35.708], ueno: [139.771, 35.715], shinjuku: [139.692, 35.690], kabukicho: [139.703, 35.695], odaiba: [139.775, 35.630],
+  subway: [139.739, 35.672], toden: [139.728, 35.735], bayline: [139.781, 35.627], shokudo: [139.760, 35.684], rooftop: [139.764, 35.686], nihonbashi: [139.774, 35.684], tsukiji: [139.770, 35.665], hibiya: [139.756, 35.673], jimbocho: [139.758, 35.696], kagurazaka: [139.739, 35.702], shiodome: [139.760, 35.664], shinbashi: [139.758, 35.666], hamarikyu: [139.763, 35.660], yanaka: [139.766, 35.727], nezu: [139.767, 35.720], dougu: [139.789, 35.712], ryogoku: [139.793, 35.697], kiyosumi: [139.798, 35.681], sumidakoen: [139.804, 35.713], shinobazu: [139.770, 35.712], yakata: [139.798, 35.700],
+  sando: [139.699, 35.676], takeshita: [139.703, 35.671], ekimae: [139.699, 35.661], daikanyama: [139.703, 35.649], meguro: [139.698, 35.643], roppongi: [139.731, 35.663], gyoen: [139.710, 35.685], yokocho: [139.698, 35.693], ikebukuro: [139.713, 35.731], shinokubo: [139.700, 35.701], zojoji: [139.748, 35.657], toyosu: [139.793, 35.649], kaihin: [139.774, 35.629], hie: [139.741, 35.674], tsukishima: [139.783, 35.663], kanda: [139.768, 35.702], kuramae: [139.791, 35.704], terrace: [139.794, 35.688], shibamata: [139.877, 35.758], catst: [139.706, 35.666], shimokita: [139.668, 35.661], yoyogi: [139.695, 35.672],
+  kichijoji: [139.574, 35.700], takeshiba: [139.762, 35.654], chikagai: [139.768, 35.680], ochanomizu: [139.764, 35.699], koishikawa: [139.749, 35.707], akasaka: [139.737, 35.675], okachimachi: [139.775, 35.707], monzen: [139.796, 35.672], kiba: [139.809, 35.674], ebisu: [139.710, 35.646], nakano: [139.665, 35.707], koenji: [139.649, 35.705], jiyugaoka: [139.669, 35.607], sangenjaya: [139.670, 35.643], yotsuya: [139.729, 35.686], ichigaya: [139.736, 35.692], tennozu: [139.750, 35.622], harumi: [139.774, 35.649], kachidoki: [139.775, 35.663], monorail: [139.748, 35.600], kuko: [139.784, 35.549], kukodeck: [139.790, 35.553] };
+function tokyoMapHTML() {
+  const W = 320, H = 275, X = lo => (lo - 139.56) / (139.89 - 139.56) * W, Y = la => (35.77 - la) / (35.77 - 35.54) * H, P = ([lo, la]) => X(lo).toFixed(1) + ',' + Y(la).toFixed(1);
+  const loop = [[139.767, 35.681], [139.774, 35.698], [139.777, 35.714], [139.765, 35.728], [139.739, 35.733], [139.711, 35.729], [139.700, 35.713], [139.700, 35.690], [139.702, 35.659], [139.716, 35.646], [139.740, 35.628], [139.747, 35.645], [139.758, 35.666]].map(P).join(' ');
+  const river = [[139.800, 35.770], [139.805, 35.740], [139.800, 35.716], [139.797, 35.703], [139.793, 35.690], [139.785, 35.672], [139.777, 35.655]].map(P).join(' ');
+  const bay = 'M' + [[139.735, 35.54], [139.748, 35.60], [139.756, 35.625], [139.762, 35.645], [139.785, 35.643], [139.83, 35.648], [139.89, 35.64], [139.89, 35.54]].map(P).join(' L') + ' Z';
+  const got = STAMP_ORDER.filter(id => SV.stamps[id]), n = got.length;
+  const dots = STAMP_ORDER.map(id => { const [x, y] = P(MAP_PT[id] || [139.75, 35.68]).split(',').map(Number), on = !!SV.stamps[id];
+    return on ? `<g transform="translate(${x} ${y})" aria-label="${esc(L(THEMES[id].stamp))}"><ellipse cx="0" cy="1.5" rx="4.6" ry="3.8" fill="#C8463C"/><circle cx="-4" cy="-3.5" r="1.7" fill="#C8463C"/><circle cx="0" cy="-5" r="1.7" fill="#C8463C"/><circle cx="4" cy="-3.5" r="1.7" fill="#C8463C"/></g>`
+      : `<circle cx="${x}" cy="${y}" r="3.2" fill="#B9AE9E" opacity=".8"/>` /* SVG の title 要素は使わない（ページの title の数を数える SEO の点検に引っかかる） */; }).join('');
+  return `<div class="tmap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t('mapH'))}"><rect width="${W}" height="${H}" rx="12" fill="#F3EBDD"/><path d="${bay}" fill="#BFD6EA"/><polyline points="${river}" fill="none" stroke="#9CC3E2" stroke-width="5" stroke-linecap="round"/><polygon points="${loop}" fill="none" stroke="#80C241" stroke-width="3" stroke-dasharray="6 4" opacity=".9"/>${dots}</svg><p class="note">${esc(t('mapNote', n, STAMP_ORDER.length))}</p></div>`;
 }
 const STAMP_URL = {}; function stampURL(id) { const k = id + LANG; if (!STAMP_URL[k]) { try { STAMP_URL[k] = stampSprite(id).toDataURL(); } catch (e) { return ''; } } return STAMP_URL[k]; }
 function openStamps() { SFX.ui(); SV.seenStamps = Object.keys(SV.stamps).length + Object.keys(SV.album).length; save(); openPanel('TOKYO', t('stamps'), stampsHTML()); }
 function openHow() {
   SFX.ui();
   const ic = k => `<kbd><img src="${SPR_URL[k]}" width="28" alt=""></kbd>`;
-  openPanel('HOW TO PLAY', t('how'), `<div class="how">
+  // 動く絵（C-74）：指が左右・上・下にスワイプして、うさぎがよける・跳ぶ・すべる。「動きを減らす」設定・OS の設定では止まる
+  const demo = `<div class="howanim${OPT().calm ? ' still' : ''}" aria-hidden="true"><div class="ha-road"><i class="ha-l"></i><i class="ha-l r"></i></div><img class="ha-bun" src="${(() => { try { return bunFrame(SV.char === 'jill' ? 'jill' : 'ren', 'run0', false).toDataURL(); } catch (e) { return SPR_URL.hay; } })()}" alt=""><b class="ha-box"></b><span class="ha-finger"></span><em class="ha-cap"><span>${esc(t('howA1'))}</span><span>${esc(t('howA2'))}</span><span>${esc(t('howA3'))}</span></em></div>`;
+  openPanel('HOW TO PLAY', t('how'), demo + `<div class="how">
     <kbd>← →</kbd><span>${t('howSwipeLR')}</span><kbd>↑</kbd><span>${t('howUp')}</span><kbd>↓</kbd><span>${t('howDown')}</span><kbd>ESC</kbd><span>${t('howKeys')}</span></div>
     <div class="zdetail"><b>${lab('GOAL')}</b>${esc(t('howGoal'))}</div>
     <div class="zdetail"><b>${lab('♥ BUMPS')}</b>${esc(t('howBump'))}</div>
@@ -233,6 +252,9 @@ async function xferLoad(b) {
 // opened from a "connect" link (?link=CODE): open the settings with the code filled in
 const LINK_Q = (() => { try { const m = /[?&]link=([A-Za-z0-9-]{8,9})\b/.exec(location.search); if (m) { history.replaceState(null, '', location.pathname + location.hash); return linkClean(m[1]); } } catch (e) { } return ''; })();
 function linkFromUrl() { if (!LINK_Q) return; const go = (n) => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn()) { if (window.HAYDASH_APP) toastTitle(t('linkFail')); return; } openSettings(); const i = $('#linkIn'); if (i) { i.value = linkFmt(LINK_Q); i.scrollIntoView({ block: 'center' }); linkLook(LINK_Q); } }; go(0); }
+// 練習モード・場所えらび（B-31・B-38）：行ったことのある名所（とスタートの家）から選んで走る。ぶつかっても終わらない（一時停止 → やめる で終わり）。記録・ランキング・牧草の貯金には入らない
+function openPractice() { SFX.ui(); const ids = ['bedroom'].concat(STAMP_ORDER.filter(id => SV.stamps[id] && THEMES[id] && THEMES[id].kind !== 'train'));
+  openPanel('PRACTICE', t('practice'), `<p class="note">${esc(t('practiceNote'))}</p><div class="plist">${ids.map(id => `<button class="sub" data-prac="${id}">${esc(id === 'bedroom' ? t('practiceHome') : L(THEMES[id].stamp))}</button>`).join('')}</div>${ids.length < 2 ? `<p class="note">${esc(t('practiceMore'))}</p>` : ''}`); }
 function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); }
 let rvTimer = null;
 // ぶつかった物の絵を、続ける画面と結果画面に（C-69）。絵のある物だけ。書類に追いつかれた・壁・時間切れのときも、最後にぶつかった物
@@ -324,6 +346,7 @@ $('#sPanel').addEventListener('click', e => {
   if (z) { SFX.ui(); $('#pBody').innerHTML = zukanHTML(z.dataset.z); }
   if (sst) { SFX.ui(); $('#pBody').innerHTML = stampsHTML(sst.dataset.s); }
   { const lb = e.target.closest('[data-lang]'); if (lb && LANGS.includes(lb.dataset.lang)) { LANG = lb.dataset.lang; SV.lang = LANG; save(); refreshTitle(); SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); } }
+  { const pr = e.target.closest('[data-prac]'); if (pr) { SFX.ui(); G.practiceNext = pr.dataset.prac; closePanel(); hideAll(); startRun(); return; } }
   const op = e.target.closest('[data-opt]');
   if (op) { const k = op.dataset.opt; let v = op.dataset.v; if (v === 'true') v = true; else if (v === 'false') v = false; SV.opt[k] = v; save(); audioInit(); applyAudioOpt(); applyLook(); SFX.ui(); $('#pBody').innerHTML = settingsHTML(); }
   const rt = e.target.closest('[data-rt]'); if (rt) openRanking(rt.dataset.rt);

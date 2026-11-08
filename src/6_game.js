@@ -123,12 +123,14 @@ function startRun() {
   Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '', off: G.char === 'pom' });
   // playing as Pom: the rookie sets off first; the boss and Jill catch up one by one (in a random order), bringing their perks
   G.mates = { ren: 0, jill: 0 }; G.mateOrder = Math.random() < .5 ? ['ren', 'jill'] : ['jill', 'ren']; G.mateAt = [rand(20, 28), rand(52, 64)];
-  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.bumps = 0; G.lastHit = null; G.bestPic = 0; G.chalFlag = 0;
+  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.bumps = 0; G.lastHit = null; G.bestPic = 0; G.newTitles = []; G.chalFlag = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
   resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
   G.segDue = 0; const step = G.plan.shift(); const s0 = newSeg(null, step, { t0: 480, day: 1, len: SV.tutDone ? 0 : 140 }); G.planClock = s0.t1; G.segs = [s0]; G.ci = 0; G.tutEnd = 0;
   if (!SV.tutDone) setupTutorial(s0); else { G.tut = null; G.tutSeg = null; }
+  G.practice = SV.tutDone && G.practiceNext ? G.practiceNext : ''; G.practiceNext = '';
+  if (G.practice) { const tid = G.practice; G.plan = Array.from({ length: 8 }, () => ({ t: tid, d: 60 })); const p0 = newSeg(null, { t: tid, d: 60 }, { t0: 600, day: 1 }); G.segs = [p0]; G.ci = 0; G.planClock = p0.t1; G.clock = 600; G.chaseT = 0; G.chaseIntro = 0; G.chaseVis = 0; G.gigNext = 1e9; onEnterSeg(p0); banner('PRACTICE', t('practiceGo'), 'room'); } // 練習：選んだ場所から、同じ場所が続く
   ensureSegs();
   G.camYaw = 0; G.ey = G.camE = null; G.camSl = 0; const p = segPos(s0, 0, 0); G.rx = p[0]; G.rz = p[1];
   SV.runs++; save();
@@ -172,10 +174,17 @@ function smash(o) { if (o.dead) return; o.dead = .001; o.vx = Math.random() < .5
   const sp = spriteAt(G.player.wx, G.player.wy + .6, G.player.wz); if (sp && o.bx && o.bx.length) { const cs = o.bx.slice().sort((a, b) => (b.l1 - b.l0) * (b.y1 - b.y0) - (a.l1 - a.l0) * (a.y1 - a.y0)).map(b => b.c); burst(sp.sx, sp.sy - 40, cs[0], 10); if (cs[1]) burst(sp.sx, sp.sy - 40, cs[1], 6); G.debrisC = cs[0]; } }
 function die(cause) {
   if (G.mode !== 'play') return;
+  if (G.practice && cause !== 'quit' && cause !== 'time') { practiceGoOn(cause); return; } // 練習ではぶつかっても終わらない
   G.cause = cause; G.mode = 'dying'; G.dyingT = .95; SFX.crash(); buzz([60, 40, 120]); G.flashT = 1; G.shake = 1; musicStop();
   G.player.look = 0; G.follow.look = 0; G.pom.look = 0;
   if (cause === 'papers') G.chaseVis = 1;
 }
+function practiceEnd() { G.mode = 'result'; musicStop(); const sc = Math.floor(G.score), hay = Math.floor(G.hay), n = G.stats.pracBumps || 0; G.practice = '';
+  hideAll(); goTitle(); setTimeout(() => toastTitle(t('practiceDone', fmt(sc), fmt(hay), n)), 400); }
+function practiceGoOn(cause) { G.cause = cause; G.stats.pracBumps = (G.stats.pracBumps || 0) + 1; SFX.bump(); const seg = curSeg();
+  for (const o of seg.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 12) o.dead = .001;
+  if (cause === 'wall') { if (seg.fork) G.turnQueued = Math.random() < .5 ? -1 : 1; try { doTurn(); } catch (e) { reportErr(e); } }
+  G.invT = 1.5; G.chaseT = 0; G.chaseVis = 0; G.y = Math.max(G.y, 0); G.vy = 0; G.slideT = 0; G.combo = 0; banner('PRACTICE', t('practiceBump'), 'room'); }
 // retry as many times as your charms or hay allow (the price rises a little each time)
 function freeRevive() { return SV.runs <= 3 && G.reviveN === 0 && G.cause !== 'quit'; } // the first fail of your first three runs: one free retry
 function canRevive() { if (G.cause === 'time') return false; if (freeRevive()) return true; const c = reviveCost(); return SV.clovers >= c.clover || SV.bank + Math.floor(G.hay) >= c.hay || (typeof PORTAL !== 'undefined' && PORTAL.adOK()); } // (inside a game portal: or a rewarded ad)
@@ -461,7 +470,7 @@ function update(dt) {
   G.s += step; G.dist += step; G.stats.cleanCur += step; G.stats.clean = Math.max(G.stats.clean, G.stats.cleanCur);
   const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
   G.score += step * mult * (3 + G.speed * .12); // distance is the backbone: about 4-6 points per metre, more when fast
-  const tl = LANES[G.lane]; const dl = tl - G.lat; G.lat += Math.sign(dl) * Math.min(Math.abs(dl), dt * 17);
+  const tl = LANES[G.lane]; const dl = tl - G.lat; if (G.pushT > 0) G.pushT -= dt; G.lat += Math.sign(dl) * Math.min(Math.abs(dl), dt * (G.pushT > 0 ? 7 : 17));
   if (G.laneT > 0) G.laneT -= dt;
   // support + movers
   let ground = 0;
@@ -501,7 +510,7 @@ function update(dt) {
     if ((o.k !== 'high' || lowTop(o)) && prevY >= oTop - .22) continue;
     const frontal = prevS + .3 <= os0 + (o.mv ? o.mv * dt : 0) + .06 + step * .1;
     if (frontal || o.full) hit(o);
-    else { if (G.pow.dash > 0 || G.fever > 0) smash(o); else { let nl = G.prevLane; if (nl === G.lane) { const c = (o.l0 + o.l1) / 2; nl = clamp(G.lane + (G.lat >= c ? 1 : -1), 0, 2); if (nl === G.lane) nl = clamp(G.lane - (G.lat >= c ? 1 : -1), 0, 2); } G.lane = nl; G.prevLane = nl; G.lastHit = o; stumble(); } }
+    else { if (G.pow.dash > 0 || G.fever > 0) smash(o); else { let nl = G.prevLane; if (nl === G.lane) { const c = (o.l0 + o.l1) / 2; nl = clamp(G.lane + (G.lat >= c ? 1 : -1), 0, 2); if (nl === G.lane) nl = clamp(G.lane - (G.lat >= c ? 1 : -1), 0, 2); } G.lane = nl; G.prevLane = nl; G.lastHit = o; G.pushT = .3; stumble(); } } // 横からの押し戻しは 0.3 秒ゆっくり（C-9）
     if (G.mode !== 'play') return;
   }
   // a puddle on a rainy day: a splash when you run through it (2026-11-08)
@@ -533,7 +542,7 @@ function update(dt) {
     else if (!fc.hidden) fc.hidden = true;
   }
   if (G.turnQueued && !G.turnAuto && G.s < seg.len) { /* chosen: keep the locked arrow */ }
-  else if (G.s > win && G.s < seg.len && !G.turnQueued) { cue.textContent = seg.fork ? '←  →' : seg.turn > 0 ? '→' : '←'; cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + (Math.floor(G.t * 8) % 2 ? ' show' : ''); }
+  else if (G.s > win && G.s < seg.len && !G.turnQueued) { cue.textContent = seg.fork ? '←  →' : seg.turn > 0 ? '→' : '←'; cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + ' win' + (Math.floor(G.t * 8) % 2 ? ' show' : ''); cue.style.setProperty('--left', clamp((seg.len - G.s) / Math.max(1, seg.len - win), 0, 1).toFixed(3)); } // 曲がれる残り（C-6）：矢印の下の線が短くなっていく
   else cue.className = '';
   // events inside a stretch
   if (seg.goldRoad && !seg.goldTold && G.s > seg.goldRoad - 34) { seg.goldTold = 1; banner('GOLDEN ROAD!', tr('金のチモシーの道！', 'A road of golden hay!'), 'good'); }
@@ -889,6 +898,7 @@ const CAPS = {
 const DAY_GOAL = 300;
 const bondLv = () => 1 + Math.floor(Math.sqrt((SV.bond || 0) / 3));
 function endRun() {
+  if (G.practice) { practiceEnd(); return; }
   chalSave();
   if (!SV.tutDone && (!G.tut || G.tut.every(x => x.done) || G.dist > 150)) { SV.tutDone = 1; } // the lesson is done once it was played through
   G.mode = 'result'; musicStop();
@@ -910,7 +920,7 @@ function endRun() {
   { const pm = careerCheck(); if (pm) { lvlMsg = pm + (lvlMsg ? '　' + lvlMsg : ''); $('#resPromo').textContent = pm; $('#resPromo').hidden = false; } else $('#resPromo').hidden = true; }
   save();
   const cap = (CAPS[G.cause] || CAPS.obstacle)[G.char] || CAPS.obstacle.ren;
-  $('#resEn').textContent = tr(cap[1], cap[0]); $('#resJa').textContent = ''; showHit('res');
+  $('#resEn').textContent = tr(cap[1], cap[0]); $('#resJa').textContent = ''; showHit('res'); try { titleShareBtn(); } catch (e) { reportErr(e); }
   $('#resBest').hidden = !newBest;
   { const el = $('#resScore'), total = Math.floor(G.score), t0 = performance.now(), dur = Math.min(1400, 500 + total / 60); el.textContent = '0';
     const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); if (k < 1) { if (Math.random() < .5) tone(440 + 220 * e, .04, 'pluck', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); SFX.mission(); } }; requestAnimationFrame(tick); }
@@ -1004,6 +1014,21 @@ function prepShareFiles(sq, story) {
   Promise.all([mk(sq), mk(story)]).then(([a, b]) => { if (!a || !b) return; G.shareFiles = { square: new File([a], 'renjill-hay-dash.png', { type: 'image/png' }), story: new File([b], 'renjill-hay-dash-story.png', { type: 'image/png' }), storyBlob: b }; });
 }
 function fitFont(g, txt, maxW, size, tpl) { let s = size; g.font = tpl.replace('{}', s); while (s > 12 && g.measureText(txt).width > maxW) { s -= 2; g.font = tpl.replace('{}', s); } return s; } // the biggest size (up to `size`) that fits maxW
+// 新しい称号のシェア用カード（B-48）：結果画面に「称号カードをシェア」。スマホは共有シート、パソコンは画像を保存して文章をコピー
+function titleCard(a) { const c = document.createElement('canvas'); c.width = c.height = 1080; const g = c.getContext('2d') || noCtx();
+  g.fillStyle = '#FBF6EE'; g.fillRect(0, 0, 1080, 1080); g.fillStyle = '#F2C230'; g.beginPath(); g.arc(540, 470, 330, 0, Math.PI * 2); g.fill(); g.fillStyle = '#FBF6EE'; g.beginPath(); g.arc(540, 470, 290, 0, Math.PI * 2); g.fill();
+  try { const b = bunFrame(G.char || 'ren', 'front_cheer', SV.mugOn); const k = 520 / Math.max(b.width, b.height); g.drawImage(b, 540 - b.width * k / 2, 470 - b.height * k / 2 + 20, b.width * k, b.height * k); } catch (e) { }
+  g.textAlign = 'center'; g.fillStyle = '#A97A1E'; g.font = '900 46px "Zen Maru Gothic",sans-serif'; g.fillText(t('titleNew'), 540, 110);
+  g.fillStyle = '#3B2A20'; fitFont(g, L(a.n), 960, 110, '400 {}px "Dela Gothic One",sans-serif'); g.fillText(L(a.n), 540, 900);
+  g.fillStyle = '#6B5A50'; fitFont(g, L(a.d), 960, 40, '900 {}px "Zen Maru Gothic",sans-serif'); g.fillText(L(a.d), 540, 960);
+  g.fillStyle = '#A97A1E'; g.font = '900 34px "Zen Maru Gothic",sans-serif'; g.fillText(tr('チモシーダッシュ', 'HAY DASH!') + '  ' + (SHARE.url('title') || '').replace(/^https?:\/\//, '').replace(/\?.*$/, ''), 540, 1035); return c; }
+async function shareTitle(a) { const c = titleCard(a); const blob = await new Promise(r => { try { c.toBlob(r, 'image/png'); } catch (e) { r(null); } }); if (!blob) return; G.titleShared = (G.titleShared || 0) + 1;
+  const txt = t('titleShareText', L(a.n)), file = new File([blob], 'renjill-title.png', { type: 'image/png' });
+  const r = SHARE.phone() ? await sheet({ text: txt, url: SHARE.url('title'), files: [file] }) : 'none'; if (r === 'ok' || r === 'abort') return shareNote(r === 'ok' ? t('igShared') : '');
+  const saved = await sharePictureSave(blob); const ok = await copyText(txt + ' ' + SHARE.url('title')); shareNote(saved ? t('titleSaved') : ok ? t('copyNote') : t('copyFail')); }
+function titleShareBtn() { let box = document.getElementById('titleShare'); const list = (G.newTitles || []).slice(-2); if (!box) { box = document.createElement('div'); box.id = 'titleShare'; const bar = document.querySelector('#sResult .sharebar'); if (!bar) return; bar.before(box); }
+  box.innerHTML = list.map((a, i) => `<button class="sub small tshare" data-tshare="${i}">${esc(t('titleShareBtn', L(a.n)))}</button>`).join(''); box.hidden = !list.length;
+  box.onclick = e => { const b = e.target.closest('[data-tshare]'); if (b) shareTitle(list[+b.dataset.tshare]); }; }
 function buildShareCard(cap, place, gained) {
   const c = document.createElement('canvas'); c.width = 1080; c.height = 1080; const g = c.getContext('2d') || noCtx();
   g.fillStyle = '#F6EBDC'; g.fillRect(0, 0, 1080, 1080);

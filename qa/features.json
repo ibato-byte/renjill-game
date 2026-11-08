@@ -237,11 +237,6 @@
       "has": "G.wetN = (G.wetN || 0) + 1"
     },
     {
-      "name": "室内の窓の光",
-      "file": "src/4_render.js",
-      "has": "G.shaftN = (G.shaftN || 0) + 1"
-    },
-    {
       "name": "自己ベストの記念写真",
       "file": "src/6_game.js",
       "has": "function bestPhoto()"
@@ -250,6 +245,46 @@
       "name": "牧草で育つ観葉植物",
       "file": "src/6b_meta.js",
       "has": "function plantHTML()"
+    },
+    {
+      "name": "走った場所の地図",
+      "file": "src/7_ui.js",
+      "has": "function tokyoMapHTML()"
+    },
+    {
+      "name": "曲がれる残りの線",
+      "file": "src/6_game.js",
+      "has": "cue.style.setProperty('--left'"
+    },
+    {
+      "name": "横の押し戻しをゆっくり",
+      "file": "src/6_game.js",
+      "has": "G.pushT = .3"
+    },
+    {
+      "name": "季節の立て看板",
+      "file": "src/3_world.js",
+      "has": "const SIGN_SEASON"
+    },
+    {
+      "name": "あそびかたの動く絵",
+      "file": "src/7_ui.js",
+      "has": "class=\"howanim"
+    },
+    {
+      "name": "練習・場所えらび",
+      "file": "src/6_game.js",
+      "has": "function practiceGoOn(cause)"
+    },
+    {
+      "name": "称号カード",
+      "file": "src/6_game.js",
+      "has": "function titleCard(a)"
+    },
+    {
+      "name": "金のネクタイ",
+      "file": "src/6c_rank.js",
+      "has": "async function goldTieCheck()"
     },
     {
       "name": "この見張り自身",

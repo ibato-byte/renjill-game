@@ -13,7 +13,9 @@ const { chromium } = require('playwright'); const path = require('path');
   await p.evaluate(() => { const D = window.__hayDash; D.ev("(() => { try { endRun && 0; } catch (e) { } })()"); }); 
   r.fixed = await p.evaluate(() => (window.__hayDash.SV.bestPics || [])[0] && window.__hayDash.SV.bestPics[0].s);
   r.panel = await p.evaluate(() => { const D = window.__hayDash; D.ev('openStamps()'); return !!document.querySelector('.album.best figure img'); });
+  // 走った場所の地図（B-20）：名所が増えても、地図の位置がない名所がないこと
+  r.map = await p.evaluate(() => { const D = window.__hayDash; return { missing: D.ev('STAMP_ORDER.filter(id => !MAP_PT[id])'), svg: !!document.querySelector('.tmap svg') }; });
   console.log(JSON.stringify(r));
-  const ok = r.plant.lv === 2 && r.plant.saved === 2 && r.pic.n === 1 && r.pic.jpg && r.panel;
+  const ok = r.map.missing.length === 0 && r.map.svg && r.plant.lv === 2 && r.plant.saved === 2 && r.pic.n === 1 && r.pic.jpg && r.panel;
   console.log(ok && !errs.length ? 'ALBUM OK' : 'ALBUM NG ' + errs.join(' | ')); await b.close();
 })();

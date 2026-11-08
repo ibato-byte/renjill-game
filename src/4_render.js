@@ -235,8 +235,9 @@ function render() {
   groundDust(seg);
   drawFX();
   drawWeather(seg);
-  // 室内の昼：窓からの光がうっすら斜めに（C-35）。手前の下のほうは少しだけ暗く、奥行きを出す（C-32）
-  if (G.mode !== 'title') { if (LT.indoor && seg.th.kind === 'room' && LT.night < .5) { ctx.save(); ctx.globalAlpha = .07 * (1 - LT.night * 2); ctx.fillStyle = '#FFF4D6'; for (const [a, w] of [[.08, .1], [.3, .06], [.62, .09]]) { ctx.beginPath(); ctx.moveTo(W * a, H * .38); ctx.lineTo(W * (a + w), H * .38); ctx.lineTo(W * (a + w + .32), H); ctx.lineTo(W * (a + .32), H); ctx.closePath(); ctx.fill(); } ctx.restore(); G.shaftN = (G.shaftN || 0) + 1; }
+  // 手前の下のほうは少しだけ暗く、奥行きを出す（C-32）
+  //  室内の斜めの光（C-35）はやめた：画面に固定の帯なので、走っていると「薄い斜めの残像」に見える（遊んだ方の報告 2026-11-08）。qa/visfx で 0 本を確認
+  if (G.mode !== 'title') {
     const vg = ctx.createLinearGradient(0, H * .66, 0, H); vg.addColorStop(0, 'rgba(30,22,16,0)'); vg.addColorStop(1, 'rgba(30,22,16,.13)'); ctx.fillStyle = vg; ctx.fillRect(0, H * .66, W, H * .34); }
   if (LT.night > .5 && !LT.indoor) { const g = ctx.createRadialGradient(W / 2, H * .55, H * .2, W / 2, H * .55, H * .8); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(8,10,30,.35)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
   postFX();
@@ -282,7 +283,7 @@ function drawSegment(sg, isCur) {
   // walls, ceilings, decorations
   DRAW.length = 0;
   for (const w of sg.walls) { if (!faceVisible(w)) continue; const d = depthOf(w.v); if (!near(d)) continue; DRAW.push([d, 1, w]); }
-  for (const e of sg.decos) { if (!faceVisible(e)) continue; const d = depthOf(e.v); if (d < -5 || d > 90) continue; DRAW.push([d - 1.6, 2, e]); } // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
+  for (const e of sg.decos) { if (!faceVisible(e)) continue; const d = depthOf(e.v); if (d < -5 || d > (lowQ ? 70 : 90)) continue; DRAW.push([d - 1.6, 2, e]); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
   DRAW.sort((a, b) => b[0] - a[0]);
   for (const [d, t, w] of DRAW) {
     if (oc && occAt(d - 2) !== Infinity) { occDraw(d - 2, () => drawWallItem(d, t, w)); continue; }
@@ -316,7 +317,7 @@ function drawObjects(sg, isCur, oc) {
     DRAW.push([d, 3, o]);
   }
   if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) DRAW.push([d, 8, m]); }
-  for (const p of sg.props) { if (p.nodraw) continue; const mid = segPos(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d < -3 || d > (p.big ? FAR : 85)) continue; DRAW.push([d, 6, p]); }
+  for (const p of sg.props) { if (p.nodraw) continue; const mid = segPos(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d < -3 || d > (p.big ? FAR : lowQ ? 60 : 85)) continue; DRAW.push([d, 6, p]); }
   for (const s of sg.spr) { if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const p = segPos(sg, s.s, s.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > (s.far ? FAR : 80)) continue; DRAW.push([d, 7, s]); }
   // pigeons on the street: they peck about and fly off as you run up (2026-11-08)
   // rain: puddles on the street that splash when you run through (2026-11-08)
