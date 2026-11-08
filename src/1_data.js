@@ -32,7 +32,7 @@ const SNS = [{ id: 'ig', name: 'Instagram', url: 'https://www.instagram.com/renj
 const OFFICIAL_SITE = 'https://renjill.coana.co.jp/', SITE_REF = OFFICIAL_SITE + '?ref=haydash'; // the official site can count visits that came from the game
 /* ---- where a new player came from: ?ref=<channel> on a shared link (one short word from this list, nothing personal).
    Kept once (the first visit) and sent with the ranking row as "src", so qa/kpi.mjs can count players per channel. */
-const REF_OK = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr', 'itch', 'gamejolt', 'newgrounds', 'freem', 'plicy', 'portal', 'indiedb', 'crazygames'];
+const REF_OK = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr', 'itch', 'gamejolt', 'newgrounds', 'freem', 'plicy', 'portal', 'indiedb', 'crazygames', 'gamenora', 'addicting'];
 // played inside a game portal that has its own rules (CrazyGames: no links out to a playable web version, ads only through its SDK).
 // Decided once per tab: the address (?ref=crazygames) or the page that framed us; kept in sessionStorage because the address is cleaned right after
 const HOST_PORTAL = (() => { try { const r = (new URLSearchParams(location.search).get('ref') || '').toLowerCase(), anc = [...(location.ancestorOrigins || [])].join(' ') + ' ' + (document.referrer || '');
@@ -417,7 +417,8 @@ const JA_LBL = { 'LUNCH?': 'お昼休み', 'WHICH WAY?': '分かれ道', 'JUMP':
   'MISSION CLEAR': 'ミッション達成', 'PHOTO': '記念写真', 'SAVED!': 'セーフ！', 'STAMP!': 'スタンプ！', 'BUMP!': 'ぶつかった！', 'MUNCH MUNCH FEVER!': 'もぐもぐフィーバー！', "IT'S 6 PM! FEVER": '定時！ フィーバー',
   'NEW BEST!': '自己ベスト！', '8:00 AM': '朝 8:00', '9:00 ON TIME!': '9:00 出社！', '← LEFT': '← 左へ', 'RIGHT →': '右へ →', 'FEVER!': 'フィーバー！', 'NICE JUMP!': 'ナイスジャンプ！', 'NICE SLIDE!': 'ナイススライド！',
   'CLOSE!': 'ギリギリ！', '← SWIPE →': '← スワイプ →', '↑ JUMP': '↑ ジャンプ', '↓ SLIDE': '↓ スライディング', 'TURN →': '右へ曲がる →', '← TURN': '← 左へ曲がる', '450 m!': '地上450m！', '150 m DECK!': '地上150m！',
-  'GOAL': 'あそびかた', '♥ BUMPS': 'ぶつかったら', 'FEVER': 'もぐもぐフィーバー', 'TAP A FOOD': 'タップすると解説', 'BUNNY FOOD NOTE': 'うさぎごはんメモ', 'NG FOOD': 'あげちゃダメ', 'GO!': 'GO！', 'OOPS.': 'あっ。', 'PAUSE': 'ひと休み' };
+  'GOAL': 'あそびかた', '♥ BUMPS': 'ぶつかったら', 'FEVER': 'もぐもぐフィーバー', 'TAP A FOOD': 'タップすると解説', 'BUNNY FOOD NOTE': 'うさぎごはんメモ', 'NG FOOD': 'あげちゃダメ', 'GO!': 'GO！', 'OOPS.': 'あっ。', 'PAUSE': 'ひと休み',
+  'GOOD WORK!': 'おしごと完了！', 'SO CLOSE!': 'おしい！', 'THE PRESIDENT IS WATCHING!': '社長が見てる！', 'PHONE CALL: AN ERRAND!': 'おつかいの電話！', 'PAPERWORK RUSH!': '書類の山！', 'SNACK TIME!': '差し入れタイム！' };
 function lab(en) {
   if (LANG === 'en' || !en) return en;
   if (LANG !== 'ja') { // Chinese / Korean: the same patterns as Japanese, or the Japanese label's translation
