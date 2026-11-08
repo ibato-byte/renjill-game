@@ -38,7 +38,7 @@ function checkAch(live) {
   SV.ach = SV.ach || {};
   const st = Object.assign({}, G.stats, { day: G.day, maxCombo: G.stats.maxCombo || 0 });
   const got = [];
-  for (const a of ACH) if (!SV.ach[a.id] && a.ok(st, SV)) { SV.ach[a.id] = todayStr(); SV.bank += a.hay; got.push(a); }
+  for (const a of ACH) if (!SV.ach[a.id] && a.ok(st, SV)) { SV.ach[a.id] = todayStr(); SV.bank += a.hay; got.push(a); (G.newTitles = G.newTitles || []).push(a); }
   if (got.length) { save(); if (live) for (const a of got) { banner('NEW TITLE!', t('achGot', L(a.n), a.hay), 'good'); SFX.mission(); } }
   return got;
 }
@@ -114,7 +114,7 @@ function careerLevel(xp) { let lv = 0, acc = 0; while (lv < RANKS.length - 1 && 
 function careerTitle(lv) { const r = RANKS[Math.min(lv, RANKS.length - 1)]; return tr(r[0], r[1]); }
 function careerHTML() { const c = careerLevel(careerXP()); const pct = c.max ? 100 : Math.round(c.into / c.need * 100);
   const li = c.max ? legendInfo() : null; const lp = li ? Math.round(li.into / li.need * 100) : pct;
-  return `<div class="career${li ? ' legend' : ''}"><span class="cr-t">${esc(careerTitle(c.lv))}${li && li.stars ? ' ★' + li.stars : ''}</span><span class="cr-lv">Lv.${c.lv + 1}</span><span class="cr-bar"><i style="width:${lp}%"></i></span><small>${li ? t('nextStar', fmt(li.need - li.into)) : t('nextPromo', fmt(c.need - c.into))}</small>${plantHTML()}</div>`; }
+  return `<div class="career${li ? ' legend' : ''}"><span class="cr-t">${esc(careerTitle(c.lv))}${li && li.stars ? ' ★' + li.stars : ''}</span><span class="cr-lv">Lv.${c.lv + 1}</span><span class="cr-bar"><i style="width:${lp}%"></i></span><small>${li ? t('nextStar', fmt(li.need - li.into)) : t('nextPromo', fmt(c.need - c.into))}</small>${plantHTML()}${SV.goldTie ? `<span class="cr-gold">${esc(t('goldTieBadge', monthLabel(SV.goldTie.m), SV.goldTie.r))}</span>` : ''}</div>`; }
 // 机の観葉植物（B-12）：題名のカードに、育ち具合の絵と段階
 function plantHTML() { let url = ''; try { url = PROP_ART.plant().toDataURL(); } catch (e) { } const lv = plantLv(), nx = PLANT_STEPS[lv + 1];
   return `<span class="cr-plant" title="${esc(t('plantNote'))}">${url ? `<img src="${url}" alt="" style="height:${16 + lv * 5}px">` : ''}${esc(t('plantLv', lv + 1))}${nx ? `<small>${esc(t('plantNext', fmt(nx - ((SV.totals || {}).hay || 0))))}</small>` : ''}</span>`; }

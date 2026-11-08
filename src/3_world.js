@@ -708,6 +708,8 @@ function populate(seg) {
     const free = [0, 1, 2].filter(l => !seg.obs.some(o => o.k === 'block' && LANES[l] > o.l0 - .25 && LANES[l] < o.l1 + .25 && it.s > o.s0 - .2 && it.s < o.s1 + .2));
     if (free.length) { it.lane = free.sort((a, b) => Math.abs(a - it.lane) - Math.abs(b - it.lane))[0]; it.lat = LANES[it.lane]; } else it.dead = 1;
   }
+  //  second pass: an item moved to a free lane, or sitting in two things at once, may still be inside something low → lift above every one (worldcheck, 2026-11-08)
+  for (const it of seg.items) if (!it.dead) for (const o of seg.obs) if (o.k === 'low' && it.lat > o.l0 - .25 && it.lat < o.l1 + .25 && it.s > o.s0 - .2 && it.s < o.s1 + .2 && it.y < (o.top || 0) + .3) it.y = (o.top || 0) + .35;
   seg.items = seg.items.filter(it => !it.dead);
   // now and then, a short road of golden hay (a happy surprise; once the run is under way, never in the lesson) — 2026-11-08
   if (!seg.first && G.mode === 'play' && G.t > 40 && SV.tutDone && Math.random() < .045) {

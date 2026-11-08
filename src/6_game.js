@@ -123,7 +123,7 @@ function startRun() {
   Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '', off: G.char === 'pom' });
   // playing as Pom: the rookie sets off first; the boss and Jill catch up one by one (in a random order), bringing their perks
   G.mates = { ren: 0, jill: 0 }; G.mateOrder = Math.random() < .5 ? ['ren', 'jill'] : ['jill', 'ren']; G.mateAt = [rand(20, 28), rand(52, 64)];
-  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.bumps = 0; G.lastHit = null; G.bestPic = 0; G.chalFlag = 0;
+  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.bumps = 0; G.lastHit = null; G.bestPic = 0; G.newTitles = []; G.chalFlag = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
   resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
@@ -920,7 +920,7 @@ function endRun() {
   { const pm = careerCheck(); if (pm) { lvlMsg = pm + (lvlMsg ? '　' + lvlMsg : ''); $('#resPromo').textContent = pm; $('#resPromo').hidden = false; } else $('#resPromo').hidden = true; }
   save();
   const cap = (CAPS[G.cause] || CAPS.obstacle)[G.char] || CAPS.obstacle.ren;
-  $('#resEn').textContent = tr(cap[1], cap[0]); $('#resJa').textContent = ''; showHit('res');
+  $('#resEn').textContent = tr(cap[1], cap[0]); $('#resJa').textContent = ''; showHit('res'); try { titleShareBtn(); } catch (e) { reportErr(e); }
   $('#resBest').hidden = !newBest;
   { const el = $('#resScore'), total = Math.floor(G.score), t0 = performance.now(), dur = Math.min(1400, 500 + total / 60); el.textContent = '0';
     const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); if (k < 1) { if (Math.random() < .5) tone(440 + 220 * e, .04, 'pluck', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); SFX.mission(); } }; requestAnimationFrame(tick); }
@@ -1014,6 +1014,21 @@ function prepShareFiles(sq, story) {
   Promise.all([mk(sq), mk(story)]).then(([a, b]) => { if (!a || !b) return; G.shareFiles = { square: new File([a], 'renjill-hay-dash.png', { type: 'image/png' }), story: new File([b], 'renjill-hay-dash-story.png', { type: 'image/png' }), storyBlob: b }; });
 }
 function fitFont(g, txt, maxW, size, tpl) { let s = size; g.font = tpl.replace('{}', s); while (s > 12 && g.measureText(txt).width > maxW) { s -= 2; g.font = tpl.replace('{}', s); } return s; } // the biggest size (up to `size`) that fits maxW
+// 新しい称号のシェア用カード（B-48）：結果画面に「称号カードをシェア」。スマホは共有シート、パソコンは画像を保存して文章をコピー
+function titleCard(a) { const c = document.createElement('canvas'); c.width = c.height = 1080; const g = c.getContext('2d') || noCtx();
+  g.fillStyle = '#FBF6EE'; g.fillRect(0, 0, 1080, 1080); g.fillStyle = '#F2C230'; g.beginPath(); g.arc(540, 470, 330, 0, Math.PI * 2); g.fill(); g.fillStyle = '#FBF6EE'; g.beginPath(); g.arc(540, 470, 290, 0, Math.PI * 2); g.fill();
+  try { const b = bunFrame(G.char || 'ren', 'front_cheer', SV.mugOn); const k = 520 / Math.max(b.width, b.height); g.drawImage(b, 540 - b.width * k / 2, 470 - b.height * k / 2 + 20, b.width * k, b.height * k); } catch (e) { }
+  g.textAlign = 'center'; g.fillStyle = '#A97A1E'; g.font = '900 46px "Zen Maru Gothic",sans-serif'; g.fillText(t('titleNew'), 540, 110);
+  g.fillStyle = '#3B2A20'; fitFont(g, L(a.n), 960, 110, '400 {}px "Dela Gothic One",sans-serif'); g.fillText(L(a.n), 540, 900);
+  g.fillStyle = '#6B5A50'; fitFont(g, L(a.d), 960, 40, '900 {}px "Zen Maru Gothic",sans-serif'); g.fillText(L(a.d), 540, 960);
+  g.fillStyle = '#A97A1E'; g.font = '900 34px "Zen Maru Gothic",sans-serif'; g.fillText(tr('チモシーダッシュ', 'HAY DASH!') + '  ' + (SHARE.url('title') || '').replace(/^https?:\/\//, '').replace(/\?.*$/, ''), 540, 1035); return c; }
+async function shareTitle(a) { const c = titleCard(a); const blob = await new Promise(r => { try { c.toBlob(r, 'image/png'); } catch (e) { r(null); } }); if (!blob) return; G.titleShared = (G.titleShared || 0) + 1;
+  const txt = t('titleShareText', L(a.n)), file = new File([blob], 'renjill-title.png', { type: 'image/png' });
+  const r = SHARE.phone() ? await sheet({ text: txt, url: SHARE.url('title'), files: [file] }) : 'none'; if (r === 'ok' || r === 'abort') return shareNote(r === 'ok' ? t('igShared') : '');
+  const saved = await sharePictureSave(blob); const ok = await copyText(txt + ' ' + SHARE.url('title')); shareNote(saved ? t('titleSaved') : ok ? t('copyNote') : t('copyFail')); }
+function titleShareBtn() { let box = document.getElementById('titleShare'); const list = (G.newTitles || []).slice(-2); if (!box) { box = document.createElement('div'); box.id = 'titleShare'; const bar = document.querySelector('#sResult .sharebar'); if (!bar) return; bar.before(box); }
+  box.innerHTML = list.map((a, i) => `<button class="sub small tshare" data-tshare="${i}">${esc(t('titleShareBtn', L(a.n)))}</button>`).join(''); box.hidden = !list.length;
+  box.onclick = e => { const b = e.target.closest('[data-tshare]'); if (b) shareTitle(list[+b.dataset.tshare]); }; }
 function buildShareCard(cap, place, gained) {
   const c = document.createElement('canvas'); c.width = 1080; c.height = 1080; const g = c.getContext('2d') || noCtx();
   g.fillStyle = '#F6EBDC'; g.fillRect(0, 0, 1080, 1080);

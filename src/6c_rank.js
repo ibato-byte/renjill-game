@@ -8,7 +8,7 @@ async function rankInit() {
   const cfg = (window.HAYDASH_CONFIG || {}).firebase;
   if (cfg && cfg.apiKey && cfg.projectId && !(window.claude && window.claude.use)) { // the app build: our own Firebase project
     try { RANK.db = fsdbMake(cfg); RANK.uid = await RANK.db.uid(); RANK.own = 1; } catch (e) { RANK.db = null; RANK.uid = null; }
-    RANK.ready = true; return;
+    RANK.ready = true; goldTieCheck(); return;
   }
   try {
     if (!window.claude || !window.claude.use) { RANK.ready = true; return; }
@@ -16,9 +16,14 @@ async function rankInit() {
     RANK.db = db; RANK.user = user;
     if (user) RANK.uid = await user.id();
   } catch (e) { RANK.db = null; }
-  RANK.ready = true;
+  RANK.ready = true; goldTieCheck();
 }
 const rankOn = () => !!(RANK.db && RANK.uid);
+// 金のネクタイ（B-43）：先月の月間ランキングで 3 位以内なら、題名のカードに「金のネクタイ」の印とお知らせ（月に 1 回だけ調べる）
+function prevMonthKey() { const j = new Date(Date.now() + 9 * 3600e3); j.setUTCDate(1); j.setUTCMonth(j.getUTCMonth() - 1); return 'm' + j.getUTCFullYear() + String(j.getUTCMonth() + 1).padStart(2, '0'); }
+async function goldTieCheck() { if (!rankOn()) return; const pk = prevMonthKey(); if (SV.gtChecked === pk) return; SV.gtChecked = pk; save();
+  try { const qs = await RANK.db.collection('ranks').where(pk, '>', 0).orderBy(pk, 'desc').limit(3).get(); const ids = qs.docs.filter(d => (d.data()[pk] || 0) > 0).map(d => d.id); const i = ids.indexOf(RANK.uid);
+    if (i >= 0) { SV.goldTie = { m: pk, r: i + 1 }; save(); try { refreshTitle(); } catch (e) { } setTimeout(() => toastTitle(t('goldTie', monthLabel(pk), i + 1)), 2200); } } catch (e) { } }
 async function rankSubmit(score, info) {
   if (!rankOn()) return null;
   if (G.easy || G.timed || G.practice) return null; // relaxed / 1-minute runs are not on the monthly board (2026-11-08)
