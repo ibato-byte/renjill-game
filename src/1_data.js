@@ -128,6 +128,7 @@ const STR = {
   hitWhat: ['ぶつかったのは、これ', 'You bumped into this'], hitWhatN: ['ぶつかったのは「{0}」', 'You bumped into this'],
   hand: ['片手で操作', 'One-handed'], handNote: ['タップ操作を画面の下半分だけにします（左右＝移動、まんなかの上＝ジャンプ、下＝スライディング）', 'Tap controls use only the lower half (sides = move, middle top = jump, bottom = slide)'],
   errLogH: ['エラーの記録', 'Error log'], errLogNote: ['うまく動かなかったときの記録です（この端末だけに残ります）。お問い合わせのときに見せてください', 'Problems this device ran into (kept only here). Handy if you contact us'], errLogNone: ['記録はありません', 'Nothing recorded'],
+  mapH: ['走った場所の地図', 'Map of where you ran'], mapNote: ['足あと＝行った名所（{0} / {1}）。灰色の点はまだ行っていない所', 'Paw prints = spots you have visited ({0} / {1}). Grey dots: not yet'],
   plantLv: ['机の観葉植物 Lv.{0}', 'Desk plant Lv.{0}'], plantNext: ['あと牧草{0}本で育つ', '{0} more hay to grow'], plantNote: ['集めた牧草で育ちます', 'Grows with all the hay you collect'],
   plantUp: ['机の観葉植物が大きくなった！（集めた牧草で育つ）', 'Your desk plant grew! (It grows with all the hay you collect)'], bestPics: ['自己ベストの記念写真', 'Personal best photos'], bestPicCap: ['自己ベスト {0}点', 'Best {0}'],
   memoJill: ['課長、助かります！', 'Thanks, boss!'], memoRen: ['おお、助かった！', 'Oh, a lifesaver!'], memoPom: ['先輩、助かるっす！', 'Thanks, chief!'],
