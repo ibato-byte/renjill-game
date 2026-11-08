@@ -123,6 +123,7 @@ const STR = {
   pomHi2: ['先輩！今日もお供するっす！', 'Senpai! Reporting for duty again!'], pomJoin2: ['新人のポムが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Pom is back! Fill those cheek pouches for a bonus (score ×1.2)'], pomPuff: ['ほお袋MAXっす！おすそわけ！', 'Pouches full! Sharing!'], pomPeek: ['道のまん中に…ハムスター!? こっちを見てる…', 'A hamster... in the road!? It’s looking at you...'],
   pomJoin: ['体育会系の新入社員、キンクマハムスターのポムが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Meet Pom, the sporty new hire (a golden hamster)! Fill those cheek pouches for a bonus (score ×1.2)'], pomHi: ['押忍！新人のポムっす！', 'Osu! Pom, the new hire, reporting for duty!'],
   pomWorry: ['先輩!? 大丈夫っすか!?', 'Senpai!? You OK!?'], pomDonmai: ['ドンマイっす！', "Shake it off!"], pomFever: ['ファイトーー！', 'Go, go, gooo!'], pomNice: ['ナイスっす！', 'Nice one!'], pomNice2: ['まだまだいけるっす！', 'Keep it up!'], pomStamp: ['スタンプ、映えるっす！', 'Ooh, picture-perfect!'],
+  memoJill: ['課長、助かります！', 'Thanks, boss!'], memoRen: ['おお、助かった！', 'Oh, a lifesaver!'], memoPom: ['先輩、助かるっす！', 'Thanks, chief!'],
   worryRen: ['ジル、大丈夫か!?', 'Jill, are you OK!?'], worryJill: ['課長、大丈夫ですか!?', 'Boss, are you OK!?'],
   start: ['スタート', 'START'], again: ['もう一回！', 'ONE MORE RUN'], resume: ['つづける', 'RESUME'],
   legal: ['このゲームはフィクションです。登場する地名・駅名は場所を表すためのもので、実在の施設・企業・団体とは関係がなく、公認を受けたものでもありません。うさぎの食べ物のメモは一般的な目安です（主な出典：長野県動物愛護センターの資料）。本物のうさぎのことは、うさぎを診られる動物病院に相談してください。チャットのジルの答えは間違うこともあります。フォント：Dela Gothic One、Zen Maru Gothic（SIL Open Font License 1.1）。音楽・効果音・絵はこのゲームのために作ったものです。© COANA TOKYO「レンとジル」',
@@ -290,6 +291,7 @@ const ITEMS = {
   hanko:    { ja: '承認ハンコ', en: 'Hanko seal', kind: 'power', pow: 'x2', pts: 50, office: 1, tip: { ja: 'ジルが押すと、なぜか全部スムーズに進む。\n【ゲーム】しばらくスコア2倍。', en: 'A Japanese approval seal. When Jill stamps with it, everything somehow goes smoothly.\n[Game] Double score for a while.' } },
   pomseed:  { ja: 'ひまわりの種', en: 'Sunflower seeds', kind: 'pom', pts: 200, tip: { ja: 'キンクマハムスターのポムの大好物。これをとるとポムが合流する。脂肪が多いので、うさぎのレンとジルは食べません。', en: 'Pom the hamster’s favorite. Pick them up and Pom joins you. Too fatty for bunnies, so Ren and Jill skip them.' } },
   stamp:    { ja: '観光スタンプ', en: 'Tokyo stamp', kind: 'stamp', pts: 500, tip: { ja: '', en: '' } },
+  memo:     { ja: '落とした書類', en: 'Dropped papers', kind: 'memo', pts: 150, tip: { ja: '', en: '' } }, // 拾うと相棒がお礼（図鑑には入らない）
   choco:    { ja: 'チョコレート', en: 'Chocolate', kind: 'bad', tip: { ja: 'うさぎには毒になる成分（テオブロミンなど）を含みます。絶対にあげないで。', en: 'Contains theobromine, which is toxic to rabbits. Never feed it.' } },
   onion:    { ja: '玉ねぎ・ネギ', en: 'Onions & leeks', kind: 'bad', tip: { ja: 'ネギの仲間（ニラ・ニンニクも）は中毒の原因になります。絶対にダメ（長野県資料）。', en: 'Onions and their relatives (leeks, garlic) are poisonous to rabbits (Nagano guide).' } },
   chips:    { ja: 'ポテトチップス', en: 'Potato chips', kind: 'bad', tip: { ja: '人間のお菓子は塩分・油・糖分が多すぎます。うさぎにはあげません（長野県資料）。', en: 'Human snacks have far too much salt, fat and sugar (Nagano guide).' } },

@@ -62,6 +62,12 @@ const DRAW_ITEM = {
     for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + Math.PI / 4; g.save(); g.translate(64 + Math.cos(a) * 20, 60 + Math.sin(a) * 20); g.rotate(a + Math.PI / 2);
       ell(g, -9, 0, 13, 15, 0, '#4FA34A', OUT, 2.5); ell(g, 9, 0, 13, 15, 0, '#4FA34A', OUT, 2.5); g.restore(); } ell(g, 64, 60, 6, 6, 0, '#3E8A3A'); },
   mugIcon(g) { rr(g, 30, 34, 56, 66, 10, '#FBF6EE', OUT, 3); ell(g, 92, 66, 14, 18, 0, null, OUT, 8); ell(g, 92, 66, 14, 18, 0, null, '#FBF6EE', 4); rr(g, 30, 50, 56, 10, 0, '#4E77A0'); ell(g, 58, 36, 26, 6, 0, '#6B4631'); },
+  memo(g) { // dropped papers: two sheets with lines and a red clip
+    g.save(); g.translate(64, 66); g.rotate(-.18); rr(g, -34, -42, 68, 86, 6, '#E9E2D3', OUT, 3); g.restore();
+    g.save(); g.translate(64, 64); g.rotate(.1); rr(g, -34, -44, 68, 88, 6, '#FFFDF7', OUT, 3);
+    g.fillStyle = '#B9AE9E'; for (let i = 0; i < 5; i++) g.fillRect(-22, -22 + i * 13, i === 4 ? 26 : 44, 5);
+    rr(g, -8, -52, 16, 22, 4, '#E2434B', OUT, 2.5); g.restore();
+  },
   pomseed(g) { // a little pile of striped sunflower seeds with a sparkle
     g.save(); g.translate(64, 70); for (const [x, y, r] of [[-22, 14, -.5], [0, 18, .1], [22, 12, .6], [-10, -4, -.2], [12, -6, .4], [0, -22, 0]]) { g.save(); g.translate(x, y); g.rotate(r);
       g.beginPath(); g.ellipse(0, 0, 10, 20, 0, 0, Math.PI * 2); g.fillStyle = '#2E2A28'; g.fill(); g.strokeStyle = OUT; g.lineWidth = 2.5; g.stroke();
