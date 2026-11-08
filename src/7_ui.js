@@ -113,13 +113,16 @@ function openHow() {
     ${ic('plane')}<span>${esc(L(POW.fly))}</span>${ic('hanko')}<span>${esc(L(POW.x2))}</span>${ic('clover')}<span>${esc(L(ITEMS.clover))}</span>${ic('choco')}<span>${esc(t('howNG'))}</span></div>
     <div class="zdetail"><b>${tr('クレジット・ご注意', 'CREDITS & NOTES')}</b>${esc(t('legal'))}</div>`);
 }
+// 文字の大きさ（C-29）：html に bigtext をつける
+function applyLook() { try { document.documentElement.classList.toggle('bigtext', !!OPT().big); } catch (e) { } }
 function settingsHTML() {
   const o = OPT(), row = (lbl, key, opts) => `<div class="m"><p><b>${esc(lbl)}</b></p><span class="seg">${opts.map(([v, txt]) => `<button class="buy${o[key] === v ? '' : ' off'}" data-opt="${key}" data-v="${v}">${esc(txt)}</button>`).join('')}</span></div>`;
   const langRow = `<div class="m langrow"><p><b>🌐 Language</b></p><span class="seg langseg">${LANGS.map(l => `<button class="buy${LANG === l ? '' : ' off'}" data-lang="${l}" lang="${({ zh: 'zh-Hant' })[l] || l}">${LANG_NAME[l]}</button>`).join('')}</span></div>`; // all four, side by side (the title button cycles)
   return langRow + row(t('ctrl'), 'ctrl', [['swipe', t('ctrlSwipe')], ['tap', t('ctrlTap')]]) + `<p class="note">${esc(t('ctrlNote'))}</p>` +
-    row(t('sens'), 'sens', [['normal', t('sensN')], ['high', t('sensH')]]) + row(t('vib'), 'vib', [[true, t('on')], ['low', t('vibLow')], [false, t('off')]]) +
+    row(t('sens'), 'sens', [['normal', t('sensN')], ['high', t('sensH')]]) + `<p class="note">${esc(t('sensNote'))}</p>` + row(t('vib'), 'vib', [[true, t('on')], ['low', t('vibLow')], [false, t('off')]]) +
+    row(t('bigText'), 'big', [[false, t('bigN')], [true, t('bigY')]]) + `<p class="note">${esc(t('bigNote'))}</p>` +
     row(t('easy'), 'easy', [[false, t('easyN')], [true, t('easyY')]]) + `<p class="note">${esc(t('easyNote'))}</p>` +
-    row(t('calm'), 'calm', [[true, t('on')], [false, t('off')]]) + row(t('music'), 'music', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) + row(t('sfx'), 'sfx', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) +
+    row(t('calm'), 'calm', [[true, t('on')], [false, t('off')]]) + `<p class="note">${esc(t('calmNote'))}</p>` + row(t('music'), 'music', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) + row(t('sfx'), 'sfx', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) +
     `<button class="sub" id="btnNameSet">${esc(SV.nick ? t('nameBtn', SV.nick) : t('nameNone'))}</button> <button class="sub" id="btnTut">${esc(t('resetTut'))}</button>` +
     `<div class="m xfer"><p><b>${esc(t('codeH'))}</b></p><p class="note">${esc(t('codeNote'))}</p><div class="btns" style="display:flex;gap:8px"><input id="codeIn" aria-label="${esc(t('codeH'))}" maxlength="24" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="${esc(t('codePh'))}" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px"><button class="sub" id="btnCode" style="width:auto">${esc(t('codeOk'))}</button></div><p class="note" id="codeMsg" aria-live="polite"></p></div>` +
     `<div class="m xfer sns"><p><b>${esc(t('snsH'))}</b></p><p class="note">${esc(t('snsNote'))}</p>${followLinks('chips')}</div>` + linkHTML() + `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" aria-label="${esc(t('xfer'))}" readonly rows="3" hidden></textarea>` +
@@ -227,9 +230,13 @@ const LINK_Q = (() => { try { const m = /[?&]link=([A-Za-z0-9-]{8,9})\b/.exec(lo
 function linkFromUrl() { if (!LINK_Q) return; const go = (n) => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn()) { if (window.HAYDASH_APP) toastTitle(t('linkFail')); return; } openSettings(); const i = $('#linkIn'); if (i) { i.value = linkFmt(LINK_Q); i.scrollIntoView({ block: 'center' }); linkLook(LINK_Q); } }; go(0); }
 function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); }
 let rvTimer = null;
+// ぶつかった物の絵を、続ける画面と結果画面に（C-69）。絵のある物だけ。書類に追いつかれた・壁・時間切れのときも、最後にぶつかった物
+function showHit(pre) { const box = $('#' + pre + 'Hit'); if (!box) return; const o = G.lastHit; let url = '';
+  try { if (o && o.art && G.cause !== 'time' && G.cause !== 'quit' && typeof ART !== 'undefined' && ART[o.art]) { const c = ART[o.art](o, false); url = c && c.toDataURL ? c.toDataURL() : ''; } } catch (e) { url = ''; }
+  box.hidden = !url; if (!url) return; $('#' + pre + 'HitImg').src = url; $('#' + pre + 'HitTxt').textContent = LANG === 'ja' && typeof OBS_JA !== 'undefined' && OBS_JA[o.type] ? t('hitWhatN', OBS_JA[o.type]) : t('hitWhat'); }
 function openRevive() {
   const c = reviveCost(), cap = (CAPS[G.cause] || CAPS.obstacle)[G.char];
-  $('#rvEn').textContent = tr(cap[1], cap[0]); $('#rvJa').textContent = '';
+  $('#rvEn').textContent = tr(cap[1], cap[0]); $('#rvJa').textContent = ''; showHit('rv');
   const bc = $('#btnRvClover'), bh = $('#btnRvHay');
   const free = freeRevive(); bc.dataset.free = free ? '1' : '';
   bc.textContent = free ? t('reviveFree') : t('reviveClover', c.clover); bc.disabled = !free && SV.clovers < c.clover; bc.style.opacity = bc.disabled ? .45 : 1;
@@ -311,7 +318,7 @@ $('#sPanel').addEventListener('click', e => {
   if (sst) { SFX.ui(); $('#pBody').innerHTML = stampsHTML(sst.dataset.s); }
   { const lb = e.target.closest('[data-lang]'); if (lb && LANGS.includes(lb.dataset.lang)) { LANG = lb.dataset.lang; SV.lang = LANG; save(); refreshTitle(); SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); } }
   const op = e.target.closest('[data-opt]');
-  if (op) { const k = op.dataset.opt; let v = op.dataset.v; if (v === 'true') v = true; else if (v === 'false') v = false; SV.opt[k] = v; save(); audioInit(); applyAudioOpt(); SFX.ui(); $('#pBody').innerHTML = settingsHTML(); }
+  if (op) { const k = op.dataset.opt; let v = op.dataset.v; if (v === 'true') v = true; else if (v === 'false') v = false; SV.opt[k] = v; save(); audioInit(); applyAudioOpt(); applyLook(); SFX.ui(); $('#pBody').innerHTML = settingsHTML(); }
   const rt = e.target.closest('[data-rt]'); if (rt) openRanking(rt.dataset.rt);
   if (e.target.id === 'nickSave') saveNick();
   if (e.target.id === 'nameOk') nameDone(1);
@@ -385,6 +392,7 @@ addEventListener('pagehide', () => { try { saveNow(); } catch (e) { } });
 addEventListener('blur', () => { try { if (G.mode === 'play' && !matchMedia('(pointer:coarse)').matches) pause(); } catch (e) { } });
 function resizeKeep() { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
 function boot() {
+  applyLook();
   buildItemSprites(); buildWorldSprites(); buildBunnies(); applyWear(); rankIcons(); rankInit(); chatInit(); resize(); addEventListener('resize', resize);
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren'; missionsFix();

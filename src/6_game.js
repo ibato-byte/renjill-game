@@ -118,7 +118,7 @@ function startRun() {
   Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '', off: G.char === 'pom' });
   // playing as Pom: the rookie sets off first; the boss and Jill catch up one by one (in a random order), bringing their perks
   G.mates = { ren: 0, jill: 0 }; G.mateOrder = Math.random() < .5 ? ['ren', 'jill'] : ['jill', 'ren']; G.mateAt = [rand(20, 28), rand(52, 64)];
-  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.pres = null; G.presDone = 0; G.bumps = 0; G.errand = null; G.errandDone = 0; G.chalFlag = 0;
+  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.pres = null; G.presDone = 0; G.bumps = 0; G.lastHit = null; G.errand = null; G.errandDone = 0; G.chalFlag = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
   resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
@@ -168,6 +168,7 @@ function stumble() {
   pomSay(t('pomDonmai'), 'worry', 1.3);
 }
 function hit(o) {
+  G.lastHit = o; // 結果画面で「ぶつかったのは、これ」（C-69）
   if (G.tut && G.tut.some(x => !x.done) && curSeg() === G.tutSeg) { smash(o); return; } // the first lesson never kills
   if (G.pow.dash > 0 || G.fever > 0 || G.invT > 0 || G.pow.fly > 0) { smash(o); return; }
   if (G.shield) { G.shield = 0; smash(o); G.invT = 1.2; SFX.bump(); banner('SAVED!', t('saved'), 'good'); return; }
@@ -481,7 +482,7 @@ function update(dt) {
     if ((o.k !== 'high' || lowTop(o)) && prevY >= oTop - .22) continue;
     const frontal = prevS + .3 <= os0 + (o.mv ? o.mv * dt : 0) + .06 + step * .1;
     if (frontal || o.full) hit(o);
-    else { if (G.pow.dash > 0 || G.fever > 0) smash(o); else { let nl = G.prevLane; if (nl === G.lane) { const c = (o.l0 + o.l1) / 2; nl = clamp(G.lane + (G.lat >= c ? 1 : -1), 0, 2); if (nl === G.lane) nl = clamp(G.lane - (G.lat >= c ? 1 : -1), 0, 2); } G.lane = nl; G.prevLane = nl; stumble(); } }
+    else { if (G.pow.dash > 0 || G.fever > 0) smash(o); else { let nl = G.prevLane; if (nl === G.lane) { const c = (o.l0 + o.l1) / 2; nl = clamp(G.lane + (G.lat >= c ? 1 : -1), 0, 2); if (nl === G.lane) nl = clamp(G.lane - (G.lat >= c ? 1 : -1), 0, 2); } G.lane = nl; G.prevLane = nl; G.lastHit = o; stumble(); } }
     if (G.mode !== 'play') return;
   }
   // a puddle on a rainy day: a splash when you run through it (2026-11-08)
@@ -770,8 +771,8 @@ function hud() {
   const on = Object.keys(G.pow).filter(k => G.pow[k] > 0);
   const key = on.join(',') + (G.shield ? ',s' : '');
   const box = $('#pows');
-  if (box.dataset.k !== key) { box.dataset.k = key; box.innerHTML = on.map(k => `<div class="pow"><img src="${SPR_URL[POW[k].ico]}" alt=""><i><u data-p="${k}"></u></i></div>`).join('') + (G.shield ? `<div class="pow"><img src="${SPR_URL.clover}" alt=""></div>` : ''); }
-  if (on.length) box.querySelectorAll('u[data-p]').forEach(u => { const k = u.dataset.p; u.style.width = (G.pow[k] / powDur(k) * 100) + '%'; });
+  if (box.dataset.k !== key) { box.dataset.k = key; box.innerHTML = on.map(k => `<div class="pow"><b class="ring" data-p="${k}"><img src="${SPR_URL[POW[k].ico]}" alt=""></b></div>`).join('') + (G.shield ? `<div class="pow"><img src="${SPR_URL.clover}" alt=""></div>` : ''); }
+  if (on.length) box.querySelectorAll('.ring[data-p]').forEach(u => { const k = u.dataset.p; u.style.setProperty('--p', (G.pow[k] / powDur(k) * 100).toFixed(1)); u.classList.toggle('low', G.pow[k] < 1.5); }); // 残り時間は丸いゲージ（C-70）
   setText('combo', G.combo >= 5 ? t('comboN', G.combo) : '');
   const h = $('#hint');
   if (G.hint > 0 && G.hint < 7) { h.style.opacity = 1; setText('hint', G.hint > 3.5 ? t('hintMove') : t('hintTurn')); } else h.style.opacity = 0;
@@ -882,7 +883,7 @@ function endRun() {
   { const pm = careerCheck(); if (pm) { lvlMsg = pm + (lvlMsg ? '　' + lvlMsg : ''); $('#resPromo').textContent = pm; $('#resPromo').hidden = false; } else $('#resPromo').hidden = true; }
   save();
   const cap = (CAPS[G.cause] || CAPS.obstacle)[G.char] || CAPS.obstacle.ren;
-  $('#resEn').textContent = tr(cap[1], cap[0]); $('#resJa').textContent = '';
+  $('#resEn').textContent = tr(cap[1], cap[0]); $('#resJa').textContent = ''; showHit('res');
   $('#resBest').hidden = !newBest;
   { const el = $('#resScore'), total = Math.floor(G.score), t0 = performance.now(), dur = Math.min(1400, 500 + total / 60); el.textContent = '0';
     const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); if (k < 1) { if (Math.random() < .5) tone(440 + 220 * e, .04, 'pluck', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); SFX.mission(); } }; requestAnimationFrame(tick); }

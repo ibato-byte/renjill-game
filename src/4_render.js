@@ -89,6 +89,7 @@ function computeLight(seg) {
   const amb = mixC(a[1], b[1], t), top = mixC(C(a[2]), C(b[2]), t), bot = mixC(C(a[3]), C(b[3]), t);
   LT.night = clamp((m - 1080) / 110, 0, 1);
   const kind = seg.th.kind; LT.indoor = kind === 'room' || kind === 'train';
+  { const nb = LT.night > .5 && !LT.indoor && G.mode !== 'title'; if (nb !== LT.nb) { LT.nb = nb; document.body.classList.toggle('nightband', nb); } } // 夜の外：お知らせの帯を少し明るく（C-27）
   const wet = G.weather === 'rain' && !LT.indoor ? .82 : G.weather === 'snow' && !LT.indoor ? .95 : 1;
   LT.top = G.weather === 'rain' ? mixC(top, [120, 130, 140], .55 * (1 - LT.night * .6)) : top;
   LT.bot = G.weather === 'rain' ? mixC(bot, [170, 176, 182], .5 * (1 - LT.night * .6)) : G.weather === 'snow' ? mixC(bot, [235, 238, 242], .5) : bot;
