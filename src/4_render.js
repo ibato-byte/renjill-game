@@ -311,6 +311,10 @@ function drawObjects(sg, isCur, oc) {
   if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) DRAW.push([d, 8, m]); }
   for (const p of sg.props) { if (p.nodraw) continue; const mid = segPos(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d < -3 || d > (p.big ? FAR : 85)) continue; DRAW.push([d, 6, p]); }
   for (const s of sg.spr) { if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const p = segPos(sg, s.s, s.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > (s.far ? FAR : 80)) continue; DRAW.push([d, 7, s]); }
+  // pigeons on the street: they peck about and fly off as you run up (2026-11-08)
+  if (sg.birds === undefined) sg.birds = birdsFor(sg);
+  if (sg.birds && lowQ < 2) for (const b of sg.birds) { if (isCur && !b.fly && G.mode === 'play' && G.s > b.s - 5 && G.s < b.s + 2) b.fly = G.t; const fy = b.fly ? G.t - b.fly : 0; if (fy > 2.5) continue;
+    const p = segPos(sg, b.s + fy * 3, b.lat + b.dir * fy * 2.2); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .8 || d > 60) continue; DRAW.push([d, 9, b]); }
   if (isCur || G.turnT > 0) for (const it of sg.items) {
     if (it.got || (isCur && it.s < G.s - .6)) continue;
     const p = segPos(sg, it.s, it.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > 75) continue;
@@ -331,6 +335,7 @@ function drawObj(e, sg) {
     else if (e[1] === 7) { drawSpr(e[2], sg, e[0]); pm('spr'); }
     else if (e[1] === 8) drawBoxes(e[2].bx, sg, e[0], 1, e[2].cross ? 0 : e[2].ds, e[2].cross ? e[2].dl || 0 : 0, 0);
     else if (e[1] === 4) { drawItem(e[2], sg, e[0]); pm('items'); }
+    else if (e[1] === 9) drawBird(e[2], sg, e[0]);
     else { drawBunnyWorld(e[2]); pm('bunny'); }
   }
 }
@@ -384,6 +389,23 @@ function drawSpr(s, sg, d) {
   if (!s.glow && s.img !== 'glow' && LT.amb[0] < .95) { ctx.globalCompositeOperation = 'source-atop'; }
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
 }
+function birdsFor(sg) { const k = sg.th && sg.th.kind; if (!k || k === 'room' || k === 'train' || sg.fork || Math.random() > .4 || !(sg.len > 50)) return null;
+  const s0 = 25 + Math.random() * (sg.len - 45), lane = (Math.random() * 3) | 0, out = [], n = 3 + ((Math.random() * 3) | 0);
+  for (let i = 0; i < n; i++) out.push({ s: s0 + Math.random() * 3, lat: LANES[lane] + (Math.random() - .5) * 1.2, ph: Math.random() * 6, dir: Math.random() < .5 ? -1 : 1, flip: Math.random() < .5, fly: 0 });
+  return out; }
+function drawBird(b, sg, d) { const fy = b.fly ? G.t - b.fly : 0, p = segPos(sg, b.s + fy * 3, b.lat + b.dir * fy * 2.2), y = fy > 0 ? fy * 2.4 + fy * fy * 1.2 : 0;
+  const sp = spriteAt(p[0], p[2] + y, p[1]); if (!sp) return; const k = sp.k, f = b.flip ? -1 : 1, peck = !b.fly ? Math.max(0, Math.sin(G.t * 4 + b.ph)) : 0;
+  ctx.save(); ctx.globalAlpha = (1 - fogK(d) * .9) * (fy > 1.8 ? Math.max(0, (2.5 - fy) / .7) : 1); ctx.translate(sp.sx, sp.sy); ctx.scale(f, 1);
+  if (!b.fly) { ctx.fillStyle = 'rgba(30,22,16,.14)'; ctx.beginPath(); ctx.ellipse(0, 0, k * .16, k * .04, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#C0705A'; ctx.lineWidth = Math.max(1, k * .02); ctx.beginPath(); ctx.moveTo(-k * .03, 0); ctx.lineTo(-k * .03, -k * .07); ctx.moveTo(k * .03, 0); ctx.lineTo(k * .03, -k * .07); ctx.stroke(); }
+  const by = -k * .16; ctx.fillStyle = '#8E949E'; ctx.beginPath(); ctx.ellipse(0, by, k * .17, k * .1, -.15, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#6E7480'; ctx.beginPath(); ctx.moveTo(-k * .14, by); ctx.lineTo(-k * .26, by - k * .02); ctx.lineTo(-k * .14, by + k * .05); ctx.fill(); // tail
+  if (b.fly) { const w = Math.sin(G.t * 26 + b.ph) * k * .16; ctx.fillStyle = '#A3A9B3'; ctx.beginPath(); ctx.moveTo(-k * .05, by - k * .02); ctx.quadraticCurveTo(-k * .02, by - k * .12 - w, k * .1, by - k * .2 - w); ctx.lineTo(k * .06, by - k * .02); ctx.fill(); }
+  else { ctx.fillStyle = '#A3A9B3'; ctx.beginPath(); ctx.ellipse(-k * .02, by - k * .01, k * .1, k * .05, -.2, 0, Math.PI * 2); ctx.fill(); }
+  const hx = k * .14, hy = by - k * .07 + peck * k * .07; ctx.fillStyle = '#5E8C7A'; ctx.beginPath(); ctx.ellipse(k * .1, by - k * .04 + peck * k * .03, k * .05, k * .06, .3, 0, Math.PI * 2); ctx.fill(); // shiny neck
+  ctx.fillStyle = '#7A808C'; ctx.beginPath(); ctx.arc(hx, hy, k * .055, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#E8C9A0'; ctx.beginPath(); ctx.moveTo(hx + k * .05, hy); ctx.lineTo(hx + k * .1, hy + k * .015); ctx.lineTo(hx + k * .05, hy + k * .025); ctx.fill();
+  ctx.fillStyle = '#1E1A18'; ctx.beginPath(); ctx.arc(hx + k * .02, hy - k * .01, Math.max(1, k * .012), 0, Math.PI * 2); ctx.fill();
+  ctx.restore(); ctx.globalAlpha = 1; }
 function drawItem(it, sg, d) {
   const p = segPos(sg, it.s, it.lat); const sp = spriteAt(p[0], p[2] + it.y + Math.sin(G.t * 3 + it.ph) * .06, p[1]); if (!sp) return;
   const def = ITEMS[it.type]; const isPow = def.kind === 'power' || def.kind === 'stamp' || def.kind === 'pom', bad = def.kind === 'bad';
