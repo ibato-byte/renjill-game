@@ -34,8 +34,13 @@ const { chromium } = require('playwright'); const path = require('path');
     // fork: one side gets more hay (twins that do not break a PERFECT LINE)
     const rich = D.ev(`JSON.stringify((()=>{ let n = 0, more = 0, noLine = 1; for (let i = 0; i < 30; i++) { const a = newSeg(null, { t: curSeg().step.t, d: 60 }, {}), c = newSeg(null, { t: curSeg().step.t, d: 60 }, {}); const h0 = a.items.filter(x => x.type === 'hay').length; richHay(a); const add = a.items.filter(x => x.type === 'hay').length - h0; if (a.rich) n++; if (add > 0) more++; a.items.slice(-add).forEach(x => { if (add > 0 && x.line) noLine = 0; }); } return { n, more, noLine }; })())`);
     const sky = D.ev('(() => { const sg = curSeg(); if (sg.fork) return 5; const keep = G.s; G.s = 4; sg.items = sg.items.filter(x => x.s < 3 || x.s > 20); const n = skyHay(SUPERV); const g = sg.items.some(x => x.type === "goldhay" && x.y > 1.5); G.s = keep; return g ? n : 0; })()');
-    return { sky, rich: JSON.parse(rich), air, slideM, corner, perfect, scoreUp: G.score > sc0, slow, gold, spTier: G.spTier, banners: seen.banner.join(' | ').slice(0, 400) };
+    // dropped papers (B-24): they turn up on streets, and picking one up earns points and a thank-you from the partner
+    const memo = D.ev(`JSON.stringify((() => { let seen = 0; G.t = 60; for (let i = 0; i < 60 && !seen; i++) { G.memoAt = 0; const a = newSeg(null, { t: 'shinjuku', d: 60 }, {}); if (a.items.some(x => x.type === 'memo')) seen = 1; }
+      const sg = curSeg(); addItem(sg, 'memo', G.s + 40, 1, .45); const it = sg.items[sg.items.length - 1]; const s0 = G.score, m0 = G.stats.memos || 0; G.follow.show = true; collect(it, sg);
+      return { seen, got: (G.stats.memos || 0) - m0, pts: G.score - s0, say: G.follow.say, book: !!SV.zukan.memo }; })())`);
+    return { memo: JSON.parse(memo), sky, rich: JSON.parse(rich), air, slideM, corner, perfect, scoreUp: G.score > sc0, slow, gold, spTier: G.spTier, banners: seen.banner.join(' | ').slice(0, 400) };
   });
+  ok.memo = r.memo.seen === 1 && r.memo.got === 1 && r.memo.pts > 0 && !!r.memo.say && !r.memo.book; if (!ok.memo) console.log('memo', JSON.stringify(r.memo));
   ok.perfect = r.perfect >= 1 && r.scoreUp; ok.combo = /25 COMBO/.test(r.banners); ok.speed = r.spTier >= 1 && /SPEED UP/.test(r.banners); ok.slow = r.slow; ok.gold = !!r.gold; ok.air = !!r.air; ok.slideMaster = r.slideM; ok.corner = r.corner; ok.sky = r.sky >= 4; ok.rich = r.rich.n === 30 && r.rich.more >= 20 && r.rich.noLine === 1;
   // the daily goal adds up at the end of a run
   await p.evaluate(() => { const D = window.__hayDash; D.G.hay = 350; D.ev('G.invT = 0; G.lives = 0; G.reviveN = 9; hideAll(); endRun()'); });

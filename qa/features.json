@@ -147,6 +147,11 @@
       "has": "G.prints = G.prints || []"
     },
     {
+      "name": "落とした書類（拾うと相棒がお礼）",
+      "file": "src/6_game.js",
+      "has": "def.kind === 'memo'"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
