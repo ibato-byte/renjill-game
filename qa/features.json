@@ -277,6 +277,11 @@
       "has": "class=\"howanim"
     },
     {
+      "name": "練習・場所えらび",
+      "file": "src/6_game.js",
+      "has": "function practiceGoOn(cause)"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
