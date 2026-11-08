@@ -8,13 +8,13 @@ function audioInit() {
     // 2026-11：軽いコンプレッサーで音割れを防ぎ、短い響き（部屋鳴り）を少し足す。音の数が増えても耳に痛くならない
     try { const comp = AU.ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 18; comp.ratio.value = 3; comp.attack.value = .004; comp.release.value = .12; AU.master.connect(comp); comp.connect(AU.ctx.destination); AU.comp = comp; } catch (e) { AU.master.connect(AU.ctx.destination); }
     try { const sr = AU.ctx.sampleRate, n = Math.floor(sr * .7), ir = AU.ctx.createBuffer(2, n, sr); for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); let lp = 0; for (let i = 0; i < n; i++) { const w = (Math.random() * 2 - 1); lp += (w - lp) * .35; d[i] = lp * Math.pow(1 - i / n, 2.6) * (i < 40 ? i / 40 : 1); } } const cv = AU.ctx.createConvolver(); cv.buffer = ir; const vg = AU.ctx.createGain(); vg.gain.value = .22; cv.connect(vg); vg.connect(AU.master); AU.verb = cv; } catch (e) { AU.verb = null; }
-    AU.music = AU.ctx.createGain(); AU.music.gain.value = OPT().music ? .32 : 0; AU.music.connect(AU.master); if (AU.verb) { const s = AU.ctx.createGain(); s.gain.value = .5; AU.music.connect(s); s.connect(AU.verb); }
+    AU.music = AU.ctx.createGain(); AU.music.gain.value = OPT().music ? .36 : 0; AU.music.connect(AU.master); if (AU.verb) { const s = AU.ctx.createGain(); s.gain.value = .5; AU.music.connect(s); s.connect(AU.verb); }
     AU.sfx = AU.ctx.createGain(); AU.sfx.gain.value = OPT().sfx ? 1 : 0; AU.sfx.connect(AU.master); if (AU.verb) { const s = AU.ctx.createGain(); s.gain.value = .35; AU.sfx.connect(s); s.connect(AU.verb); }
     const nb = AU.ctx.createBuffer(1, 800, AU.ctx.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < 800; i++) nd[i] = (Math.random() * 2 - 1) * (1 - i / 800); AU.hat = nb;
   } catch (e) { AU.ctx = null; }
 }
 function setMute(m) { SV.mute = m; save(); if (AU.master) AU.master.gain.value = m ? 0 : .6; }
-function applyAudioOpt() { if (!AU.ctx) return; AU.music.gain.value = OPT().music ? .32 : 0; AU.sfx.gain.value = OPT().sfx ? 1 : 0; }
+function applyAudioOpt() { if (!AU.ctx) return; AU.music.gain.value = OPT().music ? .36 : 0; AU.sfx.gain.value = OPT().sfx ? 1 : 0; }
 function tone(freq, dur, type, vol, when, slide, dest) {
   if (!AU.ctx) return; const t = when || AU.ctx.currentTime;
   if (type === 'pluck') return pluck(freq, dur, vol, t, dest);
@@ -59,7 +59,7 @@ function lanePan() {
   try { const p = AU.ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, G.lat / 2.5)) * .35; p.connect(AU.sfx || AU.master); return p; } catch (e) { return null; }
 }
 const SFX = {
-  hay(n) { const d = lanePan(), f = 880 * Math.pow(1.0595, Math.min(n, 12)); tone(f, .14, 'pluck', .11, 0, 0, d); tone(f * 2, .08, 'sine', .03, AU.ctx && AU.ctx.currentTime + .01, 0, d); },
+  hay(n) { const d = lanePan(), f = 660 * Math.pow(1.0595, Math.min(n, 7)); tone(f, .12, 'pluck', .07, 0, 0, d); tone(f * 2, .06, 'sine', .018, AU.ctx && AU.ctx.currentTime + .01, 0, d); }, /* いちばん多く鳴る音なので小さく・低めに（BGM より大きく聞こえた・2026-11-08） */
   food() { const d = lanePan(); tone(660, .12, 'pluck', .16, 0, 0, d); tone(990, .16, 'pluck', .14, AU.ctx && AU.ctx.currentTime + .06, 0, d); noise(.05, .06, 2500, d); },
   treat() { const d = lanePan(); [784, 988, 1175, 1568].forEach((f, i) => tone(f, .5, 'bell', .14, AU.ctx && AU.ctx.currentTime + i * .06, 0, d)); },
   step(k) { thump(k ? 150 : 135, 70, .06, .035); noise(.03, .012, 1200); },        // 足音（走りの拍に合わせて 6_game から）
@@ -74,7 +74,7 @@ const SFX = {
   crash() { noise(.45, .3, 200); thump(220, 45, .5, .35); tone(220, .5, 'sawtooth', .08, 0, 55); },
   rumble() { if (!AU.ctx) return; const t0 = AU.ctx.currentTime; for (let i = 0; i < 6; i++) { tone(55 + (i % 2) * 8, .22, 'sawtooth', .07, t0 + i * .16); } noise(1.0, .08, 120); },
   roar() { if (!AU.ctx) return; tone(70, 1.1, 'sawtooth', .09, 0, 160); tone(140, .9, 'square', .03, 0, 320); },
-  ui() { tone(740, .07, 'pluck', .09); },
+  ui() { tone(440, .06, 'pluck', .06); tone(220, .07, 'sine', .03); }, /* 高い音が耳ざわりだったので、低く・やわらかく（2026-11-08） */
   mission() { [659, 784, 1047, 1319].forEach((f, i) => { tone(f, .2, 'pluck', .14, AU.ctx && AU.ctx.currentTime + i * .09); tone(f, .7, 'bell', .06, AU.ctx && AU.ctx.currentTime + i * .09); }); },
   chime() { // the classic school/office chime
     if (!AU.ctx) return; const t = AU.ctx.currentTime; const N = [659, 523, 587, 392, 392, 587, 659, 523];
