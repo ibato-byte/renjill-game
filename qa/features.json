@@ -282,6 +282,16 @@
       "has": "function practiceGoOn(cause)"
     },
     {
+      "name": "称号カード",
+      "file": "src/6_game.js",
+      "has": "function titleCard(a)"
+    },
+    {
+      "name": "金のネクタイ",
+      "file": "src/6c_rank.js",
+      "has": "async function goldTieCheck()"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
