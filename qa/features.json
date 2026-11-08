@@ -252,6 +252,11 @@
       "has": "function plantHTML()"
     },
     {
+      "name": "走った場所の地図",
+      "file": "src/7_ui.js",
+      "has": "function tokyoMapHTML()"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
