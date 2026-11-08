@@ -237,11 +237,6 @@
       "has": "G.wetN = (G.wetN || 0) + 1"
     },
     {
-      "name": "室内の窓の光",
-      "file": "src/4_render.js",
-      "has": "G.shaftN = (G.shaftN || 0) + 1"
-    },
-    {
       "name": "自己ベストの記念写真",
       "file": "src/6_game.js",
       "has": "function bestPhoto()"
