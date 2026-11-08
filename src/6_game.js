@@ -118,7 +118,7 @@ function startRun() {
   Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '', off: G.char === 'pom' });
   // playing as Pom: the rookie sets off first; the boss and Jill catch up one by one (in a random order), bringing their perks
   G.mates = { ren: 0, jill: 0 }; G.mateOrder = Math.random() < .5 ? ['ren', 'jill'] : ['jill', 'ren']; G.mateAt = [rand(20, 28), rand(52, 64)];
-  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0;
+  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
   resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
@@ -664,6 +664,12 @@ function collect(it, seg) {
     banner('STAMP!', LANG === 'en' ? `${t('stampGet')} ${L(THEMES[tid].stamp)}` : `${t('stampGet')}「${L(THEMES[tid].stamp)}」`, 'good'); react('sparkle', 1); if (Math.random() < .5) pomSay(t('pomStamp'), 'sparkle', 1.2); return;
   }
   if (def.kind === 'pom') { pomJoin(); return; }
+  if (def.kind === 'memo') { // dropped papers (B-24): the partner turns round to say thanks
+    const pts = def.pts * mult; G.score += pts; G.stats.memos = (G.stats.memos || 0) + 1; floatText(sx, sy - 10, '+' + fmt(pts), '#F6EBDC'); burst(sx, sy, '#FFFDF7', 8);
+    tone(659, .08, 'bell', .045); tone(988, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .07);
+    const F = G.follow; if (F.show) { F.look = 1.3; F.mood = 'happy'; F.say = F.who === 'jill' ? t('memoJill') : F.who === 'pom' ? t('memoPom') : t('memoRen'); }
+    return;
+  }
   // golden hay is a hay, but it has its own page in the food book (it used to never be recorded, so the book could never be completed)
   if ((def.kind !== 'hay' || it.type === 'goldhay') && !SV.zukan[it.type]) { SV.zukan[it.type] = 1; save(); if (def.kind !== 'bad') floatText(W / 2, Math.max(H * .3, 214), t('newBook', L(def)), '#F2C230'); }
   if (it.type === 'hay' && !SV.zukan.hay) { SV.zukan.hay = 1; save(); }

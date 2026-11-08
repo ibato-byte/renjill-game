@@ -688,6 +688,10 @@ function populate(seg) {
     // just past a row of obstacles, in a lane that the next row leaves open
     const i = Math.max(0, ((rows.length - 1) / 2) | 0), at = rows[i].s + 4.5, nx = rows[i + 1], free = [0, 1, 2].filter(l => !nx || nx.s - at > 7 || !nx.lanes[l]);
     if (free.length && at < L - 20) { seg.items = seg.items.filter(it => !(Math.abs(it.s - at) < 2.5)); addItem(seg, 'pomseed', at, pick(free), .6); G.pomSeedAt = G.dist; G.pomSeedN = (G.pomSeedN || 0) + 1; } }
+  // dropped papers (B-24): now and then on a street, in a lane the next row leaves open. Picking them up earns a thank-you from the partner
+  if (th.kind === 'street' && rows.length >= 2 && G.t > 15 && !(G.memoAt > 0 && G.dist - G.memoAt < 900) && Math.random() < .35) {
+    const i = Math.min(rows.length - 2, 1 + ((Math.random() * (rows.length - 1)) | 0)), at = (rows[i - 1 >= 0 ? i - 1 : 0].s + rows[i].s) / 2, free = [0, 1, 2].filter(l => !rows[i].lanes[l]);
+    if (free.length && at > 10 && at < L - 20 && !seg.items.some(it => Math.abs(it.s - at) < 2)) { addItem(seg, 'memo', at, pick(free), .45); G.memoAt = G.dist; } }
   // one sightseeing stamp per Tokyo spot, in the middle of the stretch
   if (th.stamp && rows.length > 2 && !(seg.step && seg.step.cont)) { const i = (rows.length / 2) | 0; const at = (rows[i].s + rows[i + 1 < rows.length ? i + 1 : i].s) / 2 + 1; const free = [0, 1, 2].filter(l => !rows[i].lanes[l]); addItem(seg, 'stamp', at, free.length ? pick(free) : 1, .6); }
   // last pass: no item may sit inside an obstacle (cars are long, so a hay line or a treat could land in a car's back half — 2026-11-08)
