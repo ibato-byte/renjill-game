@@ -18,7 +18,7 @@ const ymd = ms => +new Date(ms + 9 * 3600e3).toISOString().slice(0, 10).replace(
 const since = days => count({ fieldFilter: { field: { fieldPath: 'last' }, op: 'GREATER_THAN_OR_EQUAL', value: { integerValue: String(ymd(Date.now() - days * 864e5)) } } });
 const dau = await since(1), wau = await since(7);
 // where players came from: the ?ref= word on the shared link they opened (src on the ranking row; players without one opened the game directly)
-const SRCS = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr', 'itch', 'gamejolt', 'newgrounds', 'freem', 'plicy', 'portal', 'indiedb', 'crazygames'], from = {};
+const SRCS = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr', 'itch', 'gamejolt', 'newgrounds', 'freem', 'plicy', 'portal', 'indiedb', 'crazygames', 'gamenora', 'addicting'], from = {};
 for (const s of SRCS) { try { const n = await count({ fieldFilter: { field: { fieldPath: 'src' }, op: 'EQUAL', value: { stringValue: s } } }); if (n) from[s] = n; } catch (e) { } }
 const out = { at: new Date().toISOString(), players_total: total, players_this_month: thisMonth, active_1d: dau, active_7d: wau, from, goal: 1000000 };
 // keep a daily history (data/kpi.csv): the weekly automation reads the trend from it (growth slowing = players getting bored)

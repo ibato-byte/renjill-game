@@ -60,6 +60,7 @@ const DAILY = [
   { k: 'look', n: () => 6, t: n => ({ ja: `振り向いた顔を${n}回見る`, en: `See ${n} look-backs`, zh: `看到${n}次回頭的臉`, ko: `뒤돌아보는 얼굴 ${n}번 보기` }), v: s => s.looks },
   { k: 'perfect', n: () => 2, t: n => ({ ja: `パーフェクトラインを${n}回`, en: `Get ${n} perfect lines`, zh: `完美收集${n}列`, ko: `퍼펙트 라인 ${n}번` }), v: s => s.perfect || 0 }, // 2026-11-08: the new moves as daily challenges
   { k: 'air', n: () => 1, t: () => ({ ja: '空中キャッチを決める（1回のジャンプで牧草5本）', en: 'Get an air catch (5 hay in one jump)', zh: '完成空中接住（一次跳躍5根牧草）', ko: '공중 캐치 성공 (한 번 점프로 건초 5개)' }), v: s => s.airCatch || 0 },
+  { k: 'gig', n: () => 2, t: n => ({ ja: `走っている途中のおしごとを${n}回成功`, en: `Finish ${n} work calls during runs`, zh: `跑步中完成${n}次工作`, ko: `달리는 중 업무 ${n}번 성공` }), v: s => s.gigs || 0 },
   { k: 'corner', n: () => 3, t: n => ({ ja: `ナイスコーナーを${n}回`, en: `Take ${n} nice corners`, zh: `漂亮轉彎${n}次`, ko: `나이스 코너 ${n}번` }), v: s => s.niceCorner || 0 },
 ];
 function dailyToday() { const d = new Date(); const seed = d.getFullYear() * 400 + d.getMonth() * 32 + d.getDate(); const c = DAILY[seed % DAILY.length]; return { c, n: c.n(), key: todayStr() }; }
@@ -70,6 +71,30 @@ function dailyCheck(live) {
   return false;
 }
 function dailyHTML() { const dly = dailyToday(), done = SV.dailyDone === dly.key; return `<div class="m${done ? ' done' : ''}"><p><b>${tr('今日のチャレンジ', "Today's challenge")}</b><br>${esc(L(dly.c.t(dly.n)))}</p><span class="n">${done ? 'CLEAR' : '+300'}</span></div>`; }
+
+/* ---- this week's goal: one goal for the whole week (Monday to Sunday), added up over every run (2026-11-08) ---- */
+const WEEK_GOAL = [
+  { k: 'hay', n: 3000, ja: '今週チモシーを合計{0}本あつめる', en: 'Collect {0} hay this week' },
+  { k: 'runs', n: 15, ja: '今週{0}回走る', en: 'Go for {0} runs this week' },
+  { k: 'days', n: 4, ja: '今週{0}日出社する（{0}日あそぶ）', en: 'Come to work on {0} days this week' },
+  { k: 'jumps', n: 150, ja: '今週{0}回ジャンプする', en: 'Jump {0} times this week' },
+  { k: 'perfect', n: 8, ja: '今週パーフェクトラインを{0}回', en: 'Get {0} perfect lines this week' },
+  { k: 'treats', n: 25, ja: '今週果物のおやつを{0}個', en: 'Eat {0} fruit treats this week' },
+];
+const WEEK_HAY = 1000, WEEK_CLOVER = 2;
+function weekKey(d) { d = d ? new Date(d) : new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); } // the Monday of this week
+function weekGoal() { const k = weekKey(), p = k.split('-').map(Number), seed = Math.floor(Date.UTC(p[0], p[1] - 1, p[2]) / 6048e5); return WEEK_GOAL[((seed % WEEK_GOAL.length) + WEEK_GOAL.length) % WEEK_GOAL.length]; }
+function weekState() { const k = weekKey(); let w = SV.wk; if (!w || typeof w !== 'object' || w.w !== k) w = SV.wk = { w: k, n: 0, d: [], done: 0 }; if (!Array.isArray(w.d)) w.d = []; w.n = Number.isFinite(+w.n) && +w.n >= 0 ? Math.floor(+w.n) : 0; return w; }
+const weekText = g => tr(g.ja, g.en).split('{0}').join(fmt(g.n));
+// after a run: add this run to the week; returns the message when the goal was just reached
+function weekAdd(st) { const g = weekGoal(), w = weekState(), td = todayStr();
+  if (!w.d.includes(td)) w.d.push(td); w.d = w.d.slice(-7);
+  const add = g.k === 'runs' ? 1 : g.k === 'days' ? 0 : Math.floor(+(st[g.k] || 0)) || 0;
+  w.n = g.k === 'days' ? w.d.length : w.n + Math.max(0, add);
+  if (!w.done && w.n >= g.n) { w.done = 1; SV.bank += WEEK_HAY; SV.clovers = (SV.clovers || 0) + WEEK_CLOVER; return tr('今週の目標達成！ チモシー{0}本＋お守り{1}', 'Weekly goal done! +{0} hay and {1} lucky charms').replace('{0}', fmt(WEEK_HAY)).replace('{1}', WEEK_CLOVER); }
+  return ''; }
+function weekHTML() { const g = weekGoal(), w = weekState(), n = Math.min(w.n, g.n), k = n / g.n;
+  return `<div class="m week${w.done ? ' done' : ''}"><p><b>${tr('今週の目標', "This week's goal")}</b><br>${esc(weekText(g))}<span class="wkbar"><i style="width:${(k * 100).toFixed(0)}%"></i></span><small>${fmt(n)} / ${fmt(g.n)}</small></p><span class="n">${w.done ? 'CLEAR' : '+' + fmt(WEEK_HAY)}</span></div>`; }
 
 /* ---- omikuji (a fortune slip) after a good run ---- */
 const KUJI = [['大吉', 'GREAT LUCK', 4, 400, 1], ['中吉', 'GOOD LUCK', 10, 200, 0], ['小吉', 'SMALL LUCK', 18, 120, 0], ['吉', 'FAIR LUCK', 30, 80, 0], ['末吉', 'LUCK ON THE WAY', 38, 40, 0]];
