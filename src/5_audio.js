@@ -97,16 +97,20 @@ let musicKey = 0, musicArea = 'home';
 //  雨：外の区間で雨の日だけ、さあっというノイズ（屋内・電車では小さく）。海辺（deck）：ゆっくり寄せては返す波。公園：昼間ときどき小鳥。電車：ときどき小さな鈴
 function ambLoop(hp, lp) { const n = AU.ctx.sampleRate * 2, b = AU.ctx.createBuffer(1, n, AU.ctx.sampleRate), d = b.getChannelData(0); let l = 0; for (let i = 0; i < n; i++) { l = l * .6 + (Math.random() * 2 - 1) * .4; d[i] = l; }
   const src = AU.ctx.createBufferSource(); src.buffer = b; src.loop = true; const f1 = AU.ctx.createBiquadFilter(); f1.type = 'highpass'; f1.frequency.value = hp; const f2 = AU.ctx.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = lp;
-  const g = AU.ctx.createGain(); g.gain.value = 0; src.connect(f1); f1.connect(f2); f2.connect(g); g.connect(AU.sfx || AU.master); src.start(); return g; }
+  const g = AU.ctx.createGain(); g.gain.value = 0; src.connect(f1); f1.connect(f2); f2.connect(g); g.connect(AU.sfx || AU.master); src.start(); g.src = src; return g; }
+// 鳴らすときだけ作り、静かになったら止める（ずっと回していると、音がなくても電池と CPU を使う。CI のシェア画像の試験が時間切れになった：2026-11-08）
+function ambSet(A, key, v, hp, lp, now) {
+  if (v > 0) { if (!A[key]) A[key] = ambLoop(hp, lp); A[key].gain.setTargetAtTime(v, now, .4); A[key + 'Q'] = 0; return; }
+  const g = A[key]; if (!g) return; g.gain.setTargetAtTime(0, now, .3); A[key + 'Q'] = (A[key + 'Q'] || now) ; if (now - A[key + 'Q'] > 1.5) { try { g.src.stop(); g.disconnect(); } catch (e) { } A[key] = null; A[key + 'Q'] = 0; } }
 function ambTick() {
   if (!AU.ctx || typeof G === 'undefined') return;
-  if (!AU.amb) { try { AU.amb = { rain: ambLoop(500, 7000), sea: ambLoop(120, 900), birdT: 0, chimeT: 0 }; } catch (e) { AU.amb = { off: 1 }; return; } }
+  if (!AU.amb) AU.amb = { rain: null, sea: null, birdT: 0, chimeT: 0 };
   const A = AU.amb; if (A.off) return; const now = AU.ctx.currentTime, play = G.mode === 'play' || G.mode === 'countdown';
   let seg = null; try { seg = play ? curSeg() : null; } catch (e) { }
   const kind = seg ? seg.th.kind : '', inside = kind === 'room' || kind === 'train';
   const rainV = play && G.weather === 'rain' ? (inside ? .012 : .045) : 0;
   const seaV = play && kind === 'deck' ? .05 * (.55 + .45 * Math.sin(now * 1.1)) : 0;   // 寄せては返す
-  A.rain.gain.setTargetAtTime(rainV, now, .4); A.sea.gain.setTargetAtTime(seaV, now, .3);
+  try { ambSet(A, 'rain', rainV, 500, 7000, now); ambSet(A, 'sea', seaV, 120, 900, now); } catch (e) { A.off = 1; return; }
   A.level = { rain: rainV, sea: seaV };
   if (!play) return;
   const park = seg && seg.th.fac && seg.th.fac.style === 'park', day = G.clock < 17 * 60 && G.weather !== 'rain';
