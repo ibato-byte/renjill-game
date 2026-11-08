@@ -229,6 +229,8 @@ function render() {
   computeLight(seg); camPrep();
   drawSky(seg);
   for (const sg of segOrder()) drawSegment(sg, sg === seg);
+  if (G.prints && G.prints.length && G.weather === 'snow' && G.mode !== 'title') { ctx.fillStyle = 'rgba(95,110,140,.45)'; // footprints in the snow, fading
+    for (const f of G.prints) { const age = G.t - f.t; if (age > 5 || age < .05) continue; const sp = spriteAt(f.x, f.y + .01, f.z); if (!sp || sp.sy < HORIZON) continue; ctx.globalAlpha = 1 - age / 5; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, sp.k * .1, sp.k * .04, 0, 0, Math.PI * 2); ctx.fill(); } ctx.globalAlpha = 1; }
   drawFX();
   drawWeather(seg);
   if (LT.night > .5 && !LT.indoor) { const g = ctx.createRadialGradient(W / 2, H * .55, H * .2, W / 2, H * .55, H * .8); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(8,10,30,.35)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
@@ -312,6 +314,9 @@ function drawObjects(sg, isCur, oc) {
   for (const p of sg.props) { if (p.nodraw) continue; const mid = segPos(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d < -3 || d > (p.big ? FAR : 85)) continue; DRAW.push([d, 6, p]); }
   for (const s of sg.spr) { if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const p = segPos(sg, s.s, s.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > (s.far ? FAR : 80)) continue; DRAW.push([d, 7, s]); }
   // pigeons on the street: they peck about and fly off as you run up (2026-11-08)
+  // rain: puddles on the street that splash when you run through (2026-11-08)
+  if (sg.puddles === undefined && G.weather === 'rain') sg.puddles = puddlesFor(sg);
+  if (sg.puddles && G.weather === 'rain') for (const q of sg.puddles) { const p = segPos(sg, q.s, q.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > 70) continue; DRAW.push([d + 4, 10, q]); }
   if (sg.birds === undefined) sg.birds = birdsFor(sg);
   if (sg.birds && lowQ < 2) for (const b of sg.birds) { if (isCur && !b.fly && G.mode === 'play' && G.s > b.s - 5 && G.s < b.s + 2) b.fly = G.t; const fy = b.fly ? G.t - b.fly : 0; if (fy > 2.5) continue;
     const p = segPos(sg, b.s + fy * 3, b.lat + b.dir * fy * 2.2); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .8 || d > 60) continue; DRAW.push([d, 9, b]); }
@@ -336,6 +341,7 @@ function drawObj(e, sg) {
     else if (e[1] === 8) drawBoxes(e[2].bx, sg, e[0], 1, e[2].cross ? 0 : e[2].ds, e[2].cross ? e[2].dl || 0 : 0, 0);
     else if (e[1] === 4) { drawItem(e[2], sg, e[0]); pm('items'); }
     else if (e[1] === 9) drawBird(e[2], sg, e[0]);
+    else if (e[1] === 10) drawPuddle(e[2], sg, e[0] - 4);
     else { drawBunnyWorld(e[2]); pm('bunny'); }
   }
 }
@@ -389,6 +395,13 @@ function drawSpr(s, sg, d) {
   if (!s.glow && s.img !== 'glow' && LT.amb[0] < .95) { ctx.globalCompositeOperation = 'source-atop'; }
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
 }
+function puddlesFor(sg) { const k = sg.th && sg.th.kind; if (!k || k === 'room' || k === 'train' || !(sg.len > 30)) return null; const out = [], n = 2 + ((Math.random() * 3) | 0);
+  for (let i = 0; i < n; i++) out.push({ s: 12 + Math.random() * (sg.len - 24), lat: LANES[(Math.random() * 3) | 0] + (Math.random() - .5) * .5, w: .7 + Math.random() * .5, hit: 0 });
+  return out; }
+function drawPuddle(q, sg, d) { const p = segPos(sg, q.s, q.lat), sp = spriteAt(p[0], p[2] + .01, p[1]); if (!sp) return; const rx = sp.k * q.w * .9, ry = rx * .28;
+  ctx.save(); ctx.globalAlpha = (1 - fogK(d) * .9) * .85; ctx.fillStyle = LT.night > .5 ? 'rgba(70,90,130,.55)' : 'rgba(150,170,195,.5)'; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = Math.max(1, sp.k * .015); const r = (G.t * .9 + q.s) % 1; ctx.beginPath(); ctx.ellipse(sp.sx + rx * .2, sp.sy, rx * .5 * r, ry * .5 * r, 0, 0, Math.PI * 2); ctx.globalAlpha *= 1 - r; ctx.stroke();
+  ctx.restore(); }
 function birdsFor(sg) { const k = sg.th && sg.th.kind; if (!k || k === 'room' || k === 'train' || sg.fork || Math.random() > .4 || !(sg.len > 50)) return null;
   const s0 = 25 + Math.random() * (sg.len - 45), lane = (Math.random() * 3) | 0, out = [], n = 3 + ((Math.random() * 3) | 0);
   for (let i = 0; i < n; i++) out.push({ s: s0 + Math.random() * 3, lat: LANES[lane] + (Math.random() - .5) * 1.2, ph: Math.random() * 6, dir: Math.random() < .5 ? -1 : 1, flip: Math.random() < .5, fly: 0 });

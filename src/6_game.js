@@ -109,7 +109,7 @@ function startRun() {
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
     fork: null, forkRest: null, rush: 0, chimed: 0, soonTold: 0, gaugeTold: 0, gainT: 0, feverMax: 6, hitStop: 0, jumpBuf: 0, tut: null, tutDid: '', fovK: 0, look: 0, lookCD: 4, photoT: 0, capture: null, rumbleT: 8, shake: 0, announce: [] });
-  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.chalWon = 0; G.spTier = 0; G.slowT = 0; G.easy = !!OPT().easy; G.timed = G.quickNext ? 60 : 0; G.quickNext = 0; if (G.easy) banner('RELAXED', t('easyY'), 'room'); G.stats.timed = G.timed ? 1 : 0; if (G.timed) banner('1 MINUTE', t('quick'), 'good');
+  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.prints = []; G.chalWon = 0; G.spTier = 0; G.slowT = 0; G.easy = !!OPT().easy; G.timed = G.quickNext ? 60 : 0; G.quickNext = 0; if (G.easy) banner('RELAXED', t('easyY'), 'room'); G.stats.timed = G.timed ? 1 : 0; if (G.timed) banner('1 MINUTE', t('quick'), 'good');
   G.legend = !!(SV.lgMode && legendOn('mode') && SV.tutDone); G.aura = !!(SV.lgAura !== 0 && legendOn('aura')); // the Legendary bunny's own run: faster, x1.5 score / a golden sparkle trail
   if (G.legend) banner('LEGEND MODE', tr('伝説モード：速さ＋15%・スコア×1.5', 'Legend mode: 15% faster, score x1.5'), 'good');
   G.stats = { hay: 0, dist: 0, jumps: 0, slides: 0, treats: 0, veg: 0, powers: 0, turns: 0, score: 0, fevers: 0, clean: 0, cleanCur: 0, office: 0, chime: 0, looks: 0, flights: 0, bads: [], foods: {}, spots: [], stampsNew: [] };
@@ -455,6 +455,10 @@ function update(dt) {
     else { if (G.pow.dash > 0 || G.fever > 0) smash(o); else { let nl = G.prevLane; if (nl === G.lane) { const c = (o.l0 + o.l1) / 2; nl = clamp(G.lane + (G.lat >= c ? 1 : -1), 0, 2); if (nl === G.lane) nl = clamp(G.lane - (G.lat >= c ? 1 : -1), 0, 2); } G.lane = nl; G.prevLane = nl; stumble(); } }
     if (G.mode !== 'play') return;
   }
+  // a puddle on a rainy day: a splash when you run through it (2026-11-08)
+  if (seg.puddles && G.weather === 'rain' && !G.air) for (const q of seg.puddles) { if (q.hit || Math.abs(G.s - q.s) > .5 || Math.abs(G.lat - q.lat) > .55 * q.w + .2) continue; q.hit = 1; G.stats.splash = (G.stats.splash || 0) + 1;
+    const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp && !OPT().calm) for (let k = 0; k < 14; k++) FX.push({ x: sp.sx + rand(-40, 40), y: sp.sy, vx: rand(-160, 160), vy: rand(-260, -90), life: rand(.3, .55), t: 0, c: 'rgba(170,205,235,.9)', r: rand(2, 4) });
+    tone(330, .08, 'pluck', .03); tone(494, .06, 'pluck', .02, AU.ctx && AU.ctx.currentTime + .04); }
   // items
   const cy = G.y + (sliding ? .22 : .45);
   for (const it of seg.items) {
@@ -510,7 +514,7 @@ function update(dt) {
   G.clock = seg.t0 + (seg.t1 - seg.t0) * clamp(G.s / seg.len, 0, 1);
   // animation
   P.ph += dt * (6 + G.speed * .55);
-  { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1, seg.th.kind); } } // a soft footstep on every stride
+  { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1, seg.th.kind); if (G.weather === 'snow' && seg.th.kind !== 'room' && seg.th.kind !== 'train') { const fw = segPos(seg, G.s, G.lat + ((c & 1) ? .12 : -.12)); (G.prints = G.prints || []).push({ x: fw[0], z: fw[1], y: fw[2], t: G.t, a: G.player.wy }); if (G.prints.length > 40) G.prints.shift(); } } } // footprints in the snow (2026-11-08) // a soft footstep on every stride
   P.air = G.air && !flying; P.slide = sliding; P.fly = flying; P.flash = G.invT > 0 && G.invT < 2.4 && !flying; P.glow = G.shield ? '#5FB05A' : G.pow.dash > 0 ? '#F08A2E' : null;
   if (P.look > 0) P.look = Math.max(0, P.look - dt);
   if (G.follow.look > 0) G.follow.look = Math.max(0, G.follow.look - dt);
