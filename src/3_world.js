@@ -382,7 +382,7 @@ const PROPS = {
   papersS: (sd, s) => ({ w: 1.2, bx: [B(sd * 3.8, s, .9, .7, 0, .5 + Math.random() * .8, '#FFFFFF'), B(sd * 3.75, s + .05, .88, .66, .5, .9 + Math.random() * .6, '#F4F4F0')] }),
   shelf: (sd, s) => ({ w: 2.2, bx: [B(sd * 4.25, s, .6, 2.0, 0, 2.1, '#8A5A36'), ...[0, 1, 2, 3].map(r => B(sd * 3.94, s + .1, .02, 1.8, .2 + r * .5, .5 + r * .5, ['#C8463C', '#4E77A0', '#F2C230', '#5F9E5A'][r]))] }),
   plant: (sd, s) => ({ w: 1.4, bx: [B(sd * 3.8, s, .6, .6, 0, .55, '#B08155')], spr: [{ lat: sd * 3.8, s: s + .3, y: .5, h: 1.5, w: 1.3, img: 'canopy_green' }] }),
-  boxesS: (sd, s) => ({ w: 1.6, bx: [B(sd * 3.8, s, 1.1, 1.1, 0, .9, '#C79A6C'), B(sd * 3.85, s + .15, .8, .8, .9, 1.55, '#D3A777'), B(sd * 3.25, s + .4, .02, .3, 0, .9, '#E2BB8D')] }),
+  boxesS: (sd, s) => ({ w: 1.6, bx: [B(sd * 4.3, s, 1.0, 1.0, 0, .75, '#C79A6C'), B(sd * 4.35, s + .15, .7, .7, .75, 1.2, '#D3A777'), B(sd * 3.85, s + .4, .02, .3, 0, .75, '#E2BB8D')] }), /* 道ばたの段ボール：レーンの障害物の箱と同じ絵なので、道から離して低くする（レーンをふさいで見えた・2026-11-08） */
   umbrellaS: (sd, s) => ({ w: 1, bx: [B(sd * 4.0, s, .5, .5, 0, .7, '#4E77A0'), B(sd * 3.95, s + .2, .08, .08, .7, 1.35, '#C8463C'), B(sd * 4.05, s + .3, .08, .08, .7, 1.25, '#F2C230')] }),
   sofa: (sd, s) => ({ w: 2.8, bx: [B(sd * 3.9, s, 1.2, 2.4, 0, .5, '#4E77A0'), B(sd * 4.35, s, .3, 2.4, .5, 1.1, '#46699A'), B(sd * 3.9, s - .1, 1.3, .25, 0, .8, '#46699A'), B(sd * 3.9, s + 2.25, 1.3, .25, 0, .8, '#46699A')] }),
   tvstand: (sd, s) => ({ w: 2.2, bx: [B(sd * 4.1, s, .7, 2.0, 0, .55, '#6B4631'), B(sd * 4.2, s + .2, .12, 1.6, .55, 1.5, '#1C1919'), B(sd * 4.13, s + .28, .02, 1.44, .62, 1.43, '#3B6EA8', 1)] }),
@@ -637,7 +637,10 @@ function populate(seg) {
       for (const l of ls) {
         let [t, k] = pick(lane3);
         if (k === 'block' && cnt === 3 && blocks >= 2) { const alt = lane3.filter(e => e[1] !== 'block'); if (!alt.length) continue; [t, k] = pick(alt); }
-        const o = makeObs(seg, t, s + rand(-.3, .3), l); if (o.k === 'block') blocks++; row.lanes[l] = o.k;
+        let o = makeObs(seg, t, s + rand(-.3, .3), l);
+        /* 置いた後の実際の種類で数える：積んだ箱（crate）は置くときに高い（壁）か低いかが決まるので、選んだ時点の種類では「3レーンとも壁」を防げなかった（2026-11-08） */
+        if (o.k === 'block' && cnt === 3 && blocks >= 2) { seg.obs.splice(seg.obs.indexOf(o), 1); const alt = lane3.filter(e => e[1] !== 'block' && e[0] !== 'crate'); if (!alt.length) continue; o = makeObs(seg, pick(alt)[0], s + rand(-.3, .3), l); }
+        if (o.k === 'block') blocks++; row.lanes[l] = o.k;
       }
     }
     rows.push(row); n++;
