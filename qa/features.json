@@ -137,6 +137,16 @@
       "has": "function drawBird("
     },
     {
+      "name": "雨の日の水たまり（しぶき）",
+      "file": "src/4_render.js",
+      "has": "function drawPuddle("
+    },
+    {
+      "name": "雪の日の足あと",
+      "file": "src/6_game.js",
+      "has": "G.prints = G.prints || []"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"

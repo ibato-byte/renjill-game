@@ -24,8 +24,8 @@ const { chromium } = require('playwright'); const path = require('path');
     let gold = 0; D.ev('G.t = 60'); for (let i = 0; i < 400 && !gold; i++) { const s = D.ev("newSeg(curSeg(), { t: 'shinjuku', d: 60 }, {})"); if (s.goldRoad && s.items.filter(x => x.type === 'goldhay').length === 6) gold = 1; }
     await new Promise(r => setTimeout(r, 2500));
     // air catch: five hay in one jump
-    G.air = true; G.airN = 0; G.pow.fly = 0; const cs = D.ev('curSeg()'); let air = 0; for (const it of cs.items) { if (it.got || it.type !== 'hay') continue; D.ev(`collect(curSeg().items[${cs.items.indexOf(it)}], curSeg())`); if ((G.stats.airCatch || 0) > 0) { air = 1; break; } }
-    G.air = false;
+    // （1回の評価の中でまとめて取る。評価のあいだにゲームのコマが進むと着地して数え直しになり、たまに落ちていた。2026-11-08）
+    const air = D.ev(`(() => { const sg = curSeg(); for (let i = 0; i < 6; i++) addItem(sg, 'hay', G.s + 30 + i, 1, .45); G.air = true; G.airN = 0; G.pow.fly = 0; const a0 = G.stats.airCatch || 0; for (const it of sg.items.filter(x => !x.got && x.type === 'hay').slice(-6)) collect(it, sg); const r = (G.stats.airCatch || 0) > a0 ? 1 : 0; G.air = false; return r; })()`);
     // slide master: three slide-unders in a row
     G.niceT = -9; D.ev("nice('slide'); G.niceT = -9; nice('slide'); G.niceT = -9; nice('slide')"); const slideM = G.slideRow >= 3;
     // nice corner: a turn queued in the last metres
