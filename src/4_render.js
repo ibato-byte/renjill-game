@@ -89,6 +89,7 @@ function computeLight(seg) {
   const amb = mixC(a[1], b[1], t), top = mixC(C(a[2]), C(b[2]), t), bot = mixC(C(a[3]), C(b[3]), t);
   LT.night = clamp((m - 1080) / 110, 0, 1);
   const kind = seg.th.kind; LT.indoor = kind === 'room' || kind === 'train';
+  { const nb = LT.night > .5 && !LT.indoor && G.mode !== 'title'; if (nb !== LT.nb) { LT.nb = nb; document.body.classList.toggle('nightband', nb); } } // 夜の外：お知らせの帯を少し明るく（C-27）
   const wet = G.weather === 'rain' && !LT.indoor ? .82 : G.weather === 'snow' && !LT.indoor ? .95 : 1;
   LT.top = G.weather === 'rain' ? mixC(top, [120, 130, 140], .55 * (1 - LT.night * .6)) : top;
   LT.bot = G.weather === 'rain' ? mixC(bot, [170, 176, 182], .5 * (1 - LT.night * .6)) : G.weather === 'snow' ? mixC(bot, [235, 238, 242], .5) : bot;
@@ -231,8 +232,12 @@ function render() {
   for (const sg of segOrder()) drawSegment(sg, sg === seg);
   if (G.prints && G.prints.length && G.weather === 'snow' && G.mode !== 'title') { ctx.fillStyle = 'rgba(95,110,140,.45)'; // footprints in the snow, fading
     for (const f of G.prints) { const age = G.t - f.t; if (age > 5 || age < .05) continue; const sp = spriteAt(f.x, f.y + .01, f.z); if (!sp || sp.sy < HORIZON) continue; ctx.globalAlpha = 1 - age / 5; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, sp.k * .1, sp.k * .04, 0, 0, Math.PI * 2); ctx.fill(); } ctx.globalAlpha = 1; }
+  groundDust(seg);
   drawFX();
   drawWeather(seg);
+  // 室内の昼：窓からの光がうっすら斜めに（C-35）。手前の下のほうは少しだけ暗く、奥行きを出す（C-32）
+  if (G.mode !== 'title') { if (LT.indoor && seg.th.kind === 'room' && LT.night < .5) { ctx.save(); ctx.globalAlpha = .07 * (1 - LT.night * 2); ctx.fillStyle = '#FFF4D6'; for (const [a, w] of [[.08, .1], [.3, .06], [.62, .09]]) { ctx.beginPath(); ctx.moveTo(W * a, H * .38); ctx.lineTo(W * (a + w), H * .38); ctx.lineTo(W * (a + w + .32), H); ctx.lineTo(W * (a + .32), H); ctx.closePath(); ctx.fill(); } ctx.restore(); G.shaftN = (G.shaftN || 0) + 1; }
+    const vg = ctx.createLinearGradient(0, H * .66, 0, H); vg.addColorStop(0, 'rgba(30,22,16,0)'); vg.addColorStop(1, 'rgba(30,22,16,.13)'); ctx.fillStyle = vg; ctx.fillRect(0, H * .66, W, H * .34); }
   if (LT.night > .5 && !LT.indoor) { const g = ctx.createRadialGradient(W / 2, H * .55, H * .2, W / 2, H * .55, H * .8); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(8,10,30,.35)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
   postFX();
 }
@@ -480,9 +485,13 @@ function drawBunnyWorld(b) {
   if (b.look > 0 && b.mood === 'sick') ctx.rotate(Math.sin(G.t * 7) * .07);
   if (b.look > 0 && b.mood === 'worry') { ctx.translate(0, -Math.abs(Math.sin(G.t * 9)) * 14); ctx.rotate(Math.sin(G.t * 9) * .05); }
   if (b.fly && b.who === 'pom') ctx.translate(0, Math.sin(G.t * 5) * 6);
+  // フィーバー中は走る自分のうしろに、うすい残像を2つ（C-38）。手前（画面の下）に少しずらし、レーン移動の向きにも流す。「動きを減らす」設定では出さない
+  if (b === G.player && G.fever > 0 && G.mode === 'play' && !OPT().calm && !b.fly) { const lx = G.laneT > 0 ? -Math.sign(G.lane - G.prevLane) * 60 : 0; G.ghostN = (G.ghostN || 0) + 1;
+    for (const [k, a] of [[2, .14], [1, .26]]) { ctx.globalAlpha = a; ctx.drawImage(img, -BS / 2 + lx * k, -GROUND_Y - BTOP + 34 * k, img.width, img.height); } ctx.globalAlpha = 1; }
   if (b.flash && Math.floor(G.t * 16) % 2) ctx.globalAlpha = .45;
   ctx.drawImage(LT.indoor ? img : litSprite(img, LT.amb.map((x, i) => Math.max(i === 2 ? .55 : .5, x + (1 - x) * .45)), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
   if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; ctx.drawImage(b.view === 'back' || !(b.look > 0) ? SPR.planeBack : SPR.planeBack, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Pom rides his own)
+  if (G.weather === 'rain' && !LT.indoor && G.mode !== 'title' && !b.fly) { ctx.globalAlpha = .55; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 5; ctx.lineCap = 'round'; for (const [x, y, a] of [[-60, -190, 0], [55, -150, .6], [-20, -120, 1.2]]) { const k = .5 + .5 * Math.sin(G.t * 3 + a * 3); ctx.globalAlpha = .25 + .3 * k; ctx.beginPath(); ctx.arc(x, y, 14, -2.4, -1.3); ctx.stroke(); } ctx.globalAlpha = 1; G.wetN = (G.wetN || 0) + 1; } // 雨の日はうっすらぬれて光る（C-34）
   if (b.glow) { ctx.globalAlpha = .9; ctx.strokeStyle = b.glow; ctx.lineWidth = 7; ctx.beginPath(); ctx.ellipse(0, -110, 130, 120, 0, 0, Math.PI * 2); ctx.stroke(); }
   if (!(b.look > 0) && b.who !== 'pom') b.say = '';
   if (b.look > 0 && b.mood === 'sick') { ctx.globalAlpha = Math.min(1, b.look * 3); ctx.strokeStyle = '#7C8FC4'; ctx.lineWidth = 6; ctx.lineCap = 'round'; // a woozy swirl over the head
@@ -528,6 +537,13 @@ function titleFX() {
     const base = segPos(seg, 2.4, -2.18); for (let i = 0; i < 4; i++) { const t = (G.t * .35 + i * .25) % 1, q = spriteAt(base[0] + Math.sin(G.t * 1.3 + i) * .05 * t, .6 + t * .45 + base[2], base[1]); if (!q) continue; ctx.fillStyle = `rgba(255,255,255,${(.35 * (1 - t)).toFixed(2)})`; ctx.beginPath(); ctx.arc(q.sx, q.sy, q.k * (.03 + t * .05), 0, Math.PI * 2); ctx.fill(); } }
   { // Ren's "Zz" when he dozes
     const tt = G.t % 9; if (tt > 7.2) { const b = G.player.who === 'ren' ? G.player : G.follow, q = spriteAt(b.wx, b.wy + 1.25, b.wz); if (q) { const k = (tt - 7.2) / 1.8; ctx.font = `900 ${Math.round(q.k * .11)}px "Zen Maru Gothic",sans-serif`; ctx.fillStyle = `rgba(90,110,180,${(.9 * (1 - k)).toFixed(2)})`; ctx.textAlign = 'center'; ctx.fillText('Zz', q.sx + q.k * .35 + k * 12, q.sy - k * 30); ctx.font = `900 ${Math.round(q.k * .07)}px "Zen Maru Gothic",sans-serif`; ctx.fillText('z', q.sx + q.k * .22 + k * 6, q.sy - k * 12 + 8); } } }
+}
+// 足もとの土ぼこり（C-33）：地面の種類で色が変わる（砂・雪・草・道）。屋内・板の上は出さない。「動きを減らす」設定でも出さない
+function groundDust(seg) {
+  if (G.mode !== 'play' || OPT().calm || G.air || G.player.slide || G.pow.fly > 0 || LT.indoor) return; G.dustT = (G.dustT || 0) - (G.dtFX || .016); if (G.dustT > 0) return; G.dustT = .09;
+  const rp = seg.th.rpat, c = G.weather === 'snow' ? 'rgba(244,247,250,.9)' : rp === 'sand' ? 'rgba(226,212,182,.85)' : rp === 'grass' || rp === 'lawn' ? 'rgba(150,180,100,.75)' : rp === 'gravel' ? 'rgba(196,182,156,.8)' : rp === 'planks' || rp === 'boards' ? '' : 'rgba(170,160,150,.55)'; if (!c) return;
+  const sp = spriteAt(G.player.wx, G.player.wy, G.player.wz); if (!sp) return; G.dustC = c;
+  for (let i = 0; i < 2; i++) FX.push({ x: sp.sx + rand(-14, 14) * sp.k * .01, y: sp.sy - 4, vx: rand(-50, 50), vy: rand(-70, -30), life: rand(.25, .4), t: 0, c, r: rand(2.5, 5) });
 }
 function drawFX() {
   const dt = G.dtFX || .016;

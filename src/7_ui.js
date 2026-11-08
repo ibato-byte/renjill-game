@@ -22,6 +22,7 @@ function applyLang() {
 function cardTxt(sel, txt) { const el = $(sel); el.textContent = ''; String(txt).split(/\s*[・：:·]\s*/).forEach((p, i) => { if (i) el.appendChild(document.createElement('br')); const s = document.createElement('span'); s.textContent = p; el.appendChild(s); }); }
 function refreshTitle() {
   refreshNameBtn();
+  { const lv = plantLv(); if (lv > (SV.plantLv || 0)) { SV.plantLv = lv; save(); setTimeout(() => toastTitle(t('plantUp')), 1600); } } // 観葉植物が育った（B-12）
   applyLang();
   $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
   { const dly = dailyToday(), done = SV.dailyDone === dly.key; $('#tDaily').textContent = (tr('今日のチャレンジ：', 'Today: ')) + L(dly.c.t(dly.n)) + (done ? ' ✓' : (tr('（チモシー300本＋お守り）', ' (300 hay + charm)'))); }
@@ -97,7 +98,8 @@ function stampsHTML(sel) {
   let det = `<div class="zdetail"><b>${tr('東京スタンプラリー', 'TOKYO STAMP RALLY')}</b>${esc(t('stampNote'))}</div>`;
   if (sel && SV.stamps[sel]) { const st = THEMES[sel].stamp; det = `<div class="zdetail"><b>${esc(L(st))}</b>${esc(L(st.note))}</div>`; }
   const pics = STAMP_ORDER.filter(id => SV.album[id]).map(id => `<figure><img src="${SV.album[id]}" alt="${esc(L(THEMES[id].stamp))}"><figcaption>${esc(L(THEMES[id].stamp))}</figcaption></figure>`).join('');
-  return `<div class="bank"><span>${n} / ${STAMP_ORDER.length}</span></div>${det}<div class="stamps">${tiles}</div><h3 class="ph" style="font-size:18px;margin-top:6px">${LANG === 'en' ? 'PHOTOS<small>' + t('photos') + '</small>' : t('photos')}</h3>${pics ? `<div class="album">${pics}</div>` : `<p class="note">${t('noPhoto')}</p>`}`;
+  const bp = (SV.bestPics || []).filter(p => p && p.img).map(p => `<figure><img src="${p.img}" alt=""><figcaption>${esc(t('bestPicCap', fmt(p.s)))}<br><small>${esc(new Date(p.d).toLocaleDateString())}</small></figcaption></figure>`).join('');
+  return `<div class="bank"><span>${n} / ${STAMP_ORDER.length}</span></div>${det}${bp ? `<h3 class="ph" style="font-size:18px;margin-top:6px">${esc(t('bestPics'))}</h3><div class="album best">${bp}</div>` : ''}<div class="stamps">${tiles}</div><h3 class="ph" style="font-size:18px;margin-top:6px">${LANG === 'en' ? 'PHOTOS<small>' + t('photos') + '</small>' : t('photos')}</h3>${pics ? `<div class="album">${pics}</div>` : `<p class="note">${t('noPhoto')}</p>`}`;
 }
 const STAMP_URL = {}; function stampURL(id) { const k = id + LANG; if (!STAMP_URL[k]) { try { STAMP_URL[k] = stampSprite(id).toDataURL(); } catch (e) { return ''; } } return STAMP_URL[k]; }
 function openStamps() { SFX.ui(); SV.seenStamps = Object.keys(SV.stamps).length + Object.keys(SV.album).length; save(); openPanel('TOKYO', t('stamps'), stampsHTML()); }
@@ -113,18 +115,24 @@ function openHow() {
     ${ic('plane')}<span>${esc(L(POW.fly))}</span>${ic('hanko')}<span>${esc(L(POW.x2))}</span>${ic('clover')}<span>${esc(L(ITEMS.clover))}</span>${ic('choco')}<span>${esc(t('howNG'))}</span></div>
     <div class="zdetail"><b>${tr('クレジット・ご注意', 'CREDITS & NOTES')}</b>${esc(t('legal'))}</div>`);
 }
+// 文字の大きさ（C-29）：html に bigtext をつける
+function applyLook() { try { document.documentElement.classList.toggle('bigtext', !!OPT().big); } catch (e) { } }
+function errLogHTML() { let a = []; try { a = JSON.parse(localStorage.getItem('rjErrLog') || '[]'); } catch (e) { }
+  return `<details class="m xfer errlog"><summary><b>${esc(t('errLogH'))}</b> (${a.length})</summary><p class="note">${esc(t('errLogNote'))}</p>${a.length ? `<ul>${a.slice().reverse().map(x => `<li><code>${esc(new Date(x.t).toLocaleString())}${x.n > 1 ? ' ×' + x.n : ''}</code> ${esc(x.m)}</li>`).join('')}</ul>` : `<p class="note">${esc(t('errLogNone'))}</p>`}</details>`; }
 function settingsHTML() {
   const o = OPT(), row = (lbl, key, opts) => `<div class="m"><p><b>${esc(lbl)}</b></p><span class="seg">${opts.map(([v, txt]) => `<button class="buy${o[key] === v ? '' : ' off'}" data-opt="${key}" data-v="${v}">${esc(txt)}</button>`).join('')}</span></div>`;
   const langRow = `<div class="m langrow"><p><b>🌐 Language</b></p><span class="seg langseg">${LANGS.map(l => `<button class="buy${LANG === l ? '' : ' off'}" data-lang="${l}" lang="${({ zh: 'zh-Hant' })[l] || l}">${LANG_NAME[l]}</button>`).join('')}</span></div>`; // all four, side by side (the title button cycles)
   return langRow + row(t('ctrl'), 'ctrl', [['swipe', t('ctrlSwipe')], ['tap', t('ctrlTap')]]) + `<p class="note">${esc(t('ctrlNote'))}</p>` +
-    row(t('sens'), 'sens', [['normal', t('sensN')], ['high', t('sensH')]]) + row(t('vib'), 'vib', [[true, t('on')], ['low', t('vibLow')], [false, t('off')]]) +
+    (OPT().ctrl === 'tap' ? row(t('hand'), 'hand', [[false, t('off')], [true, t('on')]]) + `<p class="note">${esc(t('handNote'))}</p>` : '') +
+    row(t('sens'), 'sens', [['normal', t('sensN')], ['high', t('sensH')]]) + `<p class="note">${esc(t('sensNote'))}</p>` + row(t('vib'), 'vib', [[true, t('on')], ['low', t('vibLow')], [false, t('off')]]) +
+    row(t('bigText'), 'big', [[false, t('bigN')], [true, t('bigY')]]) + `<p class="note">${esc(t('bigNote'))}</p>` +
     row(t('easy'), 'easy', [[false, t('easyN')], [true, t('easyY')]]) + `<p class="note">${esc(t('easyNote'))}</p>` +
-    row(t('calm'), 'calm', [[true, t('on')], [false, t('off')]]) + row(t('music'), 'music', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) + row(t('sfx'), 'sfx', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) +
+    row(t('calm'), 'calm', [[true, t('on')], [false, t('off')]]) + `<p class="note">${esc(t('calmNote'))}</p>` + row(t('music'), 'music', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) + row(t('sfx'), 'sfx', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) +
     `<button class="sub" id="btnNameSet">${esc(SV.nick ? t('nameBtn', SV.nick) : t('nameNone'))}</button> <button class="sub" id="btnTut">${esc(t('resetTut'))}</button>` +
     `<div class="m xfer"><p><b>${esc(t('codeH'))}</b></p><p class="note">${esc(t('codeNote'))}</p><div class="btns" style="display:flex;gap:8px"><input id="codeIn" aria-label="${esc(t('codeH'))}" maxlength="24" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="${esc(t('codePh'))}" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px"><button class="sub" id="btnCode" style="width:auto">${esc(t('codeOk'))}</button></div><p class="note" id="codeMsg" aria-live="polite"></p></div>` +
     `<div class="m xfer sns"><p><b>${esc(t('snsH'))}</b></p><p class="note">${esc(t('snsNote'))}</p>${followLinks('chips')}</div>` + linkHTML() + `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" aria-label="${esc(t('xfer'))}" readonly rows="3" hidden></textarea>` +
     `<textarea id="xferIn" aria-label="${esc(t('xferPaste'))}" rows="3" placeholder="${esc(t('xferPaste'))}"></textarea><button class="sub" id="btnXferLoad">${esc(t('xferLoad'))}</button><p class="note" id="xferMsg" aria-live="polite"></p></div>` +
-    `<div class="m xfer reset"><p><b>${esc(t('resetH'))}</b></p><p class="note">${esc(t('resetNote'))}</p><button class="sub danger" id="btnReset">${esc(t('resetBtn'))}</button>` +
+    errLogHTML() + `<div class="m xfer reset"><p><b>${esc(t('resetH'))}</b></p><p class="note">${esc(t('resetNote'))}</p><button class="sub danger" id="btnReset">${esc(t('resetBtn'))}</button>` +
     `<div id="resetAsk" hidden><p class="note"><b>${esc(t('resetAsk'))}</b></p><div style="display:flex;gap:8px"><button class="sub danger" id="btnResetYes">${esc(t('resetYes'))}</button><button class="sub" id="btnResetNo">${esc(t('resetNo'))}</button></div></div><p class="note" id="resetMsg" aria-live="polite"></p></div>`;
 }
 /* ---- the player's name for the ranking: asked before the first run, editable any time ---- */
@@ -227,9 +235,13 @@ const LINK_Q = (() => { try { const m = /[?&]link=([A-Za-z0-9-]{8,9})\b/.exec(lo
 function linkFromUrl() { if (!LINK_Q) return; const go = (n) => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn()) { if (window.HAYDASH_APP) toastTitle(t('linkFail')); return; } openSettings(); const i = $('#linkIn'); if (i) { i.value = linkFmt(LINK_Q); i.scrollIntoView({ block: 'center' }); linkLook(LINK_Q); } }; go(0); }
 function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); }
 let rvTimer = null;
+// ぶつかった物の絵を、続ける画面と結果画面に（C-69）。絵のある物だけ。書類に追いつかれた・壁・時間切れのときも、最後にぶつかった物
+function showHit(pre) { const box = $('#' + pre + 'Hit'); if (!box) return; const o = G.lastHit; let url = '';
+  try { if (o && o.art && G.cause !== 'time' && G.cause !== 'quit' && typeof ART !== 'undefined' && ART[o.art]) { const c = ART[o.art](o, false); url = c && c.toDataURL ? c.toDataURL() : ''; } } catch (e) { url = ''; }
+  box.hidden = !url; if (!url) return; $('#' + pre + 'HitImg').src = url; $('#' + pre + 'HitTxt').textContent = LANG === 'ja' && typeof OBS_JA !== 'undefined' && OBS_JA[o.type] ? t('hitWhatN', OBS_JA[o.type]) : t('hitWhat'); }
 function openRevive() {
   const c = reviveCost(), cap = (CAPS[G.cause] || CAPS.obstacle)[G.char];
-  $('#rvEn').textContent = tr(cap[1], cap[0]); $('#rvJa').textContent = '';
+  $('#rvEn').textContent = tr(cap[1], cap[0]); $('#rvJa').textContent = ''; showHit('rv');
   const bc = $('#btnRvClover'), bh = $('#btnRvHay');
   const free = freeRevive(); bc.dataset.free = free ? '1' : '';
   bc.textContent = free ? t('reviveFree') : t('reviveClover', c.clover); bc.disabled = !free && SV.clovers < c.clover; bc.style.opacity = bc.disabled ? .45 : 1;
@@ -261,12 +273,16 @@ let tp = null;
 const stage = $('#app');
 stage.addEventListener('pointerdown', e => {
   if (G.mode !== 'play') return; if (e.target.closest('button')) return;
-  if (OPT().ctrl === 'tap') { const fx = e.clientX / W, fy = e.clientY / H; act(fx < .33 ? 'left' : fx > .67 ? 'right' : fy < .62 ? 'up' : 'down'); return; }
-  tp = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, id: e.pointerId, fired: false };
+  if (OPT().ctrl === 'tap') { const fx = e.clientX / W, fy = e.clientY / H;
+    if (OPT().hand) { if (fy < .5) return; act(fx < .33 ? 'left' : fx > .67 ? 'right' : fy < .75 ? 'up' : 'down'); return; } // 片手（C-12）：指の届く下半分だけ。上の半分は押しても何も起きない
+    act(fx < .33 ? 'left' : fx > .67 ? 'right' : fy < .62 ? 'up' : 'down'); return; }
+  tp = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, px: e.clientX, py: e.clientY, tm: performance.now(), id: e.pointerId, fired: false };
 });
 stage.addEventListener('pointermove', e => {
   if (!tp || tp.id !== e.pointerId) return;
-  const dx = e.clientX - tp.x, dy = e.clientY - tp.y, th = OPT().sens === 'high' ? 12 : Math.max(16, Math.min(W, H) * .04); // a shorter swipe counts (20px felt slow on a phone)
+  const now = performance.now(), v = Math.hypot(e.clientX - tp.px, e.clientY - tp.py) / Math.max(1, now - tp.tm); tp.px = e.clientX; tp.py = e.clientY; tp.tm = now; G.swipeV = v;
+  // 速いはじき（1ms に 0.9px 以上）は、短くても受け付ける：しきい値を 6 割に（C-5）
+  const dx = e.clientX - tp.x, dy = e.clientY - tp.y, th = (OPT().sens === 'high' ? 12 : Math.max(16, Math.min(W, H) * .04)) * (v > .9 ? .6 : 1); // a shorter swipe counts (20px felt slow on a phone)
   if (Math.abs(dx) > th || Math.abs(dy) > th) { const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'); if (dir !== tp.last || performance.now() - tp.t > 160) { act(dir); tp.last = dir; tp.t = performance.now(); tp.fired = true; } tp.x = e.clientX; tp.y = e.clientY; }
 });
 const endTouch = e => { if (!tp || tp.id !== e.pointerId) return; // a fast flick on a busy frame may arrive as just down + up: read it from the whole stroke
@@ -309,7 +325,7 @@ $('#sPanel').addEventListener('click', e => {
   if (sst) { SFX.ui(); $('#pBody').innerHTML = stampsHTML(sst.dataset.s); }
   { const lb = e.target.closest('[data-lang]'); if (lb && LANGS.includes(lb.dataset.lang)) { LANG = lb.dataset.lang; SV.lang = LANG; save(); refreshTitle(); SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); } }
   const op = e.target.closest('[data-opt]');
-  if (op) { const k = op.dataset.opt; let v = op.dataset.v; if (v === 'true') v = true; else if (v === 'false') v = false; SV.opt[k] = v; save(); audioInit(); applyAudioOpt(); SFX.ui(); $('#pBody').innerHTML = settingsHTML(); }
+  if (op) { const k = op.dataset.opt; let v = op.dataset.v; if (v === 'true') v = true; else if (v === 'false') v = false; SV.opt[k] = v; save(); audioInit(); applyAudioOpt(); applyLook(); SFX.ui(); $('#pBody').innerHTML = settingsHTML(); }
   const rt = e.target.closest('[data-rt]'); if (rt) openRanking(rt.dataset.rt);
   if (e.target.id === 'nickSave') saveNick();
   if (e.target.id === 'nameOk') nameDone(1);
@@ -376,14 +392,23 @@ function frameBody(now) {
   if (G.capture && G.capture.t <= 0) { takePhoto(G.capture.tid); G.capture = null; }
   if (G.mode === 'title') { drawCharCard($('#cvRen'), 'ren', G.t); drawCharCard($('#cvJill'), 'jill', G.t + 1.3); if (SV.pomMet) drawCharCard($('#cvPom'), 'pom', G.t + .6); }
   if (SAVE_DIRTY && G.mode !== 'play' && G.mode !== 'countdown') saveNow();
-  musicTick();
+  musicTick(); padTick();
 }
+// ゲームパッド（C-13）：十字キー・左スティックで操作、A でジャンプ、B でスライディング、スタートで一時停止
+const PAD = { prev: {} };
+function padTick() { let gp = null; try { const l = navigator.getGamepads ? navigator.getGamepads() : []; for (const g of l) if (g && g.connected) { gp = g; break; } } catch (e) { return; } if (!gp) return;
+  const b = i => !!(gp.buttons[i] && gp.buttons[i].pressed), ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
+  const now = { up: b(12) || b(0) || ay < -.6, down: b(13) || b(1) || ay > .6, left: b(14) || ax < -.6, right: b(15) || ax > .6, start: b(9) };
+  for (const k of ['up', 'down', 'left', 'right']) if (now[k] && !PAD.prev[k] && G.mode === 'play') { act(k); G.padN = (G.padN || 0) + 1; }
+  if (now.start && !PAD.prev.start) { if (G.mode === 'play') pause(); else if (G.mode === 'pause') resume(); }
+  PAD.prev = now; }
 addEventListener('pagehide', () => { try { saveNow(); } catch (e) { } });
 // a computer: clicking another window (the game keeps running behind it) pauses, like switching tabs does (2026-11-08)
 addEventListener('blur', () => { try { if (G.mode === 'play' && !matchMedia('(pointer:coarse)').matches) pause(); } catch (e) { } });
 function resizeKeep() { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
 function boot() {
-  buildItemSprites(); buildWorldSprites(); buildBunnies(); applyWear(); rankIcons(); rankInit(); chatInit(); resize(); addEventListener('resize', resize);
+  applyLook();
+  buildItemSprites(); buildWorldSprites(); buildBunnies(); applyWear(); rankIcons(); rankInit(); chatInit(); resize(); { let rz = 0; const later = () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { G.resizeN = (G.resizeN || 0) + 1; resize(); }); }; addEventListener('resize', later); addEventListener('orientationchange', later); } // 画面を回したとき、描き直しは 1 回だけ（C-63）
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren'; missionsFix();
   goTitle(); document.documentElement.classList.remove('booting'); // the page shows only once its words are in the player's language

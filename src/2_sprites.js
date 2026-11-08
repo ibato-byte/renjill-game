@@ -62,6 +62,10 @@ const DRAW_ITEM = {
     for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + Math.PI / 4; g.save(); g.translate(64 + Math.cos(a) * 20, 60 + Math.sin(a) * 20); g.rotate(a + Math.PI / 2);
       ell(g, -9, 0, 13, 15, 0, '#4FA34A', OUT, 2.5); ell(g, 9, 0, 13, 15, 0, '#4FA34A', OUT, 2.5); g.restore(); } ell(g, 64, 60, 6, 6, 0, '#3E8A3A'); },
   mugIcon(g) { rr(g, 30, 34, 56, 66, 10, '#FBF6EE', OUT, 3); ell(g, 92, 66, 14, 18, 0, null, OUT, 8); ell(g, 92, 66, 14, 18, 0, null, '#FBF6EE', 4); rr(g, 30, 50, 56, 10, 0, '#4E77A0'); ell(g, 58, 36, 26, 6, 0, '#6B4631'); },
+  chalflag(g) { // challenge flag: a pole with a red-and-gold pennant and a star
+    rr(g, 58, 14, 8, 106, 3, '#8C5A3C', OUT, 2); g.beginPath(); g.moveTo(66, 16); g.lineTo(118, 34); g.lineTo(66, 54); g.closePath(); g.fillStyle = '#E2434B'; g.fill(); g.strokeStyle = OUT; g.lineWidth = 3; g.stroke();
+    g.beginPath(); g.moveTo(66, 30); g.lineTo(100, 35); g.lineTo(66, 41); g.closePath(); g.fillStyle = '#F2C230'; g.fill(); ell(g, 62, 116, 16, 5, 0, 'rgba(0,0,0,.18)');
+  },
   memo(g) { // dropped papers: two sheets with lines and a red clip
     g.save(); g.translate(64, 66); g.rotate(-.18); rr(g, -34, -42, 68, 86, 6, '#E9E2D3', OUT, 3); g.restore();
     g.save(); g.translate(64, 64); g.rotate(.1); rr(g, -34, -44, 68, 88, 6, '#FFFDF7', OUT, 3);

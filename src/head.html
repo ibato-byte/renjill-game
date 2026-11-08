@@ -70,6 +70,10 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 .pow img{width:22px;height:22px}
 .pow i{display:block;width:44px;height:5px;border-radius:3px;background:var(--line);overflow:hidden}
 .pow i u{display:block;height:100%;background:var(--tie)}
+/* パワーアップの残り時間：アイコンのまわりの丸いゲージ（C-70）。残り 1.5 秒で点滅 */
+.pow .ring{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:conic-gradient(var(--tie) calc(var(--p,100) * 1%),rgba(59,42,32,.18) 0)}
+.pow .ring img{width:24px;height:24px;border-radius:50%;background:rgba(251,246,238,1);padding:1px}.pow .ring.low{animation:tpulse .3s ease-in-out infinite alternate}
+.pow:has(.ring){padding:3px}
 #pauseBtn{pointer-events:auto;position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:50%;border:0;background:rgba(251,246,238,.9);font-family:var(--f-display);font-size:14px;box-shadow:0 2px 0 rgba(59,42,32,.3)}
 #toasts{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 132px);display:flex;flex-direction:column;align-items:center;gap:8px}
 .toast{background:var(--paper);border-radius:16px;padding:8px 16px;text-align:center;box-shadow:0 3px 0 rgba(59,42,32,.3);animation:pop .35s cubic-bezier(.2,1.6,.4,1) both, fade .4s ease-in 1.9s forwards;max-width:86vw}
@@ -181,6 +185,8 @@ html[lang="ja"] .mini span{display:none}html[lang="ja"] .ph small{display:none}
 .res-cap{text-align:center}
 .res-cap .en{font-family:var(--f-display);font-size:clamp(26px,8vw,40px);display:block;line-height:1.05;text-wrap:balance}
 .res-cap .ja{font-weight:900;font-size:14px;color:var(--ink-soft)}
+/* ぶつかった物の絵（C-69） */
+.res-cap .hitwhat{display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:4px 12px 4px 6px;border-radius:999px;background:rgba(59,42,32,.08)}.res-cap .hitwhat[hidden]{display:none}.res-cap .hitwhat img{height:40px;width:auto;max-width:64px;object-fit:contain}.res-cap .hitwhat em{font-style:normal;font-size:12px;font-weight:900;color:var(--ink-soft)}
 .hi{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}.hi:empty{display:none}.hi span{background:var(--cream);border-radius:999px;padding:4px 10px;font-size:11px;font-weight:900;color:var(--ink)}.hi span.new{background:var(--tie)}
 .last{margin:0;font-size:12px;font-weight:800;color:var(--ink-soft);text-align:center;line-height:1.5}
 .res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -199,7 +205,13 @@ html[lang="ja"] .mini span{display:none}html[lang="ja"] .ph small{display:none}
 #banner{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 158px);transform:translate(-50%,-8px);opacity:0;transition:opacity .18s,transform .18s;
   display:flex;align-items:baseline;gap:8px;max-width:calc(100% - 32px);padding:5px 12px;border-radius:999px;background:rgba(59,42,32,.78);color:var(--paper);white-space:nowrap;overflow:hidden;pointer-events:none}
 #banner.long{white-space:normal;border-radius:14px;align-items:center;width:min(calc(100% - 24px),440px);max-width:none;box-sizing:border-box}#banner.long .ja{flex:1}#banner.long .ja{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25;text-overflow:clip}
+/* 2026-11-08 見やすさ：夜の外では帯を少し明るく（C-27）／なくしたハートは色だけでなく、しま模様でも区別（C-28）／もぐもぐメーターに 4 分の目もり（C-28）／文字を大きく（C-29） */
+body.nightband #banner:not(.good):not(.bad){background:rgba(92,74,60,.9);box-shadow:0 0 0 1.5px rgba(251,246,238,.45)}
+#lives.one i:last-child{background:repeating-linear-gradient(45deg,rgba(251,246,238,.75) 0 2px,rgba(251,246,238,.15) 2px 4.5px)}
+#feverBar::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent calc(25% - 1px),rgba(251,246,238,.5) calc(25% - 1px) 25%,transparent 25% calc(50% - 1px),rgba(251,246,238,.5) calc(50% - 1px) 50%,transparent 50% calc(75% - 1px),rgba(251,246,238,.5) calc(75% - 1px) 75%,transparent 75%);pointer-events:none}
+html.bigtext #hud .chip,html.bigtext #banner,html.bigtext #lives,html.bigtext .panel .m,html.bigtext .panel .note,html.bigtext .panel .zdetail,html.bigtext #res .card{zoom:1.12}
 #banner.show{opacity:1;transform:translate(-50%,0)}
+.errlog summary{cursor:pointer;list-style:revert}.errlog ul{margin:6px 0 0;padding-left:18px;font-size:11px;line-height:1.45;word-break:break-all}.errlog code{font-size:10px;color:var(--ink-soft)}
 #banner .en{font-family:var(--f-display);font-size:13px;letter-spacing:.03em;flex:none}
 #banner .ja{font-size:12px;font-weight:700;opacity:.92;overflow:hidden;text-overflow:ellipsis;min-width:0}
 #banner.good{background:rgba(169,122,30,.88)} #banner.bad{background:rgba(200,70,60,.88)} #banner.room .en{color:var(--tie)}
@@ -296,6 +308,7 @@ button:active,.shbtns a:active{transform:scale(.95)}
 #sResult .rk-foot{display:flex;justify-content:space-between;align-items:center;gap:8px}
 #sResult .rk-foot .sub.small{margin-left:auto}
 .career{display:grid;grid-template-columns:auto auto 1fr;grid-template-rows:auto auto;align-items:center;column-gap:8px;background:var(--cream);border-radius:12px;padding:7px 10px}
+.career .cr-plant{grid-column:1/-1;display:flex;align-items:flex-end;gap:6px;margin-top:4px;font-size:11px;font-weight:900;color:var(--ink-soft)}.career .cr-plant img{width:auto}.career .cr-plant small{font-weight:700;opacity:.8}
 .career .cr-t{font-weight:900;font-size:14px;color:var(--ink)}.career .cr-lv{font-family:var(--f-display);font-size:12px;color:var(--badge-deep)}
 .career .cr-bar{height:8px;border-radius:999px;background:rgba(59,42,32,.14);overflow:hidden}.career .cr-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--tie),#E9A84A);border-radius:999px}
 .career small{grid-column:1/-1;font-size:10.5px;font-weight:800;color:var(--ink-soft)}
