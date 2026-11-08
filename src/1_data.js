@@ -32,7 +32,11 @@ const SNS = [{ id: 'ig', name: 'Instagram', url: 'https://www.instagram.com/renj
 const OFFICIAL_SITE = 'https://renjill.coana.co.jp/', SITE_REF = OFFICIAL_SITE + '?ref=haydash'; // the official site can count visits that came from the game
 /* ---- where a new player came from: ?ref=<channel> on a shared link (one short word from this list, nothing personal).
    Kept once (the first visit) and sent with the ranking row as "src", so qa/kpi.mjs can count players per channel. */
-const REF_OK = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr', 'itch', 'gamejolt', 'newgrounds', 'freem', 'plicy', 'portal'];
+const REF_OK = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr', 'itch', 'gamejolt', 'newgrounds', 'freem', 'plicy', 'portal', 'indiedb', 'crazygames'];
+// played inside a game portal that has its own rules (CrazyGames: no links out to a playable web version, ads only through its SDK).
+// Decided once per tab: the address (?ref=crazygames) or the page that framed us; kept in sessionStorage because the address is cleaned right after
+const HOST_PORTAL = (() => { try { const r = (new URLSearchParams(location.search).get('ref') || '').toLowerCase(), anc = [...(location.ancestorOrigins || [])].join(' ') + ' ' + (document.referrer || '');
+  const p = r === 'crazygames' || /crazygames\./i.test(anc) ? 'crazygames' : (sessionStorage.getItem('rjPortal') || ''); if (p) sessionStorage.setItem('rjPortal', p); return p; } catch (e) { return ''; } })();
 const REF_IN = (() => { try { const q = new URLSearchParams(location.search), r = (q.get('ref') || '').toLowerCase(); if (!q.has('ref')) return ''; q.delete('ref'); const rest = q.toString(); history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash); return REF_OK.includes(r) ? r : ''; } catch (e) { return ''; } })();
 if (REF_IN && !SV.ref) SV.ref = REF_IN;
 /* ---- account transfer: the whole save (without photos) as a code, readable by any build of the game ----
@@ -141,7 +145,7 @@ const STR = {
   hintMove: ['左右スワイプでレーン移動・上でジャンプ・下でスライディング', 'Swipe left/right to change lanes, up to jump, down to slide'],
   hintTurn: ['矢印が出たら、その向きにスワイプして曲がる', 'When an arrow appears, swipe that way to turn'],
   hintFork: ['分かれ道！ 行きたい方へスワイプ', 'A fork! Swipe toward where you want to go'],
-  reviveClover: ['お守り×{0}で続ける', 'Use {0} charm to continue'], reviveHay: ['チモシー{0}本で続ける', 'Continue for {0} hay'],
+  reviveClover: ['お守り×{0}で続ける', 'Use {0} charm to continue'], reviveHay: ['チモシー{0}本で続ける', 'Continue for {0} hay'], reviveAd: ['広告を見て続ける', 'Watch an ad to keep going'], adFail: ['広告を出せませんでした', 'No ad right now'],
   reviveHave: ['お守り {0}個・チモシー {1}本', 'Charms: {0} · Hay: {1}'], seeResult: ['結果を見る', 'See result'],
   keepGoing: ['まだ定時じゃない！', 'Not quitting time yet!'],
   morning: ['課長、寝坊。走れ！', 'The boss overslept. Run!'],

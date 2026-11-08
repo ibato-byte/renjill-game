@@ -225,7 +225,8 @@ function openRevive() {
   bc.textContent = free ? t('reviveFree') : t('reviveClover', c.clover); bc.disabled = !free && SV.clovers < c.clover; bc.style.opacity = bc.disabled ? .45 : 1;
   bh.textContent = t('reviveHay', c.hay); bh.disabled = SV.bank + Math.floor(G.hay) < c.hay; bh.style.opacity = bh.disabled ? .45 : 1; bh.hidden = free;
   $('#rvHave').textContent = free ? t('reviveFreeNote') : t('reviveHave', SV.clovers, fmt(SV.bank + Math.floor(G.hay)));
-  if (bc.disabled && bh.disabled) { endRun(); return; }
+  const ba = $('#btnRvAd'); if (ba) { ba.hidden = !PORTAL.adOK(); ba.textContent = t('reviveAd'); }
+  if (bc.disabled && bh.disabled && (!ba || ba.hidden)) { endRun(); return; }
   hideAll(); show('sRevive'); { const f = !bc.disabled ? bc : !bh.disabled && !bh.hidden ? bh : $('#btnRvNo'); try { f.focus({ preventScroll: true }); } catch (e) { } } // keyboard players can continue with Enter
   const ring = $('#rvRing'), num = $('#rvNum'), t0 = performance.now();
   clearInterval(rvTimer);
@@ -255,7 +256,7 @@ stage.addEventListener('pointerdown', e => {
 });
 stage.addEventListener('pointermove', e => {
   if (!tp || tp.id !== e.pointerId) return;
-  const dx = e.clientX - tp.x, dy = e.clientY - tp.y, th = OPT().sens === 'high' ? 12 : Math.max(16, Math.min(W, H) * .04); // a shorter swipe counts (20px felt slow on a phone)
+  const dx = e.clientX - tp.x, dy = e.clientY - tp.y, th = OPT().sens === 'high' ? 14 : Math.max(20, Math.min(W, H) * .04);
   if (Math.abs(dx) > th || Math.abs(dy) > th) { const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'); if (dir !== tp.last || performance.now() - tp.t > 160) { act(dir); tp.last = dir; tp.t = performance.now(); tp.fired = true; } tp.x = e.clientX; tp.y = e.clientY; }
 });
 const endTouch = e => { if (!tp || tp.id !== e.pointerId) return; // a fast flick on a busy frame may arrive as just down + up: read it from the whole stroke
