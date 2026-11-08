@@ -370,7 +370,8 @@ function frameBody(now) {
   TEXN = 0; TEXB = performance.now() + 3;
   { let bad = null; if (G.mode !== 'pause' && G.mode !== 'dead' && G.mode !== 'result') { try { update(dt); } catch (e) { bad = e; } }
     if (bad) reportErr(bad); runGuard(Math.min(.1, Math.max(0, raw)), bad); } // a broken frame still draws, and the safety net looks at every frame
-  render();
+  // battery: while paused nothing on the stage moves, so it is drawn only a couple of times a second (2026-11-08)
+  if (G.mode !== 'pause' || now - (G.pauseDrawT || 0) > 500) { G.pauseDrawT = now; render(); }
   if (G.mode === 'play') texWarm(Math.max(0, Math.min(3, TEXB - performance.now())));
   if (G.capture && G.capture.t <= 0) { takePhoto(G.capture.tid); G.capture = null; }
   if (G.mode === 'title') { drawCharCard($('#cvRen'), 'ren', G.t); drawCharCard($('#cvJill'), 'jill', G.t + 1.3); if (SV.pomMet) drawCharCard($('#cvPom'), 'pom', G.t + .6); }

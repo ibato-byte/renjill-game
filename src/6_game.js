@@ -235,7 +235,7 @@ function doTurn() {
   if (seg.fork && seg.fork.label === 'lunch') G.stats.lunch = 1;
   const qt = G.turnQT;
   G.ci = G.segs.indexOf(next);
-  G.s = ns; G.lat = nlat; G.lane = clamp(Math.round(nlat / 1.5) + 1, 0, 2); G.prevLane = G.lane; G.turnQueued = 0; G.turnAuto = 0; G.turnQT = 0; G.turnT = .8; G.stats.turns++;
+  G.s = ns; G.lat = nlat; G.lane = clamp(Math.round(nlat / 1.5) + 1, 0, 2); G.prevLane = G.lane; G.turnQueued = 0; G.turnAuto = 0; G.turnQT = 0; G.turnT = .8; G.turnDir = dir; G.stats.turns++;
   // the streets after it: only what is needed right now on the turn's frame, the rest a moment later (one per frame)
   if (G.segs.length - G.ci < 2 && !G.fork) ensureSegs(1); while (G.ci > 1) { G.segs.shift(); G.ci--; }
   G.segDue = .3;
