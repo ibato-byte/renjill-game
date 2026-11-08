@@ -38,7 +38,7 @@ let PANEL_FROM = null;
 function openPanel(title, sub, html) { if ($('#sPanel').hidden) { const a = document.activeElement; PANEL_FROM = a && a !== document.body && !a.closest('#sPanel') ? a : null; } if (LANG !== 'en' && sub) { title = esc(sub); sub = ''; } document.querySelectorAll('.toast').forEach(x => x.remove()); if (sub && sub.toUpperCase() === title) sub = ''; $('#pTitle').innerHTML = `${title}<small>${esc(sub)}</small>`; $('#pBody').innerHTML = html; $('#pBody').scrollTop = 0; show('sPanel'); $('#pClose').focus(); }
 function closePanel() { $('#sPanel').hidden = true; if (G.mode === 'title') refreshTitle(); const f = PANEL_FROM; PANEL_FROM = null; if (f && f.isConnected && !f.closest('[hidden]')) try { f.focus({ preventScroll: true }); } catch (e) { } }
 
-function openMissions() { SFX.ui(); openPanel('MISSIONS', t('missions'), `<div class="lvl"><b>×${SV.mlevel}</b><span>${esc(t('missionNote'))}</span></div>${missionHTML()}${dailyHTML()}${calHTML()}${achHTML()}`); }
+function openMissions() { SFX.ui(); openPanel('MISSIONS', t('missions'), `<div class="lvl"><b>×${SV.mlevel}</b><span>${esc(t('missionNote'))}</span></div>${missionHTML()}${dailyHTML()}${weekHTML()}${calHTML()}${achHTML()}`); }
 // the days you came to work: the last four weeks as a little calendar of stamps (2026-11-08)
 function calHTML() { const days = new Set(SV.playDays || []), cells = []; const now = new Date(); const ds = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
   const start = new Date(now); start.setDate(now.getDate() - 27 - ((now.getDay() + 6) % 7) + 6); // 4 rows of 7, ending this week
