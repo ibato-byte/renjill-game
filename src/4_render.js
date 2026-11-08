@@ -570,8 +570,9 @@ function drawFX() {
     else { ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
   }
   ctx.globalAlpha = 1;
-  const spdK = (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : clamp((G.speed - 15.5) / 2, 0, .4); // faint speed lines once the run gets fast, full ones on a dash
-  if (G.mode === 'play' && !OPT().calm && spdK > 0) {
+  // 集中線はダッシュ・フィーバー・飛んでいる間だけ。ふつうに速いだけのときの薄い線は、画面のあちこちに「薄い斜めの残像」が出ているように見えたのでやめた（2026-11-08 の報告）
+  const spdK = (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0;
+  if (G.mode === 'play' && !OPT().calm && spdK > 0) { G.spdN = (G.spdN || 0) + 1;
     ctx.strokeStyle = G.fever > 0 ? `rgba(242,194,48,${(.55 * spdK).toFixed(2)})` : `rgba(255,255,255,${(.55 * spdK).toFixed(2)})`; ctx.lineWidth = 2; ctx.beginPath();
     for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2 + G.t * .5, r0 = Math.min(W, H) * (.32 + ((G.t * 3 + k * .37) % 1) * .5); ctx.moveTo(W / 2 + Math.cos(a) * r0, HORIZON + Math.sin(a) * r0 * .8); ctx.lineTo(W / 2 + Math.cos(a) * (r0 + 40), HORIZON + Math.sin(a) * (r0 + 40) * .8); }
     ctx.stroke();
