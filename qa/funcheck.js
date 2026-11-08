@@ -38,8 +38,17 @@ const { chromium } = require('playwright'); const path = require('path');
     const memo = D.ev(`JSON.stringify((() => { let seen = 0; G.t = 60; for (let i = 0; i < 60 && !seen; i++) { G.memoAt = 0; const a = newSeg(null, { t: 'shinjuku', d: 60 }, {}); if (a.items.some(x => x.type === 'memo')) seen = 1; }
       const sg = curSeg(); addItem(sg, 'memo', G.s + 40, 1, .45); const it = sg.items[sg.items.length - 1]; const s0 = G.score, m0 = G.stats.memos || 0; G.follow.show = true; collect(it, sg);
       return { seen, got: (G.stats.memos || 0) - m0, pts: G.score - s0, say: G.follow.say, book: !!SV.zukan.memo }; })())`);
-    return { memo: JSON.parse(memo), sky, rich: JSON.parse(rich), air, slideM, corner, perfect, scoreUp: G.score > sc0, slow, gold, spTier: G.spTier, banners: seen.banner.join(' | ').slice(0, 400) };
+    // snow days (B-28): snowballs roll on streets; rain (C-52) and the sea (C-50) have their own sound
+    const snow = D.ev(`JSON.stringify((() => { const w = G.weather; G.weather = 'snow'; let n = 0; for (let i = 0; i < 40 && !n; i++) { const a = newSeg(null, { t: 'shinjuku', d: 60 }, {}); n = a.obs.filter(o => o.art === 'snowball' && o.mv > 0).length; }
+      G.weather = 'clear'; let m = 0; for (let i = 0; i < 20; i++) { const a = newSeg(null, { t: 'shinjuku', d: 60 }, {}); m += a.obs.filter(o => o.art === 'snowball').length; } G.weather = w; return { n, m }; })())`);
+    const amb = D.ev(`JSON.stringify((() => { if (!AU.ctx) return { skip: 1 }; const w = G.weather; G.weather = 'rain'; ambTick(); const r = AU.amb && AU.amb.level ? AU.amb.level.rain : -1; G.weather = 'clear'; ambTick(); const r0 = AU.amb.level.rain; G.weather = w; return { r, r0 }; })())`);
+    // a short, fast flick counts (C-5)
+    const flick = await (async () => { D.ev('G.lane = 1; G.lat = 0; G.laneT = 0'); const el = document.getElementById('app'); const pe = (type, x, y) => el.dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y, pointerId: 7, bubbles: true, isPrimary: true }));
+      pe('pointerdown', 200, 420); pe('pointermove', 212, 420); pe('pointerup', 212, 420); await new Promise(r => setTimeout(r, 50)); return D.ev('G.lane'); })();
+    return { flick, snow: JSON.parse(snow), amb: JSON.parse(amb), memo: JSON.parse(memo), sky, rich: JSON.parse(rich), air, slideM, corner, perfect, scoreUp: G.score > sc0, slow, gold, spTier: G.spTier, banners: seen.banner.join(' | ').slice(0, 400) };
   });
+  ok.flick = r.flick === 2; if (!ok.flick) console.log('new2', JSON.stringify([r.flick]));
+  ok.snowball = r.snow.n > 0 && r.snow.m === 0; ok.rainSound = !!r.amb.skip || (r.amb.r > 0 && r.amb.r0 === 0); if (!ok.snowball || !ok.rainSound) console.log('new', JSON.stringify([r.snow, r.amb]));
   ok.memo = r.memo.seen === 1 && r.memo.got === 1 && r.memo.pts > 0 && !!r.memo.say && !r.memo.book; if (!ok.memo) console.log('memo', JSON.stringify(r.memo));
   ok.perfect = r.perfect >= 1 && r.scoreUp; ok.combo = /25 COMBO/.test(r.banners); ok.speed = r.spTier >= 1 && /SPEED UP/.test(r.banners); ok.slow = r.slow; ok.gold = !!r.gold; ok.air = !!r.air; ok.slideMaster = r.slideM; ok.corner = r.corner; ok.sky = r.sky >= 4; ok.rich = r.rich.n === 30 && r.rich.more >= 20 && r.rich.noLine === 1;
   // the daily goal adds up at the end of a run

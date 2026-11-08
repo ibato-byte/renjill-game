@@ -152,6 +152,106 @@
       "has": "def.kind === 'memo'"
     },
     {
+      "name": "場所の環境音・雨の音",
+      "file": "src/5_audio.js",
+      "has": "function ambTick()"
+    },
+    {
+      "name": "雪の日の雪玉",
+      "file": "src/3_world.js",
+      "has": "lane3.push(['snowball', 'low'])"
+    },
+    {
+      "name": "フィーバーの残像",
+      "file": "src/4_render.js",
+      "has": "G.ghostN = (G.ghostN || 0) + 1"
+    },
+    {
+      "name": "挑戦状の旗",
+      "file": "src/6_game.js",
+      "has": "function chalFlags()"
+    },
+    {
+      "name": "速いはじきは短くても受け付ける",
+      "file": "src/7_ui.js",
+      "has": "(v > .9 ? .6 : 1)"
+    },
+    {
+      "name": "破片はその物の色",
+      "file": "src/6_game.js",
+      "has": "G.debrisC = cs[0]"
+    },
+    {
+      "name": "ぶつかった物の絵",
+      "file": "src/7_ui.js",
+      "has": "function showHit(pre)"
+    },
+    {
+      "name": "文字の大きさ設定",
+      "file": "src/7_ui.js",
+      "has": "function applyLook()"
+    },
+    {
+      "name": "夜の帯を明るく",
+      "file": "src/head.html",
+      "has": "body.nightband #banner"
+    },
+    {
+      "name": "なくしたハートはしま模様",
+      "file": "src/head.html",
+      "has": "#lives.one i:last-child{background:repeating-linear-gradient"
+    },
+    {
+      "name": "パワーアップの丸いゲージ",
+      "file": "src/head.html",
+      "has": ".pow .ring{"
+    },
+    {
+      "name": "ゲームパッド",
+      "file": "src/7_ui.js",
+      "has": "function padTick()"
+    },
+    {
+      "name": "片手のタップ",
+      "file": "src/7_ui.js",
+      "has": "if (OPT().hand) { if (fy < .5) return;"
+    },
+    {
+      "name": "画面を回したら描き直し1回",
+      "file": "src/7_ui.js",
+      "has": "addEventListener('orientationchange', later)"
+    },
+    {
+      "name": "エラーの記録",
+      "file": "src/6_game.js",
+      "has": "function errLog(msg)"
+    },
+    {
+      "name": "足もとの土ぼこり",
+      "file": "src/4_render.js",
+      "has": "function groundDust(seg)"
+    },
+    {
+      "name": "雨でぬれて光る",
+      "file": "src/4_render.js",
+      "has": "G.wetN = (G.wetN || 0) + 1"
+    },
+    {
+      "name": "室内の窓の光",
+      "file": "src/4_render.js",
+      "has": "G.shaftN = (G.shaftN || 0) + 1"
+    },
+    {
+      "name": "自己ベストの記念写真",
+      "file": "src/6_game.js",
+      "has": "function bestPhoto()"
+    },
+    {
+      "name": "牧草で育つ観葉植物",
+      "file": "src/6b_meta.js",
+      "has": "function plantHTML()"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
