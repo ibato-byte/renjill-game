@@ -172,6 +172,26 @@
       "has": "function presTick(dt)"
     },
     {
+      "name": "電話のおつかい",
+      "file": "src/6_game.js",
+      "has": "function errandTick(dt)"
+    },
+    {
+      "name": "挑戦状の旗",
+      "file": "src/6_game.js",
+      "has": "function chalFlags()"
+    },
+    {
+      "name": "速いはじきは短くても受け付ける",
+      "file": "src/7_ui.js",
+      "has": "(v > .9 ? .6 : 1)"
+    },
+    {
+      "name": "破片はその物の色",
+      "file": "src/6_game.js",
+      "has": "G.debrisC = cs[0]"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
