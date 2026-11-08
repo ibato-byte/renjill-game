@@ -123,6 +123,7 @@ const STR = {
   pomHi2: ['先輩！今日もお供するっす！', 'Senpai! Reporting for duty again!'], pomJoin2: ['新人のポムが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Pom is back! Fill those cheek pouches for a bonus (score ×1.2)'], pomPuff: ['ほお袋MAXっす！おすそわけ！', 'Pouches full! Sharing!'], pomPeek: ['道のまん中に…ハムスター!? こっちを見てる…', 'A hamster... in the road!? It’s looking at you...'],
   pomJoin: ['体育会系の新入社員、キンクマハムスターのポムが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Meet Pom, the sporty new hire (a golden hamster)! Fill those cheek pouches for a bonus (score ×1.2)'], pomHi: ['押忍！新人のポムっす！', 'Osu! Pom, the new hire, reporting for duty!'],
   pomWorry: ['先輩!? 大丈夫っすか!?', 'Senpai!? You OK!?'], pomDonmai: ['ドンマイっす！', "Shake it off!"], pomFever: ['ファイトーー！', 'Go, go, gooo!'], pomNice: ['ナイスっす！', 'Nice one!'], pomNice2: ['まだまだいけるっす！', 'Keep it up!'], pomStamp: ['スタンプ、映えるっす！', 'Ooh, picture-perfect!'],
+  presStart: ['社長が見てる！ 8秒、ぶつからずに牧草10本', "The president's watching! 8 sec: 10 hay, no bumps"], presWho: ['あっ、社長！', 'The president!'], presOk: ['社長「いい走りだね」ボーナス！', 'President: "Fine running!" Bonus!'], presNg: ['社長、行っちゃった…', 'The president walked on...'],
   memoJill: ['課長、助かります！', 'Thanks, boss!'], memoRen: ['おお、助かった！', 'Oh, a lifesaver!'], memoPom: ['先輩、助かるっす！', 'Thanks, chief!'],
   worryRen: ['ジル、大丈夫か!?', 'Jill, are you OK!?'], worryJill: ['課長、大丈夫ですか!?', 'Boss, are you OK!?'],
   start: ['スタート', 'START'], again: ['もう一回！', 'ONE MORE RUN'], resume: ['つづける', 'RESUME'],
@@ -415,7 +416,7 @@ const EVENT_INFO = (() => {
 })();
 const EVENT = EVENT_INFO.id || '';
 /* ---- in Japanese mode the English labels give way to Japanese ones ---- */
-const JA_LBL = { 'LUNCH?': 'お昼休み', 'WHICH WAY?': '分かれ道', 'JUMP': 'ジャンプ', 'SLIDE': 'スライディング', 'DODGE': 'よける', 'NEW TITLE!': '称号ゲット！', 'ALMOST!': 'もう少し！', 'DAILY CLEAR!': '今日のチャレンジ達成！', 'GOOD!': 'いいね！', 'FIRST-RUN BONUS!': '初回ボーナス！', 'KEEP GOING!': 'まだまだ！', 'LAST TRAIN': '終電', 'LUCKY!': 'ラッキー！',
+const JA_LBL = { 'PRESIDENT!': '社長が見てる！', 'GOOD WORK!': 'よくやった！', 'OOPS': 'あらら', 'LUNCH?': 'お昼休み', 'WHICH WAY?': '分かれ道', 'JUMP': 'ジャンプ', 'SLIDE': 'スライディング', 'DODGE': 'よける', 'NEW TITLE!': '称号ゲット！', 'ALMOST!': 'もう少し！', 'DAILY CLEAR!': '今日のチャレンジ達成！', 'GOOD!': 'いいね！', 'FIRST-RUN BONUS!': '初回ボーナス！', 'KEEP GOING!': 'まだまだ！', 'LAST TRAIN': '終電', 'LUCKY!': 'ラッキー！',
   'MISSION CLEAR': 'ミッション達成', 'PHOTO': '記念写真', 'SAVED!': 'セーフ！', 'STAMP!': 'スタンプ！', 'BUMP!': 'ぶつかった！', 'MUNCH MUNCH FEVER!': 'もぐもぐフィーバー！', "IT'S 6 PM! FEVER": '定時！ フィーバー',
   'NEW BEST!': '自己ベスト！', '8:00 AM': '朝 8:00', '9:00 ON TIME!': '9:00 出社！', '← LEFT': '← 左へ', 'RIGHT →': '右へ →', 'FEVER!': 'フィーバー！', 'NICE JUMP!': 'ナイスジャンプ！', 'NICE SLIDE!': 'ナイススライド！',
   'CLOSE!': 'ギリギリ！', '← SWIPE →': '← スワイプ →', '↑ JUMP': '↑ ジャンプ', '↓ SLIDE': '↓ スライディング', 'TURN →': '右へ曲がる →', '← TURN': '← 左へ曲がる', '450 m!': '地上450m！', '150 m DECK!': '地上150m！',

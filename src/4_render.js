@@ -480,6 +480,9 @@ function drawBunnyWorld(b) {
   if (b.look > 0 && b.mood === 'sick') ctx.rotate(Math.sin(G.t * 7) * .07);
   if (b.look > 0 && b.mood === 'worry') { ctx.translate(0, -Math.abs(Math.sin(G.t * 9)) * 14); ctx.rotate(Math.sin(G.t * 9) * .05); }
   if (b.fly && b.who === 'pom') ctx.translate(0, Math.sin(G.t * 5) * 6);
+  // フィーバー中は走る自分のうしろに、うすい残像を2つ（C-38）。手前（画面の下）に少しずらし、レーン移動の向きにも流す。「動きを減らす」設定では出さない
+  if (b === G.player && G.fever > 0 && G.mode === 'play' && !OPT().calm && !b.fly) { const lx = G.laneT > 0 ? -Math.sign(G.lane - G.prevLane) * 60 : 0; G.ghostN = (G.ghostN || 0) + 1;
+    for (const [k, a] of [[2, .14], [1, .26]]) { ctx.globalAlpha = a; ctx.drawImage(img, -BS / 2 + lx * k, -GROUND_Y - BTOP + 34 * k, img.width, img.height); } ctx.globalAlpha = 1; }
   if (b.flash && Math.floor(G.t * 16) % 2) ctx.globalAlpha = .45;
   ctx.drawImage(LT.indoor ? img : litSprite(img, LT.amb.map((x, i) => Math.max(i === 2 ? .55 : .5, x + (1 - x) * .45)), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
   if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; ctx.drawImage(b.view === 'back' || !(b.look > 0) ? SPR.planeBack : SPR.planeBack, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Pom rides his own)

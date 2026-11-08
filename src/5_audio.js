@@ -93,7 +93,28 @@ const SONGS = {
   night:   { bpm: 92, inst: 'sine', lv: .07, mel: [7, -99, 4, -99, 2, 4, -99, -99, 9, -99, 7, -99, 4, 2, -99, -99, 0, -99, 2, 4, 7, -99, 9, -99, 7, 4, 2, -99, 0, -99, -99, -99], bass: [0, 0, 5, 5, -3, -3, 7, 7], bw: 'sine', hat: 0, chord: 1 },
 };
 let musicKey = 0, musicArea = 'home';
+// 2026-11-08：場所の環境音（C-50）と雨の音（C-52）。ファイルは使わず、ノイズと短い音で作る。効果音の音量設定に従う
+//  雨：外の区間で雨の日だけ、さあっというノイズ（屋内・電車では小さく）。海辺（deck）：ゆっくり寄せては返す波。公園：昼間ときどき小鳥。電車：ときどき小さな鈴
+function ambLoop(hp, lp) { const n = AU.ctx.sampleRate * 2, b = AU.ctx.createBuffer(1, n, AU.ctx.sampleRate), d = b.getChannelData(0); let l = 0; for (let i = 0; i < n; i++) { l = l * .6 + (Math.random() * 2 - 1) * .4; d[i] = l; }
+  const src = AU.ctx.createBufferSource(); src.buffer = b; src.loop = true; const f1 = AU.ctx.createBiquadFilter(); f1.type = 'highpass'; f1.frequency.value = hp; const f2 = AU.ctx.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = lp;
+  const g = AU.ctx.createGain(); g.gain.value = 0; src.connect(f1); f1.connect(f2); f2.connect(g); g.connect(AU.sfx || AU.master); src.start(); return g; }
+function ambTick() {
+  if (!AU.ctx || typeof G === 'undefined') return;
+  if (!AU.amb) { try { AU.amb = { rain: ambLoop(500, 7000), sea: ambLoop(120, 900), birdT: 0, chimeT: 0 }; } catch (e) { AU.amb = { off: 1 }; return; } }
+  const A = AU.amb; if (A.off) return; const now = AU.ctx.currentTime, play = G.mode === 'play' || G.mode === 'countdown';
+  let seg = null; try { seg = play ? curSeg() : null; } catch (e) { }
+  const kind = seg ? seg.th.kind : '', inside = kind === 'room' || kind === 'train';
+  const rainV = play && G.weather === 'rain' ? (inside ? .012 : .045) : 0;
+  const seaV = play && kind === 'deck' ? .05 * (.55 + .45 * Math.sin(now * 1.1)) : 0;   // 寄せては返す
+  A.rain.gain.setTargetAtTime(rainV, now, .4); A.sea.gain.setTargetAtTime(seaV, now, .3);
+  A.level = { rain: rainV, sea: seaV };
+  if (!play) return;
+  const park = seg && seg.th.fac && seg.th.fac.style === 'park', day = G.clock < 17 * 60 && G.weather !== 'rain';
+  if (park && day && now > A.birdT) { A.birdT = now + 2.5 + Math.random() * 4; const f = 1050 + Math.random() * 200; for (let i = 0; i < 2 + (Math.random() * 2 | 0); i++) tone(f + i * 40, .08, 'sine', .015, now + i * .12, (f + i * 40) * 1.22); /* 高すぎない小鳥（1300Hz 以下から少し上がる） */ A.birds = (A.birds || 0) + 1; }
+  if (kind === 'train' && now > A.chimeT) { A.chimeT = now + 9 + Math.random() * 6; bell(1046.5, .5, .02, now); bell(784, .6, .018, now + .22); A.chimes = (A.chimes || 0) + 1; }
+}
 function musicTick() {
+  ambTick();
   if (!AU.ctx || !AU.on) return;
   const sg = SONGS[musicArea] || SONGS.commute;
   const fev = typeof G !== 'undefined' && G.fever > 0;   // フィーバー中：主旋律を1オクターブ上、テンポ +10%

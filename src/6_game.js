@@ -118,7 +118,7 @@ function startRun() {
   Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '', off: G.char === 'pom' });
   // playing as Pom: the rookie sets off first; the boss and Jill catch up one by one (in a random order), bringing their perks
   G.mates = { ren: 0, jill: 0 }; G.mateOrder = Math.random() < .5 ? ['ren', 'jill'] : ['jill', 'ren']; G.mateAt = [rand(20, 28), rand(52, 64)];
-  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0;
+  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.pres = null; G.presDone = 0; G.bumps = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
   resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
@@ -132,10 +132,22 @@ function startRun() {
   banner('8:00 AM', t('morning'), 'room');
   G.hint = 0; // the tutorial teaches everything on the first play; later runs start clean
 }
+// 社長が通りかかる（B-22）：1回の走りで1度だけ。8秒のあいだ、ぶつからずに牧草を10本とるとボーナス
+function presTick(dt) {
+  if (G.mode !== 'play') return;
+  const P = G.pres;
+  if (!P) { if (G.presDone || G.t < 45 || G.pow.fly > 0 || G.fever > 0 || G.chaseT > 0 || G.tut) return; if (Math.random() > dt / 35) return;
+    G.pres = { t: 8, hay0: G.stats.hay, bump0: G.bumps || 0 }; G.presDone = 1; bannerNow('PRESIDENT!', t('presStart'), 'good'); tone(392, .12, 'bell', .05); tone(523, .16, 'bell', .05, AU.ctx && AU.ctx.currentTime + .1);
+    const F = G.follow; if (F.show) { F.look = 1.2; F.mood = 'open'; F.say = t('presWho'); } return; }
+  P.t -= dt; const got = G.stats.hay - P.hay0, bumped = (G.bumps || 0) > P.bump0;
+  if (bumped) { G.pres = null; banner('OOPS', t('presNg'), 'bad'); return; }
+  if (got >= 10) { G.pres = null; const pts = 600 * SV.mlevel; G.score += pts; G.stats.pres = (G.stats.pres || 0) + 1; banner('GOOD WORK!', t('presOk'), 'good'); floatText(W / 2, H * .36, '+' + fmt(pts), '#F2C230'); SFX.mission(); react('sparkle', 1); return; }
+  if (P.t <= 0) { G.pres = null; banner('OOPS', t('presNg'), 'bad'); }
+}
 function stumble() {
   if (G.invT > 0) return;
   if (G.tut && G.tut.some(x => !x.done) && curSeg() === G.tutSeg) return;
-  SFX.bump(); buzz(60); G.flashT = .6; G.combo = 0; G.stats.cleanCur = 0; G.invT = .9; G.hitStop = .08; G.shake = .7;
+  SFX.bump(); buzz(60); G.bumps = (G.bumps || 0) + 1; G.flashT = .6; G.combo = 0; G.stats.cleanCur = 0; G.invT = .9; G.hitStop = .08; G.shake = .7;
   if ((G.chaseT > 0 && !G.chaseIntro) || G.rush) { die('papers'); return; }
   G.chaseT = 5.5; G.chaseIntro = 0; bannerNow('BUMP!', t('bump1', 5), 'bad');
   pomSay(t('pomDonmai'), 'worry', 1.3);
@@ -507,6 +519,7 @@ function update(dt) {
   if (G.landT > 0) G.landT -= dt;
   if (G.comboT > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
   if (G.chaseT > 0) G.chaseT = Math.max(0, G.chaseT - dt);
+  presTick(dt);
   const chaseTarget = G.rush ? .55 + .1 * Math.sin(G.t * 3) : G.chaseT > 0 ? Math.min(1, G.chaseT) : 0;
   G.chaseVis = lerp(G.chaseVis, chaseTarget, 1 - Math.exp(-dt * 4));
   G.flashT = Math.max(0, G.flashT - dt * 2.5);
