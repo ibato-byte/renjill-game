@@ -237,6 +237,21 @@
       "has": "function errLog(msg)"
     },
     {
+      "name": "足もとの土ぼこり",
+      "file": "src/4_render.js",
+      "has": "function groundDust(seg)"
+    },
+    {
+      "name": "雨でぬれて光る",
+      "file": "src/4_render.js",
+      "has": "G.wetN = (G.wetN || 0) + 1"
+    },
+    {
+      "name": "室内の窓の光",
+      "file": "src/4_render.js",
+      "has": "G.shaftN = (G.shaftN || 0) + 1"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
