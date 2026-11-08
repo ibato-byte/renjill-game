@@ -129,6 +129,8 @@ function startRun() {
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
   G.segDue = 0; const step = G.plan.shift(); const s0 = newSeg(null, step, { t0: 480, day: 1, len: SV.tutDone ? 0 : 140 }); G.planClock = s0.t1; G.segs = [s0]; G.ci = 0; G.tutEnd = 0;
   if (!SV.tutDone) setupTutorial(s0); else { G.tut = null; G.tutSeg = null; }
+  G.practice = SV.tutDone && G.practiceNext ? G.practiceNext : ''; G.practiceNext = '';
+  if (G.practice) { const tid = G.practice; G.plan = Array.from({ length: 8 }, () => ({ t: tid, d: 60 })); const p0 = newSeg(null, { t: tid, d: 60 }, { t0: 600, day: 1 }); G.segs = [p0]; G.ci = 0; G.planClock = p0.t1; G.clock = 600; G.chaseT = 0; G.chaseIntro = 0; G.chaseVis = 0; G.gigNext = 1e9; onEnterSeg(p0); banner('PRACTICE', t('practiceGo'), 'room'); } // 練習：選んだ場所から、同じ場所が続く
   ensureSegs();
   G.camYaw = 0; G.ey = G.camE = null; G.camSl = 0; const p = segPos(s0, 0, 0); G.rx = p[0]; G.rz = p[1];
   SV.runs++; save();
@@ -172,10 +174,17 @@ function smash(o) { if (o.dead) return; o.dead = .001; o.vx = Math.random() < .5
   const sp = spriteAt(G.player.wx, G.player.wy + .6, G.player.wz); if (sp && o.bx && o.bx.length) { const cs = o.bx.slice().sort((a, b) => (b.l1 - b.l0) * (b.y1 - b.y0) - (a.l1 - a.l0) * (a.y1 - a.y0)).map(b => b.c); burst(sp.sx, sp.sy - 40, cs[0], 10); if (cs[1]) burst(sp.sx, sp.sy - 40, cs[1], 6); G.debrisC = cs[0]; } }
 function die(cause) {
   if (G.mode !== 'play') return;
+  if (G.practice && cause !== 'quit' && cause !== 'time') { practiceGoOn(cause); return; } // 練習ではぶつかっても終わらない
   G.cause = cause; G.mode = 'dying'; G.dyingT = .95; SFX.crash(); buzz([60, 40, 120]); G.flashT = 1; G.shake = 1; musicStop();
   G.player.look = 0; G.follow.look = 0; G.pom.look = 0;
   if (cause === 'papers') G.chaseVis = 1;
 }
+function practiceEnd() { G.mode = 'result'; musicStop(); const sc = Math.floor(G.score), hay = Math.floor(G.hay), n = G.stats.pracBumps || 0; G.practice = '';
+  hideAll(); goTitle(); setTimeout(() => toastTitle(t('practiceDone', fmt(sc), fmt(hay), n)), 400); }
+function practiceGoOn(cause) { G.cause = cause; G.stats.pracBumps = (G.stats.pracBumps || 0) + 1; SFX.bump(); const seg = curSeg();
+  for (const o of seg.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 12) o.dead = .001;
+  if (cause === 'wall') { if (seg.fork) G.turnQueued = Math.random() < .5 ? -1 : 1; try { doTurn(); } catch (e) { reportErr(e); } }
+  G.invT = 1.5; G.chaseT = 0; G.chaseVis = 0; G.y = Math.max(G.y, 0); G.vy = 0; G.slideT = 0; G.combo = 0; banner('PRACTICE', t('practiceBump'), 'room'); }
 // retry as many times as your charms or hay allow (the price rises a little each time)
 function freeRevive() { return SV.runs <= 3 && G.reviveN === 0 && G.cause !== 'quit'; } // the first fail of your first three runs: one free retry
 function canRevive() { if (G.cause === 'time') return false; if (freeRevive()) return true; const c = reviveCost(); return SV.clovers >= c.clover || SV.bank + Math.floor(G.hay) >= c.hay || (typeof PORTAL !== 'undefined' && PORTAL.adOK()); } // (inside a game portal: or a rewarded ad)
@@ -889,6 +898,7 @@ const CAPS = {
 const DAY_GOAL = 300;
 const bondLv = () => 1 + Math.floor(Math.sqrt((SV.bond || 0) / 3));
 function endRun() {
+  if (G.practice) { practiceEnd(); return; }
   chalSave();
   if (!SV.tutDone && (!G.tut || G.tut.every(x => x.done) || G.dist > 150)) { SV.tutDone = 1; } // the lesson is done once it was played through
   G.mode = 'result'; musicStop();

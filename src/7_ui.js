@@ -27,6 +27,7 @@ function refreshTitle() {
   $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
   { const dly = dailyToday(), done = SV.dailyDone === dly.key; $('#tDaily').textContent = (tr('今日のチャレンジ：', 'Today: ')) + L(dly.c.t(dly.n)) + (done ? ' ✓' : (tr('（チモシー300本＋お守り）', ' (300 hay + charm)'))); }
   { let q = $('#btnQuick'); if (!q) { q = document.createElement('button'); q.id = 'btnQuick'; q.className = 'sub small quick'; q.onclick = () => { SFX.ui(); G.quickNext = 1; hideAll(); startRun(); }; $('#tDaily').after(q); } q.textContent = t('quick') + (SV.bestT ? '　' + tr('ベスト ', 'best ') + fmt(SV.bestT) : ''); q.hidden = !SV.tutDone; } // a short game for a short break (2026-11-08)
+  { let q = $('#btnPractice'); if (!q) { q = document.createElement('button'); q.id = 'btnPractice'; q.className = 'sub small quick'; q.onclick = openPractice; $('#btnQuick').after(q); } q.textContent = t('practice'); q.hidden = !SV.tutDone; } // 練習・場所えらび（B-31・B-38）
   { let e = $('#tDayGoal'); if (!e) { e = document.createElement('div'); e.id = 'tDayGoal'; $('#tDaily').after(e); } const n = SV.dayHay && SV.dayHay.d === todayStr() ? SV.dayHay.n : 0, k = Math.min(1, n / DAY_GOAL);
     e.className = 'daygoal' + (n >= DAY_GOAL ? ' done' : ''); e.innerHTML = `<span>${esc(tr('今日の牧草', 'Hay today'))}</span><i><b style="width:${(k * 100).toFixed(0)}%"></b></i><em>${fmt(Math.min(n, DAY_GOAL))} / ${DAY_GOAL}${n >= DAY_GOAL ? ' ✓' : ''}</em>`; } // today's hay goal (2026-11-08)
   $('#pickRen').setAttribute('aria-pressed', G.char === 'ren'); $('#pickJill').setAttribute('aria-pressed', G.char === 'jill'); $('#pickPom').setAttribute('aria-pressed', G.char === 'pom');
@@ -251,6 +252,9 @@ async function xferLoad(b) {
 // opened from a "connect" link (?link=CODE): open the settings with the code filled in
 const LINK_Q = (() => { try { const m = /[?&]link=([A-Za-z0-9-]{8,9})\b/.exec(location.search); if (m) { history.replaceState(null, '', location.pathname + location.hash); return linkClean(m[1]); } } catch (e) { } return ''; })();
 function linkFromUrl() { if (!LINK_Q) return; const go = (n) => { if (!RANK.ready) { if (n < 40) setTimeout(() => go(n + 1), 250); return; } if (!linkOn()) { if (window.HAYDASH_APP) toastTitle(t('linkFail')); return; } openSettings(); const i = $('#linkIn'); if (i) { i.value = linkFmt(LINK_Q); i.scrollIntoView({ block: 'center' }); linkLook(LINK_Q); } }; go(0); }
+// 練習モード・場所えらび（B-31・B-38）：行ったことのある名所（とスタートの家）から選んで走る。ぶつかっても終わらない（一時停止 → やめる で終わり）。記録・ランキング・牧草の貯金には入らない
+function openPractice() { SFX.ui(); const ids = ['bedroom'].concat(STAMP_ORDER.filter(id => SV.stamps[id] && THEMES[id] && THEMES[id].kind !== 'train'));
+  openPanel('PRACTICE', t('practice'), `<p class="note">${esc(t('practiceNote'))}</p><div class="plist">${ids.map(id => `<button class="sub" data-prac="${id}">${esc(id === 'bedroom' ? t('practiceHome') : L(THEMES[id].stamp))}</button>`).join('')}</div>${ids.length < 2 ? `<p class="note">${esc(t('practiceMore'))}</p>` : ''}`); }
 function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); }
 let rvTimer = null;
 // ぶつかった物の絵を、続ける画面と結果画面に（C-69）。絵のある物だけ。書類に追いつかれた・壁・時間切れのときも、最後にぶつかった物
@@ -342,6 +346,7 @@ $('#sPanel').addEventListener('click', e => {
   if (z) { SFX.ui(); $('#pBody').innerHTML = zukanHTML(z.dataset.z); }
   if (sst) { SFX.ui(); $('#pBody').innerHTML = stampsHTML(sst.dataset.s); }
   { const lb = e.target.closest('[data-lang]'); if (lb && LANGS.includes(lb.dataset.lang)) { LANG = lb.dataset.lang; SV.lang = LANG; save(); refreshTitle(); SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); } }
+  { const pr = e.target.closest('[data-prac]'); if (pr) { SFX.ui(); G.practiceNext = pr.dataset.prac; closePanel(); hideAll(); startRun(); return; } }
   const op = e.target.closest('[data-opt]');
   if (op) { const k = op.dataset.opt; let v = op.dataset.v; if (v === 'true') v = true; else if (v === 'false') v = false; SV.opt[k] = v; save(); audioInit(); applyAudioOpt(); applyLook(); SFX.ui(); $('#pBody').innerHTML = settingsHTML(); }
   const rt = e.target.closest('[data-rt]'); if (rt) openRanking(rt.dataset.rt);
