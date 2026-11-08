@@ -118,7 +118,7 @@ function startRun() {
   Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '', off: G.char === 'pom' });
   // playing as Pom: the rookie sets off first; the boss and Jill catch up one by one (in a random order), bringing their perks
   G.mates = { ren: 0, jill: 0 }; G.mateOrder = Math.random() < .5 ? ['ren', 'jill'] : ['jill', 'ren']; G.mateAt = [rand(20, 28), rand(52, 64)];
-  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.pres = null; G.presDone = 0; G.bumps = 0;
+  G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.pres = null; G.presDone = 0; G.bumps = 0; G.errand = null; G.errandDone = 0; G.chalFlag = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
   resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
@@ -144,6 +144,21 @@ function presTick(dt) {
   if (got >= 10) { G.pres = null; const pts = 600 * SV.mlevel; G.score += pts; G.stats.pres = (G.stats.pres || 0) + 1; banner('GOOD WORK!', t('presOk'), 'good'); floatText(W / 2, H * .36, '+' + fmt(pts), '#F2C230'); SFX.mission(); react('sparkle', 1); return; }
   if (P.t <= 0) { G.pres = null; banner('OOPS', t('presNg'), 'bad'); }
 }
+// 電話が鳴る：おつかい（B-23）。1回の走りで1度。指定の野菜を15秒以内に1つとるとボーナス（前に3つ置く）
+const ERRAND = ['komatsuna', 'chingen', 'parsley', 'carrotTop', 'dandelion'];
+function errandTick(dt) {
+  if (G.mode !== 'play') return; const E = G.errand;
+  if (!E) { if (G.errandDone || G.t < 70 || G.pres || G.pow.fly > 0 || G.fever > 0 || G.chaseT > 0 || G.tut) return; if (Math.random() > dt / 45) return;
+    const seg = curSeg(); if (seg.fork || seg.len - G.s < 70) return; const type = pick(ERRAND); G.errand = { t: 15, type }; G.errandDone = 1;
+    for (let i = 0; i < 3; i++) { const at = G.s + 30 + i * 12, l = (Math.random() * 3) | 0; if (!seg.obs.some(o => !o.dead && Math.abs(o.s0 - at) < 2.5 && o.lane === l)) addItem(seg, type, at, l, .5); }
+    [0, .22, .44].forEach(d => tone(659, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + d)); bannerNow('PHONE!', t('errand', L(ITEMS[type])), 'good'); return; }
+  E.t -= dt; if (E.t <= 0) { G.errand = null; banner('OOPS', t('errandNg'), 'bad'); }
+}
+function errandGot(type) { const E = G.errand; if (!E || E.type !== type) return; G.errand = null; const pts = 400 * SV.mlevel; G.score += pts; G.stats.errand = (G.stats.errand || 0) + 1;
+  banner('THANKS!', t('errandOk'), 'good'); floatText(W / 2, H * .36, '+' + fmt(pts), '#B8D98A'); SFX.mission(); }
+// 挑戦状の旗（B-42）：挑戦状の点数の 9 割まで来たら、前の道に旗を3本（どのレーンでも通れる）。旗の点数をこえると「挑戦状クリア」
+function chalFlags() { if (!CHAL || G.chalWon || G.chalFlag || G.mode !== 'play' || G.score < CHAL.s * .9) return; const seg = curSeg(); if (seg.len - G.s < 40) return;
+  G.chalFlag = 1; for (let l = 0; l < 3; l++) addItem(seg, 'chalflag', G.s + 32, l, .2); }
 function stumble() {
   if (G.invT > 0) return;
   if (G.tut && G.tut.some(x => !x.done) && curSeg() === G.tutSeg) return;
@@ -169,7 +184,9 @@ function nice(kind) {
   if (G.niceN === 3) G.slowT = .45;
   if (kind === 'slide') { G.slideRow = (now - (G.slideRowT || -9) < 4) ? (G.slideRow || 0) + 1 : 1; G.slideRowT = now; if (G.slideRow === 3) { G.stats.slideMaster = (G.stats.slideMaster || 0) + 1; const p2 = 200 * SV.mlevel; G.score += p2; floatText(W / 2, H * .34, lab('SLIDE MASTER!') + ' +' + fmt(p2), '#F2C230'); tone(523, .1, 'bell', .045); tone(784, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .08); } } // three slide-unders in a row (2026-11-08)
 }
-function smash(o) { if (o.dead) return; o.dead = .001; o.vx = Math.random() < .5 ? -1 : 1; G.score += 30 * SV.mlevel; SFX.bump(); G.hitStop = .05; G.shake = Math.max(G.shake, .35); }
+function smash(o) { if (o.dead) return; o.dead = .001; o.vx = Math.random() < .5 ? -1 : 1; G.score += 30 * SV.mlevel; SFX.bump(); G.hitStop = .05; G.shake = Math.max(G.shake, .35);
+  // 破片はその物の色で（C-41）：いちばん大きい箱と2番目の色
+  const sp = spriteAt(G.player.wx, G.player.wy + .6, G.player.wz); if (sp && o.bx && o.bx.length) { const cs = o.bx.slice().sort((a, b) => (b.l1 - b.l0) * (b.y1 - b.y0) - (a.l1 - a.l0) * (a.y1 - a.y0)).map(b => b.c); burst(sp.sx, sp.sy - 40, cs[0], 10); if (cs[1]) burst(sp.sx, sp.sy - 40, cs[1], 6); G.debrisC = cs[0]; } }
 function die(cause) {
   if (G.mode !== 'play') return;
   G.cause = cause; G.mode = 'dying'; G.dyingT = .95; SFX.crash(); buzz([60, 40, 120]); G.flashT = 1; G.shake = 1; musicStop();
@@ -519,7 +536,7 @@ function update(dt) {
   if (G.landT > 0) G.landT -= dt;
   if (G.comboT > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
   if (G.chaseT > 0) G.chaseT = Math.max(0, G.chaseT - dt);
-  presTick(dt);
+  presTick(dt); errandTick(dt); chalFlags();
   const chaseTarget = G.rush ? .55 + .1 * Math.sin(G.t * 3) : G.chaseT > 0 ? Math.min(1, G.chaseT) : 0;
   G.chaseVis = lerp(G.chaseVis, chaseTarget, 1 - Math.exp(-dt * 4));
   G.flashT = Math.max(0, G.flashT - dt * 2.5);
@@ -677,6 +694,7 @@ function collect(it, seg) {
     banner('STAMP!', LANG === 'en' ? `${t('stampGet')} ${L(THEMES[tid].stamp)}` : `${t('stampGet')}「${L(THEMES[tid].stamp)}」`, 'good'); react('sparkle', 1); if (Math.random() < .5) pomSay(t('pomStamp'), 'sparkle', 1.2); return;
   }
   if (def.kind === 'pom') { pomJoin(); return; }
+  if (def.kind === 'flag') { burst(sx, sy, '#F2C230', 14); burst(sx, sy, '#E86A75', 8); tone(784, .1, 'bell', .04); return; } // 挑戦状の旗：通りぬけるとお祝いの紙ふぶき（点は旗の点数をこえたときに chalTick で）
   if (def.kind === 'memo') { // dropped papers (B-24): the partner turns round to say thanks
     const pts = def.pts * mult; G.score += pts; G.stats.memos = (G.stats.memos || 0) + 1; floatText(sx, sy - 10, '+' + fmt(pts), '#F6EBDC'); burst(sx, sy, '#FFFDF7', 8);
     tone(659, .08, 'bell', .045); tone(988, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .07);
@@ -704,7 +722,7 @@ function collect(it, seg) {
   if (def.kind === 'hay' && G.air && G.pow.fly <= 0) { G.airN = (G.airN || 0) + 1; if (G.airN === 5) { const pts = 120 * SV.mlevel; G.score += pts; G.stats.airCatch = (G.stats.airCatch || 0) + 1; floatText(W / 2, H * .38, lab('AIR CATCH!') + ' +' + fmt(pts), '#9BD3F0'); tone(659, .1, 'bell', .045); tone(880, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .08); } } // five hay in one jump (2026-11-08)
   if (def.kind === 'hay') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; G.feverG += (def.gold ? 25 : .55) * feverK(); SFX.hay(G.combo % 13); burst(sx, sy, def.gold ? '#F2C230' : '#9BB85A', def.gold ? 16 : 3); leaves(sx, sy, def.gold ? 6 : 3); if (!def.gold) FX.push({ x: sx, y: sy, vx: 0, vy: -40, life: .18, t: 0, c: 'rgba(255,255,230,.9)', r: 7 }); /* a soft glint on every hay */ if (def.gold) { floatText(sx, sy - 20, '+30', '#F2C230'); react('sparkle', 0); } }
   else if (def.kind === 'food') { G.feverG += 3 * feverK(); SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#F6EBDC'); }
-  else if (def.kind === 'veg') { G.feverG += 5 * feverK(); G.stats.veg++; SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#B8D98A'); burst(sx, sy, '#5F9E5A', 6); }
+  else if (def.kind === 'veg') { errandGot(it.type); G.feverG += 5 * feverK(); G.stats.veg++; SFX.food(); if (G.stats.foods[it.type] === 1) floatText(sx, sy, L(def), '#B8D98A'); burst(sx, sy, '#5F9E5A', 6); }
   else if (def.kind === 'treat') { G.feverG += 9 * feverK(); G.stats.treats++; SFX.treat(); floatText(sx, sy, L(def) + '!', '#F2C230'); burst(sx, sy, '#E2434B', 10); if (Math.random() < .4) react('happy', 0); }
   else if (def.kind === 'power') {
     G.stats.powers++; SFX.power(); burst(sx, sy, '#F2C230', 14);

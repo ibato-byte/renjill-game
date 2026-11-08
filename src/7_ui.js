@@ -262,11 +262,13 @@ const stage = $('#app');
 stage.addEventListener('pointerdown', e => {
   if (G.mode !== 'play') return; if (e.target.closest('button')) return;
   if (OPT().ctrl === 'tap') { const fx = e.clientX / W, fy = e.clientY / H; act(fx < .33 ? 'left' : fx > .67 ? 'right' : fy < .62 ? 'up' : 'down'); return; }
-  tp = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, id: e.pointerId, fired: false };
+  tp = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, px: e.clientX, py: e.clientY, tm: performance.now(), id: e.pointerId, fired: false };
 });
 stage.addEventListener('pointermove', e => {
   if (!tp || tp.id !== e.pointerId) return;
-  const dx = e.clientX - tp.x, dy = e.clientY - tp.y, th = OPT().sens === 'high' ? 12 : Math.max(16, Math.min(W, H) * .04); // a shorter swipe counts (20px felt slow on a phone)
+  const now = performance.now(), v = Math.hypot(e.clientX - tp.px, e.clientY - tp.py) / Math.max(1, now - tp.tm); tp.px = e.clientX; tp.py = e.clientY; tp.tm = now; G.swipeV = v;
+  // 速いはじき（1ms に 0.9px 以上）は、短くても受け付ける：しきい値を 6 割に（C-5）
+  const dx = e.clientX - tp.x, dy = e.clientY - tp.y, th = (OPT().sens === 'high' ? 12 : Math.max(16, Math.min(W, H) * .04)) * (v > .9 ? .6 : 1); // a shorter swipe counts (20px felt slow on a phone)
   if (Math.abs(dx) > th || Math.abs(dy) > th) { const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'); if (dir !== tp.last || performance.now() - tp.t > 160) { act(dir); tp.last = dir; tp.t = performance.now(); tp.fired = true; } tp.x = e.clientX; tp.y = e.clientY; }
 });
 const endTouch = e => { if (!tp || tp.id !== e.pointerId) return; // a fast flick on a busy frame may arrive as just down + up: read it from the whole stroke
