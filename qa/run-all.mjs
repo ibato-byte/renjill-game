@@ -24,6 +24,7 @@ const T = [
   { n: 'fever2', why: 'フィーバーの取りこぼし', ok: o => noErr(o) && /"missedBehind":0/.test(o) },
   { n: 'ranktest', why: 'ランキング表示', ok: noErr },
   { n: 'saves', why: '壊れたセーブからの復旧', ok: noErr },
+  { n: 'album', why: '自己ベストの記念写真・牧草で育つ観葉植物', ok: has('ALBUM OK') },
   { n: 'visfx', why: '見た目の小さな追加（雨でぬれて光る・室内の光・足もとの土ぼこり）', ok: has('VISFX OK') },
   { n: 'padhand', why: '片手のタップ・ゲームパッド・画面を回したときの描き直し 1 回・エラーの記録', ok: has('PADHAND OK') },
   { n: 'hitwhat', why: 'ぶつかった物の絵が続ける画面・結果画面に出る（日英）', ok: has('HITWHAT OK') },

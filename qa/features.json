@@ -252,6 +252,16 @@
       "has": "G.shaftN = (G.shaftN || 0) + 1"
     },
     {
+      "name": "自己ベストの記念写真",
+      "file": "src/6_game.js",
+      "has": "function bestPhoto()"
+    },
+    {
+      "name": "牧草で育つ観葉植物",
+      "file": "src/6b_meta.js",
+      "has": "function plantHTML()"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
