@@ -150,6 +150,26 @@
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
+    },
+    {
+      "name": "今週の目標（ミッション画面・結果）",
+      "file": "src/6b_meta.js",
+      "has": "function weekAdd(st)"
+    },
+    {
+      "name": "今週の目標の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'weekgoal'"
+    },
+    {
+      "name": "走っている途中のおしごと（社長・おつかい・書類・差し入れ）",
+      "file": "src/6_game.js",
+      "has": "function gigTick(dt)"
+    },
+    {
+      "name": "おしごとの試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'gigcheck'"
     }
   ]
 }
