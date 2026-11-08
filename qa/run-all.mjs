@@ -24,6 +24,7 @@ const T = [
   { n: 'fever2', why: 'フィーバーの取りこぼし', ok: o => noErr(o) && /"missedBehind":0/.test(o) },
   { n: 'ranktest', why: 'ランキング表示', ok: noErr },
   { n: 'saves', why: '壊れたセーブからの復旧', ok: noErr },
+  { n: 'hitwhat', why: 'ぶつかった物の絵が続ける画面・結果画面に出る（日英）', ok: has('HITWHAT OK') },
   { n: 'forktest', why: '分かれ道の操作', ok: o => !/FAIL|pageerror/.test(o) && /-> play/.test(o) },
   { n: 'ui', why: 'スマホの表示崩れ', ok: o => noErr(o) && /overflow false/.test(o) },
   { n: 'jumpbug', why: 'ジャンプの不具合', ok: o => /fails 0/.test(o) && noErr(o) },

@@ -192,6 +192,31 @@
       "has": "G.debrisC = cs[0]"
     },
     {
+      "name": "ぶつかった物の絵",
+      "file": "src/7_ui.js",
+      "has": "function showHit(pre)"
+    },
+    {
+      "name": "文字の大きさ設定",
+      "file": "src/7_ui.js",
+      "has": "function applyLook()"
+    },
+    {
+      "name": "夜の帯を明るく",
+      "file": "src/head.html",
+      "has": "body.nightband #banner"
+    },
+    {
+      "name": "なくしたハートはしま模様",
+      "file": "src/head.html",
+      "has": "#lives.one i:last-child{background:repeating-linear-gradient"
+    },
+    {
+      "name": "パワーアップの丸いゲージ",
+      "file": "src/head.html",
+      "has": ".pow .ring{"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
