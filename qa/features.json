@@ -217,6 +217,26 @@
       "has": ".pow .ring{"
     },
     {
+      "name": "ゲームパッド",
+      "file": "src/7_ui.js",
+      "has": "function padTick()"
+    },
+    {
+      "name": "片手のタップ",
+      "file": "src/7_ui.js",
+      "has": "if (OPT().hand) { if (fy < .5) return;"
+    },
+    {
+      "name": "画面を回したら描き直し1回",
+      "file": "src/7_ui.js",
+      "has": "addEventListener('orientationchange', later)"
+    },
+    {
+      "name": "エラーの記録",
+      "file": "src/6_game.js",
+      "has": "function errLog(msg)"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
