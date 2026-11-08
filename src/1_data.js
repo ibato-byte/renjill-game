@@ -41,7 +41,7 @@ const REF_IN = (() => { try { const q = new URLSearchParams(location.search), r 
 if (REF_IN && !SV.ref) SV.ref = REF_IN;
 /* ---- account transfer: the whole save (without photos) as a code, readable by any build of the game ----
    format: RJ1.<base64url of deflated JSON>.<checksum>   (RJ0 = not compressed, for browsers without CompressionStream) */
-const XFER_FIELDS_SKIP = ['album'];
+const XFER_FIELDS_SKIP = ['album', 'bestPics']; // 写真はこの端末だけ（引き継ぎコード・記録の保存先には入れない）
 async function xferMake() {
   const o = {}; for (const k in SV) if (!XFER_FIELDS_SKIP.includes(k)) o[k] = SV[k];
   try { const a = localStorage.getItem('hd_fsauth'); if (a) o._fs = JSON.parse(a); } catch (e) { } // the ranking account (app build) goes along
@@ -93,7 +93,7 @@ function xferInflate(src) {
 }
 async function xferApply(code) {
   const o = await xferRead(code), fs = o._fs; delete o._fs; delete o._v; delete o._at;
-  const album = SV.album, pid = SV.pid; svFrom(o); SV.album = album || {}; if (!SV.pid) SV.pid = pid; // photos stay with this device; a code from before player ids keeps this device's id
+  const album = SV.album, bestPics = SV.bestPics, pid = SV.pid; svFrom(o); SV.album = album || {}; SV.bestPics = bestPics || []; if (!SV.pid) SV.pid = pid; // photos stay with this device; a code from before player ids keeps this device's id
   try { if (fs) localStorage.setItem('hd_fsauth', JSON.stringify(fs)); } catch (e) { }
   saveNow(); return true;
 }
@@ -104,8 +104,8 @@ function saveFlush() { if (SAVE_DIRTY) saveNow(); }
 let RESETTING = 0; // set while the player wipes their data: nothing may write it back
 function saveNow() { if (RESETTING) return; // if storage is full, give up the oldest photos one by one (never the progress)
   SAVE_DIRTY = 0;
-  for (let k = 0; k < 100; k++) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); return; } catch (e) { const ks = Object.keys(SV.album || {}); if (!ks.length) return; delete SV.album[ks[0]]; } } }
-const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true, easy: false }, SV.opt || {}));
+  for (let k = 0; k < 100; k++) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); return; } catch (e) { if (SV.bestPics && SV.bestPics.length > 1) { SV.bestPics.pop(); continue; } const ks = Object.keys(SV.album || {}); if (!ks.length) return; delete SV.album[ks[0]]; } } }
+const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true, easy: false, big: false, hand: false }, SV.opt || {}));
 /* ---- languages: the same four as the official site (日本語・English・繁體中文・한국어) ----
    Chinese and Korean come from I18N (src/0_i18n.js, keyed by the Japanese text); anything missing falls back to English. */
 const LANGS = ['ja', 'en', 'zh', 'ko'], LANG_NAME = { ja: '日本語', en: 'English', zh: '繁體中文', ko: '한국어' };
@@ -123,6 +123,13 @@ const STR = {
   pomHi2: ['先輩！今日もお供するっす！', 'Senpai! Reporting for duty again!'], pomJoin2: ['新人のポムが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Pom is back! Fill those cheek pouches for a bonus (score ×1.2)'], pomPuff: ['ほお袋MAXっす！おすそわけ！', 'Pouches full! Sharing!'], pomPeek: ['道のまん中に…ハムスター!? こっちを見てる…', 'A hamster... in the road!? It’s looking at you...'],
   pomJoin: ['体育会系の新入社員、キンクマハムスターのポムが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Meet Pom, the sporty new hire (a golden hamster)! Fill those cheek pouches for a bonus (score ×1.2)'], pomHi: ['押忍！新人のポムっす！', 'Osu! Pom, the new hire, reporting for duty!'],
   pomWorry: ['先輩!? 大丈夫っすか!?', 'Senpai!? You OK!?'], pomDonmai: ['ドンマイっす！', "Shake it off!"], pomFever: ['ファイトーー！', 'Go, go, gooo!'], pomNice: ['ナイスっす！', 'Nice one!'], pomNice2: ['まだまだいけるっす！', 'Keep it up!'], pomStamp: ['スタンプ、映えるっす！', 'Ooh, picture-perfect!'],
+  bigText: ['文字の大きさ', 'Text size'], bigN: ['ふつう', 'Normal'], bigY: ['大きめ', 'Large'], bigNote: ['画面の上の数字・お知らせの帯・この画面の文字を少し大きくします', 'Makes the top numbers, the message strip and these menus a little bigger'],
+  sensNote: ['「敏感」にすると、短いスワイプでも反応します', 'High: shorter swipes count'], calmNote: ['画面のゆれ・フラッシュ・残像をおさえます', 'Less shaking, flashing and trails'],
+  hitWhat: ['ぶつかったのは、これ', 'You bumped into this'], hitWhatN: ['ぶつかったのは「{0}」', 'You bumped into this'],
+  hand: ['片手で操作', 'One-handed'], handNote: ['タップ操作を画面の下半分だけにします（左右＝移動、まんなかの上＝ジャンプ、下＝スライディング）', 'Tap controls use only the lower half (sides = move, middle top = jump, bottom = slide)'],
+  errLogH: ['エラーの記録', 'Error log'], errLogNote: ['うまく動かなかったときの記録です（この端末だけに残ります）。お問い合わせのときに見せてください', 'Problems this device ran into (kept only here). Handy if you contact us'], errLogNone: ['記録はありません', 'Nothing recorded'],
+  plantLv: ['机の観葉植物 Lv.{0}', 'Desk plant Lv.{0}'], plantNext: ['あと牧草{0}本で育つ', '{0} more hay to grow'], plantNote: ['集めた牧草で育ちます', 'Grows with all the hay you collect'],
+  plantUp: ['机の観葉植物が大きくなった！（集めた牧草で育つ）', 'Your desk plant grew! (It grows with all the hay you collect)'], bestPics: ['自己ベストの記念写真', 'Personal best photos'], bestPicCap: ['自己ベスト {0}点', 'Best {0}'],
   memoJill: ['課長、助かります！', 'Thanks, boss!'], memoRen: ['おお、助かった！', 'Oh, a lifesaver!'], memoPom: ['先輩、助かるっす！', 'Thanks, chief!'],
   worryRen: ['ジル、大丈夫か!?', 'Jill, are you OK!?'], worryJill: ['課長、大丈夫ですか!?', 'Boss, are you OK!?'],
   start: ['スタート', 'START'], again: ['もう一回！', 'ONE MORE RUN'], resume: ['つづける', 'RESUME'],
@@ -291,6 +298,7 @@ const ITEMS = {
   hanko:    { ja: '承認ハンコ', en: 'Hanko seal', kind: 'power', pow: 'x2', pts: 50, office: 1, tip: { ja: 'ジルが押すと、なぜか全部スムーズに進む。\n【ゲーム】しばらくスコア2倍。', en: 'A Japanese approval seal. When Jill stamps with it, everything somehow goes smoothly.\n[Game] Double score for a while.' } },
   pomseed:  { ja: 'ひまわりの種', en: 'Sunflower seeds', kind: 'pom', pts: 200, tip: { ja: 'キンクマハムスターのポムの大好物。これをとるとポムが合流する。脂肪が多いので、うさぎのレンとジルは食べません。', en: 'Pom the hamster’s favorite. Pick them up and Pom joins you. Too fatty for bunnies, so Ren and Jill skip them.' } },
   stamp:    { ja: '観光スタンプ', en: 'Tokyo stamp', kind: 'stamp', pts: 500, tip: { ja: '', en: '' } },
+  chalflag: { ja: '挑戦状の旗', en: 'Challenge flag', kind: 'flag', pts: 0, tip: { ja: '', en: '' } }, // 挑戦状の点数の手前に立つ旗（図鑑には入らない）
   memo:     { ja: '落とした書類', en: 'Dropped papers', kind: 'memo', pts: 150, tip: { ja: '', en: '' } }, // 拾うと相棒がお礼（図鑑には入らない）
   choco:    { ja: 'チョコレート', en: 'Chocolate', kind: 'bad', tip: { ja: 'うさぎには毒になる成分（テオブロミンなど）を含みます。絶対にあげないで。', en: 'Contains theobromine, which is toxic to rabbits. Never feed it.' } },
   onion:    { ja: '玉ねぎ・ネギ', en: 'Onions & leeks', kind: 'bad', tip: { ja: 'ネギの仲間（ニラ・ニンニクも）は中毒の原因になります。絶対にダメ（長野県資料）。', en: 'Onions and their relatives (leeks, garlic) are poisonous to rabbits (Nagano guide).' } },

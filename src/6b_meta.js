@@ -114,7 +114,10 @@ function careerLevel(xp) { let lv = 0, acc = 0; while (lv < RANKS.length - 1 && 
 function careerTitle(lv) { const r = RANKS[Math.min(lv, RANKS.length - 1)]; return tr(r[0], r[1]); }
 function careerHTML() { const c = careerLevel(careerXP()); const pct = c.max ? 100 : Math.round(c.into / c.need * 100);
   const li = c.max ? legendInfo() : null; const lp = li ? Math.round(li.into / li.need * 100) : pct;
-  return `<div class="career${li ? ' legend' : ''}"><span class="cr-t">${esc(careerTitle(c.lv))}${li && li.stars ? ' ★' + li.stars : ''}</span><span class="cr-lv">Lv.${c.lv + 1}</span><span class="cr-bar"><i style="width:${lp}%"></i></span><small>${li ? t('nextStar', fmt(li.need - li.into)) : t('nextPromo', fmt(c.need - c.into))}</small></div>`; }
+  return `<div class="career${li ? ' legend' : ''}"><span class="cr-t">${esc(careerTitle(c.lv))}${li && li.stars ? ' ★' + li.stars : ''}</span><span class="cr-lv">Lv.${c.lv + 1}</span><span class="cr-bar"><i style="width:${lp}%"></i></span><small>${li ? t('nextStar', fmt(li.need - li.into)) : t('nextPromo', fmt(c.need - c.into))}</small>${plantHTML()}</div>`; }
+// 机の観葉植物（B-12）：題名のカードに、育ち具合の絵と段階
+function plantHTML() { let url = ''; try { url = PROP_ART.plant().toDataURL(); } catch (e) { } const lv = plantLv(), nx = PLANT_STEPS[lv + 1];
+  return `<span class="cr-plant" title="${esc(t('plantNote'))}">${url ? `<img src="${url}" alt="" style="height:${16 + lv * 5}px">` : ''}${esc(t('plantLv', lv + 1))}${nx ? `<small>${esc(t('plantNext', fmt(nx - ((SV.totals || {}).hay || 0))))}</small>` : ''}</span>`; }
 /* ---- beyond the top rank: Legendary bunny stars (no end) ----
    Reaching Legendary bunny unlocks the laurel and the gold coat (all three), Legend mode (faster, x1.5 score) and a star on the board.
    Every LEGEND_STEP more experience adds a star: ★1 the golden sparkle trail, ★2 a gold name on the ranking, and every star hay + a charm. */

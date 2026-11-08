@@ -236,6 +236,14 @@ function paintLeaves(g, W, H) {
   SH(g, W, H, .2); g.fillStyle = vgrad(g, 0, H, [[0, '#F2CD45'], [1, '#C9961B']]); g.beginPath(); g.moveTo(W * .02, H * .98); g.quadraticCurveTo(W * .12, H * .1, W / 2, H * .04); g.quadraticCurveTo(W * .88, H * .1, W * .98, H * .98); g.closePath(); g.fill();
   const r = rnd(3); for (let k = 0; k < 40; k++) { g.fillStyle = ['#F2CD45', '#E8B923', '#D9A21B', '#C77A1B'][(r() * 4) | 0]; g.save(); g.translate(W * (.12 + r() * .76), H * (.2 + r() * .72)); g.rotate(r() * 6); g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, W * .06, -.6, .6); g.closePath(); g.fill(); g.restore(); }
 }
+// 雪の日に転がってくる雪玉（B-28）：白い玉に青い影、てっぺんの光、表面の小さな雪のつぶ
+function paintSnowball(g, W, H) {
+  SH(g, W, H, .22); const r = Math.min(W, H) * .47, cx = W / 2, cy = H - r - H * .02;
+  const gr = g.createRadialGradient(cx - r * .35, cy - r * .4, r * .1, cx, cy, r); gr.addColorStop(0, '#FFFFFF'); gr.addColorStop(.65, '#EEF3F8'); gr.addColorStop(1, '#B9C8DA');
+  g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.fill(); g.strokeStyle = 'rgba(120,140,170,.55)'; g.lineWidth = Math.max(2, W * .012); g.stroke();
+  const q = rnd(7); g.fillStyle = 'rgba(160,178,205,.55)'; for (let k = 0; k < 14; k++) { const a = q() * Math.PI * 2, d = q() * r * .85; g.beginPath(); g.arc(cx + Math.cos(a) * d, cy + Math.sin(a) * d, r * (.03 + q() * .04), 0, Math.PI * 2); g.fill(); }
+  g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.ellipse(cx - r * .38, cy - r * .45, r * .2, r * .12, -.6, 0, Math.PI * 2); g.fill();
+}
 function paintStools(g, W, H) {
   SH(g, W, H); for (const x of [.02, .52]) { g.fillStyle = '#7A1F18'; g.fillRect(W * (x + .05), H * .22, W * .05, H * .76); g.fillRect(W * (x + .36), H * .22, W * .05, H * .76);
     g.fillStyle = vgrad(g, 0, H * .24, [[0, '#E0574A'], [1, '#9C2F27']]); g.beginPath(); g.ellipse(W * (x + .23), H * .14, W * .23, H * .12, 0, 0, Math.PI * 2); g.fill(); g.fillRect(W * x, H * .14, W * .46, H * .1); }
@@ -341,7 +349,7 @@ Object.assign(ART, {
   suitcase: o => artCanvas('suitcase|' + o.av.c, 200, 170, (g, w, h) => paintSuitcase(g, w, h, o.av.c)), bags: () => artCanvas('bags', 220, 150, paintBags),
   crate: o => artCanvas('crate' + o.av.n, 200, 100 * o.av.n + 20, (g, w, h) => paintCrates(g, w, h, o.av.n)), stroller: () => artCanvas('stroller', 200, 240, paintStroller),
   sign: o => artCanvas('sign|' + o.av.t, 240, 320, (g, w, h) => paintSandwich(g, w, h, o.av.t)), parasol: o => artCanvas('cafe|' + o.av.c, 320, 440, (g, w, h) => paintCafe(g, w, h, o.av.c)),
-  flowers: () => artCanvas('flowers', 240, 160, paintFlowers), leafpile: () => artCanvas('leaves', 260, 120, paintLeaves), stoolsO: () => artCanvas('stools', 240, 130, paintStools),
+  flowers: () => artCanvas('flowers', 240, 160, paintFlowers), leafpile: () => artCanvas('leaves', 260, 120, paintLeaves), snowball: () => artCanvas('snowball', 200, 190, paintSnowball), stoolsO: () => artCanvas('stools', 240, 130, paintStools),
   umbrella: () => artCanvas('umbrellas', 180, 380, paintUmbrellas), copier: () => artCanvas('copier', 280, 280, paintCopier), mug: () => artCanvas('mug', 200, 200, paintMug),
   toys: () => artCanvas('toys', 200, 180, paintToys), zabuton: () => artCanvas('zabuton', 260, 100, paintCushions), pot: () => artCanvas('pot', 220, 180, paintPot), clock: () => artCanvas('clock', 180, 180, paintClock),
   telescope: () => artCanvas('scope', 180, 320, paintBinoculars), gachaO: () => artCanvas('gacha', 260, 340, paintGacha), tripod: () => artCanvas('tripod', 200, 330, paintTripod),

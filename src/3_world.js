@@ -547,6 +547,7 @@ const OBS = {
   // a photographer's tripod, set up to shoot the blossoms
   tripod: L => ({ k: 'block', bx: [OB(L - .3, .1, .06, .06, 0, 1.35, '#2B2B2B'), OB(L + .3, .1, .06, .06, 0, 1.35, '#2B2B2B'), OB(L, .5, .06, .06, 0, 1.35, '#2B2B2B'), OB(L, .2, .4, .3, 1.35, 1.62, '#1E1E22'), OB(L, .05, .16, .2, 1.4, 1.56, '#46525E'), OB(L, .15, .8, .45, 0, .72, '#3B4650'), OB(L, .14, .82, .1, .72, .8, '#2B2B2B')] }),
   stroller: L => ({ k: 'low', hitTop: .9, mv: 1.6, bx: [OB(L - .3, 0, .08, .08, 0, .2, '#2B2B2B'), OB(L + .3, 0, .08, .08, 0, .2, '#2B2B2B'), OB(L - .3, .7, .08, .08, 0, .2, '#2B2B2B'), OB(L + .3, .7, .08, .08, 0, .2, '#2B2B2B'), OB(L, .35, .66, .8, .22, .75, '#B9C7D6'), OB(L, .55, .7, .45, .75, 1.15, '#8DA2B8'), OB(L, -.15, .5, .06, .9, 1.1, '#46525E')] }),
+  snowball: L => ({ k: 'low', mv: 3.0, bx: [OB(L, 0, .95, .95, 0, .9, '#F2F5F8')] }), // 雪の日だけ、転がってくる雪玉（B-28）。ジャンプでこえる
   leafpile: L => ({ k: 'low', bx: [OB(L, 0, 1.3, 1.1, 0, .32, '#E8B923'), OB(L, .2, .9, .7, .32, .55, '#F2CD45')] }),
   stoneLanternO: L => ({ k: 'block', bx: [OB(L, 0, .8, .8, 0, .3, '#8F8A80'), OB(L, .25, .3, .3, .3, 1.3, '#8F8A80'), OB(L, 0, .8, .8, 1.3, 1.7, '#A09B90', 1), OB(L, -.1, 1.0, 1.0, 1.7, 1.9, '#7A756D')] }),
   bridge: () => { const c = pick([['#C0392B', '吾妻橋'], ['#3A6FB0', '駒形橋'], ['#5F9E5A', '厩橋'], ['#E9D9BF', '蔵前橋']]);
@@ -575,7 +576,7 @@ const OBS = {
   gates: null, ogates: null,
 };
 // every obstacle gets its illustration (the boxes stay as the collision shape); [width, height] in metres
-const ART_SPEC = { kaminarimon: [9.2, 4.75], futon: [5.2, .62], noren: [5.6, 2.75], step: [9.2, .45], pillar: [1.3, 3.6], pole: [.55, 2.9], bag: [.95, .7], rope: [5.4, .62], jokoro: [1.35, 1.95], picnic: [1.8, .55], ring: [.95, .3], papers: [1.02, .58], paperTall: [1.08, 1.88], plant: [1.15, 2.0], chair: [.95, .8], suitcase: [.95, .8], bags: [1.35, .7], crate: [.92, 1], stroller: [.8, 1.18], sign: [1.2, 1.56],
+const ART_SPEC = { snowball: [1.0, .95], kaminarimon: [9.2, 4.75], futon: [5.2, .62], noren: [5.6, 2.75], step: [9.2, .45], pillar: [1.3, 3.6], pole: [.55, 2.9], bag: [.95, .7], rope: [5.4, .62], jokoro: [1.35, 1.95], picnic: [1.8, .55], ring: [.95, .3], papers: [1.02, .58], paperTall: [1.08, 1.88], plant: [1.15, 2.0], chair: [.95, .8], suitcase: [.95, .8], bags: [1.35, .7], crate: [.92, 1], stroller: [.8, 1.18], sign: [1.2, 1.56],
   parasol: [1.75, 2.2], flowers: [1.1, .75], leafpile: [1.35, .56], stoolsO: [1.2, .6], umbrella: [.8, 1.9], copier: [1.42, 1.38], mug: [.95, .85], toys: [1.0, .84], zabuton: [1.25, .42], pot: [1.05, .82],
   clock: [.8, .86], telescope: [.78, 1.55], gachaO: [1.22, 1.6], tripod: [.85, 1.62], stoneLanternO: [1.0, 1.9], rickshaw: [1.3, 1.75], table: [1.5, .82], chabudai: [1.5, .78], mtable: [1.55, .78],
   wboard: [1.6, 2.0], shoes: [.92, .36], slipper: [.92, .36], roomba: [.95, .32] };
@@ -608,6 +609,7 @@ function populate(seg) {
   const diff = clamp(.05 + G.distEst / 3600, 0, .9) + (th.rush ? .2 : 0) + Math.min(.3, (G.planDay - 1) * .08); // a little bite from the start
   const kinds = th.obs.map(t => [t, obsKind(t)]);
   const lane3 = kinds.filter(k => k[1] === 'low' || k[1] === 'high' || k[1] === 'block');
+  if (G.weather === 'snow' && th.kind === 'street' && !th.noSnowball) lane3.push(['snowball', 'low']); // 雪の日の通り：雪玉が転がってくる（B-28）
   const fulls = kinds.filter(k => k[1] === 'lowF' || k[1] === 'highF');
   const gates = kinds.filter(k => k[1] === 'gates');
   const special = kinds.filter(k => k[1] === 'kmon' || k[1] === 'bridge');
