@@ -54,7 +54,10 @@ function ensureSegs(max) {
   }
   while (G.ci > 1) { G.segs.shift(); G.ci--; }
 }
-function reportErr(e) { window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (window.__frameErr < 4) console.error('frame error', e); }
+function reportErr(e) { window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (window.__frameErr < 4) console.error('frame error', e); errLog(window.__frameErrMsg); }
+// エラーの記録（C-65）：最後の 10 件をこの端末に残し、設定の下で見られる（送信はしない）
+function errLog(msg) { try { const a = JSON.parse(localStorage.getItem('rjErrLog') || '[]'); const m = String(msg).slice(0, 160); if (a.length && a[a.length - 1].m === m) a[a.length - 1].n++; else a.push({ t: Date.now(), m, n: 1 }); localStorage.setItem('rjErrLog', JSON.stringify(a.slice(-10))); } catch (x) { } }
+addEventListener('error', e => { try { errLog((e && e.message) || 'error'); } catch (x) { } });
 
 /* ---------- title diorama ---------- */
 function setupTitle() {

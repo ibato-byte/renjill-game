@@ -115,10 +115,13 @@ function openHow() {
 }
 // 文字の大きさ（C-29）：html に bigtext をつける
 function applyLook() { try { document.documentElement.classList.toggle('bigtext', !!OPT().big); } catch (e) { } }
+function errLogHTML() { let a = []; try { a = JSON.parse(localStorage.getItem('rjErrLog') || '[]'); } catch (e) { }
+  return `<details class="m xfer errlog"><summary><b>${esc(t('errLogH'))}</b> (${a.length})</summary><p class="note">${esc(t('errLogNote'))}</p>${a.length ? `<ul>${a.slice().reverse().map(x => `<li><code>${esc(new Date(x.t).toLocaleString())}${x.n > 1 ? ' ×' + x.n : ''}</code> ${esc(x.m)}</li>`).join('')}</ul>` : `<p class="note">${esc(t('errLogNone'))}</p>`}</details>`; }
 function settingsHTML() {
   const o = OPT(), row = (lbl, key, opts) => `<div class="m"><p><b>${esc(lbl)}</b></p><span class="seg">${opts.map(([v, txt]) => `<button class="buy${o[key] === v ? '' : ' off'}" data-opt="${key}" data-v="${v}">${esc(txt)}</button>`).join('')}</span></div>`;
   const langRow = `<div class="m langrow"><p><b>🌐 Language</b></p><span class="seg langseg">${LANGS.map(l => `<button class="buy${LANG === l ? '' : ' off'}" data-lang="${l}" lang="${({ zh: 'zh-Hant' })[l] || l}">${LANG_NAME[l]}</button>`).join('')}</span></div>`; // all four, side by side (the title button cycles)
   return langRow + row(t('ctrl'), 'ctrl', [['swipe', t('ctrlSwipe')], ['tap', t('ctrlTap')]]) + `<p class="note">${esc(t('ctrlNote'))}</p>` +
+    (OPT().ctrl === 'tap' ? row(t('hand'), 'hand', [[false, t('off')], [true, t('on')]]) + `<p class="note">${esc(t('handNote'))}</p>` : '') +
     row(t('sens'), 'sens', [['normal', t('sensN')], ['high', t('sensH')]]) + `<p class="note">${esc(t('sensNote'))}</p>` + row(t('vib'), 'vib', [[true, t('on')], ['low', t('vibLow')], [false, t('off')]]) +
     row(t('bigText'), 'big', [[false, t('bigN')], [true, t('bigY')]]) + `<p class="note">${esc(t('bigNote'))}</p>` +
     row(t('easy'), 'easy', [[false, t('easyN')], [true, t('easyY')]]) + `<p class="note">${esc(t('easyNote'))}</p>` +
@@ -127,7 +130,7 @@ function settingsHTML() {
     `<div class="m xfer"><p><b>${esc(t('codeH'))}</b></p><p class="note">${esc(t('codeNote'))}</p><div class="btns" style="display:flex;gap:8px"><input id="codeIn" aria-label="${esc(t('codeH'))}" maxlength="24" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="${esc(t('codePh'))}" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px"><button class="sub" id="btnCode" style="width:auto">${esc(t('codeOk'))}</button></div><p class="note" id="codeMsg" aria-live="polite"></p></div>` +
     `<div class="m xfer sns"><p><b>${esc(t('snsH'))}</b></p><p class="note">${esc(t('snsNote'))}</p>${followLinks('chips')}</div>` + linkHTML() + `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" aria-label="${esc(t('xfer'))}" readonly rows="3" hidden></textarea>` +
     `<textarea id="xferIn" aria-label="${esc(t('xferPaste'))}" rows="3" placeholder="${esc(t('xferPaste'))}"></textarea><button class="sub" id="btnXferLoad">${esc(t('xferLoad'))}</button><p class="note" id="xferMsg" aria-live="polite"></p></div>` +
-    `<div class="m xfer reset"><p><b>${esc(t('resetH'))}</b></p><p class="note">${esc(t('resetNote'))}</p><button class="sub danger" id="btnReset">${esc(t('resetBtn'))}</button>` +
+    errLogHTML() + `<div class="m xfer reset"><p><b>${esc(t('resetH'))}</b></p><p class="note">${esc(t('resetNote'))}</p><button class="sub danger" id="btnReset">${esc(t('resetBtn'))}</button>` +
     `<div id="resetAsk" hidden><p class="note"><b>${esc(t('resetAsk'))}</b></p><div style="display:flex;gap:8px"><button class="sub danger" id="btnResetYes">${esc(t('resetYes'))}</button><button class="sub" id="btnResetNo">${esc(t('resetNo'))}</button></div></div><p class="note" id="resetMsg" aria-live="polite"></p></div>`;
 }
 /* ---- the player's name for the ranking: asked before the first run, editable any time ---- */
@@ -268,7 +271,9 @@ let tp = null;
 const stage = $('#app');
 stage.addEventListener('pointerdown', e => {
   if (G.mode !== 'play') return; if (e.target.closest('button')) return;
-  if (OPT().ctrl === 'tap') { const fx = e.clientX / W, fy = e.clientY / H; act(fx < .33 ? 'left' : fx > .67 ? 'right' : fy < .62 ? 'up' : 'down'); return; }
+  if (OPT().ctrl === 'tap') { const fx = e.clientX / W, fy = e.clientY / H;
+    if (OPT().hand) { if (fy < .5) return; act(fx < .33 ? 'left' : fx > .67 ? 'right' : fy < .75 ? 'up' : 'down'); return; } // 片手（C-12）：指の届く下半分だけ。上の半分は押しても何も起きない
+    act(fx < .33 ? 'left' : fx > .67 ? 'right' : fy < .62 ? 'up' : 'down'); return; }
   tp = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, px: e.clientX, py: e.clientY, tm: performance.now(), id: e.pointerId, fired: false };
 });
 stage.addEventListener('pointermove', e => {
@@ -385,15 +390,23 @@ function frameBody(now) {
   if (G.capture && G.capture.t <= 0) { takePhoto(G.capture.tid); G.capture = null; }
   if (G.mode === 'title') { drawCharCard($('#cvRen'), 'ren', G.t); drawCharCard($('#cvJill'), 'jill', G.t + 1.3); if (SV.pomMet) drawCharCard($('#cvPom'), 'pom', G.t + .6); }
   if (SAVE_DIRTY && G.mode !== 'play' && G.mode !== 'countdown') saveNow();
-  musicTick();
+  musicTick(); padTick();
 }
+// ゲームパッド（C-13）：十字キー・左スティックで操作、A でジャンプ、B でスライディング、スタートで一時停止
+const PAD = { prev: {} };
+function padTick() { let gp = null; try { const l = navigator.getGamepads ? navigator.getGamepads() : []; for (const g of l) if (g && g.connected) { gp = g; break; } } catch (e) { return; } if (!gp) return;
+  const b = i => !!(gp.buttons[i] && gp.buttons[i].pressed), ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
+  const now = { up: b(12) || b(0) || ay < -.6, down: b(13) || b(1) || ay > .6, left: b(14) || ax < -.6, right: b(15) || ax > .6, start: b(9) };
+  for (const k of ['up', 'down', 'left', 'right']) if (now[k] && !PAD.prev[k] && G.mode === 'play') { act(k); G.padN = (G.padN || 0) + 1; }
+  if (now.start && !PAD.prev.start) { if (G.mode === 'play') pause(); else if (G.mode === 'pause') resume(); }
+  PAD.prev = now; }
 addEventListener('pagehide', () => { try { saveNow(); } catch (e) { } });
 // a computer: clicking another window (the game keeps running behind it) pauses, like switching tabs does (2026-11-08)
 addEventListener('blur', () => { try { if (G.mode === 'play' && !matchMedia('(pointer:coarse)').matches) pause(); } catch (e) { } });
 function resizeKeep() { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
 function boot() {
   applyLook();
-  buildItemSprites(); buildWorldSprites(); buildBunnies(); applyWear(); rankIcons(); rankInit(); chatInit(); resize(); addEventListener('resize', resize);
+  buildItemSprites(); buildWorldSprites(); buildBunnies(); applyWear(); rankIcons(); rankInit(); chatInit(); resize(); { let rz = 0; const later = () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { G.resizeN = (G.resizeN || 0) + 1; resize(); }); }; addEventListener('resize', later); addEventListener('orientationchange', later); } // 画面を回したとき、描き直しは 1 回だけ（C-63）
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren'; missionsFix();
   goTitle(); document.documentElement.classList.remove('booting'); // the page shows only once its words are in the player's language
