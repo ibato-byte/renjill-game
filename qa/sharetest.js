@@ -47,7 +47,7 @@ let fails = 0; const F = (s, m) => { fails++; console.log('  FAIL', s, m); };
     const clip = async () => { try { return await page.evaluate(() => navigator.clipboard.readText()); } catch (e) { return '?'; } };
     // Facebook
     const before = await fr.evaluate(() => window.__shares.length);
-    const dlp = () => page.waitForEvent('download', { timeout: 6000 }).catch(() => null);
+    const dlp = () => page.waitForEvent('download', { timeout: 15000 }) /* CI の機械が遅いと 6 秒では画像の保存が間に合わないことがあった（2026-11-08） */.catch(() => null);
     await fr.click('#shFb'); await page.waitForTimeout(600);
     let r = await fr.evaluate(() => ({ s: window.__shares.slice(-1)[0], n: window.__shares.length, note: document.getElementById('igNote').innerText, link: (document.querySelector('#igNote a') || {}).href }));
     const sheetOK = S.share === 'ok' || S.share === 'abort';
