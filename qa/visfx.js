@@ -14,6 +14,6 @@ const { chromium } = require('playwright'); const path = require('path');
   // あそびかたの動く絵（C-74）：高さがあって見えている
   await p.evaluate(() => { window.__hayDash.G.mode = 'title'; }); const how = await p.evaluate(() => { try { window.__hayDash.ev('openHow()'); } catch (e) { return -1; } const e = document.querySelector('.howanim'); return e ? e.getBoundingClientRect().height : 0; });
   console.log(JSON.stringify({ rain, room, snow, cue, how }));
-  const ok = cue.win && cue.left > 0 && cue.left < 1 && how > 100 && rain.wet > 0 && rain.dust && room.shaft > 0 && room.wet === 0 && /244,247,250/.test(snow.dust);
+  const ok = cue.win && cue.left > 0 && cue.left < 1 && how > 100 && rain.wet > 0 && rain.dust && room.shaft === 0 && room.wet === 0 && /244,247,250/.test(snow.dust);
   console.log(ok && !errs.length ? 'VISFX OK' : 'VISFX NG ' + errs.join(' | ')); await b.close();
 })();
