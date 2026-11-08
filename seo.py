@@ -72,7 +72,7 @@ def page(lang):
   body = f'''<main>
 <header><small>REN &amp; JILL ・ HAY DASH</small><h1>{L('レンとジルの<wbr>チモシーダッシュ', 'Ren &amp; Jill: Hay Dash')}</h1><p>{L('寝坊した課長と、東京をかけぬけて出社！ 無料のうさぎランゲーム', 'Two office bunnies, one mad dash across Tokyo. A free runner game.')}</p></header>
 <a class="play" href="./{'?ref=guide' if ja else '?lang=en&amp;ref=guide'}">{L('今すぐ無料で遊ぶ ▶', 'Play free now ▶')}</a>
-<p class="lang">{L('<a href="guide-en" hreflang="en">English</a>', '<a href="guide" hreflang="ja">日本語</a>')} ・ <a href="ranking">{L('みんなのランキング', 'Leaderboard')}</a></p>
+<p class="lang">{L('<a href="guide-en" hreflang="en">English</a>', '<a href="guide" hreflang="ja">日本語</a>')} ・ <a href="ranking">{L('みんなのランキング', 'Leaderboard')}</a> ・ <a href="{L('food', 'food-en')}">{L('うさぎのえさ図鑑', 'Bunny food guide')}</a></p>
 <section><h2>{L('どんなゲーム？', 'What is it?')}</h2>
 <p>{L('朝8時、うさぎの課長レンが寝坊！ 部下のジルといっしょに、家から駅、電車、オフィス、そして夕方の東京の名所までを走りぬけます。道に落ちているチモシー（うさぎの主食の牧草）を集め、障害物をよけて、できるだけ遠くまで進みましょう。',
  'It is 8 a.m. and Ren, the boss bunny, has overslept! With his assistant Jill he races from his home to the station, onto the train, through the office and out to Tokyo sights in the evening. Grab the hay (a rabbit’s staple food) along the way, dodge everything else and see how far you get.')}</p>
@@ -102,10 +102,56 @@ def page(lang):
 <meta name="twitter:card" content="summary_large_image"><link rel="icon" href="./favicon.png"><meta name="theme-color" content="#3B2A20">
 <style>{CSS}</style><script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script></head><body>{body}</body></html>'''
 
+# ---- the food book as its own page: what rabbits can and cannot eat (from the game's food book, ITEMS in src/1_data.js) ----
+# People search for this a lot; the game already has careful, sourced notes. General guidance only (source: Nagano Prefecture Animal Welfare Center).
+def food_items():
+  import re
+  src = open('src/1_data.js', encoding='utf-8').read(); i = src.index('const ITEMS = {'); j = src.index('\n};', i); out = []
+  for m in re.finditer(r"^\s*(\w+):\s*\{ ja: '([^']*)', en: '([^']*)', kind: '(\w+)'.*?tip: \{ ja: '((?:[^'\\]|\\.)*)', en: '((?:[^'\\]|\\.)*)' \}", src[i:j], re.M):
+    k, ja, en, kind, tja, ten = m.groups()
+    if k in ('goldhay', 'plane', 'hanko', 'stamp') or not tja: continue
+    cut = lambda t: t.replace('\\n', '\n').split('\n')[0].replace("\\'", "'")
+    out.append({'k': k, 'ja': ja, 'en': en, 'kind': kind, 'tja': cut(tja), 'ten': cut(ten)})
+  return out
+FOOD_GROUPS = [('main', '主食（毎日たっぷり）', 'Staples (every day)', ['hay', 'pellet']), ('veg', '野菜（少しずつ）', 'Vegetables (a little at a time)', ['komatsuna', 'chingen', 'parsley', 'carrotTop', 'dandelion', 'clover']),
+  ('treat', 'おやつ（ほんの少しだけ）', 'Treats (just a little)', ['apple', 'strawberry', 'banana', 'pineapple', 'carrot', 'papaya', 'alfalfa']), ('bad', 'あげてはいけない物', 'Never feed', ['choco', 'onion', 'chips', 'pomseed'])]
+def food_page(lang):
+  ja = lang == 'ja'; L = (lambda a, b: a if ja else b); e = html.escape
+  slug = 'food' if ja else 'food-en'; url = SITE + slug
+  title = L('うさぎが食べていい物・ダメな物｜えさ図鑑（レンとジルのチモシーダッシュ）', 'What can rabbits eat? A bunny food guide | Ren & Jill: Hay Dash')
+  desc = L('うさぎの主食・野菜・おやつ・あげてはいけない物を、ゲームのえさ図鑑からまとめました。チモシー、小松菜、りんご、にんじん、チョコレートや玉ねぎがダメな理由など。一般的な目安です（出典：長野県動物愛護センター）。',
+           'Hay, greens, treats and foods to avoid, from the food book of our free bunny game: timothy hay, leafy greens, carrot, and why chocolate and onions are dangerous.')
+  items = {x['k']: x for x in food_items()}
+  if 'pomseed' in items: items['pomseed'].update(tja='脂肪がとても多い種。ハムスターの好物ですが、うさぎにはあげません。', ten='Very fatty seeds. A hamster favorite, but not for rabbits.')
+  secs = ''
+  for gid, gja, gen, keys in FOOD_GROUPS:
+    rows = ''.join(f'<li><b>{e(items[k]["ja"])}</b>：{e(items[k]["tja"])}</li>' if ja else f'<li><b>{e(items[k]["en"])}</b>: {e(items[k]["ten"])}</li>' for k in keys if k in items)
+    secs += f'<section class="g-{gid}"><h2>{L(gja, gen)}</h2><ul class="food">{rows}</ul></section>'
+  ld = [{'@context': 'https://schema.org', '@type': 'Article', 'headline': title, 'description': desc, 'inLanguage': lang, 'url': url, 'dateModified': TODAY, 'image': SITE + 'og.png',
+         'author': {'@type': 'Organization', 'name': 'Ren & Jill', 'url': OFFICIAL}, 'citation': L('長野県動物愛護センター「うさぎの飼い方」', 'Nagano Prefecture Animal Welfare Center: rabbit care guide')},
+        {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': [{'@type': 'ListItem', 'position': 1, 'name': L('チモシーダッシュ', 'Hay Dash'), 'item': SITE}, {'@type': 'ListItem', 'position': 2, 'name': L('えさ図鑑', 'Food guide'), 'item': url}]}]
+  body = f"""<main>
+<header><small>REN &amp; JILL ・ {L('えさ図鑑', 'FOOD GUIDE')}</small><h1>{L('うさぎが食べていい物・<wbr>ダメな物', 'What can rabbits eat?')}</h1><p>{L('うさぎの課長レンと部下ジルの、えさ図鑑', 'The food book of Ren and Jill, two office bunnies')}</p></header>
+<section><p>{L('うさぎのごはんは「牧草がいちばん」。そこに少しのペレットと野菜、ときどきのおやつ。ゲーム「チモシーダッシュ」のえさ図鑑の内容を、1ページにまとめました。', 'For rabbits, hay comes first, plus a few pellets and greens and the occasional treat. This page collects the food book from our game, Hay Dash.')}</p>
+<p class="note">{L('ここに書いてあるのは一般的な目安です。体の大きさや年齢、体調によって合う量はちがいます。気になることは動物病院に相談してください。', 'This is general guidance. The right amounts depend on size, age and health; ask a vet if you are unsure.')}</p></section>
+{secs}
+<a class="play" href="./{'?ref=food' if ja else '?lang=en&amp;ref=food'}">{L('ゲームで集めてみる（無料） ▶', 'Collect them in the free game ▶')}</a>
+<p class="lang">{L('<a href="food-en" hreflang="en">English</a>', '<a href="food" hreflang="ja">日本語</a>')} ・ <a href="{L('guide', 'guide-en')}">{L('ゲームの遊び方', 'How to play')}</a></p>
+<footer>{L('えさの情報は一般的な目安です（出典：長野県動物愛護センター）。ゲームの中だけの物は、このページにはのせていません。', 'Food notes are general guidance (source: Nagano Prefecture Animal Welfare Center). Items that exist only in the game are not listed.')}<br>© Ren &amp; Jill</footer>
+</main>"""
+  css = CSS + '.food{list-style:none;padding:0}.food li{padding:8px 0;border-bottom:1px dashed var(--line)}.food li:last-child{border:0}.note{font-size:14px;color:var(--soft)}.g-bad{border-color:#E8A79E;background:#FFF1EE}.g-bad h2{color:#B3392E}'
+  return f"""<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{e(title)}</title><meta name="description" content="{e(desc)}"><link rel="canonical" href="{url}">
+<link rel="alternate" hreflang="ja" href="{SITE}food"><link rel="alternate" hreflang="en" href="{SITE}food-en"><link rel="alternate" hreflang="x-default" href="{SITE}food">
+<meta property="og:type" content="article"><meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{url}"><meta property="og:image" content="{SITE}og.png"><meta property="og:locale" content="{L('ja_JP', 'en_US')}">
+<meta name="twitter:card" content="summary_large_image"><link rel="icon" href="./favicon.png"><meta name="theme-color" content="#3B2A20">
+<style>{css}</style><script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script></head><body>{body}</body></html>"""
+
 def write(app='app'):
   open(f'{app}/guide.html', 'w').write(page('ja')); open(f'{app}/guide-en.html', 'w').write(page('en'))
+  open(f'{app}/food.html', 'w').write(food_page('ja')); open(f'{app}/food-en.html', 'w').write(food_page('en'))
   open(f'{app}/robots.txt', 'w').write(f'User-agent: *\nAllow: /\nDisallow: /feed.json\n\nSitemap: {SITE}sitemap.xml\n')
-  urls = [('', '1.0', 'daily'), ('guide', '0.8', 'weekly'), ('guide-en', '0.7', 'weekly'), ('ranking', '0.6', 'daily')]
+  urls = [('', '1.0', 'daily'), ('guide', '0.8', 'weekly'), ('guide-en', '0.7', 'weekly'), ('food', '0.7', 'monthly'), ('food-en', '0.6', 'monthly'), ('ranking', '0.6', 'daily')]
   open(f'{app}/sitemap.xml', 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     ''.join(f'  <url><loc>{SITE}{u}</loc><lastmod>{TODAY}</lastmod><changefreq>{f}</changefreq><priority>{p}</priority></url>\n' for u, p, f in urls) + '</urlset>\n')
   open(f'{app}/{INDEXNOW_KEY}.txt', 'w').write(INDEXNOW_KEY)
