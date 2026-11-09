@@ -352,6 +352,11 @@
       "has": "t('quitSure')"
     },
     {
+      "name": "安全網は新しい道から続ける",
+      "file": "src/6_game.js",
+      "has": "function newStreet()"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"

@@ -15,6 +15,7 @@ const SEC = +(process.argv[2] || process.env.SEC || 120), LATE = +(process.env.L
       const note = (k, extra) => { if (out.length < 40) out.push(Object.assign({ k, t: +G.t.toFixed(1), y: +G.y.toFixed(2), vy: +(G.vy || 0).toFixed(2), air: G.air, mode: G.mode, pow: Object.keys(G.pow).filter(x => G.pow[x] > 0).join('+'), th: G.segs[G.ci] && G.segs[G.ci].th.en }, extra || {})); };
       await new Promise(res => { const iv = setInterval(() => {
         const now = performance.now(); if (now - t0 > SEC * 1000) { clearInterval(iv); res(); return; }
+        if ((window.__finish || 0) > (window.__finN || 0)) { window.__finN = window.__finish; note('FORCED END', { why: window.__finishWhy, rescue: window.__rescueWhy }); } // 安全網で終わった（2026-11-10 の報告「強制的に早退」）
         if (G.mode === 'dead' || G.mode === 'result' || G.mode === 'dying') { if (G.mode === 'dead') { revives++; D.ev("G.reviveN = 0; doRevive('free')"); if (G.mode !== 'play') { D.ev('SV.clovers = 9'); D.ev("doRevive('clover')"); } } return; }
         if (G.mode !== 'play') return;
         if (G.invT < 2) G.invT = 2; // never die, keep running
