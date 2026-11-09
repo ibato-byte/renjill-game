@@ -692,6 +692,10 @@ function populate(seg) {
     // just past a row of obstacles, in a lane that the next row leaves open
     const i = Math.max(0, ((rows.length - 1) / 2) | 0), at = rows[i].s + 4.5, nx = rows[i + 1], free = [0, 1, 2].filter(l => !nx || nx.s - at > 7 || !nx.lanes[l]);
     if (free.length && at < L - 20) { seg.items = seg.items.filter(it => !(Math.abs(it.s - at) < 2.5)); addItem(seg, 'pomseed', at, pick(free), .6); G.pomSeedAt = G.dist; G.pomSeedN = (G.pomSeedN || 0) + 1; } }
+  // あいことばのかくれんぼ（B-49）：期間中、まだそろっていなければ、1回の走りに1枚まで「？」の札。次の列が空けるレーンに
+  if ((th.kind === 'street' || th.kind === 'room') && rows.length >= 2 && G.t > 25 && !G.kanaPut && huntNow() && Math.random() < .3) {
+    const i = Math.min(rows.length - 2, 1 + ((Math.random() * (rows.length - 1)) | 0)), at = (rows[i - 1 >= 0 ? i - 1 : 0].s + rows[i].s) / 2, free = [0, 1, 2].filter(l => !rows[i].lanes[l]);
+    if (free.length && at > 10 && at < L - 20 && !seg.items.some(it => Math.abs(it.s - at) < 2)) { addItem(seg, 'kana', at, pick(free), .5); G.kanaPut = 1; } }
   // dropped papers (B-24): now and then on a street, in a lane the next row leaves open. Picking them up earns a thank-you from the partner
   if (th.kind === 'street' && rows.length >= 2 && G.t > 15 && !(G.memoAt > 0 && G.dist - G.memoAt < 900) && Math.random() < .35) {
     const i = Math.min(rows.length - 2, 1 + ((Math.random() * (rows.length - 1)) | 0)), at = (rows[i - 1 >= 0 ? i - 1 : 0].s + rows[i].s) / 2, free = [0, 1, 2].filter(l => !rows[i].lanes[l]);

@@ -90,6 +90,8 @@ const SONGS = {
   commute: { bpm: 132, inst: 'pluck', lv: .08, mel: [0, 4, 7, 9, 7, 4, 2, 4, 0, 4, 7, 12, 9, 7, 4, 2, 0, 2, 4, 7, 9, 12, 9, 7, 5, 4, 2, 4, 2, 0, -1, -3], bass: [0, 0, 7, 7, 5, 5, 7, 7], bw: 'triangle', hat: 1 },
   office:  { bpm: 118, inst: 'pluck', lv: .07, mel: [7, -99, 7, 9, 7, 4, -99, 2, 4, -99, 4, 5, 4, 0, -99, -99, 2, -99, 2, 4, 2, -1, -99, 0, 2, 4, 7, 4, 2, 0, -99, -99], bass: [0, 4, 5, 7, 9, 7, 5, 4], bw: 'triangle', hat: 1 },
   evening: { bpm: 112, inst: 'bell', lv: .05, mel: [11, 9, 7, 4, 7, -99, 9, 11, 12, 11, 9, 7, 9, -99, -99, 4, 7, 9, 11, 14, 12, 11, 9, 7, 4, 2, 4, 7, -99, -99, -99, -99], bass: [0, 0, -3, -3, 5, 5, 7, 7], bw: 'sine', hat: 1, chord: 1 },
+  // お祭りの日（B-29）：提灯の道だけの祭りばやし（ヨナ抜きの笛と三味線ふう、太鼓）。どこかの曲ではなく、このゲームのための短いフレーズ
+  matsuri: { bpm: 128, inst: 'pluck', lv: .08, mel: [12, 9, 7, 9, 12, -99, 14, 12, 9, 7, 4, 7, 9, -99, -99, -99, 7, 9, 12, 14, 16, 14, 12, 9, 12, 9, 7, 4, 7, -99, -99, -99], bass: [0, 0, 7, 7, 9, 9, 7, 7], bw: 'triangle', hat: 1, taiko: 1 },
   night:   { bpm: 92, inst: 'sine', lv: .07, mel: [7, -99, 4, -99, 2, 4, -99, -99, 9, -99, 7, -99, 4, 2, -99, -99, 0, -99, 2, 4, 7, -99, 9, -99, 7, 4, 2, -99, 0, -99, -99, -99], bass: [0, 0, 5, 5, -3, -3, 7, 7], bw: 'sine', hat: 0, chord: 1 },
 };
 let musicKey = 0, musicArea = 'home';
@@ -127,6 +129,7 @@ function musicTick() {
     const st = AU.step, base = 261.63 * Math.pow(2, musicKey / 12), inst = sg.inst || 'pluck';
     const m = sg.mel[st % sg.mel.length]; if (m > -50) tone(base * (fev ? 4 : 2) * Math.pow(2, m / 12), spb * (inst === 'bell' ? 2.2 : inst === 'sine' ? 1.6 : 1.4), inst, sg.lv * (inst === 'pluck' ? 1.6 : 1), AU.nextT, 0, AU.music);
     if (st % 8 === 0 || st % 8 === 4) thump(120, 48, .14, .22, AU.nextT, AU.music);   // キック
+    if (sg.taiko && (st % 8 === 3 || st % 16 === 14)) thump(95, 42, .2, .26, AU.nextT, AU.music);   // お祭りの太鼓（ドン・ドドン）
     if (sg.hat && (st % 8 === 2 || st % 8 === 6)) { const n = AU.ctx.createBufferSource(); n.buffer = AU.hat; const g = AU.ctx.createGain(); g.gain.value = .07; const f = AU.ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800; n.connect(f); f.connect(g); g.connect(AU.music); n.start(AU.nextT); }   // 軽いスネア
     if (st % 2 === 0) tone(base / 2 * Math.pow(2, sg.bass[(st / 4 | 0) % 8] / 12), spb * 1.7, sg.bw, .15, AU.nextT, 0, AU.music);
     if (sg.chord && st % 8 === 0) for (const iv of [4, 7, 11]) tone(base * Math.pow(2, (sg.bass[(st / 4 | 0) % 8] + iv) / 12), spb * 7, 'sine', .025, AU.nextT, 0, AU.music);

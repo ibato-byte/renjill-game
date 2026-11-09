@@ -41,7 +41,7 @@ const REF_IN = (() => { try { const q = new URLSearchParams(location.search), r 
 if (REF_IN && !SV.ref) SV.ref = REF_IN;
 /* ---- account transfer: the whole save (without photos) as a code, readable by any build of the game ----
    format: RJ1.<base64url of deflated JSON>.<checksum>   (RJ0 = not compressed, for browsers without CompressionStream) */
-const XFER_FIELDS_SKIP = ['album', 'bestPics']; // 写真はこの端末だけ（引き継ぎコード・記録の保存先には入れない）
+const XFER_FIELDS_SKIP = ['album', 'bestPics', 'ghost']; // 写真はこの端末だけ（引き継ぎコード・記録の保存先には入れない）
 async function xferMake() {
   const o = {}; for (const k in SV) if (!XFER_FIELDS_SKIP.includes(k)) o[k] = SV[k];
   try { const a = localStorage.getItem('hd_fsauth'); if (a) o._fs = JSON.parse(a); } catch (e) { } // the ranking account (app build) goes along
@@ -105,7 +105,7 @@ let RESETTING = 0; // set while the player wipes their data: nothing may write i
 function saveNow() { if (RESETTING) return; // if storage is full, give up the oldest photos one by one (never the progress)
   SAVE_DIRTY = 0;
   for (let k = 0; k < 100; k++) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); return; } catch (e) { if (SV.bestPics && SV.bestPics.length > 1) { SV.bestPics.pop(); continue; } const ks = Object.keys(SV.album || {}); if (!ks.length) return; delete SV.album[ks[0]]; } } }
-const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true, easy: false, big: false, hand: false }, SV.opt || {}));
+const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true, easy: false, big: false, hand: false, ghost: true }, SV.opt || {}));
 /* ---- languages: the same four as the official site (日本語・English・繁體中文・한국어) ----
    Chinese and Korean come from I18N (src/0_i18n.js, keyed by the Japanese text); anything missing falls back to English. */
 const LANGS = ['ja', 'en', 'zh', 'ko'], LANG_NAME = { ja: '日本語', en: 'English', zh: '繁體中文', ko: '한국어' };
@@ -126,10 +126,20 @@ const STR = {
   bigText: ['文字の大きさ', 'Text size'], bigN: ['ふつう', 'Normal'], bigY: ['大きめ', 'Large'], bigNote: ['画面の上の数字・お知らせの帯・この画面の文字を少し大きくします', 'Makes the top numbers, the message strip and these menus a little bigger'],
   sensNote: ['「敏感」にすると、短いスワイプでも反応します', 'High: shorter swipes count'], calmNote: ['画面のゆれ・フラッシュ・残像をおさえます', 'Less shaking, flashing and trails'],
   hitWhat: ['ぶつかったのは、これ', 'You bumped into this'], hitWhatN: ['ぶつかったのは「{0}」', 'You bumped into this'],
+  ghostOpt: ['ベストの自分と競走', 'Race your best run'], ghostNote: ['いちばん良かった走りが、うすいうさぎになって前を走ります。上に「ベストより +12m」などと出ます', 'Your best run appears as a faint bunny ahead of you, with a "+12m vs best" count at the top'],
+  ghostAhead: ['ベストより +{0}m', '+{0}m vs best'], ghostBehind: ['ベストまで {0}m', '{0}m behind best'], ghostTag: ['ベスト', 'BEST'],
   hand: ['片手で操作', 'One-handed'], handNote: ['タップ操作を画面の下半分だけにします（左右＝移動、まんなかの上＝ジャンプ、下＝スライディング）', 'Tap controls use only the lower half (sides = move, middle top = jump, bottom = slide)'],
   errLogH: ['エラーの記録', 'Error log'], errLogNote: ['うまく動かなかったときの記録です（この端末だけに残ります）。お問い合わせのときに見せてください', 'Problems this device ran into (kept only here). Handy if you contact us'], errLogNone: ['記録はありません', 'Nothing recorded'],
   goldTie: ['{0}の月間ランキング {1}位！ 金のネクタイをどうぞ', '#{1} in the {0} ranking! Here is your gold tie'], goldTieBadge: ['金のネクタイ（{0} {1}位）', 'Gold tie ({0}, #{1})'],
   titleNew: ['新しい称号を手に入れた！', 'New title!'], titleShareBtn: ['称号「{0}」をシェア', 'Share your title: {0}'], titleShareText: ['「レンとジルのチモシーダッシュ」で称号「{0}」を手に入れた！ #レンとジル #チモシーダッシュ', 'Got the title “{0}” in Ren & Jill: Hay Dash! #RenAndJill #HayDash'], titleSaved: ['称号カードの画像を保存しました（文章もコピー済み）', 'Title card saved (text copied too)'],
+  kanaGot: ['あいことばの文字「{0}」を見つけた！（{1}/{2}）', 'Secret word letter "{0}" found! ({1}/{2})'], kanaDone: ['あいことば「{0}」がそろった！ +{1}', 'Secret word "{0}" complete! +{1}'], kanaHint: ['走っていると、あいことばの文字が落ちていることがあります（{0}/{1}）', 'Letters of a secret word are hidden along the way ({0}/{1})'],
+  lastGo: ['終電まで {0} 秒！ ドアが閉まる前に飛び乗ろう', 'Last train in {0}s! Make it before the doors close'], lastOk: ['終電に飛び乗り！ +{0}', 'Made the last train! +{0}'], lastMiss: ['ドアが閉まった…次の電車で帰ろう', 'The doors closed... take the next one'], lastHud: ['終電まで {0}秒', 'Last train {0}s'], lastClosed: ['ドアが閉まった', 'Doors closed'],
+  revBtn: ['🌙 逆走デー：夕方から家まで', '🌙 Reverse day: home from 6 PM'], revGo: ['逆走デー！ 会社から家まで帰ろう', 'Reverse day! Run home from the office'], revHome: ['ただいま！ 家に着いた +{0}', 'Home at last! +{0}'],
+  bossGo: ['締め切りの山がせまる！ ぶつからずに逃げ切れ', 'The Deadline Mountain is coming! Escape without a bump'], bossName: ['締め切りの山　あと {0}m', 'Deadline Mountain: {0}m to go'], bossWin: ['締め切りの山から逃げ切った！ +{0}', 'Escaped the Deadline Mountain! +{0}'], bossWin2: ['なんとか逃げ切った！ +{0}', 'Just got away! +{0}'],
+  epGig: ['今日の動画「{0}」より：{1}', 'From today\'s video "{0}": {1}'],
+  matsuri: ['お祭りの日！ 提灯の道は祭りばやし', 'Festival day! Lantern streets play festival music'],
+  duo: ['👥 ふたりで交代', '👥 Take turns (2 players)'], duoTurn: ['{0}P の番', 'Player {0}'], duoNext: ['{0}P：{1}　次は 2P の番！', 'P1: {1}. Now it is P2\'s turn!'], duoGo2: ['2P スタート', 'P2, GO!'],
+  duoSum: ['ふたりの合計 {0}（1P {1} ＋ 2P {2}）', 'Team total {0} (P1 {1} + P2 {2})'], duoWin: ['この回は {0}P の勝ち！', 'P{0} wins this round!'], duoTie: ['引き分け！', 'A tie!'], duoNote: ['ふたりの走りはランキングには入りません', 'Two-player runs are not on the ranking'],
   practice: ['練習・場所えらび', 'Practice: pick a place'], practiceNote: ['行ったことのある場所から選んで走れます。ぶつかっても終わりません（やめるときは一時停止→やめる）。点数・牧草は記録に入りません', 'Pick a place you have been to. Bumps never end the run (pause → quit to stop). Scores and hay are not saved'], practiceHome: ['課長の家から', 'From the boss’s home'], practiceMore: ['名所に行くと、ここで選べる場所が増えます', 'Visit more spots to unlock more places here'], practiceGo: ['練習：ぶつかっても続きます', 'Practice: bumps won’t stop you'], practiceBump: ['ぶつかった！（練習なので続けます）', 'Bump! (Practice, keep going)'], practiceDone: ['練習おつかれさま：{0}点・牧草{1}本・ぶつかった{2}回（記録には入りません）', 'Practice done: {0} pts, {1} hay, {2} bumps (not saved)'],
   howA1: ['左右にスワイプ：よける', 'Swipe left/right: dodge'], howA2: ['上にスワイプ：ジャンプ', 'Swipe up: jump'], howA3: ['下にスワイプ：スライディング', 'Swipe down: slide'],
   mapH: ['走った場所の地図', 'Map of where you ran'], mapNote: ['足あと＝行った名所（{0} / {1}）。灰色の点はまだ行っていない所', 'Paw prints = spots you have visited ({0} / {1}). Grey dots: not yet'],
@@ -304,6 +314,7 @@ const ITEMS = {
   pomseed:  { ja: 'ひまわりの種', en: 'Sunflower seeds', kind: 'pom', pts: 200, tip: { ja: 'キンクマハムスターのポムの大好物。これをとるとポムが合流する。脂肪が多いので、うさぎのレンとジルは食べません。', en: 'Pom the hamster’s favorite. Pick them up and Pom joins you. Too fatty for bunnies, so Ren and Jill skip them.' } },
   stamp:    { ja: '観光スタンプ', en: 'Tokyo stamp', kind: 'stamp', pts: 500, tip: { ja: '', en: '' } },
   chalflag: { ja: '挑戦状の旗', en: 'Challenge flag', kind: 'flag', pts: 0, tip: { ja: '', en: '' } }, // 挑戦状の点数の手前に立つ旗（図鑑には入らない）
+  kana:     { ja: 'あいことばの文字', en: 'Secret word letter', kind: 'kana', pts: 100, tip: { ja: '', en: '' } }, // かくれんぼ（B-49）：1回の走りに1枚まで（図鑑には入らない）
   memo:     { ja: '落とした書類', en: 'Dropped papers', kind: 'memo', pts: 150, tip: { ja: '', en: '' } }, // 拾うと相棒がお礼（図鑑には入らない）
   choco:    { ja: 'チョコレート', en: 'Chocolate', kind: 'bad', tip: { ja: 'うさぎには毒になる成分（テオブロミンなど）を含みます。絶対にあげないで。', en: 'Contains theobromine, which is toxic to rabbits. Never feed it.' } },
   onion:    { ja: '玉ねぎ・ネギ', en: 'Onions & leeks', kind: 'bad', tip: { ja: 'ネギの仲間（ニラ・ニンニクも）は中毒の原因になります。絶対にダメ（長野県資料）。', en: 'Onions and their relatives (leeks, garlic) are poisonous to rabbits (Nagano guide).' } },

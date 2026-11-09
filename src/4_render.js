@@ -331,6 +331,7 @@ function drawObjects(sg, isCur, oc) {
     const p = segPos(sg, it.s, it.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > 75) continue;
     DRAW.push([d, 4, it]);
   }
+  if (isCur && G.gb && G.gb.show) DRAW.push([G.gb.depth, 5, G.gb]);
   if (isCur && G.player.show) { DRAW.push([G.player.depth, 5, G.player]); if (G.follow.show) DRAW.push([G.follow.depth, 5, G.follow]); if ((G.pom.on || G.pom.title) && G.pom.show) DRAW.push([G.pom.depth, 5, G.pom]); if (G.pomPeek && G.pomPeek.seg === sg && G.pomPeek.b.show) DRAW.push([G.pomPeek.b.depth, 5, G.pomPeek.b]); }
   DRAW.sort((a, b) => b[0] - a[0]);
   pm('sort');
@@ -433,6 +434,8 @@ function drawItem(it, sg, d) {
   ctx.globalAlpha = 1 - fogK(d) * .9;
   if (d < 40 && !lowQ) { const gp = spriteAt(p[0], p[2], p[1]); if (gp) { const hk = clamp(1 - it.y / 3, .35, 1); ctx.fillStyle = `rgba(30,22,16,${(.16 * hk).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(gp.sx, gp.sy, size * .34 * hk, size * .09 * hk, 0, 0, Math.PI * 2); ctx.fill(); } } // a soft shadow on the ground under each item (2026-11-08)
   if (isPow || it.type === 'goldhay') { ctx.beginPath(); ctx.fillStyle = def.kind === 'stamp' ? 'rgba(255,120,110,.45)' : 'rgba(255,236,150,.5)'; ctx.arc(sp.sx, sp.sy, size * .62 * (1 + .08 * Math.sin(G.t * 6)), 0, Math.PI * 2); ctx.fill(); }
+  if (def.kind === 'kana') { const z = size * .62; ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(spin, 1); ctx.fillStyle = '#FFF3D6'; ctx.strokeStyle = '#E86A75'; ctx.lineWidth = Math.max(1.5, z * .08); ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-z / 2, -z / 2, z, z, z * .2); else ctx.rect(-z / 2, -z / 2, z, z); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#C8463C'; ctx.font = `900 ${Math.round(z * .62)}px "Zen Maru Gothic",sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('？', 0, z * .03); ctx.restore(); ctx.globalAlpha = 1; return; }
   const img = def.kind === 'stamp' ? stampSprite(sg.tid) : SPR[bad ? it.type + 'NG' : it.type];
   ctx.drawImage(img, sp.sx - size * spin / 2, sp.sy - size / 2, size * spin, size);
   ctx.globalAlpha = 1;
@@ -475,6 +478,10 @@ function drawBunnyWorld(b) {
   else if (b.slide) pose = 'slide'; else if (b.air) pose = 'air';
   else pose = 'run' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES;
   const img = bunFrame(b.who, pose, SV.mugOn);
+  if (b.ghost) { // ゴースト（B-32）：うすく、上に「ベスト」の小さな札
+    ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc); ctx.globalAlpha = .45; ctx.drawImage(img, -BS / 2, -GROUND_Y - BTOP, img.width, img.height); ctx.restore();
+    ctx.save(); ctx.globalAlpha = .8; ctx.font = '900 12px "Zen Maru Gothic","Hiragino Sans",sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#FBF6EE'; ctx.strokeStyle = 'rgba(59,42,32,.7)'; ctx.lineWidth = 3;
+    const ty = sp.sy - 250 * sc; ctx.strokeText(t('ghostTag'), sp.sx, ty); ctx.fillText(t('ghostTag'), sp.sx, ty); ctx.restore(); return; }
   ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc);
   if (b.tilt) ctx.rotate(b.tilt);
   if (b === G.player && G.mode === 'play' && !OPT().calm && !b.fly) { const lc = G.laneT > 0 ? Math.sign(G.lane - G.prevLane) * Math.sin(G.laneT / .35 * Math.PI) * .09 : 0, tc = G.turnT > 0 && G.turnDir ? G.turnDir * Math.sin(G.turnT / .8 * Math.PI) * .12 : 0; if (lc || tc) ctx.rotate(lc + tc); } // lean into a lane change and a corner (2026-11-08)

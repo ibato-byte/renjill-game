@@ -27,6 +27,10 @@ function refreshTitle() {
   $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
   { const dly = dailyToday(), done = SV.dailyDone === dly.key; $('#tDaily').textContent = (tr('今日のチャレンジ：', 'Today: ')) + L(dly.c.t(dly.n)) + (done ? ' ✓' : (tr('（チモシー300本＋お守り）', ' (300 hay + charm)'))); }
   { let q = $('#btnQuick'); if (!q) { q = document.createElement('button'); q.id = 'btnQuick'; q.className = 'sub small quick'; q.onclick = () => { SFX.ui(); G.quickNext = 1; hideAll(); startRun(); }; $('#tDaily').after(q); } q.textContent = t('quick') + (SV.bestT ? '　' + tr('ベスト ', 'best ') + fmt(SV.bestT) : ''); q.hidden = !SV.tutDone; } // a short game for a short break (2026-11-08)
+  { let e = $('#tHunt'); if (!e) { e = document.createElement('div'); e.id = 'tHunt'; e.className = 'hunt'; $('#tDaily').after(e); } const h = SV.tutDone ? huntNow() : null; e.hidden = !h; // あいことばのかくれんぼ（B-49）
+    if (h) { const ch = [...h.w], got = SV.hunt && SV.hunt.w === h.w ? SV.hunt.got : []; e.innerHTML = `<span>${esc(tr('あいことばのかくれんぼ', 'Secret word hunt'))}</span><b>${ch.map((c, i) => got.includes(i) ? esc(c) : '？').join(' ')}</b><small>${esc(t('kanaHint', got.length, ch.length))}${h.ep ? esc(tr('　ヒント：動画「' + h.ep + '」', '  Hint: the video "' + h.ep + '"')) : ''}</small>`; } }
+  { let q = $('#btnRev'); if (!q) { q = document.createElement('button'); q.id = 'btnRev'; q.className = 'sub small quick'; q.onclick = () => { SFX.ui(); G.revNext = 1; hideAll(); startRun(); }; $('#btnQuick').after(q); } q.textContent = t('revBtn'); q.hidden = !SV.tutDone || !revDay(); } // 逆走デー（B-37）
+  { let q = $('#btnDuo'); if (!q) { q = document.createElement('button'); q.id = 'btnDuo'; q.className = 'sub small quick'; q.onclick = () => { SFX.ui(); G.duoNext = { turn: 1, s: [0, 0] }; hideAll(); startRun(); }; $('#btnQuick').after(q); } q.textContent = t('duo'); q.hidden = !SV.tutDone; } // ふたりで交代（B-33）
   { let q = $('#btnPractice'); if (!q) { q = document.createElement('button'); q.id = 'btnPractice'; q.className = 'sub small quick'; q.onclick = openPractice; $('#btnQuick').after(q); } q.textContent = t('practice'); q.hidden = !SV.tutDone; } // 練習・場所えらび（B-31・B-38）
   { let e = $('#tDayGoal'); if (!e) { e = document.createElement('div'); e.id = 'tDayGoal'; $('#tDaily').after(e); } const n = SV.dayHay && SV.dayHay.d === todayStr() ? SV.dayHay.n : 0, k = Math.min(1, n / DAY_GOAL);
     e.className = 'daygoal' + (n >= DAY_GOAL ? ' done' : ''); e.innerHTML = `<span>${esc(tr('今日の牧草', 'Hay today'))}</span><i><b style="width:${(k * 100).toFixed(0)}%"></b></i><em>${fmt(Math.min(n, DAY_GOAL))} / ${DAY_GOAL}${n >= DAY_GOAL ? ' ✓' : ''}</em>`; } // today's hay goal (2026-11-08)
@@ -144,6 +148,7 @@ function settingsHTML() {
   return langRow + row(t('ctrl'), 'ctrl', [['swipe', t('ctrlSwipe')], ['tap', t('ctrlTap')]]) + `<p class="note">${esc(t('ctrlNote'))}</p>` +
     (OPT().ctrl === 'tap' ? row(t('hand'), 'hand', [[false, t('off')], [true, t('on')]]) + `<p class="note">${esc(t('handNote'))}</p>` : '') +
     row(t('sens'), 'sens', [['normal', t('sensN')], ['high', t('sensH')]]) + `<p class="note">${esc(t('sensNote'))}</p>` + row(t('vib'), 'vib', [[true, t('on')], ['low', t('vibLow')], [false, t('off')]]) +
+    row(t('ghostOpt'), 'ghost', [[true, t('on')], [false, t('off')]]) + `<p class="note">${esc(t('ghostNote'))}</p>` +
     row(t('bigText'), 'big', [[false, t('bigN')], [true, t('bigY')]]) + `<p class="note">${esc(t('bigNote'))}</p>` +
     row(t('easy'), 'easy', [[false, t('easyN')], [true, t('easyY')]]) + `<p class="note">${esc(t('easyNote'))}</p>` +
     row(t('calm'), 'calm', [[true, t('on')], [false, t('off')]]) + `<p class="note">${esc(t('calmNote'))}</p>` + row(t('music'), 'music', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) + row(t('sfx'), 'sfx', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) +
@@ -374,7 +379,7 @@ $('#btnQuit').onclick = () => { G.mode = 'dead'; G.cause = 'quit'; endRun(); };
 $('#btnRvClover').onclick = () => { clearInterval(rvTimer); doRevive($('#btnRvClover').dataset.free ? 'free' : 'clover'); };
 $('#btnRvHay').onclick = () => { clearInterval(rvTimer); doRevive('hay'); };
 $('#btnRvNo').onclick = () => { clearInterval(rvTimer); hideAll(); endRun(); };
-$('#btnAgain').onclick = () => { hideAll(); startRun(); };
+$('#btnAgain').onclick = () => { if (G.duo && G.duo.turn === 1) G.duoNext = { turn: 2, s: G.duo.s.slice() }; hideAll(); startRun(); };
 $('#btnKuji').onclick = () => {
   const b = $('#btnKuji'); if (b.disabled) return; b.disabled = true; audioInit(); SFX.ui();
   b.textContent = tr('カラカラ…', 'Shaking…');
