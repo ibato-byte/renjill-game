@@ -33,6 +33,7 @@ const T = [
   { n: 'revday', why: '逆走デー（夕方から家まで・ただいまボーナス・ランキングに入れない）', ok: has('REVDAY OK') },
   { n: 'boss', why: '締め切りの山（ボスのバー・逃げ切りボーナス）', ok: has('BOSS OK') },
   { n: 'epgig', why: '動画のネタがステージの出来事に（最初のおしごと・1.5 倍）', ok: has('EPGIG OK') },
+  { n: 'poseprio', why: 'ふり返り中でもしゃがむ・跳ぶ絵になる／ナイスジャンプで止まらない（2026-11-09 の報告）', ok: has('POSEPRIO OK') },
   { n: 'titlecard', why: '新しい称号のシェア用カード（結果画面のボタン）', ok: has('TITLECARD OK') },
   { n: 'goldtie', why: '月間ランキング上位3人に金のネクタイ（経歴にバッジ）', ok: has('GOLDTIE OK') },
   { n: 'album', why: '自己ベストの記念写真・牧草で育つ観葉植物', ok: has('ALBUM OK') },
