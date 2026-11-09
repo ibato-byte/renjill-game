@@ -171,7 +171,7 @@ function nice(kind) {
   floatText(W / 2, H * .5, G.niceN > 1 ? `${lbl} ×${G.niceN}` : lbl, G.niceN > 2 ? '#FF8A5C' : '#F2C230');
   tone(523 * Math.pow(1.0595, Math.min(G.niceN, 5) * 2), .12, 'bell', .05); // 止める演出（hitStop）はやめた：ジャンプのたびに一瞬止まって「重い」と感じる（2026-11-09 の報告）
   if (G.niceN >= 3 && Math.random() < .6) react(pick(['wink', 'happy']), 0);
-  if (G.niceN === 3) G.slowT = .45;
+  // 3回つづけてナイスのときのスロー再生はやめた：ジャンプのあと急に遅くなるように感じる（2026-11-09 の報告。qa/funcheck・qa/poseprio で確認）
   if (kind === 'slide') { G.slideRow = (now - (G.slideRowT || -9) < 4) ? (G.slideRow || 0) + 1 : 1; G.slideRowT = now; if (G.slideRow === 3) { G.stats.slideMaster = (G.stats.slideMaster || 0) + 1; const p2 = 200 * SV.mlevel; G.score += p2; floatText(W / 2, H * .34, lab('SLIDE MASTER!') + ' +' + fmt(p2), '#F2C230'); tone(523, .1, 'bell', .045); tone(784, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .08); } } // three slide-unders in a row (2026-11-08)
 }
 function smash(o) { if (o.dead) return; o.dead = .001; o.vx = Math.random() < .5 ? -1 : 1; G.score += 30 * SV.mlevel; SFX.bump(); G.hitStop = .05; G.shake = Math.max(G.shake, .35);
@@ -469,7 +469,6 @@ function update(dt) {
   const seg = curSeg(), P = G.player;
   dt *= tutorialScale(seg, dt);
   if (G.timed && G.t >= G.timed) { G.cause = 'time'; G.mode = 'dead'; SFX.mission(); endRun(); return; } // the 1-minute dash ends on the clock (2026-11-08)
-  if (G.slowT > 0) { G.slowT -= dt; if (!OPT().calm) dt *= .6; } // a beat of slow motion after three close calls in a row (2026-11-08)
 
   // speed rises gently and levels off (it used to reach 24 m/s mid-run, which got too hard)
   const base = Math.min(G.easy ? 12.6 : MAXSPD, (SV.tutDone ? 12.4 : 11) + G.dist * .0024 + (G.day - 1) * .7);
