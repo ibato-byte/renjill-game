@@ -13,11 +13,13 @@ const { chromium } = require('playwright'); const path = require('path');
   const spd = await p.evaluate(async () => { const G = window.__hayDash.G; G.jumpTo('shinjuku', 600, 3); G.weather = 'clear'; G.invT = 99; G.fever = 0; G.pow.dash = 0; G.pow.fly = 0;
     let on = true; const keep = () => { if (!on) return; G.speed = 22; G.fever = 0; G.pow.dash = 0; G.pow.fly = 0; requestAnimationFrame(keep); }; keep(); await new Promise(r => setTimeout(r, 200)); G.spdN = 0; await new Promise(r => setTimeout(r, 600)); const fast = G.spdN; on = false;
     G.pow.dash = 3; G.spdN = 0; await new Promise(r => setTimeout(r, 400)); const dash = G.spdN; G.pow.dash = 0; return { fast, dash }; });
+  // フィーバー・ダッシュ中の残像は、メインのキャラクターだけでなく相棒にも（2026-11-09 の報告）
+  const trail = await p.evaluate(async () => { const G = window.__hayDash.G; G.jumpTo('shinjuku', 600, 1); G.weather = 'clear'; G.invT = 99; G.trailN = {}; G.fever = 3; await new Promise(r => setTimeout(r, 500)); const a = Object.assign({}, G.trailN); G.fever = 0; G.pow.dash = 3; G.trailN = {}; await new Promise(r => setTimeout(r, 400)); const b = Object.assign({}, G.trailN); G.pow.dash = 0; return { fever: a, dash: b }; });
   // 曲がり角（C-6）：曲がれる間は矢印の下に残りの線（--left が 1 → 0）
   const cue = await p.evaluate(async () => { const D = window.__hayDash, G = D.G; let sg; for (let i = 0; i < 12; i++) { G.jumpTo('ginza', 600, 1); sg = D.ev('curSeg()'); if (!sg.fork && sg.turn) break; } G.invT = 99; G.s = sg.len - 10; await new Promise(r => setTimeout(r, 80)); const c = document.getElementById('turnCue'); return { win: /\bwin\b/.test(c.className), left: parseFloat(c.style.getPropertyValue('--left')) }; });
   // あそびかたの動く絵（C-74）：高さがあって見えている
   await p.evaluate(() => { window.__hayDash.G.mode = 'title'; }); const how = await p.evaluate(() => { try { window.__hayDash.ev('openHow()'); } catch (e) { return -1; } const e = document.querySelector('.howanim'); return e ? e.getBoundingClientRect().height : 0; });
-  console.log(JSON.stringify({ rain, room, snow, spd, cue, how }));
-  const ok = cue.win && cue.left > 0 && cue.left < 1 && how > 100 && rain.wet > 0 && rain.dust && room.shaft === 0 && spd.fast === 0 && spd.dash > 0 && room.wet === 0 && /244,247,250/.test(snow.dust);
+  console.log(JSON.stringify({ rain, room, snow, spd, trail, cue, how }));
+  const ok = cue.win && cue.left > 0 && cue.left < 1 && how > 100 && rain.wet > 0 && rain.dust && room.shaft === 0 && spd.fast === 0 && spd.dash > 0 && trail.fever.p > 0 && trail.fever.f > 0 && trail.dash.p > 0 && trail.dash.f > 0 && room.wet === 0 && /244,247,250/.test(snow.dust);
   console.log(ok && !errs.length ? 'VISFX OK' : 'VISFX NG ' + errs.join(' | ')); await b.close();
 })();
