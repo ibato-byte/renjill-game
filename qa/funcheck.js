@@ -16,7 +16,7 @@ const { chromium } = require('playwright'); const path = require('path');
     const perfect = G.stats.perfect || 0;
     // combo milestone
     G.combo = 24; const hay = sg.items.find(it => !it.got && it.type === 'hay'); if (hay) D.ev(`collect(curSeg().items[${sg.items.indexOf(hay)}], curSeg())`);
-    // slow motion after three NICE in a row
+    // three NICE in a row: no slow motion any more (it felt like the game slowed down after a jump: 2026-11-09)
     D.ev("nice('jump'); nice('jump'); nice('jump')"); const slow = G.slowT > 0;
     // speed up: push the distance on
     G.dist += 2000; G.invT = 99; await new Promise(r => setTimeout(r, 900));
@@ -50,7 +50,7 @@ const { chromium } = require('playwright'); const path = require('path');
   ok.flick = r.flick === 2; if (!ok.flick) console.log('new2', JSON.stringify([r.flick]));
   ok.snowball = r.snow.n > 0 && r.snow.m === 0; ok.rainSound = !!r.amb.skip || (r.amb.r > 0 && r.amb.r0 === 0); if (!ok.snowball || !ok.rainSound) console.log('new', JSON.stringify([r.snow, r.amb]));
   ok.memo = r.memo.seen === 1 && r.memo.got === 1 && r.memo.pts > 0 && !!r.memo.say && !r.memo.book; if (!ok.memo) console.log('memo', JSON.stringify(r.memo));
-  ok.perfect = r.perfect >= 1 && r.scoreUp; ok.combo = /25 COMBO/.test(r.banners); ok.speed = r.spTier >= 1 && /SPEED UP/.test(r.banners); ok.slow = r.slow; ok.gold = !!r.gold; ok.air = !!r.air; ok.slideMaster = r.slideM; ok.corner = r.corner; ok.sky = r.sky >= 4; ok.rich = r.rich.n === 30 && r.rich.more >= 20 && r.rich.noLine === 1;
+  ok.perfect = r.perfect >= 1 && r.scoreUp; ok.combo = /25 COMBO/.test(r.banners); ok.speed = r.spTier >= 1 && /SPEED UP/.test(r.banners); ok.slow = !r.slow; ok.gold = !!r.gold; ok.air = !!r.air; ok.slideMaster = r.slideM; ok.corner = r.corner; ok.sky = r.sky >= 4; ok.rich = r.rich.n === 30 && r.rich.more >= 20 && r.rich.noLine === 1;
   // the daily goal adds up at the end of a run
   await p.evaluate(() => { const D = window.__hayDash; D.G.hay = 350; D.ev('G.invT = 0; G.lives = 0; G.reviveN = 9; hideAll(); endRun()'); });
   await p.waitForTimeout(800);

@@ -16,7 +16,10 @@ const { chromium } = require('playwright'); const path = require('path');
   // a slide that starts while the bunny still has a reaction running (look set again by the game) still shows the slide
   await p.waitForTimeout(900); await p.evaluate(() => { const G = window.__hayDash.G; window.__hayDash.ev("act('down')"); G.player.look = 1.2; }); await p.waitForTimeout(100); r.downLook = await pose();
   r.stop = await p.evaluate(() => { const D = window.__hayDash, G = D.G; G.hitStop = 0; D.ev("nice('jump')"); D.ev("nice('slide')"); return G.hitStop; });
+  // three NICE jumps in a row: the run keeps its speed (no slow motion: 2026-11-09)
+  r.pace = await p.evaluate(async () => { const D = window.__hayDash, G = D.G; G.invT = 99; const w = async () => { const d0 = G.dist, t0 = performance.now(); await new Promise(r => setTimeout(r, 600)); return (G.dist - d0) / ((performance.now() - t0) / 1000) / G.speed; };
+    const a = await w(); D.ev("nice('jump'); nice('jump'); nice('jump')"); D.ev("act('up')"); const b = await w(); return { a: +a.toFixed(2), b: +b.toFixed(2) }; });
   console.log(JSON.stringify(r));
-  const ok = /^look_/.test(r.looking) && r.down === 'slide' && r.lookAfter === 0 && r.up === 'air' && r.downLook === 'slide' && r.stop === 0;
+  const ok = /^look_/.test(r.looking) && r.down === 'slide' && r.lookAfter === 0 && r.up === 'air' && r.downLook === 'slide' && r.stop === 0 && r.pace.b > r.pace.a * .85;
   console.log(ok && !errs.length ? 'POSEPRIO OK' : 'POSEPRIO NG ' + errs.join(' | ')); await b.close();
 })();
