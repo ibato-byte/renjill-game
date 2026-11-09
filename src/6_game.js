@@ -1141,7 +1141,9 @@ let HUDL = 0;
 function roomNames(th) { const n = L(th), b = th.base || th, en = LANG === 'en', g = k => th[k] || b[k], st = g('stamp');
   const cand = en ? [g('lblEn'), st && st.en, n.split(',')[0], n.split(/[:,·(]/)[0].trim()] : [g('lbl') && L({ ja: g('lbl'), en: g('lblEn') || b.en }), n.split('・').slice(-1)[0], n.split(/[・：（]/)[0], st && L(st)];
   return [n].concat(cand.filter(x => x && x.length < n.length).sort((x, y) => y.length - x.length)).filter((x, k, a) => a.indexOf(x) === k); }
-function roomFit(e, th, tail) { const list = roomNames(th); let k = 0; for (; k < list.length; k++) { e.textContent = list[k] + (tail || ''); if (e.scrollHeight <= e.clientHeight + 1 && e.scrollWidth <= e.clientWidth + 1) break; } G.roomFitK = k; return e.textContent; }
+function roomFit(e, th, tail) { const list = roomNames(th), fits = () => e.scrollHeight <= e.clientHeight + 1 && e.scrollWidth <= e.clientWidth + 1; e.style.fontSize = '';
+  for (const fs of [0, 10, 9]) { if (fs) e.style.fontSize = fs + 'px'; for (let k = 0; k < list.length; k++) { e.textContent = list[k] + (tail || ''); if (fits()) { G.roomFitK = k; return e.textContent; } } } /* 短い名前でも入らないときは、字を少し小さく */
+  G.roomFitK = -1; return e.textContent; }
 function roomName(th) { return roomNames(th)[0]; }
 function layoutHud() {
   const now = performance.now(); if (now - HUDL < 100) return; HUDL = now;
