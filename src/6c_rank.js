@@ -8,7 +8,7 @@ async function rankInit() {
   const cfg = (window.HAYDASH_CONFIG || {}).firebase;
   if (cfg && cfg.apiKey && cfg.projectId && !(window.claude && window.claude.use)) { // the app build: our own Firebase project
     try { RANK.db = fsdbMake(cfg); RANK.uid = await RANK.db.uid(); RANK.own = 1; } catch (e) { RANK.db = null; RANK.uid = null; }
-    RANK.ready = true; goldTieCheck(); return;
+    RANK.ready = true; goldTieCheck(); commFetch(); return;
   }
   try {
     if (!window.claude || !window.claude.use) { RANK.ready = true; return; }
@@ -16,7 +16,7 @@ async function rankInit() {
     RANK.db = db; RANK.user = user;
     if (user) RANK.uid = await user.id();
   } catch (e) { RANK.db = null; }
-  RANK.ready = true; goldTieCheck();
+  RANK.ready = true; goldTieCheck(); commFetch();
 }
 const rankOn = () => !!(RANK.db && RANK.uid);
 // 金のネクタイ（B-43）：先月の月間ランキングで 3 位以内なら、題名のカードに「金のネクタイ」の印とお知らせ（月に 1 回だけ調べる）
@@ -26,7 +26,7 @@ async function goldTieCheck() { if (!rankOn()) return; const pk = prevMonthKey()
     if (i >= 0) { SV.goldTie = { m: pk, r: i + 1 }; save(); try { refreshTitle(); } catch (e) { } setTimeout(() => toastTitle(t('goldTie', monthLabel(pk), i + 1)), 2200); } } catch (e) { } }
 async function rankSubmit(score, info) {
   if (!rankOn()) return null;
-  if (G.easy || G.timed || G.practice || G.duo || G.rev) return null; // relaxed / 1-minute runs are not on the monthly board (2026-11-08)
+  if (G.easy || G.timed || G.practice || G.rev) return null; // relaxed / 1-minute runs are not on the monthly board (2026-11-08)
   // a score far beyond what the distance run can earn is not posted (simple guard; the game runs in the browser)
   const cap = ((info.dist || 0) * 45 + 25000 + (info.day || 1) * 15000) * Math.max(1, SV.mlevel || 1) * 1.5 * (info.legend ? 1.5 : 1);
   if (!(score >= 0) || score > cap) return { err: 2, best: score };
@@ -41,6 +41,7 @@ async function rankSubmit(score, info) {
   for (const [f, who] of [['wr', 'ren'], ['wj', 'jill'], ['wp', 'pom']]) { const w = wearCode(who); if (cur[f] !== w) { cur[f] = w; changed = true; } } // the outfit each bunny wears now: the board draws this player's own bunny
   { const j = new Date(Date.now() + 9 * 3600e3), day = +j.toISOString().slice(0, 10).replace(/-/g, ''); if (cur.last !== day) { cur.last = day; changed = true; } cur.runs = Math.min(1e6, (cur.runs | 0) + 1); changed = true; } // when this player last played (Japan date) and how many runs: the automation reads daily/weekly active players from these
   if (SV.ref && !cur.src && REF_OK.includes(SV.ref)) { cur.src = SV.ref; changed = true; } // which shared link brought this player here (one word, e.g. "x"), for counting
+  if (commRow(cur, info)) changed = true; // みんなの集計（B-45・46・47）と、古い月の記録の片づけ
   if (changed) { try { await ref.set(cur); } catch (e) { return { err: 1, best: cur[mk] } } }
   return { best: cur[mk] };
 }
@@ -101,7 +102,7 @@ async function rankAfterRun(score) {
   if (!rankOn()) { me0.textContent = window.HAYDASH_APP ? (tr('ランキングに接続できませんでした', 'Could not reach the ranking')) : tr('ランキングはサインインして遊ぶと参加できます', 'Sign in to join the monthly ranking'); return; }
   me0.textContent = tr('ランキング 読み込み中…', 'Ranking: loading…');
   try {
-    const res = await rankSubmit(score, { char: G.char, day: G.day, dist: G.dist, legend: G.legend });
+    const res = await rankSubmit(score, { char: G.char, day: G.day, dist: G.dist, legend: G.legend, hay: G.hay, place: topPlace() });
     const mkey = monthKey(), best = res ? res.best : score;
     const [pos, top] = await Promise.all([rankPos(mkey, best), rankTop(mkey, 3)]);
     const nameOf = await rankNames(top);
@@ -113,15 +114,16 @@ async function rankAfterRun(score) {
 async function openRanking(tab) {
   SFX.ui(); tab = tab || 'month';
   const mkey = monthKey(), field = tab === 'all' ? 'all' : mkey;
-  openPanel('RANKING', tr('ランキング', 'Ranking'), `<div class="tabs"><button class="buy${tab === 'month' ? '' : ' off'}" data-rt="month">${esc(monthLabel(mkey))}</button><button class="buy${tab === 'all' ? '' : ' off'}" data-rt="all">${tr('歴代', 'All time')}</button></div>
+  openPanel('RANKING', tr('ランキング', 'Ranking'), `<div class="tabs"><button class="buy${tab === 'month' ? '' : ' off'}" data-rt="month">${esc(monthLabel(mkey))}</button><button class="buy${tab === 'all' ? '' : ' off'}" data-rt="all">${tr('歴代', 'All time')}</button><button class="buy${tab === 'club' ? '' : ' off'}" data-rt="club">${esc(t('clubTab'))}</button></div>
     <div class="nick"><label for="nickIn">${tr('ランキングでの名前', 'Your name on the ranking')}</label><input id="nickIn" maxlength="12" autocomplete="off"><button class="buy" id="nickSave">${tr('保存', 'Save')}</button></div>
+    <div class="nick"><label for="clubIn">${esc(t('clubLbl'))}</label><input id="clubIn" maxlength="12" autocomplete="off"><button class="buy" id="clubSave">${tr('保存', 'Save')}</button></div><p class="note" style="margin:0 0 6px">${esc(t('clubNote'))}</p>
     <p class="note" style="margin:4px 0 8px"><a class="notelink" href="${RANK_PAGE}" target="_blank" rel="noopener">${tr('みんなのランキングのページを開く（だれでも見られます）', 'Open the public ranking page (anyone can view)')}</a></p>
     <div class="rk-list" id="rkFull"><p class="note">${tr('読み込み中…', 'Loading…')}</p></div><p class="note">${tr('毎月1日（日本時間）に月間ランキングが新しくなります。名前を決めないときは「うさぎ#番号」の匿名で表示されます。', 'The monthly board starts fresh on the 1st (Japan time). Without a name you appear as an anonymous bunny.')}</p>`);
-  $('#nickIn').value = SV.nick || '';
+  $('#nickIn').value = SV.nick || ''; $('#clubIn').value = SV.club || '';
   const el = $('#rkFull');
   if (!RANK.ready) await new Promise(r => setTimeout(r, 1500));
   if (!rankOn()) { el.textContent = ''; const p = document.createElement('p'); p.className = 'note'; p.textContent = RANK.own === undefined && window.HAYDASH_APP ? (tr('ランキングは準備中です。', 'The ranking is coming soon.')) : tr('ランキングは公開ページで、サインインして遊んだ人の間で共有されます。', 'Sign in on the shared page to join the monthly ranking.'); el.appendChild(p); return; }
-  try { const rows = await rankTop(field, 50); rankList(el, rows, field, await rankNames(rows)); }
+  try { if (tab === 'club') { clubList(el, await clubTop(mkey)); return; } const rows = await rankTop(field, 50); rankList(el, rows, field, await rankNames(rows)); }
   catch (e) { el.textContent = tr('ランキングを読み込めませんでした。', 'Could not load the ranking.'); }
 }
 // one place that changes the name: saved locally and on the board
@@ -140,3 +142,65 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'hidden' || G.mode !== 'play' || !rankOn() || G.score < 100 || RANK_LEFT === G.runId) return;
   RANK_LEFT = G.runId; rankSubmit(G.score, { char: G.char, day: G.day, dist: G.dist }).catch(() => { });
 });
+
+/* ================= みんなの集計（B-45・46・47、2026-11-09） =================
+   サーバーの仕組みはそのまま（自分の行だけ書ける・だれでも読める）。それぞれが自分の行に小さな値を足し、集計は読む側でする。
+   - 今日いちばん走られた場所（B-45）：pd＝今日の日付、pt＝その日の最後の走りでいちばん長くいた名所。今日の行を数える
+   - クラブ（B-46）：club＝会社名など（12文字まで、名前と同じ見張り）。今月の上位 300 行をクラブごとに足す
+   - 季節イベントの合計（B-47）：e_<行事>＝その行事の間に集めたチモシーの合計。全員分を足す（足し算の集計、なければ読んで足す）
+   行の項目は 60 個まで（ルール）なので、6 か月より前の月の記録と、終わった行事の値は書くときに消す */
+const EV_GOAL = 1000000;
+function dayNum() { const j = new Date(Date.now() + 9 * 3600e3); return +j.toISOString().slice(0, 10).replace(/-/g, ''); }
+function evField() { return typeof EVENT !== 'undefined' && EVENT ? 'e_' + EVENT : ''; }
+function topPlace() { const m = G.tidT || {}; let best = '', v = 4; for (const k in m) if (m[k] > v && THEMES[k] && THEMES[k].stamp) { best = k; v = m[k]; } return best; }
+function commRow(cur, info) {
+  let ch = false;
+  if (info.place) { const d = dayNum(); if (cur.pd !== d || cur.pt !== info.place) { cur.pd = d; cur.pt = info.place; ch = true; } }
+  const ef = evField(); if (ef && info.hay > 0) { cur[ef] = Math.min(5e7, (cur[ef] | 0) + Math.floor(info.hay)); SV.evHay = { id: EVENT, n: cur[ef] }; ch = true; }
+  { const c = SV.club && !nameBad(SV.club) ? cleanName(SV.club) : ''; if ((cur.club || '') !== c) { if (c) cur.club = c; else delete cur.club; ch = true; } }
+  const j = new Date(Date.now() + 9 * 3600e3); j.setUTCDate(1); j.setUTCMonth(j.getUTCMonth() - 6); const oldest = j.getUTCFullYear() * 100 + j.getUTCMonth() + 1;
+  for (const k of Object.keys(cur)) { const m = /^m(\d{6})[cd]?$/.exec(k); if ((m && +m[1] < oldest) || (/^e_/.test(k) && k !== ef)) { delete cur[k]; ch = true; } }
+  return ch;
+}
+const COMM = { at: 0, busy: 0, trend: null, ev: null };
+async function commFetch() {
+  if (!rankOn() || COMM.busy || Date.now() - COMM.at < 10 * 60e3) return; COMM.busy = 1;
+  try {
+    const sn = await RANK.db.collection('ranks').where('pd', '==', dayNum()).limit(300).get(); const n = {};
+    for (const d of sn.docs) { const r = d.data(); if (r.pd === dayNum() && typeof r.pt === 'string' && THEMES[r.pt] && THEMES[r.pt].stamp) n[r.pt] = (n[r.pt] || 0) + 1; }
+    const top = Object.entries(n).sort((a, b) => b[1] - a[1])[0]; COMM.trend = top ? { tid: top[0], n: top[1] } : null;
+    const ef = evField(); if (ef) { const q = RANK.db.collection('ranks').where(ef, '>', 0); let s = null;
+      if (q.sum) { try { s = await q.sum(ef); } catch (e) { s = null; } }
+      if (typeof s !== "number" || !(s >= 0)) { const all = await RANK.db.collection('ranks').where(ef, '>', 0).limit(1000).get(); s = all.docs.reduce((a, d) => a + (+d.data()[ef] || 0), 0); }
+      COMM.ev = { id: EVENT, n: s }; } else COMM.ev = null;
+    COMM.at = Date.now();
+  } catch (e) { COMM.at = Date.now() - 8 * 60e3; } finally { COMM.busy = 0; }
+  commShow();
+}
+function commShow() {
+  let e = $('#tComm'); const anchor = $('#tDaily'); if (!anchor) return;
+  if (!e) { e = document.createElement('div'); e.id = 'tComm'; e.className = 'comm'; anchor.after(e); }
+  const lines = [];
+  if (COMM.trend) lines.push(`<span>${esc(t('commTrend', L(THEMES[COMM.trend.tid].stamp), COMM.trend.n))}</span>`);
+  if (COMM.ev && COMM.ev.id === EVENT) { const k = Math.min(1, COMM.ev.n / EV_GOAL), done = COMM.ev.n >= EV_GOAL;
+    lines.push(`<span>${esc(t(done ? 'commEvDone' : 'commEv', fmt(COMM.ev.n), fmt(EV_GOAL)))}</span><i><b style="width:${(k * 100).toFixed(1)}%"></b></i>`);
+    if (done && SV.evHay && SV.evHay.id === EVENT && SV.evHay.n > 0 && SV.evGoalGot !== EVENT) { SV.evGoalGot = EVENT; SV.bank += 500; save(); toastTitle(t('commEvGift', 500)); } }
+  e.innerHTML = lines.join(''); e.hidden = !lines.length;
+}
+async function clubTop(mkey) {
+  const rows = await rankTop(mkey, 300), m = {};
+  for (const r of rows) { const c = typeof r.club === 'string' ? cleanName(r.club) : ''; if (!c || nameBad(c)) continue; const k = c.toLowerCase(); (m[k] = m[k] || { name: c, s: 0, n: 0, me: 0 }).s += +r[mkey] || 0; m[k].n++; if (r.id === RANK.uid) m[k].me = 1; }
+  return Object.values(m).sort((a, b) => b.s - a.s).slice(0, 30);
+}
+function clubList(el, list) {
+  el.textContent = '';
+  if (!list.length) { const p = document.createElement('p'); p.className = 'note'; p.textContent = t('clubNone'); el.appendChild(p); return; }
+  list.forEach((c, i) => { const li = document.createElement('div'); li.className = 'rk club' + (c.me ? ' me' : '') + (i < 3 ? ' top' + (i + 1) : '');
+    const n = document.createElement('b'); n.textContent = i + 1; const nm = document.createElement('span'); nm.textContent = c.name + t('clubMembers', c.n); const sc = document.createElement('em'); sc.textContent = fmt(c.s);
+    li.append(n, nm, sc); el.appendChild(li); });
+}
+async function saveClub() {
+  const v = cleanName($('#clubIn').value); if (v && nameBad(v)) { $('#clubIn').value = ''; $('#clubIn').placeholder = t('nameNG'); return; }
+  SV.club = v; save(); if (rankOn()) { try { const ref = RANK.db.doc('ranks/' + RANK.uid); const sn = await ref.get(); if (sn.exists) { const cur = Object.assign({}, sn.data()); if (v) cur.club = v; else delete cur.club; await ref.set(cur); } } catch (e) { } }
+  $('#clubSave').textContent = tr('保存しました', 'Saved');
+}

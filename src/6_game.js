@@ -126,15 +126,14 @@ function startRun() {
   G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.bumps = 0; G.lastHit = null; G.bestPic = 0; G.newTitles = []; G.chalFlag = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
   resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
-  G.rev = !!(G.revNext && SV.tutDone && !G.practiceNext && !G.timed && !G.duoNext); G.revNext = 0; // 逆走デー（B-37）：夕方 6 時に会社を出て、帰り道を走って家（寝室）まで。そのまま次の日の朝へ
+  G.rev = !!(G.revNext && SV.tutDone && !G.practiceNext && !G.timed); G.revNext = 0; // 逆走デー（B-37）：夕方 6 時に会社を出て、帰り道を走って家（寝室）まで。そのまま次の日の朝へ
   if (G.rev) { const k = G.plan.findIndex(x => x.eve); G.plan = G.plan.slice(Math.max(0, k)).concat([{ t: 'genkan', d: 4, home: 1 }, { t: 'bedroom', d: 6, home: 1 }]); G.planClock = 1080; G.clock = 1080; G.chaseT = 0; G.chaseIntro = 0; G.chaseVis = 0; banner('REVERSE DAY', t('revGo'), 'good'); }
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
   G.segDue = 0; const step = G.plan.shift(); const s0 = newSeg(null, step, { t0: G.rev ? 1080 : 480, day: 1, len: SV.tutDone ? 0 : 140 }); G.planClock = s0.t1; G.segs = [s0]; G.ci = 0; G.tutEnd = 0;
   if (!SV.tutDone) setupTutorial(s0); else { G.tut = null; G.tutSeg = null; }
   G.practice = SV.tutDone && G.practiceNext ? G.practiceNext : ''; G.practiceNext = '';
-  G.duo = G.duoNext && SV.tutDone && !G.practice && !G.timed ? G.duoNext : null; G.duoNext = null; if (G.duo) bannerNow(t('duoTurn', G.duo.turn), '', 'good'); // ふたりで交代（B-33）
-  G.epGigDone = 0; G.boss = null; G.revDone = 0; G.lastTrain = null; G.lastTrainDone = 0; G.kanaPut = 0; G.matsuri = matsuriDay(); G.matsuriTold = 0;
-  ghostStart();
+  G.tidT = {}; G.epGigDone = 0; G.boss = null; G.revDone = 0; G.lastTrain = null; G.lastTrainDone = 0; G.kanaPut = 0; G.matsuri = matsuriDay(); G.matsuriTold = 0;
+  if (SV.ghost) delete SV.ghost; // ゴーストと競走（B-32）はやめた（2026-11-09 オーナーの判断）：前の版で残った記録を消す
   if (G.practice) { const tid = G.practice; G.plan = Array.from({ length: 8 }, () => ({ t: tid, d: 60 })); const p0 = newSeg(null, { t: tid, d: 60 }, { t0: 600, day: 1 }); G.segs = [p0]; G.ci = 0; G.planClock = p0.t1; G.clock = 600; G.chaseT = 0; G.chaseIntro = 0; G.chaseVis = 0; G.gigNext = 1e9; onEnterSeg(p0); banner('PRACTICE', t('practiceGo'), 'room'); } // 練習：選んだ場所から、同じ場所が続く
   ensureSegs();
   G.camYaw = 0; G.ey = G.camE = null; G.camSl = 0; const p = segPos(s0, 0, 0); G.rx = p[0]; G.rz = p[1];
@@ -477,6 +476,7 @@ function update(dt) {
   G.speed = lerp(G.speed, target, 1 - Math.exp(-dt * 2.5));
   if (AU.music && OPT().music) { const cm = G.clock % 1440, night = cm >= 1200 || cm < 360, tg = musicLv() * (night ? .8 : 1); AU.music.gain.value += (tg - AU.music.gain.value) * Math.min(1, dt * .6); } // the music settles down at night (2026-11-08)
   const step = G.speed * dt, prevS = G.s, prevY = G.y;
+  { const tm = G.tidT || (G.tidT = {}); tm[seg.tid] = (tm[seg.tid] || 0) + dt; } // その走りでいちばん長くいた名所（B-45）
   G.s += step; G.dist += step; G.stats.cleanCur += step; G.stats.clean = Math.max(G.stats.clean, G.stats.cleanCur);
   const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
   G.score += step * mult * (3 + G.speed * .12); // distance is the backbone: about 4-6 points per metre, more when fast
@@ -629,7 +629,6 @@ function placeCamera(dt) {
       B.look = look ? .6 : 0; B.mood = look ? (k.t < 1.1 ? 'sparkle' : 'open') : 'open'; B.say = look && k.t < 1.4 ? (SV.pomMet ? t('pomPeekSay') : '？') : ''; B.big = 1.45;
       B.depth = (mp[0] - CAM.x) * CAM.s + (mp[1] - CAM.z) * CAM.c; B.show = true; } else B.show = false; }
   { const M = G.pom; if (M.on) { M.depth = (M.wx - CAM.x) * CAM.s + (M.wz - CAM.z) * CAM.c; if (M.tuck) M.depth = P.depth + .5; } }
-  ghostPos(seg, dt);
 }
 /* ---------- safety net ----------
    Whatever goes wrong in a frame (a street that could not be built, a picture the phone had no memory for, a number gone bad),
@@ -792,7 +791,7 @@ function fitScore() {
 }
 function comboPop() { const e = el('combo'); if (!e || G.combo < 5) return; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } // the combo count bounces on every pickup
 function hud() {
-  ghostRec(); lastTrainTick(); bossHud();
+  lastTrainTick(); bossHud();
   gigHud(); chalTick(); setText('hChal', G.timed ? t('quickHud', Math.max(0, Math.ceil(G.timed - G.t))) : CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
   setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay))); { const hn = Math.floor(G.hay); if (hn !== HUDC.hayN) { const up = hn > (HUDC.hayN || 0); HUDC.hayN = hn; const e = el('hHay'); if (up && e && !OPT().calm) { e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } } } // the hay count hops a little when it goes up (2026-11-08)
   setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
@@ -927,7 +926,6 @@ function endRun() {
   checkAch(false); dailyCheck(false);
   let weekMsg = ''; if (!G.easy) { try { weekMsg = weekAdd(st); } catch (e) { reportErr(e); } } // this week's goal (2026-11-08)
   const bk = G.timed ? 'bestT' : 'best', prevBest = G.easy ? 0 : (SV[bk] || 0), newBest = !G.easy && G.score > (SV[bk] || 0); if (newBest) { SV[bk] = Math.floor(G.score); if (G.bestPic && SV.bestPics && SV.bestPics[0]) SV.bestPics[0].s = Math.floor(G.score); }
-  ghostSave();
   if (!G.easy && !G.timed) SV.bestClock = Math.max(SV.bestClock || 480, G.clock + (G.day - 1) * 1440); SV.bestDay = Math.max(SV.bestDay || 1, G.day);
   let lvlMsg = '';
   if (SV.missions.slots.every(sl => sl.done)) { SV.mlevel++; const rw = 150 * SV.mlevel; SV.bank += rw; lvlMsg = t('lvlUp', SV.mlevel, rw); newMissions(); }
@@ -954,9 +952,8 @@ function endRun() {
   const kb = $('#kujiBox'); kb.hidden = G.dist < 300; $('#kujiRes').innerHTML = ''; $('#btnKuji').disabled = false; $('#btnKuji').textContent = tr('おみくじを引く', 'Draw a fortune slip');
   $('#resCareer').innerHTML = careerHTML();
   resultFollow((newBest && SV.runs >= 3) || G.score >= 30000 || !!G.chalWon);
-  duoResult();
   hideAll(); show('sResult');
-  if (!G.duo) rankAfterRun(G.score);
+  rankAfterRun(G.score);
 }
 /* ---- sharing a result ----
    Phones: X and LINE open their own share screens with the text filled in (their apps pick these links up).
@@ -1079,46 +1076,7 @@ function buildShareCard(cap, place, gained) {
   }
 }
 
-// ゴーストと競走（B-32）：いちばん良かった走りを 0.5 秒ごとに「距離・レーン」で覚えておき、次の走りでうすいうさぎとして前を走らせる
-//  練習・のんびり・1分ダッシュ・チュートリアルでは出さない。設定で消せる。写真と同じく引き継ぎコードには入れない（この端末だけ）
-const GHOST_DT = .5;
-function ghostStart() {
-  G.ghRec = { d: [], l: '' }; G.ghNext = 0; G.ghostGap = null;
-  G.gb = { who: G.char, view: 'back', ghost: 1, ph: 0, look: 0, show: false, say: '', big: G.char === 'pom' ? POM_BIG : 1 };
-  const g = SV.ghost, ok = g && Array.isArray(g.d) && g.d.length > 4 && typeof g.l === 'string';
-  G.ghost = ok && SV.tutDone && !G.practice && !G.easy && !G.timed && !G.rev && OPT().ghost !== false ? g : null;
-}
-function ghostAt(tm) { const g = G.ghost; if (!g) return null; const k = tm / GHOST_DT, i = Math.floor(k), n = g.d.length; if (i >= n - 1) return { d: g.d[n - 1], lane: +g.l[n - 1] || 1, end: 1 };
-  const f = k - i; return { d: g.d[i] + (g.d[i + 1] - g.d[i]) * f, lane: +g.l[f < .5 ? i : i + 1] || 1, end: 0 }; }
-function ghostRec() {
-  if (G.mode !== 'play' || !G.ghRec || G.practice || G.easy || G.timed || G.rev) return;
-  while (G.t >= G.ghNext && G.ghRec.d.length < 2400) { G.ghRec.d.push(Math.round(G.dist)); G.ghRec.l += String(G.lane); G.ghNext += GHOST_DT; }
-  const a = G.ghost ? ghostAt(G.t) : null; G.ghostGap = a ? G.dist - a.d : null;
-  setText('hGhost', a && G.t > 2 ? (G.ghostGap >= 0 ? t('ghostAhead', Math.round(G.ghostGap)) : t('ghostBehind', Math.round(-G.ghostGap))) : '');
-  setCls('hGhost', 'ahead', !!a && G.ghostGap >= 0);
-}
-function ghostPos(seg, dt) {
-  const B = G.gb; if (!B) return; B.show = false; if (!G.ghost || G.mode !== 'play') return;
-  const a = ghostAt(G.t); if (!a || a.end) return; const d = a.d - G.dist; if (d < 2.5 || d > 45) return;
-  const s = G.s + d; if (s > seg.len - 2) return;
-  B.lat = lerp(B.lat == null ? LANES[a.lane] : B.lat, LANES[a.lane], Math.min(1, dt * 10));
-  const p = segPos(seg, s, B.lat); B.wx = p[0]; B.wz = p[1]; B.wy = p[2] + Math.abs(Math.sin(B.ph)) * .05; B.ph += dt * 16;
-  B.depth = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; B.show = true; G.ghostSeen = (G.ghostSeen || 0) + 1;
-}
-function ghostSave() {
-  if (!G.ghRec || G.practice || G.easy || G.timed || G.rev || G.ghRec.d.length < 8) return;
-  if (!SV.ghost || !(SV.ghost.s >= G.score)) SV.ghost = { s: Math.floor(G.score), d: G.ghRec.d.slice(), l: G.ghRec.l };
-}
 
-// ふたりで交代（B-33）：同じ端末で 1P → 2P と 1 回ずつ走り、結果画面にふたりの合計と勝ち負け。ランキングには入れない
-function duoResult() {
-  let e = $('#resDuo'); if (!e) { e = document.createElement('div'); e.id = 'resDuo'; e.className = 'duo'; $('#btnAgain').before(e); }
-  if (!G.duo) { e.hidden = true; $('#btnAgain').textContent = t('again'); return; }
-  const D = G.duo; D.s[D.turn - 1] = Math.floor(G.score); e.hidden = false;
-  if (D.turn === 1) { e.innerHTML = `<b>${esc(t('duoNext', 1, fmt(D.s[0])))}</b><small>${esc(t('duoNote'))}</small>`; $('#btnAgain').textContent = t('duoGo2'); }
-  else { const w = D.s[0] === D.s[1] ? t('duoTie') : t('duoWin', D.s[0] > D.s[1] ? 1 : 2);
-    e.innerHTML = `<b>${esc(t('duoSum', fmt(D.s[0] + D.s[1]), fmt(D.s[0]), fmt(D.s[1])))}</b><em>${esc(w)}</em><small>${esc(t('duoNote'))}</small>`; $('#btnAgain').textContent = t('again'); }
-}
 
 // あいことばのかくれんぼ（B-49）：FEED.hunt = { w: 'しっぽ', hay: 300, from, until, note }（動画の最新話につながる言葉）。
 //  走っていて「？」の札を取ると、まだの文字が1つ見つかる。全部そろうとチモシー。進みぐあいは SV.hunt（言葉ごと）

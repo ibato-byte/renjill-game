@@ -42,6 +42,8 @@ function fsdbMake(cfg) {
         const docs = rows.map(x => ({ id: idOf(x.document.name), data: () => dataOf(x.document) })); return { docs, size: docs.length }; },
       async count() { const sq = Object.assign({}, q); delete sq.limit; delete sq.orderBy; const r = await call(BASE + ':runAggregationQuery', { method: 'POST', body: JSON.stringify({ structuredAggregationQuery: { structuredQuery: sq, aggregations: [{ alias: 'n', count: {} }] } }) });
         if (!r.ok) throw new Error('count ' + r.status); const j = await r.json(); const a = j[0] && j[0].result && j[0].result.aggregateFields && j[0].result.aggregateFields.n; return a ? dec(a) : 0; },
+      async sum(field) { const sq = Object.assign({}, q); delete sq.limit; delete sq.orderBy; const r = await call(BASE + ':runAggregationQuery', { method: 'POST', body: JSON.stringify({ structuredAggregationQuery: { structuredQuery: sq, aggregations: [{ alias: 's', sum: { field: { fieldPath: field } } }] } }) });
+        if (!r.ok) throw new Error('sum ' + r.status); const j = await r.json(); const a = j[0] && j[0].result && j[0].result.aggregateFields && j[0].result.aggregateFields.s; return a ? dec(a) : null; }, // みんなの合計（B-47）
     };
     return api;
   }

@@ -331,7 +331,6 @@ function drawObjects(sg, isCur, oc) {
     const p = segPos(sg, it.s, it.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > 75) continue;
     DRAW.push([d, 4, it]);
   }
-  if (isCur && G.gb && G.gb.show) DRAW.push([G.gb.depth, 5, G.gb]);
   if (isCur && G.player.show) { DRAW.push([G.player.depth, 5, G.player]); if (G.follow.show) DRAW.push([G.follow.depth, 5, G.follow]); if ((G.pom.on || G.pom.title) && G.pom.show) DRAW.push([G.pom.depth, 5, G.pom]); if (G.pomPeek && G.pomPeek.seg === sg && G.pomPeek.b.show) DRAW.push([G.pomPeek.b.depth, 5, G.pomPeek.b]); }
   DRAW.sort((a, b) => b[0] - a[0]);
   pm('sort');
@@ -479,10 +478,6 @@ function drawBunnyWorld(b) {
   else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
   else pose = 'run' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES;
   b.pose = pose; const img = bunFrame(b.who, pose, SV.mugOn);
-  if (b.ghost) { // ゴースト（B-32）：うすく、上に「ベスト」の小さな札
-    ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc); ctx.globalAlpha = .45; ctx.drawImage(img, -BS / 2, -GROUND_Y - BTOP, img.width, img.height); ctx.restore();
-    ctx.save(); ctx.globalAlpha = .8; ctx.font = '900 12px "Zen Maru Gothic","Hiragino Sans",sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#FBF6EE'; ctx.strokeStyle = 'rgba(59,42,32,.7)'; ctx.lineWidth = 3;
-    const ty = sp.sy - 250 * sc; ctx.strokeText(t('ghostTag'), sp.sx, ty); ctx.fillText(t('ghostTag'), sp.sx, ty); ctx.restore(); return; }
   ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc);
   if (b.tilt) ctx.rotate(b.tilt);
   if (b === G.player && G.mode === 'play' && !OPT().calm && !b.fly) { const lc = G.laneT > 0 ? Math.sign(G.lane - G.prevLane) * Math.sin(G.laneT / .35 * Math.PI) * .09 : 0, tc = G.turnT > 0 && G.turnDir ? G.turnDir * Math.sin(G.turnT / .8 * Math.PI) * .12 : 0; if (lc || tc) ctx.rotate(lc + tc); } // lean into a lane change and a corner (2026-11-08)
