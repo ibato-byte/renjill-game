@@ -802,7 +802,7 @@ function hud() {
   setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay))); { const hn = Math.floor(G.hay); if (hn !== HUDC.hayN) { const up = hn > (HUDC.hayN || 0); HUDC.hayN = hn; const e = el('hHay'); if (up && e && !OPT().calm) { e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } } } // the hay count hops a little when it goes up (2026-11-08)
   setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
   setText('hClock', clockStr(G.clock)); setText('hDay', t('dayN', G.day));
-  { const sg = curSeg(); setText('hRoom', sg.th.climb ? `${roomName(sg.th, 1)} ${altitude(sg, G.s)}m` : roomName(sg.th)); }
+  { const sg = curSeg(); const tail = sg.th.climb ? ` ${altitude(sg, G.s)}m` : '', key = sg.tid + '|' + LANG + '|' + tail + '|' + innerWidth, e = el('hRoom'); if (e && e.offsetParent && HUDC.roomK !== key) { HUDC.roomK = key; roomFit(e, sg.th, tail); } }
   { const danger = (G.chaseT > 0 && !G.chaseIntro) || G.rush; if (danger) G.bumped = 1; setCls('lives', 'hide', !G.bumped && !G.rush); setCls('lives', 'warn', danger); setCls('lives', 'one', danger);
     setText('livesTxt', G.rush ? t('livesRush') : danger ? t('livesWarn', Math.ceil(G.chaseT)) : ''); }
   const pct = clamp(G.feverG, 0, 100);
@@ -1137,9 +1137,12 @@ function epGig() { const e = typeof latestEpisode === 'function' ? latestEpisode
 // 上の帯（お知らせ）と分かれ道のカードを、上の段（ゲージ・ハート・パワーアップ・締め切りの山）のすぐ下に置く（2026-11-09：重なって読めなかった。qa/hudlayout）
 let HUDL = 0;
 /* 時計の下の場所名：長すぎて「…」で切れる名前は短い名前に（2行に入る長さ） */
-function roomName(th, short) { const n = L(th), b = th.base || th, en = LANG === 'en', mw = Math.max(innerWidth * .27, 84), lim = Math.floor((en ? mw / 6.6 * 1.7 : mw / 11.2 * 1.8)) - (short ? 6 : 0); if (n.length <= lim) return n;
-  const g = k => th[k] || b[k], st = g('stamp'); const cand = en ? [g('lblEn'), st && st.en, n.split(',')[0]] : [g('lbl') && L({ ja: g('lbl'), en: g('lblEn') || b.en }), n.split('・').slice(-1)[0], st && L(st)];
-  const ok = cand.filter(x => x && x.length < n.length); return ok.find(x => x.length <= lim) || ok.sort((x, y) => x.length - y.length)[0] || n; }
+/* 時計の下の場所名：長すぎて「…」で切れる名前は短い名前に。字の幅は端末でちがうので、実際に入れてみて、はみ出したら次に短い名前（qa/roomfit） */
+function roomNames(th) { const n = L(th), b = th.base || th, en = LANG === 'en', g = k => th[k] || b[k], st = g('stamp');
+  const cand = en ? [g('lblEn'), st && st.en, n.split(',')[0], n.split(/[:,·(]/)[0].trim()] : [g('lbl') && L({ ja: g('lbl'), en: g('lblEn') || b.en }), n.split('・').slice(-1)[0], n.split(/[・：（]/)[0], st && L(st)];
+  return [n].concat(cand.filter(x => x && x.length < n.length).sort((x, y) => y.length - x.length)).filter((x, k, a) => a.indexOf(x) === k); }
+function roomFit(e, th, tail) { const list = roomNames(th); let k = 0; for (; k < list.length; k++) { e.textContent = list[k] + (tail || ''); if (e.scrollHeight <= e.clientHeight + 1 && e.scrollWidth <= e.clientWidth + 1) break; } G.roomFitK = k; return e.textContent; }
+function roomName(th) { return roomNames(th)[0]; }
 function layoutHud() {
   const now = performance.now(); if (now - HUDL < 100) return; HUDL = now;
   const b = el('banner'); if (!b) return; let y = 0;
