@@ -1,10 +1,10 @@
 {
  "updated": "2026-11-08T19:44:45+09:00",
  "latest": {
-  "date": "2026-11-08",
-  "ja": "了解です",
-  "en": "He thumbs-upped her resignation.",
-  "url": "https://www.youtube.com/shorts/nZMvTk10N9k"
+  "date": "2026-11-06",
+  "ja": "全員に返信",
+  "en": "Hit \"Reply All\" by mistake. Undo can't save him. (His tail gave him away.)",
+  "url": "https://www.youtube.com/shorts/TwQ8ilmzlpY"
  },
  "codes": [
   {
@@ -45,11 +45,11 @@
   "ko": "겨울 일루미네이션 이벤트 진행 중! (~12/25)"
  },
  "hunt": {
-  "w": "いいね",
+  "w": "しっぽ",
   "hay": 300,
   "from": "2026-11-09",
   "until": "2026-11-22",
-  "ep": "了解です",
-  "note": "B-49：11/8「了解です」（退職願に いいね）につながる言葉。走っていると「？」の札で1文字ずつ見つかる"
+  "ep": "全員に返信",
+  "note": "B-49：11/6「全員に返信」（しっぽでバレた）につながる言葉。走っていると「？」の札で1文字ずつ見つかる。11/8「了解です」の動画が削除されていたので、こちらに変えた（2026-11-09）"
  }
 }

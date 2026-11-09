@@ -105,7 +105,7 @@ let RESETTING = 0; // set while the player wipes their data: nothing may write i
 function saveNow() { if (RESETTING) return; // if storage is full, give up the oldest photos one by one (never the progress)
   SAVE_DIRTY = 0;
   for (let k = 0; k < 100; k++) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); return; } catch (e) { if (SV.bestPics && SV.bestPics.length > 1) { SV.bestPics.pop(); continue; } const ks = Object.keys(SV.album || {}); if (!ks.length) return; delete SV.album[ks[0]]; } } }
-const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true, easy: false, big: false, hand: false, ghost: true }, SV.opt || {}));
+const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true, easy: false, big: false, hand: false }, SV.opt || {}));
 /* ---- languages: the same four as the official site (日本語・English・繁體中文・한국어) ----
    Chinese and Korean come from I18N (src/0_i18n.js, keyed by the Japanese text); anything missing falls back to English. */
 const LANGS = ['ja', 'en', 'zh', 'ko'], LANG_NAME = { ja: '日本語', en: 'English', zh: '繁體中文', ko: '한국어' };
@@ -126,8 +126,6 @@ const STR = {
   bigText: ['文字の大きさ', 'Text size'], bigN: ['ふつう', 'Normal'], bigY: ['大きめ', 'Large'], bigNote: ['画面の上の数字・お知らせの帯・この画面の文字を少し大きくします', 'Makes the top numbers, the message strip and these menus a little bigger'],
   sensNote: ['「敏感」にすると、短いスワイプでも反応します', 'High: shorter swipes count'], calmNote: ['画面のゆれ・フラッシュ・残像をおさえます', 'Less shaking, flashing and trails'],
   hitWhat: ['ぶつかったのは、これ', 'You bumped into this'], hitWhatN: ['ぶつかったのは「{0}」', 'You bumped into this'],
-  ghostOpt: ['ベストの自分と競走', 'Race your best run'], ghostNote: ['いちばん良かった走りが、うすいうさぎになって前を走ります。上に「ベストより +12m」などと出ます', 'Your best run appears as a faint bunny ahead of you, with a "+12m vs best" count at the top'],
-  ghostAhead: ['ベストより +{0}m', '+{0}m vs best'], ghostBehind: ['ベストまで {0}m', '{0}m behind best'], ghostTag: ['ベスト', 'BEST'],
   hand: ['片手で操作', 'One-handed'], handNote: ['タップ操作を画面の下半分だけにします（左右＝移動、まんなかの上＝ジャンプ、下＝スライディング）', 'Tap controls use only the lower half (sides = move, middle top = jump, bottom = slide)'],
   errLogH: ['エラーの記録', 'Error log'], errLogNote: ['うまく動かなかったときの記録です（この端末だけに残ります）。お問い合わせのときに見せてください', 'Problems this device ran into (kept only here). Handy if you contact us'], errLogNone: ['記録はありません', 'Nothing recorded'],
   goldTie: ['{0}の月間ランキング {1}位！ 金のネクタイをどうぞ', '#{1} in the {0} ranking! Here is your gold tie'], goldTieBadge: ['金のネクタイ（{0} {1}位）', 'Gold tie ({0}, #{1})'],
@@ -137,9 +135,9 @@ const STR = {
   revBtn: ['🌙 逆走デー：夕方から家まで', '🌙 Reverse day: home from 6 PM'], revGo: ['逆走デー！ 会社から家まで帰ろう', 'Reverse day! Run home from the office'], revHome: ['ただいま！ 家に着いた +{0}', 'Home at last! +{0}'],
   bossGo: ['締め切りの山がせまる！ ぶつからずに逃げ切れ', 'The Deadline Mountain is coming! Escape without a bump'], bossName: ['締め切りの山　あと {0}m', 'Deadline Mountain: {0}m to go'], bossWin: ['締め切りの山から逃げ切った！ +{0}', 'Escaped the Deadline Mountain! +{0}'], bossWin2: ['なんとか逃げ切った！ +{0}', 'Just got away! +{0}'],
   epGig: ['今日の動画「{0}」より：{1}', 'From today\'s video "{0}": {1}'],
+  commTrend: ['今日いちばん走られた場所：{0}（{1}人）', 'Most run today: {0} ({1} players)'], commEv: ['みんなで集めたチモシー {0} / {1} 本', 'Hay collected by everyone: {0} / {1}'], commEvDone: ['みんなで {0} 本！ 目標の {1} 本を達成！', 'Everyone collected {0}! Goal of {1} reached!'], commEvGift: ['みんなの目標達成のお礼：チモシー +{0}', 'Thanks for helping reach the goal: +{0} hay'],
+  clubTab: ['クラブ', 'Clubs'], clubLbl: ['クラブ名（会社名・学校名など）', 'Club name (your company, school…)'], clubNote: ['同じクラブ名の人の、今月のスコアを足して競います。入れた名前はランキングに出ます', 'Players with the same club name add up their scores this month. The name is shown on the ranking'], clubNone: ['まだクラブがありません。クラブ名を入れて走ると、ここに出ます', 'No clubs yet. Enter a club name and play to appear here'], clubMembers: ['（{0}人）', ' ({0})'],
   matsuri: ['お祭りの日！ 提灯の道は祭りばやし', 'Festival day! Lantern streets play festival music'],
-  duo: ['👥 ふたりで交代', '👥 Take turns (2 players)'], duoTurn: ['{0}P の番', 'Player {0}'], duoNext: ['{0}P：{1}　次は 2P の番！', 'P1: {1}. Now it is P2\'s turn!'], duoGo2: ['2P スタート', 'P2, GO!'],
-  duoSum: ['ふたりの合計 {0}（1P {1} ＋ 2P {2}）', 'Team total {0} (P1 {1} + P2 {2})'], duoWin: ['この回は {0}P の勝ち！', 'P{0} wins this round!'], duoTie: ['引き分け！', 'A tie!'], duoNote: ['ふたりの走りはランキングには入りません', 'Two-player runs are not on the ranking'],
   practice: ['練習・場所えらび', 'Practice: pick a place'], practiceNote: ['行ったことのある場所から選んで走れます。ぶつかっても終わりません（やめるときは一時停止→やめる）。点数・牧草は記録に入りません', 'Pick a place you have been to. Bumps never end the run (pause → quit to stop). Scores and hay are not saved'], practiceHome: ['課長の家から', 'From the boss’s home'], practiceMore: ['名所に行くと、ここで選べる場所が増えます', 'Visit more spots to unlock more places here'], practiceGo: ['練習：ぶつかっても続きます', 'Practice: bumps won’t stop you'], practiceBump: ['ぶつかった！（練習なので続けます）', 'Bump! (Practice, keep going)'], practiceDone: ['練習おつかれさま：{0}点・牧草{1}本・ぶつかった{2}回（記録には入りません）', 'Practice done: {0} pts, {1} hay, {2} bumps (not saved)'],
   howA1: ['左右にスワイプ：よける', 'Swipe left/right: dodge'], howA2: ['上にスワイプ：ジャンプ', 'Swipe up: jump'], howA3: ['下にスワイプ：スライディング', 'Swipe down: slide'],
   mapH: ['走った場所の地図', 'Map of where you ran'], mapNote: ['足あと＝行った名所（{0} / {1}）。灰色の点はまだ行っていない所', 'Paw prints = spots you have visited ({0} / {1}). Grey dots: not yet'],

@@ -287,16 +287,6 @@
       "has": "async function goldTieCheck()"
     },
     {
-      "name": "ゴーストと競走",
-      "file": "src/6_game.js",
-      "has": "function ghostPos(seg, dt)"
-    },
-    {
-      "name": "ふたりで交代",
-      "file": "src/6_game.js",
-      "has": "function duoResult()"
-    },
-    {
       "name": "あいことばのかくれんぼ",
       "file": "src/6_game.js",
       "has": "function kanaGot(sx, sy)"
@@ -325,6 +315,16 @@
       "name": "動画のネタのおしごと",
       "file": "src/6_game.js",
       "has": "function epGig()"
+    },
+    {
+      "name": "みんなの集計",
+      "file": "src/6c_rank.js",
+      "has": "function commRow(cur, info)"
+    },
+    {
+      "name": "クラブ",
+      "file": "src/6c_rank.js",
+      "has": "async function clubTop(mkey)"
     },
     {
       "name": "この見張り自身",

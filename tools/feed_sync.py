@@ -7,7 +7,7 @@
   python3 tools/feed_sync.py                 … episodes.json を取りに行く
   python3 tools/feed_sync.py --source FILE   … 手元のファイルで試す（ネットワークに出ない）
 """
-import datetime as dt, json, os, pathlib, sys, urllib.request
+import datetime as dt, json, os, pathlib, sys, urllib.error, urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FEED = ROOT / "app" / "feed.json"
@@ -21,10 +21,24 @@ def text(v, lang):
     return v if isinstance(v, str) and lang == "ja" else ""
 
 
-def latest_of(eps, today):
-    done = [e for e in eps if isinstance(e, dict) and e.get("ep") and (e.get("date") or "")[:10] <= today]
+def yt_alive(yt):
+    """YouTube の動画が見られるか（削除・非公開なら False）。oEmbed は鍵いらず・無料。ネットにつながらないときは見られる扱い"""
+    if not yt: return True
+    try:
+        urllib.request.urlopen(f"https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/shorts/{yt}", timeout=15).read()
+        return True
+    except urllib.error.HTTPError as e:
+        return e.code not in (400, 401, 403, 404)
+    except Exception:
+        return True
+
+
+def latest_of(eps, today, alive=yt_alive):
+    # 2026-11-09：新作のリンク先の動画が削除されていた（了解です）。見られない回はとばして、その前の見られる回にする
+    done = sorted([e for e in eps if isinstance(e, dict) and e.get("ep") and (e.get("date") or "")[:10] <= today], key=lambda x: x["date"][:10], reverse=True)
+    done = [e for e in done if alive(e.get("youtube_id") or "")][:1]
     if not done: return None
-    e = max(done, key=lambda x: x["date"][:10])
+    e = done[0]
     ja = text(e.get("title"), "ja") or e.get("caption_ja") or ""
     en = text(e.get("title"), "en") or text(e.get("caption"), "en") or e.get("caption_en") or ""
     yt = e.get("youtube_id") or ""
