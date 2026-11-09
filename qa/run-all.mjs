@@ -43,6 +43,7 @@ const T = [
   { n: 'roomfit', why: '時計の下の場所名が、どの場所・季節・言語でも「…」で切れない（2026-11-09）', ok: has('ROOMFIT OK') },
   { n: 'resfit', why: '結果画面の点数が8桁・9桁でも枠からはみ出さない（2026-11-09 の報告）', ok: has('RESFIT OK') },
   { n: 'bannerdup', why: 'お知らせの帯の見出しと本文が同じことをくり返さない（2026-11-09）', ok: has('BANNERDUP OK') },
+  { n: 'nofinish', why: '長く遊んでも、走りが壊れたら新しい道から続ける（「早退しました」で終わらない）（2026-11-10 の報告）', ok: has('NOFINISH OK') },
   { n: 'closetdup', why: '着せかえに同じ見た目の品が2つ並ばない（2026-11-09 の報告）', ok: has('CLOSETDUP OK') },
   { n: 'community', why: 'みんなの集計（今日の名所・クラブ・行事の合計、古い月の記録の片づけ）', ok: has('COMMUNITY OK') },
   { n: 'titlecard', why: '新しい称号のシェア用カード（結果画面のボタン）', ok: has('TITLECARD OK') },
