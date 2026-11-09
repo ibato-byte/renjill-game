@@ -65,7 +65,9 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 .msg{max-width:84%;padding:8px 12px;border-radius:14px;font-size:14px;line-height:1.55;font-weight:700;white-space:pre-wrap;word-break:break-word}
 .msg.bot{align-self:flex-start;background:var(--cream);color:var(--ink);border-bottom-left-radius:4px}.msg.me{align-self:flex-end;background:var(--ink);color:var(--paper);border-bottom-right-radius:4px}
 .msg.wait{opacity:.6;animation:tpulse .6s ease-in-out infinite alternate}
-.chatsug{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 6px}.chatsug button{flex:0 1 auto;white-space:normal;text-align:left}
+.chatsug{display:flex;flex-wrap:nowrap;gap:6px;padding:0 12px 6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.chatsug::-webkit-scrollbar{display:none}
+.chatsug button{flex:0 0 auto;white-space:nowrap;text-align:left} /* よくある質問は横1列（5段に積み重なって会話が見えなかった） */
+.chatform input::placeholder{font-size:13px}
 .chatform{display:flex;gap:6px;padding:8px 12px}.chatform input{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:2px solid var(--ink);background:#fff;color:var(--ink)}
 .chatform .big{font-size:16px;padding:8px 14px}#sChat .note{padding:0 12px 10px;margin:0;font-size:11px}
 #lives.hide{display:none}#lives{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;font-size:11px;font-weight:800;color:var(--paper);text-shadow:0 1px 2px rgba(0,0,0,.55)}
@@ -408,7 +410,7 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--badge);outline-off
 @media (max-width:340px){.shbtns a,.sharebar .shbtns a,.sharebar .shbtns #shIg,#app .shbtns #shIg{font-size:9px;letter-spacing:-.05em;padding-left:0;padding-right:0;white-space:nowrap}} /* 320px で「Instagram」が切れていた */
 .mini{min-height:42px;justify-content:center} .sub.small{min-height:34px} #btnSet{min-width:36px} .buy{min-height:36px} /* 押しやすい大きさ（小さい画面で 26〜28px しかなかった） */
 #nickSave,#btnRank2,#resNameToggle{min-height:34px}
-@media (max-height:500px) and (orientation:landscape){.ttoast{top:auto!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important}} /* 横向き：あいさつの帯が題名にかぶっていた */
+@media (max-height:500px) and (orientation:landscape){.ttoast{top:calc(8px + env(safe-area-inset-top,0px))!important;bottom:auto!important;left:10px!important;right:auto!important;margin:0!important;max-width:30vw!important;font-size:12px}} /* 横向き：あいさつの帯が題名にかぶっていた */
 .ttoast .ja{word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance} /* 「50 / 本」のように数字と単位が別の行に分かれていた */
 .daygoal{display:flex;align-items:center;gap:8px;justify-content:center;font-size:11px;font-weight:900;color:var(--ink-soft);margin-top:4px}.daygoal i{display:block;width:90px;height:6px;border-radius:3px;background:rgba(59,42,32,.15);overflow:hidden}.daygoal b{display:block;height:100%;background:#7DB46A;border-radius:3px}.daygoal.done em{color:#4C8A48}
 @media (max-height:620px){.daygoal{display:none}}
