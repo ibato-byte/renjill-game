@@ -109,7 +109,7 @@ function titleFrame(dt) {
 }
 
 /* ---------- run lifecycle ---------- */
-function startRun() {
+function startRun() { G.drawRetry = 0;
   audioInit(); SFX.ui(); { const f = document.getElementById('tFresh'); if (f) f.remove(); } toastClear();
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
@@ -190,7 +190,7 @@ function practiceGoOn(cause) { G.cause = cause; G.stats.pracBumps = (G.stats.pra
   if (cause === 'wall') { if (seg.fork) G.turnQueued = Math.random() < .5 ? -1 : 1; try { doTurn(); } catch (e) { reportErr(e); } }
   G.invT = 1.5; G.chaseT = 0; G.chaseVis = 0; G.y = Math.max(G.y, 0); G.vy = 0; G.slideT = 0; G.combo = 0; banner('PRACTICE', t('practiceBump'), 'room'); }
 // retry as many times as your charms or hay allow (the price rises a little each time)
-function freeRevive() { return SV.runs <= 3 && G.reviveN === 0 && G.cause !== 'quit'; } // the first fail of your first three runs: one free retry
+function freeRevive() { return SV.runs <= 3 && G.reviveN === 0 && G.cause !== 'quit' && G.cause !== 'rescue'; } // the first fail of your first three runs: one free retry
 function canRevive() { if (G.cause === 'time') return false; if (freeRevive()) return true; const c = reviveCost(); return SV.clovers >= c.clover || SV.bank + Math.floor(G.hay) >= c.hay || (typeof PORTAL !== 'undefined' && PORTAL.adOK()); } // (inside a game portal: or a rewarded ad)
 function reviveCost() { return { clover: G.reviveN + 1, hay: 400 * (G.reviveN + 1) }; }
 function doRevive(kind) {
@@ -668,8 +668,10 @@ function runGuard(rdt, err) {
 function rescueRun(why) {
   GUARD.errN = 0; GUARD.stillT = 0; G.stats.rescues = (G.stats.rescues || 0) + 1; window.__rescue = (window.__rescue || 0) + 1; window.__rescueWhy = why;
   GUARD.fixes = G.t - GUARD.fixT < 15 ? GUARD.fixes + 1 : 1; GUARD.fixT = G.t;
+  errLog('rescue: ' + why + ' @' + ((curSeg() || {}).tid || '?') + ' ' + Math.round(G.clock || 0)); // なぜ止まったかを端末の記録に（設定の「エラーの記録」で見られる）
   if (GUARD.fixes <= 2) { try { if (snapBack()) return; } catch (e) { reportErr(e); } }
-  finishRun(why); // it keeps going wrong: end the run the normal way (score, hay and missions are kept)
+  try { if (newStreet()) return; } catch (e) { reportErr(e); } // 2026-11-10 の報告「長く遊ぶと強制的に早退」：直せないときも終わらせず、新しい道を作ってそこから続ける
+  finishRun(why); // それでもだめなら、ふつうに終わる（点数・チモシー・ミッションは残る）
 }
 // put the runner back on the street they are on, in a lane, on the ground, with the camera right behind them
 function snapBack() {
@@ -694,10 +696,22 @@ function snapBack() {
   banner('KEEP GOING!', t('keepGoing'), 'good');
   return true;
 }
+/* 今の道が直せないとき：同じ場所の新しい道を作り、その上から走り続ける（予定の続きはそのまま）。だめなら false */
+function newStreet() {
+  const old = curSeg(); const tid = old && old.tid; if (!tid || !THEMES[tid]) return false;
+  const s0 = newSeg(null, { t: tid, d: 30 }, { t0: G.clock || 600, day: G.day || 1 }); if (!s0 || !(s0.len > 0)) return false;
+  G.segs = [s0]; G.ci = 0; G.s = 0; G.lane = 1; G.lat = 0; G.fork = null; G.forkRest = null; G.planClock = s0.t1; ensureSegs();
+  if (!G.segs[1] && !s0.fork) return false;
+  const p = segPos(s0, 0, 0); G.rx = p[0]; G.rz = p[1]; G.camYaw = s0.dir * Math.PI / 2; G.ey = G.camE = null; G.camSl = 0;
+  G.y = 0; G.vy = 0; G.air = false; G.slideT = 0; G.turnQueued = 0; G.turnAuto = 0; G.turnT = 0; G.invT = Math.max(G.invT, 3);
+  try { onEnterSeg(s0); } catch (e) { reportErr(e); }
+  placeCamera(.016); if (runOK()) return false; GUARD.fixes = 0; G.stats.newStreet = (G.stats.newStreet || 0) + 1; window.__newStreet = (window.__newStreet || 0) + 1;
+  banner('KEEP GOING!', t('keepGoing'), 'good'); return true;
+}
 function finishRun(why) {
   window.__finish = (window.__finish || 0) + 1; window.__finishWhy = why;
   if (!curSeg()) G.ci = Math.max(0, G.segs.length - 1);
-  G.cause = 'quit'; G.mode = 'dead';
+  G.cause = 'rescue'; G.mode = 'dead'; errLog('finish: ' + why); // 安全網で終わったときは「早退しました」と言わない
   try { hideAll(); if (!curSeg()) throw new Error('no street'); endRun(); } catch (e) { reportErr(e); try { goTitle(); } catch (e2) { } }
 }
 // the other bunny runs beside you and dodges on its own; Pom trots along behind, on the other side
@@ -913,6 +927,7 @@ const CAPS = {
   time: { ren: ['TIME! NICE RUN.', '1分、おつかれさま！'], jill: ['TIME! NICE RUN.', '1分、おつかれさまでした'], pom: ['TIME! NICE RUN.', '1分、走りきったっす！'] },
   wall: { ren: ['THAT’S A WALL.', 'そっちは壁です'], jill: ['THAT’S A WALL.', 'そっちは壁です'], pom: ['THAT’S A WALL.', 'そっちは壁です'] },
   quit: { ren: ['LEFT EARLY.', '早退しました'], jill: ['LEFT EARLY.', '早退しました'], pom: ['LEFT EARLY.', '早退しました'] },
+  rescue: { ren: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'], jill: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'], pom: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'] }, // 画面が動かなくなって安全網で終わったとき（自分でやめたのではない）
 };
 const DAY_GOAL = 300;
 const bondLv = () => 1 + Math.floor(Math.sqrt((SV.bond || 0) / 3));

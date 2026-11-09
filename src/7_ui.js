@@ -10,7 +10,7 @@ function applyLang() {
   $('#tStory').innerHTML = t('story'); $('#tStory').hidden = false; const lr = $('#tLast'); if (SV.runs > 0 && SV.last) { lr.hidden = false; lr.textContent = t('lastRun', fmt(SV.last.score), L(SV.last.place)) + (SV.best ? (tr('　', ' · ')) + t('lastBest', fmt(SV.best)) : ''); } else lr.hidden = true; $('#tSub').textContent = tr('レンとジル　チモシーダッシュ', 'Two office bunnies, one mad dash across Tokyo');
   cardTxt('#tRenRole', t('renRole')); cardTxt('#tRenPerk', t('renPerk') + (SV.bond ? '・' + t('bondLbl', bondLv()) : '')); cardTxt('#tJillRole', t('jillRole')); cardTxt('#tJillPerk', t('jillPerk') + (SV.bond ? '・' + t('bondLbl', bondLv()) : '')); { const met = !!SV.pomMet; cardTxt('#tPomRole', t('pomRole')); cardTxt('#tPomPerk', t('pomPerk')); $('#pickPom').hidden = !met; $('#pickPom').parentNode.classList.toggle('three', met); } // the rookie stays a secret until you have met him on the road
   $('#tMis').textContent = t('missions'); $('#tSta').textContent = t('stamps'); $('#tBook').textContent = t('book'); $('#tShop').textContent = t('shop'); $('#tHow').textContent = t('how');
-  $('#tBestL').textContent = t('best'); $('#sTitle .chars').setAttribute('aria-label', t('pickChar')); $('#sResult .shbtns').setAttribute('aria-label', tr('友だちに挑戦状を送ろう', 'Challenge a friend')); $('#sResult .shbtns').setAttribute('role', 'group'); $('#chatIn').setAttribute('aria-label', tr('ゲームについて質問してね', 'Ask about the game')); $('#btnRank').textContent = tr('ランキング', 'Ranking'); $('#btnRank2').textContent = tr('ランキングをもっと見る', 'See the full ranking'); $('#btnLang').textContent = '🌐 ' + LANG_NAME[LANG]; $('#btnLang').setAttribute('aria-label', t('langLbl', LANG_NAME[LANG])); $('#pauseBtn').setAttribute('aria-label', t('pauseLbl')); $('#btnSet').setAttribute('aria-label', t('settings')); $('#btnSet').title = t('settings'); for (const id of ['pClose', 'chatClose']) $('#' + id).setAttribute('aria-label', t('close')); $('#tPause').textContent = t('pause'); $('#btnQuit').textContent = t('quit');
+  $('#tBestL').textContent = t('best'); $('#sTitle .chars').setAttribute('aria-label', t('pickChar')); $('#sResult .shbtns').setAttribute('aria-label', tr('友だちに挑戦状を送ろう', 'Challenge a friend')); $('#sResult .shbtns').setAttribute('role', 'group'); $('#chatIn').setAttribute('aria-label', tr('ゲームについて質問してね', 'Ask about the game')); $('#btnRank').textContent = tr('ランキング', 'Ranking'); $('#btnRank2').textContent = tr('ランキングをもっと見る', 'See the full ranking');  { const lt = $('#btnLangTop'); if (lt) lt.setAttribute('aria-label', t('langLbl', LANG_NAME[LANG])); } $('#pauseBtn').setAttribute('aria-label', t('pauseLbl')); $('#btnSet').setAttribute('aria-label', t('settings')); $('#btnSet').title = t('settings'); for (const id of ['pClose', 'chatClose']) $('#' + id).setAttribute('aria-label', t('close')); $('#tPause').textContent = t('pause'); $('#btnQuit').textContent = t('quit');
   $('#btnRvNo').textContent = t('seeResult'); $('#btnMenu').textContent = t('menu'); { const m = $('#tResMore'); if (m) m.textContent = t('resMore'); } $('#tCopy').textContent = t('copy'); { const sb = $('#tShareBar'); if (sb) sb.textContent = tr('友だちに挑戦状を送ろう', 'Challenge a friend');} $('#tShare').textContent = t('share'); $('#tShareImg').textContent = t('shareImg');
   $('#tKick').textContent = tr('レンとジルの', 'REN & JILL'); $('#tLogo').innerHTML = tr('チモシー<br><em>ダッシュ！</em>', 'HAY<br><em>DASH!</em>'); $('#tSub').textContent = t('tagline'); document.title = t('gameTitle');
   $('#nmRen').textContent = tr('レン', 'REN'); $('#nmJill').textContent = tr('ジル', 'JILL'); $('#nmPom').textContent = tr('ポム', 'POM'); $('#btnStart').textContent = t('start'); $('#btnAgain').textContent = t('again'); $('#btnResume').textContent = t('resume'); $('#tPauseH').textContent = lab('PAUSE'); $('#tPause').hidden = $('#tPause').textContent === $('#tPauseH').textContent;
@@ -271,7 +271,7 @@ function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), setting
 let rvTimer = null;
 // ぶつかった物の絵を、続ける画面と結果画面に（C-69）。絵のある物だけ。書類に追いつかれた・壁・時間切れのときも、最後にぶつかった物
 function showHit(pre) { const box = $('#' + pre + 'Hit'); if (!box) return; const o = G.lastHit; let url = '';
-  try { if (o && o.art && G.cause !== 'time' && G.cause !== 'quit' && typeof ART !== 'undefined' && ART[o.art]) { const c = ART[o.art](o, false); url = c && c.toDataURL ? c.toDataURL() : ''; } } catch (e) { url = ''; }
+  try { if (o && o.art && G.cause !== 'time' && G.cause !== 'quit' && G.cause !== 'rescue' && typeof ART !== 'undefined' && ART[o.art]) { const c = ART[o.art](o, false); url = c && c.toDataURL ? c.toDataURL() : ''; } } catch (e) { url = ''; }
   box.hidden = !url; if (!url) return; $('#' + pre + 'HitImg').src = url; $('#' + pre + 'HitTxt').textContent = LANG === 'ja' && typeof OBS_JA !== 'undefined' && OBS_JA[o.type] ? t('hitWhatN', OBS_JA[o.type]) : t('hitWhat'); }
 function openRevive() {
   const c = reviveCost(), cap = (CAPS[G.cause] || CAPS.obstacle)[G.char];
@@ -345,7 +345,7 @@ $('#btnMissions').onclick = openMissions; $('#btnShop').onclick = openShop; $('#
 $('#btnSet').onclick = openSettings;
 $('#btnRank').onclick = () => openRanking('month'); $('#btnRank2').onclick = () => { hideAll(); show('sTitle'); setupTitle(); refreshTitle(); openRanking('month'); };
 $('#btnLangTop').onclick = () => { SFX.ui(); openPanel('LANGUAGE', t('langPick'), `<div class="langpick">${LANGS.map(l => `<button class="buy${LANG === l ? '' : ' off'}" data-langpick="${l}" lang="${({ zh: 'zh-Hant' })[l] || l}">${LANG_NAME[l]}</button>`).join('')}</div>`); };
-$('#btnLang').onclick = () => { LANG = LANGS[(LANGS.indexOf(LANG) + 1) % LANGS.length]; SV.lang = LANG; save(); refreshTitle(); SFX.ui(); }; // 日本語 → English → 繁體中文 → 한국어 → …
+/* 下の小さい言語ボタンはやめた：右上の地球ボタンだけ（2026-11-10 オーナーの判断） */
 $('#pClose').onclick = closePanel;
 $('#sPanel').addEventListener('click', e => {
   const up = e.target.closest('[data-up]'), buy = e.target.closest('[data-buy]'), mg = e.target.closest('[data-mug]'), z = e.target.closest('[data-z]'), sst = e.target.closest('[data-s]');
@@ -419,7 +419,7 @@ function frameTrouble() {
   FRAME_BAD++;
   if (FRAME_BAD === 3 || FRAME_BAD % 60 === 0) { try { freePictures(); } catch (e) { } }
   if (FRAME_BAD === 30 && !lowQ) { lowQ = 1; DPR = 1; try { resizeKeep(); } catch (e) { } }
-  if (FRAME_BAD >= 150 && G.mode === 'play') { FRAME_BAD = 0; finishRun('draw'); }
+  if (FRAME_BAD >= 150 && G.mode === 'play') { FRAME_BAD = 0; errLog('draw trouble ' + (G.drawRetry || 0)); if ((G.drawRetry || 0) < 2) { G.drawRetry = (G.drawRetry || 0) + 1; try { freePictures(); } catch (e) { } lowQ = 2; DPR = 1; try { resizeKeep(); } catch (e) { } return; } finishRun('draw'); } // 絵が描けないときも、まずは軽くして2回までやり直す（すぐ終わらせない）
 }
 function frameBody(now) {
   const raw = (now - last) / 1000, dt = Math.min(.05, Math.max(0, raw)); last = now; // never backwards (the first frame after a countdown can be stamped a hair before it)
