@@ -21,6 +21,7 @@ function applyLang() {
 // the character cards are narrow: put each part ("課長" / "ホーランドロップ") on its own line, never split a word
 function cardTxt(sel, txt) { const el = $(sel); el.textContent = ''; String(txt).split(/\s*[・：:·]\s*/).forEach((p, i) => { if (i) el.appendChild(document.createElement('br')); const s = document.createElement('span'); s.textContent = p; el.appendChild(s); }); }
 function refreshTitle() {
+  { const lt = $('#tLangTop'); if (lt) lt.textContent = LANG_NAME[LANG]; const bt = $('#btnLangTop'); if (bt) bt.hidden = !$('#sPanel').hidden; }
   refreshNameBtn();
   { const lv = plantLv(); if (lv > (SV.plantLv || 0)) { SV.plantLv = lv; save(); setTimeout(() => toastTitle(t('plantUp')), 1600); } } // 観葉植物が育った（B-12）
   applyLang();
@@ -34,7 +35,7 @@ function refreshTitle() {
   { const q = $('#btnDuo'); if (q) q.remove(); } // ふたりで交代（B-33）はやめた（2026-11-09 オーナーの判断）
   { let q = $('#btnPractice'); if (!q) { q = document.createElement('button'); q.id = 'btnPractice'; q.className = 'sub small quick'; q.onclick = openPractice; $('#btnQuick').after(q); } q.textContent = t('practice'); q.hidden = !SV.tutDone; } // 練習・場所えらび（B-31・B-38）
   { let e = $('#tDayGoal'); if (!e) { e = document.createElement('div'); e.id = 'tDayGoal'; $('#tDaily').after(e); } const n = SV.dayHay && SV.dayHay.d === todayStr() ? SV.dayHay.n : 0, k = Math.min(1, n / DAY_GOAL);
-    e.className = 'daygoal' + (n >= DAY_GOAL ? ' done' : ''); e.innerHTML = `<span>${esc(tr('今日の牧草', 'Hay today'))}</span><i><b style="width:${(k * 100).toFixed(0)}%"></b></i><em>${fmt(Math.min(n, DAY_GOAL))} / ${DAY_GOAL}${n >= DAY_GOAL ? ' ✓' : ''}</em>`; } // today's hay goal (2026-11-08)
+    e.className = 'daygoal' + (n >= DAY_GOAL ? ' done' : ''); e.innerHTML = `<span>${esc(tr('今日のチモシー', 'Hay today'))}</span><i><b style="width:${(k * 100).toFixed(0)}%"></b></i><em>${fmt(Math.min(n, DAY_GOAL))} / ${DAY_GOAL}${n >= DAY_GOAL ? ' ✓' : ''}</em>`; } // today's hay goal (2026-11-08)
   $('#pickRen').setAttribute('aria-pressed', G.char === 'ren'); $('#pickJill').setAttribute('aria-pressed', G.char === 'jill'); $('#pickPom').setAttribute('aria-pressed', G.char === 'pom');
   if (SV.pomMet && !SV.pomTold) { SV.pomTold = 1; save(); setTimeout(() => { if (G.mode === 'title') toastTitle(t('pomUnlock')); }, 600); }
   $('#dotZukan').hidden = Object.keys(SV.zukan).length <= (SV.seenZukan || 0);
@@ -42,8 +43,8 @@ function refreshTitle() {
   $('#dotMissions').hidden = !(SV.missions && SV.missions.slots.some(s => s.done));
 }
 let PANEL_FROM = null;
-function openPanel(title, sub, html) { if ($('#sPanel').hidden) { const a = document.activeElement; PANEL_FROM = a && a !== document.body && !a.closest('#sPanel') ? a : null; } if (LANG !== 'en' && sub) { title = esc(sub); sub = ''; } document.querySelectorAll('.toast').forEach(x => x.remove()); if (sub && sub.toUpperCase() === title) sub = ''; $('#pTitle').innerHTML = `${title}<small>${esc(sub)}</small>`; $('#pBody').innerHTML = html; $('#pBody').scrollTop = 0; show('sPanel'); $('#pClose').focus(); }
-function closePanel() { $('#sPanel').hidden = true; if (G.mode === 'title') refreshTitle(); const f = PANEL_FROM; PANEL_FROM = null; if (f && f.isConnected && !f.closest('[hidden]')) try { f.focus({ preventScroll: true }); } catch (e) { } }
+function openPanel(title, sub, html) { if ($('#sPanel').hidden) { const a = document.activeElement; PANEL_FROM = a && a !== document.body && !a.closest('#sPanel') ? a : null; } if (LANG !== 'en' && sub) { title = esc(sub); sub = ''; } document.querySelectorAll('.toast').forEach(x => x.remove()); if (sub && sub.toUpperCase() === title) sub = ''; $('#pTitle').innerHTML = `${title}<small>${esc(sub)}</small>`; $('#pBody').innerHTML = html; $('#pBody').scrollTop = 0; show('sPanel'); { const lt = $('#btnLangTop'); if (lt) lt.hidden = true; } $('#pClose').focus(); } // 言語ボタンが閉じるボタンにかぶらないよう、パネル中はかくす
+function closePanel() { $('#sPanel').hidden = true; { const lt = $('#btnLangTop'); if (lt) lt.hidden = false; } if (G.mode === 'title') refreshTitle(); const f = PANEL_FROM; PANEL_FROM = null; if (f && f.isConnected && !f.closest('[hidden]')) try { f.focus({ preventScroll: true }); } catch (e) { } }
 
 function openMissions() { SFX.ui(); openPanel('MISSIONS', t('missions'), `<div class="lvl"><b>×${SV.mlevel}</b><span>${esc(t('missionNote'))}</span></div>${missionHTML()}${dailyHTML()}${weekHTML()}${calHTML()}${achHTML()}`); }
 // the days you came to work: the last four weeks as a little calendar of stamps (2026-11-08)
@@ -131,8 +132,9 @@ function openHow() {
   // 動く絵（C-74）：指が左右・上・下にスワイプして、うさぎがよける・跳ぶ・すべる。「動きを減らす」設定・OS の設定では止まる
   const demo = `<div class="howanim${OPT().calm ? ' still' : ''}" aria-hidden="true"><div class="ha-road"><i class="ha-l"></i><i class="ha-l r"></i></div><img class="ha-bun" src="${(() => { try { return bunFrame(SV.char === 'jill' ? 'jill' : 'ren', 'run0', false).toDataURL(); } catch (e) { return SPR_URL.hay; } })()}" alt=""><b class="ha-box"></b><span class="ha-finger"></span><em class="ha-cap"><span>${esc(t('howA1'))}</span><span>${esc(t('howA2'))}</span><span>${esc(t('howA3'))}</span></em></div>`;
   openPanel('HOW TO PLAY', t('how'), demo + `<div class="how">
-    <kbd>← →</kbd><span>${t('howSwipeLR')}</span><kbd>↑</kbd><span>${t('howUp')}</span><kbd>↓</kbd><span>${t('howDown')}</span><kbd>ESC</kbd><span>${t('howKeys')}</span></div>
+    <kbd>← →</kbd><span>${t('howSwipeLR')}</span><kbd>↑</kbd><span>${t('howUp')}</span><kbd>↓</kbd><span>${t('howDown')}</span>${matchMedia('(hover:none) and (pointer:coarse)').matches ? '' : `<kbd>ESC</kbd><span>${t('howKeys')}</span>`}</div>
     <div class="zdetail"><b>${lab('GOAL')}</b>${esc(t('howGoal'))}</div>
+    <div class="zdetail"><b>${lab('CORNERS')}</b>${esc(t('howTurn'))}</div>
     <div class="zdetail"><b>${lab('♥ BUMPS')}</b>${esc(t('howBump'))}</div>
     <div class="zdetail"><b>${lab('FEVER')}</b>${esc(t('howFever'))}</div>
     <div class="how">${ic('carrot')}<span>${esc(L(POW.dash))}</span>${ic('papaya')}<span>${esc(L(POW.magnet))}</span>${ic('alfalfa')}<span>${esc(L(POW.jump))}</span>
@@ -276,8 +278,8 @@ function openRevive() {
   $('#rvEn').textContent = tr(cap[1], cap[0]); $('#rvJa').textContent = ''; showHit('rv');
   const bc = $('#btnRvClover'), bh = $('#btnRvHay');
   const free = freeRevive(); bc.dataset.free = free ? '1' : '';
-  bc.textContent = free ? t('reviveFree') : t('reviveClover', c.clover); bc.disabled = !free && SV.clovers < c.clover; bc.style.opacity = bc.disabled ? .45 : 1;
-  bh.textContent = t('reviveHay', c.hay); bh.disabled = SV.bank + Math.floor(G.hay) < c.hay; bh.style.opacity = bh.disabled ? .45 : 1; bh.hidden = free;
+  bc.textContent = free ? t('reviveFree') : t('reviveClover', c.clover); bc.disabled = !free && SV.clovers < c.clover; bc.style.opacity = bc.disabled ? .45 : 1; if (bc.disabled) bc.textContent += t('rvNoClover'); /* 押せない理由を書く */
+  bh.textContent = t('reviveHay', c.hay); bh.disabled = SV.bank + Math.floor(G.hay) < c.hay; bh.style.opacity = bh.disabled ? .45 : 1; if (bh.disabled) bh.textContent += t('rvShort', fmt(c.hay - SV.bank - Math.floor(G.hay))); bh.hidden = free;
   $('#rvHave').textContent = free ? t('reviveFreeNote') : t('reviveHave', SV.clovers, fmt(SV.bank + Math.floor(G.hay)));
   const ba = $('#btnRvAd'); if (ba) { ba.hidden = !PORTAL.adOK(); ba.textContent = t('reviveAd'); }
   if (bc.disabled && bh.disabled && (!ba || ba.hidden)) { endRun(); return; }
@@ -342,6 +344,7 @@ $('#pickPom').onclick = () => { audioInit(); if (!SV.pomMet) return; G.char = 'p
 $('#btnMissions').onclick = openMissions; $('#btnShop').onclick = openShop; $('#btnZukan').onclick = openZukan; $('#btnHow').onclick = openHow; $('#btnStamps').onclick = openStamps;
 $('#btnSet').onclick = openSettings;
 $('#btnRank').onclick = () => openRanking('month'); $('#btnRank2').onclick = () => { hideAll(); show('sTitle'); setupTitle(); refreshTitle(); openRanking('month'); };
+$('#btnLangTop').onclick = () => { SFX.ui(); openPanel('LANGUAGE', t('langPick'), `<div class="langpick">${LANGS.map(l => `<button class="buy${LANG === l ? '' : ' off'}" data-langpick="${l}" lang="${({ zh: 'zh-Hant' })[l] || l}">${LANG_NAME[l]}</button>`).join('')}</div>`); };
 $('#btnLang').onclick = () => { LANG = LANGS[(LANGS.indexOf(LANG) + 1) % LANGS.length]; SV.lang = LANG; save(); refreshTitle(); SFX.ui(); }; // 日本語 → English → 繁體中文 → 한국어 → …
 $('#pClose').onclick = closePanel;
 $('#sPanel').addEventListener('click', e => {
@@ -355,6 +358,7 @@ $('#sPanel').addEventListener('click', e => {
   const wr = e.target.closest('[data-wear]'); if (wr) { const c = CLOSET.find(x => x.id === wr.dataset.wear); if (c && SV.closet[c.id]) { const cur = SV.wear[c.who][c.slot]; SV.wear[c.who][c.slot] = cur === c.v ? (SLOT_DEF[c.slot] || '') : c.v; if (c.slot === 'hat' && c.who === 'ren' && SV.wear.ren.hat) SV.mugOn = false; save(); applyWear(); SFX.ui(); $('#pBody').innerHTML = shopHTML(); } }
   if (z) { SFX.ui(); $('#pBody').innerHTML = zukanHTML(z.dataset.z); }
   if (sst) { SFX.ui(); $('#pBody').innerHTML = stampsHTML(sst.dataset.s); }
+  { const lp = e.target.closest('[data-langpick]'); if (lp && LANGS.includes(lp.dataset.langpick)) { LANG = lp.dataset.langpick; SV.lang = LANG; save(); refreshTitle(); SFX.ui(); closePanel(); return; } }
   { const lb = e.target.closest('[data-lang]'); if (lb && LANGS.includes(lb.dataset.lang)) { LANG = lb.dataset.lang; SV.lang = LANG; save(); refreshTitle(); SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); } }
   { const pr = e.target.closest('[data-prac]'); if (pr) { SFX.ui(); G.practiceNext = pr.dataset.prac; closePanel(); hideAll(); startRun(); return; } }
   const op = e.target.closest('[data-opt]');
@@ -381,7 +385,10 @@ $('#sPanel').addEventListener('click', e => {
 const toggleMute = () => { audioInit(); setMute(!SV.mute); applyLang(); };
 $('#btnMute').onclick = toggleMute; $('#btnMute2').onclick = toggleMute;
 $('#pauseBtn').onclick = pause; $('#btnResume').onclick = resume;
-$('#btnQuit').onclick = () => { G.mode = 'dead'; G.cause = 'quit'; endRun(); };
+/* 一時停止の「やめる」は2回押し（つづけるのとまちがえて押すと、その回が終わってしまっていた）2026-11-09 qa/quitconfirm */
+let QUITASK = 0;
+$('#btnQuit').onclick = () => { const q = $('#btnQuit'); if (performance.now() - QUITASK > 3000) { QUITASK = performance.now(); q.textContent = t('quitSure'); q.classList.add('danger'); setTimeout(() => { if (performance.now() - QUITASK >= 2900) { q.textContent = t('quit'); q.classList.remove('danger'); } }, 3000); return; }
+  QUITASK = 0; q.textContent = t('quit'); q.classList.remove('danger'); G.mode = 'dead'; G.cause = 'quit'; endRun(); };
 $('#btnRvClover').onclick = () => { clearInterval(rvTimer); doRevive($('#btnRvClover').dataset.free ? 'free' : 'clover'); };
 $('#btnRvHay').onclick = () => { clearInterval(rvTimer); doRevive('hay'); };
 $('#btnRvNo').onclick = () => { clearInterval(rvTimer); hideAll(); endRun(); };
@@ -468,7 +475,7 @@ function quietLine(id, html) { // one small line under START: a first-time playe
 }
 function dailyBonus() { // once a day: hay for coming to work, more for each day in a row (up to 7)
   const td = todayStr();
-  if (SV.daily !== td) { const y = new Date(Date.now() - 864e5); const ys = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate(); SV.streak = SV.daily === ys ? Math.min(7, SV.streak + 1) : 1; SV.daily = td; const b = 30 + SV.streak * 20; SV.bank += b; save(); refreshTitle(); toastTitle(t('daily', SV.streak, b)); }
+  if (SV.daily !== td) { const y = new Date(Date.now() - 864e5); const ys = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate(); SV.streak = SV.daily === ys ? SV.streak + 1 : 1; SV.daily = td; const b = 30 + Math.min(7, SV.streak) * 20; SV.bank += b; save(); refreshTitle(); toastTitle(SV.streak > 1 ? t('daily', SV.streak, b) : t('daily1', b)); /* 連続日数は本当の日数（ボーナスは7日分まで）。1日目は「1日連続」と言わない */ }
 }
 function inAppCard() { // inside an app's built-in browser the game would start a second account: offer the phone's own browser, quietly
   if (!window.HAYDASH_APP || !/^https?:/.test(location.href)) return; const ua = navigator.userAgent || '', line = /\bLine\//i.test(ua), other = /Instagram|FBAN|FBAV|FB_IAB|Twitter|TwitterAndroid|\bKAKAOTALK/i.test(ua);
@@ -529,7 +536,7 @@ const isoDay = () => { const d = new Date(); return d.getFullYear() + '-' + Stri
 const TOASTQ = [];
 function toastTitle(msg) { // one message at a time (the login bonus, a seasonal gift and a promotion used to land on top of each other)
   if (!msg) return; TOASTQ.push(msg); if (TOASTQ.length === 1) toastNext(); }
-function toastNext() { const msg = TOASTQ[0]; if (msg == null) return; const d = document.createElement('div'); d.className = 'toast ttoast'; d.style.cssText = 'pointer-events:none;position:absolute;left:0;right:0;margin:0 auto;width:max-content;max-width:86vw;top:calc(10px + env(safe-area-inset-top,0px));z-index:5;animation:pop .35s both, fade .5s ease-in 3.5s forwards'; d.innerHTML = '<span class="ja"></span>'; d.firstChild.textContent = msg; $('#app').appendChild(d); setTimeout(() => { if (!d.isConnected) return; d.remove(); TOASTQ.shift(); toastNext(); }, 4200); }
+function toastNext() { const msg = TOASTQ[0]; if (msg == null) return; const d = document.createElement('div'); d.className = 'toast ttoast'; d.style.cssText = 'pointer-events:none;position:absolute;left:0;right:0;margin:0 auto;width:max-content;max-width:86vw;top:calc(54px + env(safe-area-inset-top,0px));z-index:5;animation:pop .35s both, fade .5s ease-in 3.5s forwards'; d.innerHTML = '<span class="ja"></span>'; d.firstChild.textContent = msg; $('#app').appendChild(d); setTimeout(() => { if (!d.isConnected) return; d.remove(); TOASTQ.shift(); toastNext(); }, 4200); }
 function toastClear() { TOASTQ.length = 0; document.querySelectorAll('.ttoast').forEach(d => d.remove()); } // the title's messages never follow you into the run
 /*TEST-ONLY*/
 window.__hayDash = { ev: s => eval(s), BUN, addObs: (seg, t, s, l) => makeObs(seg, t, s, l), markSeen: t => markSeen(t), THEMES, chatRules: () => chatRules(), dbg2: () => { const out = []; computeLight(G.segs[G.ci]); camPrep(); for (const sg of segOrder()) { for (const f of sg.floor.concat(sg.walls.map(w => Object.assign({ wall: 1 }, w)), sg.decos.map(w => Object.assign({ deco: 1 }, w)))) { const m = project(f.v); if (!m) continue; const n = Math.abs(m); let inside = false; const px = W / 2, py = H * .62; for (let i = 0, j = n - 1; i < n; j = i++) { const xi = SCR[i * 2], yi = SCR[i * 2 + 1], xj = SCR[j * 2], yj = SCR[j * 2 + 1]; if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside; } if (inside) { const sv = []; for (let i = 0; i < f.v.length; i += 3) { const dx = f.v[i] - sg.sx, dz = f.v[i + 2] - sg.sz; sv.push([+(dx * sg.f[0] + dz * sg.f[1]).toFixed(1), +(dx * sg.r[0] + dz * sg.r[1]).toFixed(1)]); } out.push({ seg: sg.id, wall: f.wall, deco: f.deco, pat: f.pat, c: f.c, cur: sg === G.segs[G.ci], len: sg.len, turn: sg.turn, turnIn: sg.turnIn, m, sv }); } } } return JSON.stringify({ G: [G.s, G.lat, G.ci], cam: [CAM.x, CAM.z], out: out.slice(0, 8) }); }, G, act, ITEMS, THEMES, makeObs, startFever, dayPlan, resetRoutes, dbg: () => { const sg = G.segs[G.ci]; computeLight(sg); camPrep(); const camS = (CAM.x - sg.sx) * sg.f[0] + (CAM.z - sg.sz) * sg.f[1]; const out = { camS, Gs: G.s, camY: CAM.y, pitch: CAM.pitch };

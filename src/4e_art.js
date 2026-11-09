@@ -548,7 +548,7 @@ function drawArt(o, sg, d) {
   const p = segPos(sg, s, lat), sp = spriteAt(p[0], lift + p[2], p[1]); if (!sp) return true; // off screen: not even painted yet
   const img = make(o, LT.night > .35); if (!img) return false;
   const ww = (o.artW || (o.l1 - o.l0)) * sp.k, hh = (o.artH || o.top || 1) * sp.k;
-  ctx.globalAlpha = (o.dead ? clamp(1 - o.dead * 1.2, 0, 1) : 1) * (1 - fogK(d) * .9);
+  ctx.globalAlpha = (o.dead ? clamp(1 - o.dead * 1.2, 0, 1) : passFade(d)) * (1 - fogK(d) * .9);
   ctx.drawImage(litSprite(img, LT.amb), sp.sx - ww / 2, sp.sy - hh, ww, hh);
   if (LT.night > .3 && (o.art === 'car' || o.art === 'supercar' || o.art === 'kick' || o.art === 'bike') && !o.dead) { // headlights at night, and their light on the road
     ctx.globalCompositeOperation = 'lighter';
@@ -678,7 +678,7 @@ function paintAdPoster(g, W, H, v, se) { // a hanging train advertisement: a bri
   g.fillStyle = v % 6 === 5 ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.35)'; for (let k = 0; k < 3; k++) g.fillRect(W * .15, H * (.84 + k * .05), W * (.7 - k * .15), H * .02);
   g.fillStyle = '#9AA0A6'; g.fillRect(W * .2, 0, 3, H * .1); g.fillRect(W * .8, 0, 3, H * .1);
 }
-PROP_ART.ad = (n, v) => { const se = adSeason(); return artCanvas('pad' + v + se, 300, 200, (g, w, h) => paintAdPoster(g, w, h, +v || 0, se)); };
+PROP_ART.ad = (n, v) => { const m = /^(\d+)([a-z]*)$/.exec(String(v)) || [], se = m[2] && AD_SEASON[m[2]] ? m[2] : adSeason(); return artCanvas('pad' + (+m[1] || 0) + se, 300, 200, (g, w, h) => paintAdPoster(g, w, h, +m[1] || 0, se)); }; // 季節は区間を作った日のもの（前の日の絵が使い回されて、夏に「お花見へ」が出ていた：2026-11-09）
 
 /* ---- the last box-built obstacles, painted ---- */
 function paintFuton(g, W, H) { // a futon laid out on the floor, seen from the side: the mattress, the rumpled quilt, the pillow

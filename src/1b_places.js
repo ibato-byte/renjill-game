@@ -134,9 +134,9 @@ const SEASONAL = {
   ueno: { spring: { ja: '上野公園・お花見', en: 'Ueno Park, cherry blossoms', tree: 'sakura', leaves: 0, petals: 1, spat: 'petals', side: ['#B7A797', '#AE9E8E'], rpat: 'petalstone', props: [['bonbori', 3], ['stall', 1], ['benchS', 1]], obs: ['picnic', 'picnic', 'bench', 'cone', 'stoneLanternO'], arrive: { ja: '花見客でにぎわう桜のトンネル', en: 'A tunnel of cherry blossoms, busy with picnics' } },
     summer: { ja: '上野公園・緑の並木', en: 'Ueno Park, green avenue', tree: 'green', leaves: 0, spat: 'lawn', side: ['#7FA35E', '#77995A'], obs: ['bench', 'cone', 'stoneLanternO'], arrive: { ja: '雨にぬれた緑の並木道', en: 'A green avenue in the rain' } },
     winter: { ja: '上野公園・冬木立', en: 'Ueno Park in winter', tree: 'bare', leaves: 0, spat: 'gravel', side: ['#A89F8A', '#A0977F'], obs: ['bench', 'cone', 'stoneLanternO'], arrive: { ja: '葉を落とした冬の並木', en: 'Bare winter trees' } } },
-  gaien: { spring: { ja: '神宮外苑いちょう並木（新緑）', en: 'Jingu Gaien ginkgo, fresh green', cone: 'canopy_coneG', leaves: 0, spat: 'walk', side: ['#BDB7AC', '#B5AFA4'], obs: ['cone', 'bench', 'kick', 'car'], arrive: { ja: '新緑のいちょう並木', en: 'Ginkgo trees in fresh green' } },
-    summer: { ja: '神宮外苑いちょう並木（夏）', en: 'Jingu Gaien ginkgo, summer', cone: 'canopy_coneG', leaves: 0, spat: 'walk', side: ['#BDB7AC', '#B5AFA4'], obs: ['cone', 'bench', 'kick', 'car'], arrive: { ja: '濃い緑のいちょう並木', en: 'Deep green ginkgo' } },
-    winter: { ja: '神宮外苑いちょう並木（冬）', en: 'Jingu Gaien ginkgo, winter', cone: 'canopy_coneB', leaves: 0, spat: 'walk', side: ['#BDB7AC', '#B5AFA4'], obs: ['cone', 'bench', 'kick', 'car'], arrive: { ja: '葉を落としたいちょう並木', en: 'Bare ginkgo branches in winter' } } },
+  gaien: { spring: { ja: '神宮外苑いちょう並木（新緑）', tree: 'green', en: 'Jingu Gaien ginkgo, fresh green', cone: 'canopy_coneG', leaves: 0, spat: 'walk', side: ['#BDB7AC', '#B5AFA4'], obs: ['cone', 'bench', 'kick', 'car'], arrive: { ja: '新緑のいちょう並木', en: 'Ginkgo trees in fresh green' } },
+    summer: { ja: '神宮外苑いちょう並木（夏）', tree: 'green', en: 'Jingu Gaien ginkgo, summer', cone: 'canopy_coneG', leaves: 0, spat: 'walk', side: ['#BDB7AC', '#B5AFA4'], obs: ['cone', 'bench', 'kick', 'car'], arrive: { ja: '濃い緑のいちょう並木', en: 'Deep green ginkgo' } },
+    winter: { ja: '神宮外苑いちょう並木（冬）', tree: 'bare', en: 'Jingu Gaien ginkgo, winter', cone: 'canopy_coneB', leaves: 0, spat: 'walk', side: ['#BDB7AC', '#B5AFA4'], obs: ['cone', 'bench', 'kick', 'car'], arrive: { ja: '葉を落としたいちょう並木', en: 'Bare ginkgo branches in winter' } } },
 };
 /* ================= more of Tokyo =================
    Generic, descriptive names only (place and street names, no company or facility brands). */
@@ -444,6 +444,8 @@ Object.assign(ARRIVE, {
   yotsuya: { ja: '外堀ぞいの並木道', en: 'Along the old outer moat' }, ichigaya: { ja: 'お堀の釣り堀', en: 'The moat fishing pond' }, tennozu: { ja: '運河ぞいの木の遊歩道', en: 'A boardwalk by the canal' },
   harumi: { ja: '客船の港', en: 'The cruise-ship pier' }, kachidoki: { ja: '鉄の跳ね橋をわたる', en: 'Across the iron drawbridge' },
 });
+/* 行幸通りのイチョウも、黄色いのは秋だけ（春・夏は緑、冬ははだか）2026-11-09 qa/seasontree */
+SEASONAL.gyoko = { spring: { tree: 'green' }, summer: { tree: 'green' }, winter: { tree: 'bare', cone: 'canopy_coneB' } };
 SEASONAL.yotsuya = { spring: { ja: '外堀の土手・桜', en: 'Outer moat cherries', tree: 'sakura', petals: 1, spat: 'petals', side: ['#B7A797', '#AE9E8E'] } };
 SEASONAL.koishikawa = { autumn: { ja: '小石川の庭園・紅葉', en: 'Koishikawa autumn', tree: 'ginkgo', leaves: 1 } };
 AREA.central.push('chikagai', 'ochanomizu', 'koishikawa', 'akasaka', 'yotsuya', 'ichigaya'); AREA.east.push('okachimachi', 'monzen', 'kiba'); AREA.west.push('ebisu', 'nakano', 'koenji', 'jiyugaoka', 'sangenjaya'); AREA.bay.push('tennozu', 'harumi', 'kachidoki');

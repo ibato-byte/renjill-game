@@ -37,6 +37,8 @@ function project(v) {
   if (maxx < 0 || minx > W || maxy < 0 || miny > H) return 0;
   return behind ? -m : m;
 }
+// 面の一番奥の点の奥行き（長い建物の真ん中を通りすぎると、まだ見えている前のほうごと消えていた：2026-11-09 の報告。消すかどうかはこちらで決める）
+function depthMax(v) { let d = -1e9; const n = v.length / 3; for (let i = 0; i < n; i++) { const q = (v[i * 3] - CAM.x) * CAM.s + (v[i * 3 + 2] - CAM.z) * CAM.c; if (q > d) d = q; } return d; }
 function depthOf(v) { let d = 0; const n = v.length / 3; for (let i = 0; i < n; i++) d += (v[i * 3] - CAM.x) * CAM.s + (v[i * 3 + 2] - CAM.z) * CAM.c; return d / n; }
 function pathPoly(m) { ctx.beginPath(); ctx.moveTo(SCR[0], SCR[1]); for (let i = 1; i < m; i++) ctx.lineTo(SCR[i * 2], SCR[i * 2 + 1]); ctx.closePath(); }
 let BU0 = 0, BUS = 1; // u remap while a quad that is partly behind the camera is drawn through its visible part
@@ -225,6 +227,7 @@ function vendFace(b) { bquad(.08, .45, .92, .95, '#FFFFFF'); for (let r = 0; r <
 /* ================= frame ================= */
 const DRAW = [];
 function segOrder() { const out = []; for (let i = G.segs.length - 1; i > G.ci; i--) out.push(G.segs[i]); if (G.fork) out.push(...G.fork); if (G.segs[G.ci - 1]) out.push(G.segs[G.ci - 1]); out.push(G.segs[G.ci]); return out.filter(Boolean); }
+let BUBS = [], BUBT = 0; // このコマに出したふきだし（重なり回避）
 function render() {
   const seg = G.segs[G.ci] || G.segs[0]; if (!seg) return;
   computeLight(seg); camPrep();
@@ -267,7 +270,7 @@ function drawSegment(sg, isCur) {
   const near = d => d > -8 && d < FAR + 8; if (PROF.on) PT = performance.now();
   // floor
   DRAW.length = 0;
-  for (const p of sg.floor) { const d = depthOf(p.v); if (!near(d)) continue; DRAW.push([p.dec ? d - (p.dec === 'futonD' ? 4 : .8) : d, p]); }
+  for (const p of sg.floor) { const d = depthOf(p.v); if (d >= FAR + 8 || depthMax(p.v) < -.5) continue; DRAW.push([p.dec ? d - (p.dec === 'futonD' ? 4 : .8) : d, p]); }
   const patFar = typeof lowQ !== 'undefined' && lowQ > 1 ? 55 : 999;
   DRAW.sort((a, b) => b[0] - a[0]);
   const isW = p => p.pat === 'sea' || p.pat === 'water';
@@ -282,8 +285,8 @@ function drawSegment(sg, isCur) {
   if (isCur) drawShadows(sg); pm('shade');
   // walls, ceilings, decorations
   DRAW.length = 0;
-  for (const w of sg.walls) { if (!faceVisible(w)) continue; const d = depthOf(w.v); if (!near(d)) continue; DRAW.push([d, 1, w]); }
-  for (const e of sg.decos) { if (!faceVisible(e)) continue; const d = depthOf(e.v); if (d < -5 || d > (lowQ ? 70 : 90)) continue; DRAW.push([d - 1.6, 2, e]); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
+  for (const w of sg.walls) { if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; DRAW.push([d, 1, w]); }
+  for (const e of sg.decos) { if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (lowQ ? 70 : 90)) continue; DRAW.push([d - 1.6, 2, e]); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
   DRAW.sort((a, b) => b[0] - a[0]);
   for (const [d, t, w] of DRAW) {
     if (oc && occAt(d - 2) !== Infinity) { occDraw(d - 2, () => drawWallItem(d, t, w)); continue; }
@@ -333,7 +336,7 @@ function drawObjects(sg, isCur, oc) {
   if (sg.birds && lowQ < 2) for (const b of sg.birds) { if (isCur && !b.fly && G.mode === 'play' && G.s > b.s - 5 && G.s < b.s + 2) b.fly = G.t; const fy = b.fly ? G.t - b.fly : 0; if (fy > 2.5) continue;
     const p = segPos(sg, b.s + fy * 3, b.lat + b.dir * fy * 2.2); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .8 || d > 60) continue; DRAW.push([d, 9, b]); }
   if (isCur || G.turnT > 0) for (const it of sg.items) {
-    if (it.got || (isCur && it.s < G.s - .6)) continue;
+    if (it.got || (isCur && it.s < G.s - 3)) continue; /* 取りのがした物も、カメラの後ろに行くまで見えたまま（すぐ消えない） */
     const p = segPos(sg, it.s, it.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > 75) continue;
     DRAW.push([d, 4, it]);
   }
@@ -348,7 +351,7 @@ function drawObjects(sg, isCur, oc) {
 function drawObj(e, sg) {
   {
     if (e[1] === 3) { drawObstacle(e[2], sg, e[0]); pm('obs'); }
-    else if (e[1] === 6) { const p = e[2]; if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], 1, 0, 0, 0, p.fc); pm('props'); }
+    else if (e[1] === 6) { const p = e[2]; if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], passFade(e[0]), 0, 0, 0, p.fc); pm('props'); }
     else if (e[1] === 7) { drawSpr(e[2], sg, e[0]); pm('spr'); }
     else if (e[1] === 8) drawBoxes(e[2].bx, sg, e[0], 1, e[2].cross ? 0 : e[2].ds, e[2].cross ? e[2].dl || 0 : 0, 0);
     else if (e[1] === 4) { drawItem(e[2], sg, e[0]); pm('items'); }
@@ -370,10 +373,12 @@ function obstacleHint(o, sg, d) {
   ctx.font = `900 ${Math.round(r * .62)}px "Zen Maru Gothic",sans-serif`; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(30,25,20,.7)'; const w = lab(kk[2] === 'jump' ? 'JUMP' : kk[2] === 'slide' ? 'SLIDE' : 'DODGE');
   ctx.strokeText(w, sp.sx, sp.sy + r + 10); ctx.fillText(w, sp.sx, sp.sy + r + 10); ctx.restore();
 }
+/* 通りすぎた物（自分よりカメラ側）はうすく：近くの大きな物が前をふさがない */
+function passFade(d) { const pd = G.player.depth || 0; if (G.mode !== 'play' || pd < 1.5 || d >= pd - .8) return 1; G.passFadeN = (G.passFadeN || 0) + 1; return clamp(.3 + .7 * d / (pd - .8), .3, 1); }
 function drawObstacle(o, sg, d) {
   obstacleHintQ.push([o, sg, d]);
   if (o.art && drawArt(o, sg, d)) return; // the illustrations are one image each: cheaper than boxes, so always used
-  if (!o.mv && !o.dead) { if (!o.fc) { o.fc = []; for (const b of o.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) o.fc.push([fc, b]); } drawBoxes(null, sg, d, 1, 0, 0, 0, o.fc); return; }
+  if (!o.mv && !o.dead) { if (!o.fc) { o.fc = []; for (const b of o.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) o.fc.push([fc, b]); } drawBoxes(null, sg, d, passFade(d), 0, 0, 0, o.fc); return; }
   const lift = o.dead ? o.dead * o.dead * 9 : 0, side = o.dead ? o.dead * 7 * (o.vx || 1) : 0;
   drawBoxes(o.bx, sg, d, o.dead ? clamp(1 - o.dead * 1.2, 0, 1) : 1, (o.ds || 0) + (o.dead ? o.dead * 6 : 0), side, lift);
 }
@@ -397,6 +402,7 @@ function drawSpr(s, sg, d) {
   const w = s.w * sp.k, h = s.h * sp.k;
   ctx.globalAlpha = 1 - fogK(d) * .9;
   if (s.nv && d < 9) ctx.globalAlpha *= clamp((d - 1.5) / 7.5, 0, 1); // big crowns fade as you pass under them, so the way ahead stays clear
+  else if (s.y > 1.9 && !s.trunk && d < 6) { ctx.globalAlpha *= clamp((d - 1) / 5, 0, 1); G.sprFadeN = (G.sprFadeN || 0) + 1; } /* 頭の上の吊り広告・看板は近づくと消える（画面の上半分とHUDをふさがない） */
   if (s.img === 'glow') { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha *= LT.indoor ? .35 : .55 * LT.night; }
   if (s.trunk) { // one piece: a tapered trunk with a little root flare, and the crown sitting on it
     const tw = w * .055, top = sp.sy - h * .52; const gr = ctx.createLinearGradient(sp.sx - tw, 0, sp.sx + tw, 0); gr.addColorStop(0, tint('#4E3A2E')); gr.addColorStop(.4, tint('#7A5E48')); gr.addColorStop(1, tint('#3E2E24'));
@@ -436,7 +442,7 @@ function drawItem(it, sg, d) {
   const def = ITEMS[it.type]; const isPow = def.kind === 'power' || def.kind === 'stamp' || def.kind === 'pom', bad = def.kind === 'bad';
   const size = (it.type === 'hay' ? .74 : isPow ? .9 : .7) * sp.k; // a little bigger: the hay was hard to see on a phone
   const spin = it.type === 'hay' || it.type === 'goldhay' || isPow ? .72 + .28 * Math.cos(G.t * 3.2 + it.ph) : 1;
-  ctx.globalAlpha = 1 - fogK(d) * .9;
+  ctx.globalAlpha = (1 - fogK(d) * .9) * passFade(d);
   if (d < 40 && !lowQ) { const gp = spriteAt(p[0], p[2], p[1]); if (gp) { const hk = clamp(1 - it.y / 3, .35, 1); ctx.fillStyle = `rgba(30,22,16,${(.16 * hk).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(gp.sx, gp.sy, size * .34 * hk, size * .09 * hk, 0, 0, Math.PI * 2); ctx.fill(); } } // a soft shadow on the ground under each item (2026-11-08)
   if (isPow || it.type === 'goldhay') { ctx.beginPath(); ctx.fillStyle = def.kind === 'stamp' ? 'rgba(255,120,110,.45)' : 'rgba(255,236,150,.5)'; ctx.arc(sp.sx, sp.sy, size * .62 * (1 + .08 * Math.sin(G.t * 6)), 0, Math.PI * 2); ctx.fill(); }
   if (def.kind === 'kana') { const z = size * .62; ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(spin, 1); ctx.fillStyle = '#FFF3D6'; ctx.strokeStyle = '#E86A75'; ctx.lineWidth = Math.max(1.5, z * .08); ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-z / 2, -z / 2, z, z, z * .2); else ctx.rect(-z / 2, -z / 2, z, z); ctx.fill(); ctx.stroke();
@@ -474,6 +480,8 @@ function drawShadows(seg) {
   if (G.player.show && G.mode !== 'title') { sh(G.s, G.lat, .55, clamp(1 - G.y * .3, .25, 1)); if (G.follow.show) sh(G.s - G.follow.back, G.follow.lat, .46, .8); if (G.pom.on && G.pom.show) sh(G.s - G.pom.back, G.pom.lat, G.pom.who === 'pom' ? .32 : .46, .75); }
   ctx.globalAlpha = 1;
 }
+/* うさぎに当たる夕方の色はひかえめに（赤むらさきに染まりすぎて、だれだか分からなくなっていた）。明るさは残して色味だけ弱める */
+function bunnyAmb() { const a = LT.amb.map(x => x + (1 - x) * .45), m = (a[0] + a[1] + a[2]) / 3; return a.map((x, i) => Math.max(i === 2 ? .58 : .55, m + (x - m) * .45)); }
 function drawBunnyWorld(b) {
   const sp = spriteAt(b.wx, b.wy, b.wz); if (!sp) return;
   const sc = sp.k * (b.who === 'ren' ? 1.18 : b.who === 'pom' ? .72 * (b.big || 1) : 1.0) / 240;
@@ -500,7 +508,7 @@ function drawBunnyWorld(b) {
   if ((b === G.player || b === G.follow || b === G.pom) && (G.fever > 0 || G.pow.dash > 0) && G.mode === 'play' && !OPT().calm && !b.fly && !(b.look > 0)) { const lx = b === G.player && G.laneT > 0 ? -Math.sign(G.lane - G.prevLane) * 60 : 0; G.ghostN = (G.ghostN || 0) + 1; const tn = G.trailN || (G.trailN = {}); tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] = (tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] || 0) + 1;
     for (const [k, a] of [[2, .14], [1, .26]]) { ctx.globalAlpha = a; ctx.drawImage(img, -BS / 2 + lx * k, -GROUND_Y - BTOP + 34 * k, img.width, img.height); } ctx.globalAlpha = 1; }
   if (b.flash && Math.floor(G.t * 16) % 2) ctx.globalAlpha = .45;
-  ctx.drawImage(LT.indoor ? img : litSprite(img, LT.amb.map((x, i) => Math.max(i === 2 ? .55 : .5, x + (1 - x) * .45)), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
+  ctx.drawImage(LT.indoor ? img : litSprite(img, bunnyAmb(), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
   if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; ctx.drawImage(b.view === 'back' || !(b.look > 0) ? SPR.planeBack : SPR.planeBack, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Pom rides his own)
   if (G.weather === 'rain' && !LT.indoor && G.mode !== 'title' && !b.fly) { ctx.globalAlpha = .55; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 5; ctx.lineCap = 'round'; for (const [x, y, a] of [[-60, -190, 0], [55, -150, .6], [-20, -120, 1.2]]) { const k = .5 + .5 * Math.sin(G.t * 3 + a * 3); ctx.globalAlpha = .25 + .3 * k; ctx.beginPath(); ctx.arc(x, y, 14, -2.4, -1.3); ctx.stroke(); } ctx.globalAlpha = 1; G.wetN = (G.wetN || 0) + 1; } // 雨の日はうっすらぬれて光る（C-34）
   if (b.glow) { ctx.globalAlpha = .9; ctx.strokeStyle = b.glow; ctx.lineWidth = 7; ctx.beginPath(); ctx.ellipse(0, -110, 130, 120, 0, 0, Math.PI * 2); ctx.stroke(); }
@@ -514,7 +522,9 @@ function drawBunnyWorld(b) {
   ctx.restore();
   if (b.say && b.look > 0) { // a speech bubble in screen space, kept on screen
     ctx.save(); ctx.globalAlpha = Math.min(1, b.look * 3); ctx.font = '900 15px "Zen Maru Gothic","Hiragino Sans",sans-serif';
-    const tw = ctx.measureText(b.say).width, bw = tw + 22, bh = 30, tipX = sp.sx, bx = clamp(sp.sx - bw / 2, 8, W - bw - 8), by = Math.max(70, sp.sy - 230 * sc - bh - 16);
+    const tw = ctx.measureText(b.say).width, bw = tw + 22, bh = 30, tipX = sp.sx, bx = clamp(sp.sx - bw / 2, 8, W - bw - 8); let by = Math.max(70, sp.sy - 230 * sc - bh - 16); { const now = performance.now(); if (now - BUBT > 8) BUBS = []; BUBT = now; }
+    for (let k = 0; k < 4 && BUBS.some(r => bx < r[0] + r[2] + 4 && r[0] < bx + bw + 4 && by < r[1] + r[3] + 4 && r[1] < by + bh + 4); k++) by -= bh + 8; /* ふきだし同士が重ならないよう、上にずらす */
+    BUBS.push([bx, by, bw, bh]); G.bubN = BUBS.length;
     ctx.fillStyle = 'rgba(255,252,246,.97)'; ctx.strokeStyle = '#3B2A20'; ctx.lineWidth = 2; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, bw, bh, 14); else ctx.rect(bx, by, bw, bh); ctx.fill(); ctx.stroke();
     const tx = clamp(tipX, bx + 14, bx + bw - 14); ctx.beginPath(); ctx.moveTo(tx - 6, by + bh - 1); ctx.lineTo(tx, by + bh + 9); ctx.lineTo(tx + 6, by + bh - 1); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillRect(tx - 5, by + bh - 3, 10, 3);
     ctx.fillStyle = '#3B2A20'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.say, bx + bw / 2, by + bh / 2 + 1); ctx.restore(); }
