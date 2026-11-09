@@ -290,7 +290,13 @@ function drawSegment(sg, isCur) {
     drawWallItem(d, t, w);
   }
   pm('walls');
-  for (const l of sg.lines) drawLine(sg, l); pm('lines');
+  // 坂の向こうの線（ガードレール・手すり）も、坂のかげに隠す（2026-11-09：渋谷の上り坂で、先の下り坂のガードレールが透けて見えた）。長い線は 4m ごとに分けて、それぞれの奥行きで
+  if (oc) { for (const l of sg.lines) { const len = Math.abs(l.b[0] - l.a[0]), n = Math.max(1, Math.ceil(len / 4));
+      for (let k = 0; k < n; k++) { const t0 = k / n, t1 = (k + 1) / n, piece = n === 1 ? l : { a: [l.a[0] + (l.b[0] - l.a[0]) * t0, l.a[1] + (l.b[1] - l.a[1]) * t0, l.a[2] + (l.b[2] - l.a[2]) * t0], b: [l.a[0] + (l.b[0] - l.a[0]) * t1, l.a[1] + (l.b[1] - l.a[1]) * t1, l.a[2] + (l.b[2] - l.a[2]) * t1], c: l.c, w: l.w, glowN: l.glowN };
+        const pm2 = segPos(sg, (piece.a[0] + piece.b[0]) / 2, (piece.a[1] + piece.b[1]) / 2), d = (pm2[0] - CAM.x) * CAM.s + (pm2[1] - CAM.z) * CAM.c; G.occLines = (G.occLines || 0) + 1;
+        occDraw(d, () => drawLine(sg, piece)); } } }
+  else for (const l of sg.lines) drawLine(sg, l);
+  pm('lines');
   drawObjects(sg, isCur, oc);
 }
 function drawWallItem(d, t, w) {
@@ -490,7 +496,8 @@ function drawBunnyWorld(b) {
   if (b.look > 0 && b.mood === 'worry') { ctx.translate(0, -Math.abs(Math.sin(G.t * 9)) * 14); ctx.rotate(Math.sin(G.t * 9) * .05); }
   if (b.fly && b.who === 'pom') ctx.translate(0, Math.sin(G.t * 5) * 6);
   // フィーバー中は走る自分のうしろに、うすい残像を2つ（C-38）。手前（画面の下）に少しずらし、レーン移動の向きにも流す。「動きを減らす」設定では出さない
-  if (b === G.player && G.fever > 0 && G.mode === 'play' && !OPT().calm && !b.fly) { const lx = G.laneT > 0 ? -Math.sign(G.lane - G.prevLane) * 60 : 0; G.ghostN = (G.ghostN || 0) + 1;
+  // 2026-11-09：相棒とポムにも（メインのキャラクターだけ残像が出ていた）。ダッシュ中も
+  if ((b === G.player || b === G.follow || b === G.pom) && (G.fever > 0 || G.pow.dash > 0) && G.mode === 'play' && !OPT().calm && !b.fly && !(b.look > 0)) { const lx = b === G.player && G.laneT > 0 ? -Math.sign(G.lane - G.prevLane) * 60 : 0; G.ghostN = (G.ghostN || 0) + 1; const tn = G.trailN || (G.trailN = {}); tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] = (tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] || 0) + 1;
     for (const [k, a] of [[2, .14], [1, .26]]) { ctx.globalAlpha = a; ctx.drawImage(img, -BS / 2 + lx * k, -GROUND_Y - BTOP + 34 * k, img.width, img.height); } ctx.globalAlpha = 1; }
   if (b.flash && Math.floor(G.t * 16) % 2) ctx.globalAlpha = .45;
   ctx.drawImage(LT.indoor ? img : litSprite(img, LT.amb.map((x, i) => Math.max(i === 2 ? .55 : .5, x + (1 - x) * .45)), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
