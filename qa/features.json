@@ -287,6 +287,46 @@
       "has": "async function goldTieCheck()"
     },
     {
+      "name": "ゴーストと競走",
+      "file": "src/6_game.js",
+      "has": "function ghostPos(seg, dt)"
+    },
+    {
+      "name": "ふたりで交代",
+      "file": "src/6_game.js",
+      "has": "function duoResult()"
+    },
+    {
+      "name": "あいことばのかくれんぼ",
+      "file": "src/6_game.js",
+      "has": "function kanaGot(sx, sy)"
+    },
+    {
+      "name": "お祭りの日",
+      "file": "src/6_game.js",
+      "has": "function matsuriSeg(th)"
+    },
+    {
+      "name": "終電間際",
+      "file": "src/6_game.js",
+      "has": "function lastTrainTick()"
+    },
+    {
+      "name": "逆走デー",
+      "file": "src/6_game.js",
+      "has": "function revDay()"
+    },
+    {
+      "name": "締め切りの山",
+      "file": "src/6_game.js",
+      "has": "function bossHud()"
+    },
+    {
+      "name": "動画のネタのおしごと",
+      "file": "src/6_game.js",
+      "has": "function epGig()"
+    },
+    {
       "name": "この見張り自身",
       "file": "qa/run-all.mjs",
       "has": "n: 'featureguard'"
