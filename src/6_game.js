@@ -202,7 +202,9 @@ function doRevive(kind) {
   save(); G.reviveN++;
   const seg = curSeg();
   for (const o of seg.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001;
-  if (G.cause === 'wall') { if (seg.fork) G.turnQueued = Math.random() < .5 ? -1 : 1; try { doTurn(); } catch (e) { reportErr(e); } } // whatever happens here, the run goes on (the safety net puts the runner back if needed)
+  { const nx = G.segs[G.ci + 1], left = 30 - Math.max(0, seg.len - G.s); if (nx && left > 0) for (const o of nx.obs) if (o.s0 < left) o.dead = .001; G.revClearN = left; } /* 曲がり角の手前で続けたとき、曲がった先の最初の障害物にすぐぶつかっていた */
+  if (G.cause === 'wall') { if (seg.fork) G.turnQueued = G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || (Math.random() < .5 ? -1 : 1)); /* 分かれ道で続けるとき、行き先がでたらめだった → 寄っていた側・最後にスワイプした側へ */ try { doTurn(); } catch (e) { reportErr(e); } } // whatever happens here, the run goes on (the safety net puts the runner back if needed)
+  { const cs = curSeg(); if (cs && cs !== seg) for (const o of cs.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001; } // 曲がった先の道も
   G.mode = 'play'; G.invT = 2.5; G.chaseT = 0; G.chaseVis = 0; G.player.tilt = 0; G.follow.tilt = 0; G.pom.tilt = 0; G.y = Math.max(G.y, 0); G.vy = 0; G.slideT = 0;
   if (G.rush) G.rush = .5;
   hideAll(); show('hud'); musicStart(); banner('KEEP GOING!', t('keepGoing'), 'good');
@@ -312,7 +314,7 @@ function onEnterSeg(n) {
   G.weather = WEATHERS[(n.day - 1) % WEATHERS.length];
   if (!G.stats.spots.includes(n.tid) && th.stamp) G.stats.spots.push(n.tid);
   if (n.step && n.step.cont) { /* still the same place */ }
-  else if (n.t0 === 480 && n.day > 1) { banner(LANG === 'en' ? t('dayLbl') + ' ' + n.day + ' · ' + seasonOf(n.day).toUpperCase() : `${t('dayN', n.day)}・${L(SEASON_LBL[seasonOf(n.day)]).split('・')[0]}`, L(SEASON_LBL[seasonOf(n.day)]) + '　' + t('dayN'), 'room'); G.chimed = 0; }
+  else if (n.t0 === 480 && n.day > 1) { banner(LANG === 'en' ? t('dayLbl') + ' ' + n.day + ' · ' + seasonOf(n.day).toUpperCase() : `${t('dayN', n.day)}・${L(SEASON_LBL[seasonOf(n.day)]).split('・')[0]}`, L(SEASON_LBL[seasonOf(n.day)]), 'room'); /* 2026-11-09：「日目」だけが出ていた（数字なしの t('dayN')） */ G.chimed = 0; }
   else if (n.tid === 'lobby' || n.tid === 'ehall') { G.stats.office = 1; const b = 500 * SV.mlevel; G.score += b; banner('9:00 ON TIME!', t('onTime', fmt(b)), 'good'); SFX.mission(); react('cheer', 1); }
   else if (n.t0 >= 1080 && !G.chimed) { G.chimed = 1; G.rush = 0; G.stats.chime = 1; const b = 1000 * SV.mlevel; G.score += b; SFX.chime(); startFever(7); bannerNow("IT'S 6 PM! FEVER", t('chime', fmt(b)), 'good'); react('sparkle', 1); }
   else if (n.step && n.step.last) banner('LAST TRAIN', t('lastTrain'), 'room');
@@ -385,7 +387,8 @@ function mateCheck() { // Pom mode: the next bunny dashes up from behind and joi
   SFX.mission(); burst(W / 2, H * .55, '#F2C230', 22); buzz(30);
   bannerNow(t(w === 'ren' ? 'mateRenH' : 'mateJillH'), t(w === 'ren' ? 'mateRen' : 'mateJill') + (n ? t('mateAll') : ''), 'good');
   const id = G.runId; setTimeout(() => { if (G.runId !== id || G.mode !== 'play') return; B.look = 1.5; B.mood = 'happy'; B.say = t(w === 'ren' ? 'mateRenSay' : 'mateJillSay');
-    setTimeout(() => { if (G.runId !== id || G.mode !== 'play') return; const P = G.player; P.look = 1.3; P.mood = 'sparkle'; P.say = t(n ? 'matePomAll' : 'matePomSay'); }, 1500); }, 700);
+    const all = () => { if (G.runId !== id || G.mode !== 'play') return; if (G.turnT > 0 || !G.follow.show) { setTimeout(all, 400); return; } /* 曲がり角で仲間が見えないときに「全員そろったっす！」と言っていた → 見えてから */ const P = G.player; P.look = 1.3; P.mood = 'sparkle'; P.say = t(n ? 'matePomAll' : 'matePomSay'); };
+    setTimeout(all, 1500); }, 700);
 }
 function feelSick() {
   if (G.mode !== 'play') return;
@@ -546,7 +549,7 @@ function update(dt) {
   const cue = $('#turnCue');
   { // fork cards: both destinations on screen well before the junction, lit up when the swipe window opens
     const fc = $('#forkCards'), showF = seg.fork && seg.forkLbl && G.s > seg.len - 42 && G.s < seg.len;
-    if (showF) { if (fc.hidden) { fc.hidden = false; $('#fcL b').textContent = L(seg.forkLbl.L); $('#fcR b').textContent = L(seg.forkLbl.R); const q = seg.fork.label === 'lunch' ? t('lunch') : seg.fork.label === 'errand' ? t('errandQ') : t('detour'); $('#fcL small').textContent = q; $('#fcR small').textContent = t('hintFork'); if (seg.richSide) { const c = seg.richSide < 0 ? '#fcL' : '#fcR'; $(c + ' small').textContent = t('richHay'); } banner(seg.fork.label === 'lunch' ? 'LUNCH?' : 'WHICH WAY?', q + (tr('　', ' ')) + t('hintFork'), 'good'); $('#fcL').className = 'fc l' + (seg.richSide < 0 ? ' rich' : ''); $('#fcR').className = 'fc r' + (seg.richSide > 0 ? ' rich' : ''); }
+    if (showF) { if (fc.hidden) { fc.hidden = false; $('#fcL b').textContent = L(seg.forkLbl.L); $('#fcR b').textContent = L(seg.forkLbl.R); const q = seg.fork.label === 'lunch' ? t('lunch') : seg.fork.label === 'errand' ? t('errandQ') : t('detour'); $('#fcL small').textContent = q; $('#fcR small').textContent = t('hintFork'); if (seg.richSide) { const c = seg.richSide < 0 ? '#fcL' : '#fcR'; $(c + ' small').textContent = t('richHay'); } banner(seg.fork.label === 'lunch' ? 'LUNCH?' : 'WHICH WAY?', q + (tr('　', ' ')) + t('hintSwipe'), 'good'); $('#fcL').className = 'fc l' + (seg.richSide < 0 ? ' rich' : ''); $('#fcR').className = 'fc r' + (seg.richSide > 0 ? ' rich' : ''); }
       fc.classList.toggle('now', G.s > win && !G.turnQueued);
       if (G.turnQueued && !G.turnAuto) { $('#fcL').classList.toggle('pick', G.turnQueued < 0); $('#fcR').classList.toggle('pick', G.turnQueued > 0); $('#fcL').classList.toggle('dim', G.turnQueued > 0); $('#fcR').classList.toggle('dim', G.turnQueued < 0); } }
     else if (!fc.hidden) fc.hidden = true;
@@ -701,7 +704,7 @@ function finishRun(why) {
 function buddy(dt, seg) {
   const F = G.follow;
   if (G.lane === 0) F.side = 1; else if (G.lane === 2) F.side = -1;
-  buddyMove(F, dt, seg, clamp(G.lat + F.side * (W / H < .62 ? 1.02 : 1.25), -ROAD + .45, ROAD - .45), G.char === 'pom' ? -.35 : .9); // with Pom running, the senpai leads half a step ahead (and stays out of the way of the camera)
+  buddyMove(F, dt, seg, clamp(G.lat + F.side * (W / H < .62 ? 1.02 : 1.25), -ROAD + .45, ROAD - .45), G.char === 'pom' ? -.35 : F.who === 'ren' ? .1 : .9); /* ジルで走るとき、大きいレン課長がカメラの近くで右の道をふさいでいた → 横にならんで走る */ // with Pom running, the senpai leads half a step ahead (and stays out of the way of the camera)
   const M = G.pom; if (M.on) { buddyMove(M, dt, seg, clamp(G.lat - F.side * 1.2, -ROAD + .35, ROAD - .35), M.who === 'pom' ? .25 : -.15); if (M.look > 0) M.look = Math.max(0, M.look - dt); if (M.look <= 0) M.say = ''; }
 }
 function buddyMove(F, dt, seg, tlat0, back0) {
@@ -782,6 +785,9 @@ function setStyle(id, prop, v) { const k = id + '#' + prop; if (HUDC[k] !== v) {
 function setText(id, v) { if (HUDC[id] !== v) { HUDC[id] = v; const e = document.getElementById(id); if (e) e.textContent = v; } }
 // the score box shares the top row with the clock and the hay: when the number gets long (7 digits and up) or the place name is long, its digits shrink to fit
 let FIT = { k: '', n: 0 };
+/* 結果画面の大きな点数：桁が増えても枠に入るよう、文字を小さくする（8桁で下2桁がはみ出していた。2026-11-09 の報告。qa/resfit） */
+function fitResScore(e) { if (!e) return; const box = e.parentElement; if (!box) return; const n = e.textContent.length; if (e.dataset.n == n) return; e.dataset.n = n; e.style.fontSize = '';
+  const avail = box.clientWidth - 8, w = e.scrollWidth; if (w > avail && w > 0) e.style.fontSize = (parseFloat(getComputedStyle(e).fontSize) * avail / w * .98).toFixed(1) + 'px'; }
 function fitScore() {
   const sc = el('hScore'), hy = el('hHay'), top = sc && sc.closest('.hud-top'); if (!top || !hy) return;
   const lk = sc.textContent.length + '|' + hy.textContent.length; if ((FIT.n = (FIT.n + 1) % 12) && FIT.k && lk === FIT.lk) return; FIT.lk = lk; // a new digit refits at once (no frame where the boxes overlap); the rest is checked every 12 frames
@@ -791,12 +797,12 @@ function fitScore() {
 }
 function comboPop() { const e = el('combo'); if (!e || G.combo < 5) return; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } // the combo count bounces on every pickup
 function hud() {
-  lastTrainTick(); bossHud();
+  lastTrainTick(); bossHud(); layoutHud();
   gigHud(); chalTick(); setText('hChal', G.timed ? t('quickHud', Math.max(0, Math.ceil(G.timed - G.t))) : CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
   setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay))); { const hn = Math.floor(G.hay); if (hn !== HUDC.hayN) { const up = hn > (HUDC.hayN || 0); HUDC.hayN = hn; const e = el('hHay'); if (up && e && !OPT().calm) { e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } } } // the hay count hops a little when it goes up (2026-11-08)
   setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
   setText('hClock', clockStr(G.clock)); setText('hDay', t('dayN', G.day));
-  { const sg = curSeg(); setText('hRoom', sg.th.climb ? `${L(sg.th)} ${altitude(sg, G.s)}m` : L(sg.th)); }
+  { const sg = curSeg(); const tail = sg.th.climb ? ` ${altitude(sg, G.s)}m` : '', key = sg.tid + '|' + LANG + '|' + tail + '|' + innerWidth, e = el('hRoom'); if (e && e.offsetParent && HUDC.roomK !== key) { HUDC.roomK = key; roomFit(e, sg.th, tail); } }
   { const danger = (G.chaseT > 0 && !G.chaseIntro) || G.rush; if (danger) G.bumped = 1; setCls('lives', 'hide', !G.bumped && !G.rush); setCls('lives', 'warn', danger); setCls('lives', 'one', danger);
     setText('livesTxt', G.rush ? t('livesRush') : danger ? t('livesWarn', Math.ceil(G.chaseT)) : ''); }
   const pct = clamp(G.feverG, 0, 100);
@@ -822,6 +828,7 @@ function hud() {
 // a slim one-line banner at the top; one message at a time
 const BQ = []; let bOn = null;
 function banner(en, ja, cls) {
+  { const h = String(lab(en) || '').replace(/[！!。.\s]/g, ''), b = String(ja || '').replace(/[！!。.\s]/g, ''); if (cls !== 'room' && h.length >= 3 && b.includes(h)) (G.bannerDup = G.bannerDup || []).push(lab(en) + ' / ' + ja); } // 見出しと本文が同じことを言っていないか（qa/bannerdup）
   // room banners replace any queued room banner (the player is already somewhere else); rewards queue
   if (cls === 'room') { for (let i = BQ.length - 1; i >= 0; i--) if (BQ[i].cls === 'room') BQ.splice(i, 1); if (bOn && bOn.cls === 'room' && !BQ.length) { bOn = { en, ja, cls }; const el = $('#banner'); el.querySelector('.en').textContent = lab(en); el.querySelector('.ja').textContent = ja; return; } }
   BQ.push({ en, ja, cls }); if (BQ.length > 3) BQ.splice(0, BQ.length - 3);
@@ -935,7 +942,7 @@ function endRun() {
   $('#resEn').textContent = tr(cap[1], cap[0]); $('#resJa').textContent = ''; showHit('res'); try { titleShareBtn(); } catch (e) { reportErr(e); }
   $('#resBest').hidden = !newBest;
   { const el = $('#resScore'), total = Math.floor(G.score), t0 = performance.now(), dur = Math.min(1400, 500 + total / 60); el.textContent = '0';
-    const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); if (k < 1) { if (Math.random() < .5) tone(440 + 220 * e, .04, 'pluck', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); SFX.mission(); } }; requestAnimationFrame(tick); }
+    const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); fitResScore(el); if (k < 1) { if (Math.random() < .5) tone(440 + 220 * e, .04, 'pluck', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); fitResScore(el); SFX.mission(); } }; requestAnimationFrame(tick); }
   { const hi = []; if ((st.maxCombo || 0) >= 20) hi.push(t('hiCombo', st.maxCombo)); if ((st.nice || 0) >= 3) hi.push(t('hiNice', st.nice)); if ((st.fevers || 0) >= 2) hi.push(t('hiFever', st.fevers)); if ((st.looks || 0) >= 3) hi.push(t('hiLook', st.looks));
     $('#resHi').innerHTML = st.stampsNew.map(tid => `<span class="new">${esc(t('hiNew', L(THEMES[tid].stamp)))}</span>`).join('') + hi.map(x => `<span>${esc(x)}</span>`).join(''); }
   SV.last = { score: Math.floor(G.score), place: { ja: curSeg().th.ja, en: curSeg().th.en } }; // the place in every language (shown in whatever language the title is in later)
@@ -1100,7 +1107,7 @@ function matsuriSeg(th) { return !!(th && Array.isArray(th.props) && th.props.so
 function lastTrainTick() {
   if (G.mode !== 'play' || G.practice) { setText('hLast', ''); return; }
   const seg = curSeg(), nx = G.segs[G.ci + 1], L = G.lastTrain;
-  if (!L && !G.lastTrainDone && seg && seg.th.kind !== 'train' && nx && nx.step && nx.step.last && nx.th.kind === 'train' && G.clock >= 21 * 60) {
+  if (!L && !G.lastTrainDone && seg && seg.th.kind !== 'train' && nx && nx.step && nx.step.last && nx.th.kind === 'train' && G.clock >= 19 * 60 + 30) { // 夜の帰り道は 20 時台に終わるので、19:30 から（21 時では一度も出なかった：2026-11-09）
     const left = Math.max(10, seg.len - G.s), need = left / Math.max(10, G.speed) * 1.25 + 1.5;
     G.lastTrain = { seg: nx, until: G.t + need }; bannerNow('LAST TRAIN!', t('lastGo', Math.ceil(need)), 'good'); tone(988, .12, 'bell', .05); tone(784, .16, 'bell', .05, AU.ctx && AU.ctx.currentTime + .12); }
   const T = G.lastTrain; if (!T) { setText('hLast', ''); return; }
@@ -1126,3 +1133,23 @@ function bossHud() {
 const EP_GIG = [['boss', /社長|上司|会議|課長|面接|視察/], ['call', /電話|返信|メール|了解|連絡|チャット|通知/], ['memo', /書類|ハンコ|締め切り|印刷|資料|年賀状|付箋|シュレッダー|コピー/], ['rain', /差し入れ|お弁当|牧草|おやつ|みかん|夜食|ランチ|ジュース/]];
 function epGig() { const e = typeof latestEpisode === 'function' ? latestEpisode() : null; if (!e) return null; const title = e.ja || e.en || ''; if (!title) return null;
   let k = e.gig && GIGS[e.gig] ? e.gig : ''; if (!k) { const m = EP_GIG.find(([, re]) => re.test(title)); k = m ? m[0] : ''; } return k ? { k, title: LANG === 'ja' ? title : (e[LANG] || e.en || title) } : null; }
+
+// 上の帯（お知らせ）と分かれ道のカードを、上の段（ゲージ・ハート・パワーアップ・締め切りの山）のすぐ下に置く（2026-11-09：重なって読めなかった。qa/hudlayout）
+let HUDL = 0;
+/* 時計の下の場所名：長すぎて「…」で切れる名前は短い名前に（2行に入る長さ） */
+/* 時計の下の場所名：長すぎて「…」で切れる名前は短い名前に。字の幅は端末でちがうので、実際に入れてみて、はみ出したら次に短い名前（qa/roomfit） */
+function roomNames(th) { const n = L(th), b = th.base || th, en = LANG === 'en', g = k => th[k] || b[k], st = g('stamp');
+  const cand = en ? [g('lblEn'), st && st.en, n.split(',')[0], n.split(/[:,·(]/)[0].trim()] : [g('lbl') && L({ ja: g('lbl'), en: g('lblEn') || b.en }), n.split('・').slice(-1)[0], n.split(/[・：（]/)[0], st && L(st)];
+  return [n].concat(cand.filter(x => x && x.length < n.length).sort((x, y) => y.length - x.length)).filter((x, k, a) => a.indexOf(x) === k); }
+function roomFit(e, th, tail) { const list = roomNames(th), fits = () => e.scrollHeight <= e.clientHeight + 1 && e.scrollWidth <= e.clientWidth + 1; e.style.fontSize = '';
+  for (const fs of [0, 10, 9]) { if (fs) e.style.fontSize = fs + 'px'; for (let k = 0; k < list.length; k++) { e.textContent = list[k] + (tail || ''); if (fits()) { G.roomFitK = k; return e.textContent; } } } /* 短い名前でも入らないときは、字を少し小さく */
+  G.roomFitK = -1; return e.textContent; }
+function roomName(th) { return roomNames(th)[0]; }
+function layoutHud() {
+  const now = performance.now(); if (now - HUDL < 100) return; HUDL = now;
+  const b = el('banner'); if (!b) return; let y = 0;
+  for (const id of ['routeBar', 'feverBar', 'lives', 'pows', 'bossBar']) { const e = el(id); if (!e || e.hidden || e.offsetParent === null) continue; const r = e.getBoundingClientRect(); if (r.height > 1 && r.width > 1) y = Math.max(y, r.bottom); }
+  const pr = (b.offsetParent || document.body).getBoundingClientRect(), z = parseFloat(getComputedStyle(b).zoom) || 1, top = Math.max(y - pr.top + 8, 60);
+  b.style.setProperty('top', (top / z).toFixed(1) + 'px', 'important');
+  const fc = el('forkCards'); if (fc && !fc.hidden) { const br = b.getBoundingClientRect(), shown = br.height > 1 && (b.classList.contains('show') || parseFloat(getComputedStyle(b).opacity) > .02); /* 消えかけの帯にもかぶせない */ fc.style.top = ((shown ? br.bottom - pr.top : top) + 8).toFixed(1) + 'px'; }
+}

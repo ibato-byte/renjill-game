@@ -78,7 +78,7 @@ function chatFacts() {
   const items = ZUKAN_ORDER.map(id => { const d = ITEMS[id]; return `- ${L(d)}（${d.kind === 'bad' ? (tr('NG', 'bad food')) : d.kind}）: ${L(d.tip).replace(/\n/g, ' ')}`; }).join('\n');
   const pows = Object.keys(POW).map(k => `- ${L(POW[k])}: ${tr('効果', 'lasts')} ${powDur(k).toFixed(1)}s`).join('\n');
   const spots = STAMP_ORDER.map(k => { const th = THEMES[k], st = th.stamp; return `- ${L(th)}${st ? ': ' + L(st.note) : ''}${th.only ? (tr('（春だけ）', ' (spring only)')) : ''}`; }).join('\n');
-  const closet = CLOSET.map(c => `- ${c.who === 'ren' ? 'Ren' : 'Jill'} / ${L(c)}: ${c.cost} hay`).join('\n');
+  const closet = CLOSET.filter(c => !c.ev && c.lg == null).map(c => `- ${c.who === 'ren' ? 'Ren' : c.who === 'pom' ? 'Pom' : 'Jill'} / ${L(c)}: ${c.cost} hay`).join('\n');
   const ach = ACH.map(a => `- ${L(a.n)}: ${L(a.d)} (+${a.hay})`).join('\n');
   return [
     `GAME: ${T('gameTitle')}. ${T('tagline')}.`,

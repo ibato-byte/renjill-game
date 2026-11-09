@@ -209,7 +209,7 @@ const nodeCode0 = o => { const b64 = Buffer.from(JSON.stringify(Object.assign({ 
     if (s.pid !== 'pid-rich-' + lang || s.nick !== 'ひっこし' + lang) fail(lang + ' app: pid/name ' + s.pid + ' ' + s.nick);
     // a run on B goes to the same row as before (uid1), with the same name
     await B.p.click('#btnStart'); await B.p.waitForTimeout(1500); await B.p.evaluate(() => { const G = window.__hayDash ? window.__hayDash.G : null; if (G) { G.invT = 0; } });
-    await B.p.evaluate(() => { document.querySelector('#pauseBtn').click(); }); await B.p.waitForTimeout(300); await B.p.click('#btnQuit'); await B.p.waitForTimeout(2500);
+    await B.p.evaluate(() => { document.querySelector('#pauseBtn').click(); }); await B.p.waitForTimeout(300); await B.p.click('#btnQuit'); await B.p.click('#btnQuit'); await B.p.waitForTimeout(2500);
     const rows = Object.keys(DB.ranks).filter(id => Object.keys(DB.ranks[id]).length);
     if (rows.length !== 1 || rows[0] !== 'uid1') fail(lang + ' app: rows on the board after a run ' + JSON.stringify(rows));
     if (!DB.ranks.uid1 || (DB.ranks.uid1.nick || {}).stringValue !== 'ひっこし' + lang) fail(lang + ' app: name on the board ' + JSON.stringify(DB.ranks.uid1 && DB.ranks.uid1.nick));

@@ -39,7 +39,7 @@ const { chromium } = require('playwright');
       await p.click('#btnRvClover'); await p.waitForTimeout(300); const m2 = await p.evaluate(() => window.__hayDash.G.mode); if (m2 !== 'play') issues.push('revive with charm failed: ' + m2);
       await p.evaluate(() => { window.__hayDash.G.invT = 0; window.__die('wall'); }); await p.waitForTimeout(1300);
       await p.click('#btnRvHay'); await p.waitForTimeout(300); const m3 = await p.evaluate(() => window.__hayDash.G.mode); if (m3 !== 'play') issues.push('revive with hay failed: ' + m3);
-      await p.click('#pauseBtn'); await p.click('#btnQuit'); await p.waitForTimeout(400);
+      await p.click('#pauseBtn'); await p.click('#btnQuit'); await p.click('#btnQuit'); await p.waitForTimeout(400); // やめるは2回押し
       const res = await p.evaluate(() => !document.querySelector('#sResult').hidden); if (!res) issues.push('quit did not show result');
       await p.screenshot({ path: 'shots/qa_phone_result.png' });
       await p.click('#btnMenu'); await p.waitForTimeout(300);

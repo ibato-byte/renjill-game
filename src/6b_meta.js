@@ -22,8 +22,8 @@ const ACH = [
   { id: 'stampsAll', hay: 1500, n: { ja: '東京マスター', en: 'Tokyo master' }, d: { ja: '観光スタンプを全部集める', en: 'Collect every stamp' }, ok: (s, sv) => STAMP_ORDER.every(k => sv.stamps[k]) },
   { id: 'bookAll', hay: 1000, n: { ja: 'うさぎ博士', en: 'Bunny food expert' }, d: { ja: 'えさ図鑑をすべてうめる', en: 'Complete the food book' }, ok: (s, sv) => ZUKAN_ORDER.every(k => sv.zukan[k]) },
   // 2026-11-08: titles for the new moves, the food groups and each part of Tokyo
-  { id: 'perfect3', hay: 200, n: { ja: 'ぜんぶ取る派', en: 'Leave none behind' }, d: { ja: '1回のランでパーフェクトラインを3回', en: '3 perfect lines in one run' }, ok: s => (s.perfect || 0) >= 3 },
-  { id: 'airCatch', hay: 150, n: { ja: '空中キャッチ', en: 'Air catch' }, d: { ja: '1回のジャンプで牧草を5本取る', en: 'Grab 5 hay in a single jump' }, ok: s => (s.airCatch || 0) >= 1 },
+  { id: 'perfect3', hay: 200, n: { ja: 'ぜんぶ取る派', en: 'Leave none behind' }, d: { ja: '1回のランでチモシーの列を3回ぜんぶ取る（パーフェクトライン）', en: 'Grab a whole row of hay 3 times in one run' }, ok: s => (s.perfect || 0) >= 3 },
+  { id: 'airCatch', hay: 150, n: { ja: '空中キャッチ', en: 'Air catch' }, d: { ja: '1回のジャンプでチモシーを5本取る', en: 'Grab 5 hay in a single jump' }, ok: s => (s.airCatch || 0) >= 1 },
   { id: 'slideMaster', hay: 150, n: { ja: 'すべりこみ名人', en: 'Slide master' }, d: { ja: 'スライディングで3つ続けてくぐる', en: 'Slide under 3 in a row' }, ok: s => (s.slideMaster || 0) >= 1 },
   { id: 'corner5', hay: 200, n: { ja: 'コーナーの達人', en: 'Corner ace' }, d: { ja: '1回のランでナイスコーナーを5回', en: '5 nice corners in one run' }, ok: s => (s.niceCorner || 0) >= 5 },
   { id: 'quick20k', hay: 250, n: { ja: '1分の達人', en: 'One-minute wonder' }, d: { ja: '1分ダッシュで20,000点', en: 'Score 20,000 in the 1-minute dash' }, ok: s => s.timed && s.score >= 20000 },
@@ -58,8 +58,8 @@ const DAILY = [
   { k: 'fly', n: () => 2, t: n => ({ ja: `紙ひこうきに${n}回乗る`, en: `Fly the paper plane ${n} times`, zh: `搭乘紙飛機${n}次`, ko: `종이비행기 ${n}번 타기` }), v: s => s.flights },
   { k: 'lunch', n: () => 1, t: () => ({ ja: 'お昼休みまで走る', en: 'Make it to the lunch break' }), v: s => s.lunch ? 1 : 0 },
   { k: 'look', n: () => 6, t: n => ({ ja: `振り向いた顔を${n}回見る`, en: `See ${n} look-backs`, zh: `看到${n}次回頭的臉`, ko: `뒤돌아보는 얼굴 ${n}번 보기` }), v: s => s.looks },
-  { k: 'perfect', n: () => 2, t: n => ({ ja: `パーフェクトラインを${n}回`, en: `Get ${n} perfect lines`, zh: `完美收集${n}列`, ko: `퍼펙트 라인 ${n}번` }), v: s => s.perfect || 0 }, // 2026-11-08: the new moves as daily challenges
-  { k: 'air', n: () => 1, t: () => ({ ja: '空中キャッチを決める（1回のジャンプで牧草5本）', en: 'Get an air catch (5 hay in one jump)', zh: '完成空中接住（一次跳躍5根牧草）', ko: '공중 캐치 성공 (한 번 점프로 건초 5개)' }), v: s => s.airCatch || 0 },
+  { k: 'perfect', n: () => 2, t: n => ({ ja: `チモシーの列を${n}回ぜんぶ取る（パーフェクトライン）`, en: `Grab a whole row of hay ${n} times (perfect line)`, zh: `完美收集${n}列`, ko: `퍼펙트 라인 ${n}번` }), v: s => s.perfect || 0 }, // 2026-11-08: the new moves as daily challenges
+  { k: 'air', n: () => 1, t: () => ({ ja: '空中キャッチを決める（1回のジャンプでチモシー5本）', en: 'Get an air catch (5 hay in one jump)', zh: '完成空中接住（一次跳躍5根牧草）', ko: '공중 캐치 성공 (한 번 점프로 건초 5개)' }), v: s => s.airCatch || 0 },
   { k: 'gig', n: () => 2, t: n => ({ ja: `走っている途中のおしごとを${n}回成功`, en: `Finish ${n} work calls during runs`, zh: `跑步中完成${n}次工作`, ko: `달리는 중 업무 ${n}번 성공` }), v: s => s.gigs || 0 },
   { k: 'corner', n: () => 3, t: n => ({ ja: `ナイスコーナーを${n}回`, en: `Take ${n} nice corners`, zh: `漂亮轉彎${n}次`, ko: `나이스 코너 ${n}번` }), v: s => s.niceCorner || 0 },
 ];
@@ -67,7 +67,7 @@ function dailyToday() { const d = new Date(); const seed = d.getFullYear() * 400
 function dailyCheck(live) {
   const dly = dailyToday(); SV.dailyDone = SV.dailyDone || '';
   if (SV.dailyDone === dly.key) return false;
-  if (dly.c.v(G.stats) >= dly.n) { SV.dailyDone = dly.key; SV.bank += 300; SV.clovers++; save(); if (live) { banner('DAILY CLEAR!', tr('チャレンジ達成！ チモシー300本＋お守り', 'Daily challenge done! +300 hay and a lucky charm'), 'good'); SFX.mission(); react('sparkle', 1); } return true; }
+  if (dly.c.v(G.stats) >= dly.n) { SV.dailyDone = dly.key; SV.bank += 300; SV.clovers++; save(); if (live) { banner('DAILY CLEAR!', tr('ごほうび：チモシー300本＋お守り', 'Reward: +300 hay and a lucky charm'), 'good'); SFX.mission(); react('sparkle', 1); } return true; }
   return false;
 }
 function dailyHTML() { const dly = dailyToday(), done = SV.dailyDone === dly.key; return `<div class="m${done ? ' done' : ''}"><p><b>${tr('今日のチャレンジ', "Today's challenge")}</b><br>${esc(L(dly.c.t(dly.n)))}</p><span class="n">${done ? 'CLEAR' : '+300'}</span></div>`; }
@@ -78,7 +78,7 @@ const WEEK_GOAL = [
   { k: 'runs', n: 15, ja: '今週{0}回走る', en: 'Go for {0} runs this week' },
   { k: 'days', n: 4, ja: '今週{0}日出社する（{0}日あそぶ）', en: 'Come to work on {0} days this week' },
   { k: 'jumps', n: 150, ja: '今週{0}回ジャンプする', en: 'Jump {0} times this week' },
-  { k: 'perfect', n: 8, ja: '今週パーフェクトラインを{0}回', en: 'Get {0} perfect lines this week' },
+  { k: 'perfect', n: 8, ja: '今週チモシーの列を{0}回ぜんぶ取る（パーフェクトライン）', en: 'Grab a whole row of hay {0} times this week' },
   { k: 'treats', n: 25, ja: '今週果物のおやつを{0}個', en: 'Eat {0} fruit treats this week' },
 ];
 const WEEK_HAY = 1000, WEEK_CLOVER = 2;

@@ -29,11 +29,11 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 .chip{background:rgba(251,246,238,.92);border-radius:14px;padding:6px 10px;box-shadow:0 2px 0 rgba(59,42,32,.25)}
 .score{justify-self:start;display:flex;flex-direction:column;line-height:1;min-width:0;max-width:100%}
 .score b{font-family:var(--f-display);font-size:clamp(20px,5.4vw,30px);letter-spacing:.02em;font-variant-numeric:tabular-nums;font-weight:400}
-.score small{font-size:12px;font-weight:900;color:var(--tie-deep);margin-top:2px}
+.score small{font-size:12px;font-weight:900;color:#8A5F12;margin-top:2px}
 .clock{justify-self:center;text-align:center;line-height:1.05;min-width:96px}
 .clock .day{font-size:10px;font-weight:900;letter-spacing:.14em;color:var(--ink-soft)}
 .clock b{display:block;font-family:var(--f-display);font-weight:400;font-size:clamp(20px,5vw,26px);font-variant-numeric:tabular-nums}
-.clock .room{font-size:11px;font-weight:700;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:max(27vw,84px);line-height:1.2;word-break:keep-all;overflow-wrap:anywhere}
+.clock .room{font-size:11px;font-weight:700;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:max(27vw,84px);line-height:1.2;word-break:normal;line-break:strict;overflow-wrap:anywhere}
 .hay{justify-self:end;display:flex;align-items:center;gap:6px;min-width:0;max-width:100%}
 .hay img{width:26px;height:26px}
 .hay b{font-family:var(--f-display);font-weight:400;font-size:clamp(18px,4.6vw,24px);font-variant-numeric:tabular-nums}
@@ -46,7 +46,13 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 #feverBar.on{box-shadow:0 0 0 3px var(--tie),0 0 18px rgba(242,194,48,.95)}
 #feverBar.gain{box-shadow:0 0 0 2px #FBF6EE,0 0 10px rgba(155,200,106,.9)}
 @keyframes soon{from{transform:scale(1)}to{transform:scale(1.05)}}
-#feverGlow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;box-shadow:inset 0 0 70px 18px rgba(242,194,48,.55)}
+/* 言語の切りかえ：題名画面の右上にいつも見える地球マーク（下の小さいボタンだけでは見つけにくいという声。2026-11-09） */
+#btnLangTop{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:10px;z-index:2;display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:6px 12px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);color:var(--ink);font:800 13px/1 var(--f-body,inherit);box-shadow:0 3px 0 rgba(59,42,32,.3);cursor:pointer}
+#btnLangTop b{font-weight:800}
+/* 一時停止の下の3つのボタン（やめる・音・ジルに聞く）が320px幅で2行に折れていた */
+#sPause .btns .sub{white-space:nowrap;font-size:clamp(11px,3.5vw,15px);padding-left:6px;padding-right:6px;overflow:hidden;text-overflow:ellipsis}
+.langpick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}.langpick button{min-height:52px;font-size:17px}
+#feverGlow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;box-shadow:inset 0 0 46px 8px rgba(242,194,48,.4)} /* フィーバー中の黄色いふちが太く、左右のレーンが見づらかった */
 #feverGlow.on{opacity:1}
 #sTitle .row2{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}#sTitle .row2 .sub{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:10px 6px;font-size:13px}
 #sTitle .row2 .sub::before{display:block;font-size:17px;line-height:1.1;margin-bottom:2px;color:var(--badge-deep)}#btnRank::before{content:'♛'}#btnName::before{content:'✎'}#btnChat::before{content:'❝'}
@@ -90,15 +96,18 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 .gig b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gig em{font-style:normal;font-variant-numeric:tabular-nums;color:#C8463C}.gig i{grid-column:1/-1;display:block;height:5px;border-radius:99px;background:rgba(90,58,30,.15);overflow:hidden}.gig s{display:block;height:100%;border-radius:99px;background:#E8A33A;text-decoration:none;transition:width .2s linear}.gig.rain s{background:var(--leaf)}.gig.boss s{background:#C8463C}
 @keyframes gigIn{from{transform:translate(-50%,8px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
 #hint{position:absolute;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));text-align:center;font-weight:900;font-size:14px;color:var(--paper);text-shadow:0 2px 0 rgba(0,0,0,.35);transition:opacity .4s}
-#turnCue{position:absolute;top:44%;font-family:var(--f-display);font-size:clamp(46px,14vw,80px);color:var(--tie);text-shadow:0 4px 0 var(--ink);opacity:0;transition:opacity .12s}
+#turnCue{position:absolute;top:31%;font-family:var(--f-display);font-size:clamp(46px,14vw,80px);color:var(--tie);text-shadow:0 4px 0 var(--ink);opacity:0;transition:opacity .12s}
 #turnCue.l{left:8%}#turnCue.r{right:8%}#turnCue.show{opacity:1}
 #turnCue.win::after{content:'';display:block;height:7px;border-radius:4px;background:currentColor;box-shadow:0 2px 0 var(--ink);width:calc(var(--left,1) * 1.4em);margin:6px auto 0;opacity:1}
 #hChal{display:block;font-size:10px;font-weight:900;color:#C8463C;letter-spacing:.02em}#hChal:empty{display:none}
 #bossBar{margin:6px auto 0;width:min(300px,78vw);text-align:center;pointer-events:none}#bossBar b{display:block;font-size:12px;font-weight:900;color:#FBF6EE;text-shadow:0 1px 2px rgba(0,0,0,.6)}#bossBar i{display:block;height:9px;border-radius:6px;background:rgba(59,42,32,.55);border:2px solid #FBF6EE;overflow:hidden}#bossBar s{display:block;height:100%;background:linear-gradient(90deg,#C8463C,#E86A75);text-decoration:none}
+/* 小さい画面で文字が切れていた（2026-11-09） */
+#sTitle .row2 .sub{white-space:normal;overflow-wrap:anywhere;line-height:1.15;text-overflow:clip;padding-left:4px;padding-right:4px}
+@media (max-width:360px){#btnShare span{font-size:10px!important;letter-spacing:-.06em!important;white-space:normal!important;line-height:1.1}#btnShare i{font-size:11px}#btnShare{gap:2px}}
 #hLast{display:block;font-size:11px;font-weight:900;color:#3E6FA8}#hLast.late{color:#C8463C;animation:lastBlink .5s infinite alternate}@keyframes lastBlink{from{opacity:1}to{opacity:.45}}#hLast:empty{display:none}
 .comm{margin:6px auto;max-width:340px;font-size:11px;font-weight:800;color:#5E4A3A;text-align:center}.comm span{display:block}.comm i{display:block;height:7px;margin:3px 18px 0;border-radius:5px;background:#EADFCB;overflow:hidden}.comm i b{display:block;height:100%;background:linear-gradient(90deg,#5FB05A,#F2C230)}
 .hunt{margin:6px auto;padding:6px 10px;border-radius:12px;background:#FFF3D6;border:2px dashed #E86A75;font-size:11px;text-align:center;max-width:340px}.hunt span{display:block;font-weight:900;color:#C8463C}.hunt b{display:block;font-size:20px;letter-spacing:.2em}.hunt small{display:block;color:#7A6A5C}
-#combo{display:block;font-weight:900;font-size:11px;color:var(--tie);min-height:0}#combo:empty{display:none}#combo.pop{animation:comboPop .22s ease-out}@keyframes comboPop{0%{transform:translateY(-3px);filter:brightness(1.7)}100%{transform:none;filter:none}}
+#combo{display:block;font-weight:900;font-size:11px;color:#8A5F12;min-height:0}#combo:empty{display:none}#combo.pop{animation:comboPop .22s ease-out}@keyframes comboPop{0%{transform:translateY(-3px);filter:brightness(1.7)}100%{transform:none;filter:none}}
 
 html[lang="ja"] .mini em{white-space:nowrap;font-size:10px;letter-spacing:-.02em}.shop-item p{font-size:13px;line-height:1.35}
 /* short screens: tighten the title so START is on screen */
@@ -175,7 +184,7 @@ html[lang="ja"] .mini span{display:none}html[lang="ja"] .ph small{display:none}
 .zdetail{border-radius:14px;padding:12px;background:var(--ink);color:var(--paper);font-size:13px;line-height:1.7;font-weight:700}
 .zdetail b{font-family:var(--f-display);font-weight:400;font-size:16px;color:var(--tie);display:block}
 .note{font-size:11px;line-height:1.6;color:var(--ink-soft);margin:0}
-#igNote{font-size:12px;margin-top:6px}.feedcard{display:flex;align-items:center;gap:8px;margin:6px 0 0;padding:7px 12px;border-radius:12px;background:rgba(255,255,255,.75);border:2px solid var(--line);color:var(--ink);text-decoration:none;font-size:12px}.feedcard small{color:#C8463C;font-weight:900;white-space:nowrap}.feedcard b{flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.3}.feedcard i{font-style:normal;color:var(--ink-soft)}.chalcard{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:linear-gradient(180deg,#FFF6DF,#FCE9C4);border:2px solid #E3B35A;box-shadow:0 2px 0 #E3B35A55}.chalcard img{width:40px;height:40px;border-radius:50%;background:#fff;flex:none}.chalcard span{display:flex;flex-direction:column;min-width:0}.chalcard small{font-size:11px;font-weight:900;color:#C8463C;letter-spacing:.04em}.chalcard b{font-family:var(--f-display);font-size:20px;line-height:1.15}
+#igNote{font-size:12px;margin-top:6px}.feedcard{display:flex;align-items:center;gap:8px;margin:6px 0 0;padding:7px 12px;border-radius:12px;background:rgba(255,255,255,.75);border:2px solid var(--line);color:var(--ink);text-decoration:none;font-size:12px}.feedcard small{color:#B23A30;font-weight:900;white-space:nowrap}.feedcard b{flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.3}.feedcard i{font-style:normal;color:var(--ink-soft)}.chalcard{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:linear-gradient(180deg,#FFF6DF,#FCE9C4);border:2px solid #E3B35A;box-shadow:0 2px 0 #E3B35A55}.chalcard img{width:40px;height:40px;border-radius:50%;background:#fff;flex:none}.chalcard span{display:flex;flex-direction:column;min-width:0}.chalcard small{font-size:11px;font-weight:900;color:#C8463C;letter-spacing:.04em}.chalcard b{font-family:var(--f-display);font-size:20px;line-height:1.15}
 .small-print a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .small-print a,.small-print .nw{white-space:nowrap}
 .sub.danger{color:#B3352A;box-shadow:inset 0 0 0 2px #E7B3AC}.m.reset{border-top:1px dashed var(--line);margin-top:10px;padding-top:10px}
@@ -230,7 +239,7 @@ html.bigtext #hud .chip,html.bigtext #banner,html.bigtext #lives,html.bigtext .p
 #forkCards .fc{pointer-events:auto;flex:0 1 auto;max-width:44%;border:0;border-radius:999px;background:rgba(251,246,238,.92);color:var(--ink);padding:6px 12px 6px 8px;display:flex;flex-direction:row;align-items:center;gap:6px;box-shadow:0 3px 0 rgba(59,42,32,.35);font:inherit;animation:pop .3s cubic-bezier(.2,1.6,.4,1) both}
 #forkCards .fc.r{flex-direction:row-reverse;padding:6px 8px 6px 12px}
 #forkCards .fc i{font-style:normal;font-family:var(--f-display);font-size:20px;line-height:1;color:var(--tie);text-shadow:0 2px 0 var(--ink)}
-#forkCards .fc b{font-size:13px;font-weight:900;text-align:center;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34vw}#forkCards .fc small{display:none}
+#forkCards .fc b{font-size:13px;font-weight:900;text-align:center;line-height:1.15;white-space:normal;overflow:hidden;max-width:38vw;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical} /* 行き先の名前が「赤い電波塔・代…」と切れていた（2026-11-09） */#forkCards .fc small{display:none}
 #forkCards .fc.pick{background:var(--tie);color:var(--ink)}#forkCards .fc.dim{opacity:.35}
 #forkCards.now .fc i{animation:tpulse .35s ease-in-out infinite alternate}
 @media (min-width:700px){#forkCards .fc{padding:8px 16px 8px 12px}#forkCards .fc b{font-size:15px;max-width:220px}#forkCards .fc i{font-size:24px}}
@@ -299,7 +308,7 @@ button:active,.shbtns a:active{transform:scale(.95)}
 /* results: one big number, one button, one ranking line; the rest folds away */
 .res-score{text-align:center;line-height:1}
 .res-score small{display:block;font-size:11px;font-weight:900;color:var(--ink-soft);letter-spacing:.12em}
-.res-score b{font-family:var(--f-display);font-weight:400;font-size:clamp(44px,15vw,68px);font-variant-numeric:tabular-nums;color:var(--ink)}
+.res-score b{display:block;white-space:nowrap;max-width:100%;font-family:var(--f-display);font-weight:400;font-size:clamp(44px,15vw,68px);font-variant-numeric:tabular-nums;color:var(--ink)}
 .res-sub{display:flex;justify-content:center;gap:18px;font-size:14px;color:var(--ink-soft)}
 .res-sub small{font-size:10px;font-weight:900;letter-spacing:.08em}
 .res-sub b{font-family:var(--f-display);font-weight:400;font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums}
