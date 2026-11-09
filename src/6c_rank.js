@@ -26,7 +26,7 @@ async function goldTieCheck() { if (!rankOn()) return; const pk = prevMonthKey()
     if (i >= 0) { SV.goldTie = { m: pk, r: i + 1 }; save(); try { refreshTitle(); } catch (e) { } setTimeout(() => toastTitle(t('goldTie', monthLabel(pk), i + 1)), 2200); } } catch (e) { } }
 async function rankSubmit(score, info) {
   if (!rankOn()) return null;
-  if (G.easy || G.timed || G.practice) return null; // relaxed / 1-minute runs are not on the monthly board (2026-11-08)
+  if (G.easy || G.timed || G.practice || G.duo || G.rev) return null; // relaxed / 1-minute runs are not on the monthly board (2026-11-08)
   // a score far beyond what the distance run can earn is not posted (simple guard; the game runs in the browser)
   const cap = ((info.dist || 0) * 45 + 25000 + (info.day || 1) * 15000) * Math.max(1, SV.mlevel || 1) * 1.5 * (info.legend ? 1.5 : 1);
   if (!(score >= 0) || score > cap) return { err: 2, best: score };

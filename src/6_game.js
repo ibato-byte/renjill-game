@@ -126,10 +126,15 @@ function startRun() {
   G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.bumps = 0; G.lastHit = null; G.bestPic = 0; G.newTitles = []; G.chalFlag = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
   resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
+  G.rev = !!(G.revNext && SV.tutDone && !G.practiceNext && !G.timed && !G.duoNext); G.revNext = 0; // 逆走デー（B-37）：夕方 6 時に会社を出て、帰り道を走って家（寝室）まで。そのまま次の日の朝へ
+  if (G.rev) { const k = G.plan.findIndex(x => x.eve); G.plan = G.plan.slice(Math.max(0, k)).concat([{ t: 'genkan', d: 4, home: 1 }, { t: 'bedroom', d: 6, home: 1 }]); G.planClock = 1080; G.clock = 1080; G.chaseT = 0; G.chaseIntro = 0; G.chaseVis = 0; banner('REVERSE DAY', t('revGo'), 'good'); }
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
-  G.segDue = 0; const step = G.plan.shift(); const s0 = newSeg(null, step, { t0: 480, day: 1, len: SV.tutDone ? 0 : 140 }); G.planClock = s0.t1; G.segs = [s0]; G.ci = 0; G.tutEnd = 0;
+  G.segDue = 0; const step = G.plan.shift(); const s0 = newSeg(null, step, { t0: G.rev ? 1080 : 480, day: 1, len: SV.tutDone ? 0 : 140 }); G.planClock = s0.t1; G.segs = [s0]; G.ci = 0; G.tutEnd = 0;
   if (!SV.tutDone) setupTutorial(s0); else { G.tut = null; G.tutSeg = null; }
   G.practice = SV.tutDone && G.practiceNext ? G.practiceNext : ''; G.practiceNext = '';
+  G.duo = G.duoNext && SV.tutDone && !G.practice && !G.timed ? G.duoNext : null; G.duoNext = null; if (G.duo) bannerNow(t('duoTurn', G.duo.turn), '', 'good'); // ふたりで交代（B-33）
+  G.epGigDone = 0; G.boss = null; G.revDone = 0; G.lastTrain = null; G.lastTrainDone = 0; G.kanaPut = 0; G.matsuri = matsuriDay(); G.matsuriTold = 0;
+  ghostStart();
   if (G.practice) { const tid = G.practice; G.plan = Array.from({ length: 8 }, () => ({ t: tid, d: 60 })); const p0 = newSeg(null, { t: tid, d: 60 }, { t0: 600, day: 1 }); G.segs = [p0]; G.ci = 0; G.planClock = p0.t1; G.clock = 600; G.chaseT = 0; G.chaseIntro = 0; G.chaseVis = 0; G.gigNext = 1e9; onEnterSeg(p0); banner('PRACTICE', t('practiceGo'), 'room'); } // 練習：選んだ場所から、同じ場所が続く
   ensureSegs();
   G.camYaw = 0; G.ey = G.camE = null; G.camSl = 0; const p = segPos(s0, 0, 0); G.rx = p[0]; G.rz = p[1];
@@ -164,7 +169,7 @@ function nice(kind) {
   const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1), pts = (40 + 30 * Math.min(G.niceN - 1, 4)) * mult; G.score += pts; G.stats.nice = (G.stats.nice || 0) + 1;
   const lbl = lab(kind === 'jump' ? 'NICE JUMP!' : kind === 'slide' ? 'NICE SLIDE!' : 'CLOSE!');
   floatText(W / 2, H * .5, G.niceN > 1 ? `${lbl} ×${G.niceN}` : lbl, G.niceN > 2 ? '#FF8A5C' : '#F2C230');
-  tone(523 * Math.pow(1.0595, Math.min(G.niceN, 5) * 2), .12, 'bell', .05); G.hitStop = Math.max(G.hitStop, .03);
+  tone(523 * Math.pow(1.0595, Math.min(G.niceN, 5) * 2), .12, 'bell', .05); // 止める演出（hitStop）はやめた：ジャンプのたびに一瞬止まって「重い」と感じる（2026-11-09 の報告）
   if (G.niceN >= 3 && Math.random() < .6) react(pick(['wink', 'happy']), 0);
   if (G.niceN === 3) G.slowT = .45;
   if (kind === 'slide') { G.slideRow = (now - (G.slideRowT || -9) < 4) ? (G.slideRow || 0) + 1 : 1; G.slideRowT = now; if (G.slideRow === 3) { G.stats.slideMaster = (G.stats.slideMaster || 0) + 1; const p2 = 200 * SV.mlevel; G.score += p2; floatText(W / 2, H * .34, lab('SLIDE MASTER!') + ' +' + fmt(p2), '#F2C230'); tone(523, .1, 'bell', .045); tone(784, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .08); } } // three slide-unders in a row (2026-11-08)
@@ -215,13 +220,13 @@ const GIGS = {
 };
 function gigFree() { return G.mode === 'play' && SV.tutDone && !(G.tut && G.tut.some(x => !x.done)) && !(G.pow.fly > 0) && !(G.fever > 0) && !G.rush && !(G.chaseT > 0 && !G.chaseIntro) && !(G.turnT > 0); }
 function gigStart() {
-  const ks = Object.keys(GIGS).filter(k => k !== G.gigLast), k = pick(ks), d = GIGS[k];
-  G.gig = { k, t: 0, b0: k === 'boss' ? (G.bumpN || 0) : k === 'call' ? G.stats.hay : k === 'memo' ? (G.stats.nice || 0) : 0, n: 0 }; G.gigLast = k;
-  bannerNow(d.en, tr(d.ja, d.enL), 'good'); tone(659, .1, 'bell', .045); tone(880, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .1);
+  const ks = Object.keys(GIGS).filter(k => k !== G.gigLast), ep = !G.epGigDone ? epGig() : null; let k = pick(ks); if (ep) { k = ep.k; G.epGigDone = 1; } const d = GIGS[k];
+  G.gig = { k, t: 0, b0: k === 'boss' ? (G.bumpN || 0) : k === 'call' ? G.stats.hay : k === 'memo' ? (G.stats.nice || 0) : 0, n: 0, ep: ep ? 1 : 0 }; G.gigLast = k;
+  if (ep) { G.stats.epGig = 1; bannerNow(d.en, t('epGig', ep.title, tr(d.ja, d.enL)), 'good'); } else bannerNow(d.en, tr(d.ja, d.enL), 'good'); tone(659, .1, 'bell', .045); tone(880, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .1);
 }
 function gigEnd(ok) {
   const g = G.gig, d = GIGS[g.k]; G.gig = null; G.gigNext = rand(30, 44);
-  if (ok) { G.stats.gigs = (G.stats.gigs || 0) + 1; const p = d.pts * SV.mlevel;
+  if (ok) { G.stats.gigs = (G.stats.gigs || 0) + 1; const p = Math.round(d.pts * SV.mlevel * (g.ep ? 1.5 : 1));
     if (p) { G.score += p; floatText(W / 2, H * .36, lab('GOOD WORK!') + ' +' + fmt(p), '#F2C230'); }
     if (g.k !== 'rain') { banner('GOOD WORK!', tr('ボーナスゲット！', 'Bonus earned!'), 'good'); SFX.mission(); burst(W / 2, H * .4, '#F2C230', 22); react('happy', 1); } }
   else banner('SO CLOSE!', tr('次のおしごとでがんばろう', 'Get the next one.'), 'room');
@@ -254,10 +259,12 @@ function act(a) {
     const nl = clamp(G.lane + d, 0, 2); if (nl !== G.lane) { G.prevLane = G.lane; G.lane = nl; G.laneT = .35; G.tutDid = 'side'; tone(392 + d * 30, .05, 'pluck', .045); }
   } else if (a === 'up') {
     if (G.pow.fly > 0) return;
+    G.player.look = 0; // ふり返り中でも、すぐ前を向いて跳ぶ
     if (!G.air || G.coyote > 0) { G.coyote = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up'; if (G.pow.jump > 0 && G.y < .2) skyHay(G.vy); } // one plain jump for everything (low things are cleared by its normal height)
     else G.jumpBuf = .2; // a jump pressed a moment before landing still counts (.16 → .2, 2026-11-08)
   } else if (a === 'down') {
     if (G.pow.fly > 0) return;
+    G.player.look = 0; // ふり返り中でも、すぐ前を向いてしゃがむ
     if (G.air) { G.vy = -22; G.slideT = .62; G.jumpBuf = 0; } else { if (G.slideT <= 0) { G.stats.slides++; SFX.slide(); } G.slideT = .68; }
     G.tutDid = 'down';
   }
@@ -312,14 +319,18 @@ function onEnterSeg(n) {
   else if (n.step && n.step.last) banner('LAST TRAIN', t('lastTrain'), 'room');
   else if (th.arrive || ARRIVE[n.tid]) banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), L(th.arrive || ARRIVE[n.tid]), 'room');
   else banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), LANG === 'en' ? '' : (L(th).split('・')[1] || ''), 'room');
-  if (th.rush) { G.rush = 1; G.chaseT = 0; } else G.rush = 0;
+  if (th.rush) { G.rush = 1; G.chaseT = 0; G.boss = { seg: n, rev: G.reviveN || 0 }; bannerNow('BOSS: DEADLINE', t('bossGo'), 'bad'); } else { G.rush = 0; G.boss = null; } // 締め切りの山（B-39）：ボス戦ふう
   if (n.th.kind === 'train' && n.step.line) { G.announce = n.step.line.map((st, i) => ({ s: n.len * (i + 1) / (n.step.line.length + 1), st })); }
   else G.announce = [];
   G.photoT = th.stamp && !SV.album[n.tid] && !(n.step && n.step.cont) ? 2.4 : 0; G.capture = null;
-  { const ar = areaOf(n.tid, n.t0); musicArea = ar === 'evening' && n.t0 >= 1170 ? 'night' : ar; const prevArea = G.musicArea; G.musicArea = musicArea; musicKey = { home: 0, commute: 2, office: 5, evening: -3, night: -5 }[musicArea]; if (prevArea !== musicArea) AU.step = 0; }
+  { const ar = areaOf(n.tid, n.t0); musicArea = ar === 'evening' && n.t0 >= 1170 ? 'night' : ar; const prevArea = G.musicArea; G.musicArea = musicArea; musicKey = { home: 0, commute: 2, office: 5, evening: -3, night: -5 }[musicArea];
+    if (G.matsuri && matsuriSeg(n.th)) { musicArea = 'matsuri'; G.musicArea = 'matsuri'; musicKey = 0; if (!G.matsuriTold) { G.matsuriTold = 1; banner('FESTIVAL!', t('matsuri'), 'good'); } } // お祭りの日（B-29）
+    if (prevArea !== musicArea) AU.step = 0; }
   if (n.tid === 'station') setTimeout(jingle, 400);
+  if (G.rev && n.tid === 'bedroom' && n.step && n.step.home && !G.revDone) { G.revDone = 1; const b = 3000 * SV.mlevel; G.score += b; G.stats.revHome = 1; bannerNow('HOME!', t('revHome', fmt(b)), 'good'); SFX.mission(); react('sparkle', 1); } // 逆走デー：家に着いた
 }
 function onLeaveSeg(o) {
+  if (G.boss && G.boss.seg === o && G.mode === 'play') { const clean = (G.reviveN || 0) === G.boss.rev, b = (clean ? 2500 : 800) * SV.mlevel; G.score += b; G.stats.bossWin = 1; bannerNow('ESCAPED!', t(clean ? 'bossWin' : 'bossWin2', fmt(b)), 'good'); SFX.mission(); react('sparkle', 1); if (!OPT().calm) { burst(W / 2, H * .25, '#FFFDF7', 30); burst(W / 2, H * .25, '#C8463C', 12); } G.boss = null; } // 締め切りの山から逃げ切った
   if (SUMMIT[o.tid]) { const b = 800 * SV.mlevel; G.score += b; if (o.tid === 'tower') G.stats.towerTop = 1; if (o.tid === 'skytree') G.stats.skytreeTop = 1; banner(SUMMIT[o.tid].en, LANG === 'en' ? SUMMIT[o.tid].en2 : L(SUMMIT[o.tid]), 'good'); SFX.mission(); react('sparkle', 1); }
 }
 // each fever makes the next one take longer to earn (the 6 PM chime fever does not count)
@@ -619,6 +630,7 @@ function placeCamera(dt) {
       B.look = look ? .6 : 0; B.mood = look ? (k.t < 1.1 ? 'sparkle' : 'open') : 'open'; B.say = look && k.t < 1.4 ? (SV.pomMet ? t('pomPeekSay') : '？') : ''; B.big = 1.45;
       B.depth = (mp[0] - CAM.x) * CAM.s + (mp[1] - CAM.z) * CAM.c; B.show = true; } else B.show = false; }
   { const M = G.pom; if (M.on) { M.depth = (M.wx - CAM.x) * CAM.s + (M.wz - CAM.z) * CAM.c; if (M.tuck) M.depth = P.depth + .5; } }
+  ghostPos(seg, dt);
 }
 /* ---------- safety net ----------
    Whatever goes wrong in a frame (a street that could not be built, a picture the phone had no memory for, a number gone bad),
@@ -725,6 +737,7 @@ function collect(it, seg) {
   }
   if (def.kind === 'pom') { pomJoin(); return; }
   if (def.kind === 'flag') { burst(sx, sy, '#F2C230', 14); burst(sx, sy, '#E86A75', 8); tone(784, .1, 'bell', .04); return; } // 挑戦状の旗：通りぬけるとお祝いの紙ふぶき（点は旗の点数をこえたときに chalTick で）
+  if (def.kind === 'kana') { kanaGot(sx, sy); return; }
   if (def.kind === 'memo') { // dropped papers (B-24): the partner turns round to say thanks
     const pts = def.pts * mult; G.score += pts; G.stats.memos = (G.stats.memos || 0) + 1; floatText(sx, sy - 10, '+' + fmt(pts), '#F6EBDC'); burst(sx, sy, '#FFFDF7', 8);
     tone(659, .08, 'bell', .045); tone(988, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .07);
@@ -780,6 +793,7 @@ function fitScore() {
 }
 function comboPop() { const e = el('combo'); if (!e || G.combo < 5) return; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } // the combo count bounces on every pickup
 function hud() {
+  ghostRec(); lastTrainTick(); bossHud();
   gigHud(); chalTick(); setText('hChal', G.timed ? t('quickHud', Math.max(0, Math.ceil(G.timed - G.t))) : CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
   setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay))); { const hn = Math.floor(G.hay); if (hn !== HUDC.hayN) { const up = hn > (HUDC.hayN || 0); HUDC.hayN = hn; const e = el('hHay'); if (up && e && !OPT().calm) { e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } } } // the hay count hops a little when it goes up (2026-11-08)
   setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
@@ -914,6 +928,7 @@ function endRun() {
   checkAch(false); dailyCheck(false);
   let weekMsg = ''; if (!G.easy) { try { weekMsg = weekAdd(st); } catch (e) { reportErr(e); } } // this week's goal (2026-11-08)
   const bk = G.timed ? 'bestT' : 'best', prevBest = G.easy ? 0 : (SV[bk] || 0), newBest = !G.easy && G.score > (SV[bk] || 0); if (newBest) { SV[bk] = Math.floor(G.score); if (G.bestPic && SV.bestPics && SV.bestPics[0]) SV.bestPics[0].s = Math.floor(G.score); }
+  ghostSave();
   if (!G.easy && !G.timed) SV.bestClock = Math.max(SV.bestClock || 480, G.clock + (G.day - 1) * 1440); SV.bestDay = Math.max(SV.bestDay || 1, G.day);
   let lvlMsg = '';
   if (SV.missions.slots.every(sl => sl.done)) { SV.mlevel++; const rw = 150 * SV.mlevel; SV.bank += rw; lvlMsg = t('lvlUp', SV.mlevel, rw); newMissions(); }
@@ -940,8 +955,9 @@ function endRun() {
   const kb = $('#kujiBox'); kb.hidden = G.dist < 300; $('#kujiRes').innerHTML = ''; $('#btnKuji').disabled = false; $('#btnKuji').textContent = tr('おみくじを引く', 'Draw a fortune slip');
   $('#resCareer').innerHTML = careerHTML();
   resultFollow((newBest && SV.runs >= 3) || G.score >= 30000 || !!G.chalWon);
+  duoResult();
   hideAll(); show('sResult');
-  rankAfterRun(G.score);
+  if (!G.duo) rankAfterRun(G.score);
 }
 /* ---- sharing a result ----
    Phones: X and LINE open their own share screens with the text filled in (their apps pick these links up).
@@ -1063,3 +1079,93 @@ function buildShareCard(cap, place, gained) {
     G.shareStory = t; prepShareFiles(c, t);
   }
 }
+
+// ゴーストと競走（B-32）：いちばん良かった走りを 0.5 秒ごとに「距離・レーン」で覚えておき、次の走りでうすいうさぎとして前を走らせる
+//  練習・のんびり・1分ダッシュ・チュートリアルでは出さない。設定で消せる。写真と同じく引き継ぎコードには入れない（この端末だけ）
+const GHOST_DT = .5;
+function ghostStart() {
+  G.ghRec = { d: [], l: '' }; G.ghNext = 0; G.ghostGap = null;
+  G.gb = { who: G.char, view: 'back', ghost: 1, ph: 0, look: 0, show: false, say: '', big: G.char === 'pom' ? POM_BIG : 1 };
+  const g = SV.ghost, ok = g && Array.isArray(g.d) && g.d.length > 4 && typeof g.l === 'string';
+  G.ghost = ok && SV.tutDone && !G.practice && !G.easy && !G.timed && !G.rev && OPT().ghost !== false ? g : null;
+}
+function ghostAt(tm) { const g = G.ghost; if (!g) return null; const k = tm / GHOST_DT, i = Math.floor(k), n = g.d.length; if (i >= n - 1) return { d: g.d[n - 1], lane: +g.l[n - 1] || 1, end: 1 };
+  const f = k - i; return { d: g.d[i] + (g.d[i + 1] - g.d[i]) * f, lane: +g.l[f < .5 ? i : i + 1] || 1, end: 0 }; }
+function ghostRec() {
+  if (G.mode !== 'play' || !G.ghRec || G.practice || G.easy || G.timed || G.rev) return;
+  while (G.t >= G.ghNext && G.ghRec.d.length < 2400) { G.ghRec.d.push(Math.round(G.dist)); G.ghRec.l += String(G.lane); G.ghNext += GHOST_DT; }
+  const a = G.ghost ? ghostAt(G.t) : null; G.ghostGap = a ? G.dist - a.d : null;
+  setText('hGhost', a && G.t > 2 ? (G.ghostGap >= 0 ? t('ghostAhead', Math.round(G.ghostGap)) : t('ghostBehind', Math.round(-G.ghostGap))) : '');
+  setCls('hGhost', 'ahead', !!a && G.ghostGap >= 0);
+}
+function ghostPos(seg, dt) {
+  const B = G.gb; if (!B) return; B.show = false; if (!G.ghost || G.mode !== 'play') return;
+  const a = ghostAt(G.t); if (!a || a.end) return; const d = a.d - G.dist; if (d < 2.5 || d > 45) return;
+  const s = G.s + d; if (s > seg.len - 2) return;
+  B.lat = lerp(B.lat == null ? LANES[a.lane] : B.lat, LANES[a.lane], Math.min(1, dt * 10));
+  const p = segPos(seg, s, B.lat); B.wx = p[0]; B.wz = p[1]; B.wy = p[2] + Math.abs(Math.sin(B.ph)) * .05; B.ph += dt * 16;
+  B.depth = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; B.show = true; G.ghostSeen = (G.ghostSeen || 0) + 1;
+}
+function ghostSave() {
+  if (!G.ghRec || G.practice || G.easy || G.timed || G.rev || G.ghRec.d.length < 8) return;
+  if (!SV.ghost || !(SV.ghost.s >= G.score)) SV.ghost = { s: Math.floor(G.score), d: G.ghRec.d.slice(), l: G.ghRec.l };
+}
+
+// ふたりで交代（B-33）：同じ端末で 1P → 2P と 1 回ずつ走り、結果画面にふたりの合計と勝ち負け。ランキングには入れない
+function duoResult() {
+  let e = $('#resDuo'); if (!e) { e = document.createElement('div'); e.id = 'resDuo'; e.className = 'duo'; $('#btnAgain').before(e); }
+  if (!G.duo) { e.hidden = true; $('#btnAgain').textContent = t('again'); return; }
+  const D = G.duo; D.s[D.turn - 1] = Math.floor(G.score); e.hidden = false;
+  if (D.turn === 1) { e.innerHTML = `<b>${esc(t('duoNext', 1, fmt(D.s[0])))}</b><small>${esc(t('duoNote'))}</small>`; $('#btnAgain').textContent = t('duoGo2'); }
+  else { const w = D.s[0] === D.s[1] ? t('duoTie') : t('duoWin', D.s[0] > D.s[1] ? 1 : 2);
+    e.innerHTML = `<b>${esc(t('duoSum', fmt(D.s[0] + D.s[1]), fmt(D.s[0]), fmt(D.s[1])))}</b><em>${esc(w)}</em><small>${esc(t('duoNote'))}</small>`; $('#btnAgain').textContent = t('again'); }
+}
+
+// あいことばのかくれんぼ（B-49）：FEED.hunt = { w: 'しっぽ', hay: 300, from, until, note }（動画の最新話につながる言葉）。
+//  走っていて「？」の札を取ると、まだの文字が1つ見つかる。全部そろうとチモシー。進みぐあいは SV.hunt（言葉ごと）
+function huntNow() { const h = typeof FEED !== 'undefined' && FEED && FEED.hunt; if (!h || typeof h.w !== 'string' || !h.w || h.w.length > 8) return null; const d = isoDay();
+  if ((h.from && h.from > d) || (h.until && h.until < d)) return null; const st = SV.hunt && SV.hunt.w === h.w ? SV.hunt : null; return st && st.done ? null : h; }
+function kanaGot(sx, sy) {
+  const h = huntNow(); if (!h) return; const ch = [...h.w]; if (!SV.hunt || SV.hunt.w !== h.w) SV.hunt = { w: h.w, got: [], done: 0 };
+  const left = ch.map((_, i) => i).filter(i => !SV.hunt.got.includes(i)); if (!left.length) return; const i = pick(left); SV.hunt.got.push(i);
+  G.score += 100 * SV.mlevel; burst(sx, sy, '#E86A75', 14); burst(sx, sy, '#F2C230', 10); tone(880, .1, 'bell', .05); tone(1175, .14, 'bell', .045, AU.ctx && AU.ctx.currentTime + .08);
+  if (SV.hunt.got.length >= ch.length) { const hay = Math.max(0, Math.min(1000, h.hay | 0 || 300)); SV.hunt.done = 1; SV.bank += hay; bannerNow('SECRET WORD!', t('kanaDone', h.w, fmt(hay)), 'good'); react('sparkle', 1); SFX.mission(); }
+  else bannerNow('LETTER!', t('kanaGot', ch[i], SV.hunt.got.length, ch.length), 'good');
+  save();
+}
+
+// お祭りの日（B-29）：土日と、feed の行事 'matsuri' の日。提灯の並ぶ通り（浅草・アメ横・神楽坂など）に入ると、音楽が祭りばやしに
+function matsuriDay() { const d = new Date().getDay(); return d === 0 || d === 6 || EVENT === 'matsuri'; }
+function matsuriSeg(th) { return !!(th && Array.isArray(th.props) && th.props.some(p => p && p[0] === 'chochin')); }
+
+// 終電間際（B-30）：夜 9 時をすぎて、次が最後の電車（帰りの山手線など）のとき、「終電まで ◯秒」。ドアが閉まる前に乗りこめばボーナス。
+//  間に合わなくても走りは続く（次の電車で帰る）。時間は残りの道のりと今の速さから決め、ぶつからずに走れば間に合う長さにする
+function lastTrainTick() {
+  if (G.mode !== 'play' || G.practice) { setText('hLast', ''); return; }
+  const seg = curSeg(), nx = G.segs[G.ci + 1], L = G.lastTrain;
+  if (!L && !G.lastTrainDone && seg && seg.th.kind !== 'train' && nx && nx.step && nx.step.last && nx.th.kind === 'train' && G.clock >= 21 * 60) {
+    const left = Math.max(10, seg.len - G.s), need = left / Math.max(10, G.speed) * 1.25 + 1.5;
+    G.lastTrain = { seg: nx, until: G.t + need }; bannerNow('LAST TRAIN!', t('lastGo', Math.ceil(need)), 'good'); tone(988, .12, 'bell', .05); tone(784, .16, 'bell', .05, AU.ctx && AU.ctx.currentTime + .12); }
+  const T = G.lastTrain; if (!T) { setText('hLast', ''); return; }
+  if (seg === T.seg) { G.lastTrain = null; G.lastTrainDone = 1; setText('hLast', '');
+    if (G.t <= T.until) { const b = 1500 * SV.mlevel; G.score += b; G.stats.lastTrain = 1; bannerNow('MADE IT!', t('lastOk', fmt(b)), 'good'); SFX.mission(); react('sparkle', 1); }
+    else banner('', t('lastMiss'), 'room'); return; }
+  const r = T.until - G.t; setText('hLast', r > 0 ? t('lastHud', r.toFixed(1)) : t('lastClosed')); setCls('hLast', 'late', r < 3);
+}
+
+// 逆走デー（B-37）：金曜日（と feed の行事 'gyakusou' の日）だけ題名にボタン。ランキングには入れない（朝の道をとばすので）
+function revDay() { return new Date().getDay() === 5 || EVENT === 'gyakusou'; }
+
+// 締め切りの山（B-39）：締め切り前の区間は、上に「ボスの体力」ふうのバー（残りの道のり）。1回もぶつからずに抜ければ大きなボーナス
+function bossHud() {
+  let e = el('bossBar'); const B = G.boss, seg = curSeg();
+  if (!B || G.mode !== 'play' || seg !== B.seg) { if (e) e.hidden = true; return; }
+  if (!e) { e = document.createElement('div'); e.id = 'bossBar'; e.innerHTML = '<b></b><i><s></s></i>'; $('#lives').after(e); }
+  e.hidden = false; const k = clamp(1 - G.s / Math.max(1, seg.len), 0, 1); e.querySelector('b').textContent = t('bossName', Math.max(0, Math.round(seg.len - G.s))); e.querySelector('s').style.width = (k * 100).toFixed(1) + '%';
+}
+
+// その日の動画のネタが、ステージの出来事に（B-40）：走りの最初の「おしごと」を、いちばん新しい動画の話にあわせて選び、点は 1.5 倍。
+//  feed の latest.gig（boss / call / memo / rain）があればそれ、なければ題名の言葉から。どれにも当たらなければ、いつもどおりの順番
+const EP_GIG = [['boss', /社長|上司|会議|課長|面接|視察/], ['call', /電話|返信|メール|了解|連絡|チャット|通知/], ['memo', /書類|ハンコ|締め切り|印刷|資料|年賀状|付箋|シュレッダー|コピー/], ['rain', /差し入れ|お弁当|牧草|おやつ|みかん|夜食|ランチ|ジュース/]];
+function epGig() { const e = typeof latestEpisode === 'function' ? latestEpisode() : null; if (!e) return null; const title = e.ja || e.en || ''; if (!title) return null;
+  let k = e.gig && GIGS[e.gig] ? e.gig : ''; if (!k) { const m = EP_GIG.find(([, re]) => re.test(title)); k = m ? m[0] : ''; } return k ? { k, title: LANG === 'ja' ? title : (e[LANG] || e.en || title) } : null; }
