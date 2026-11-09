@@ -473,11 +473,12 @@ function drawBunnyWorld(b) {
   const sp = spriteAt(b.wx, b.wy, b.wz); if (!sp) return;
   const sc = sp.k * (b.who === 'ren' ? 1.18 : b.who === 'pom' ? .72 * (b.big || 1) : 1.0) / 240;
   let pose;
+  // しゃがむ・跳ぶが、ふり返り（look）より先（ふり返っている間に下スワイプしても、しゃがまなかった：2026-11-09 の報告）
   if (b.view === 'front') pose = 'front_' + (b.mood || 'open');
-  else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
   else if (b.slide) pose = 'slide'; else if (b.air) pose = 'air';
+  else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
   else pose = 'run' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES;
-  const img = bunFrame(b.who, pose, SV.mugOn);
+  b.pose = pose; const img = bunFrame(b.who, pose, SV.mugOn);
   if (b.ghost) { // ゴースト（B-32）：うすく、上に「ベスト」の小さな札
     ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc); ctx.globalAlpha = .45; ctx.drawImage(img, -BS / 2, -GROUND_Y - BTOP, img.width, img.height); ctx.restore();
     ctx.save(); ctx.globalAlpha = .8; ctx.font = '900 12px "Zen Maru Gothic","Hiragino Sans",sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#FBF6EE'; ctx.strokeStyle = 'rgba(59,42,32,.7)'; ctx.lineWidth = 3;

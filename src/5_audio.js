@@ -50,9 +50,11 @@ function thump(f0, f1, dur, vol, when, dest) {
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol || .3, t + .003); g.gain.exponentialRampToValueAtTime(.0008, t + dur);
   o.connect(g); g.connect(dest || AU.sfx || AU.master); o.start(t); o.stop(t + dur + .02);
 }
+const NOISE_BUF = {};
 function noise(dur, vol, hp, dest) {
   if (!AU.ctx) return; const t = AU.ctx.currentTime, n = Math.floor(AU.ctx.sampleRate * dur);
-  const buf = AU.ctx.createBuffer(1, n, AU.ctx.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+  // 同じ長さのノイズは作りおき（ジャンプ・着地のたびに作ると、スマホでごみ集めの小さな引っかかりになる：2026-11-09）
+  const key = n; let buf = NOISE_BUF[key]; if (!buf) { buf = NOISE_BUF[key] = AU.ctx.createBuffer(1, n, AU.ctx.sampleRate); const d = buf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n); }
   const src = AU.ctx.createBufferSource(); src.buffer = buf; const f = AU.ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp || 800;
   const g = AU.ctx.createGain(); g.gain.value = vol || .2; src.connect(f); f.connect(g); g.connect(dest || AU.sfx || AU.master); src.start(t);
 }

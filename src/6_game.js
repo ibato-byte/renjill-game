@@ -169,7 +169,7 @@ function nice(kind) {
   const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1), pts = (40 + 30 * Math.min(G.niceN - 1, 4)) * mult; G.score += pts; G.stats.nice = (G.stats.nice || 0) + 1;
   const lbl = lab(kind === 'jump' ? 'NICE JUMP!' : kind === 'slide' ? 'NICE SLIDE!' : 'CLOSE!');
   floatText(W / 2, H * .5, G.niceN > 1 ? `${lbl} ×${G.niceN}` : lbl, G.niceN > 2 ? '#FF8A5C' : '#F2C230');
-  tone(523 * Math.pow(1.0595, Math.min(G.niceN, 5) * 2), .12, 'bell', .05); G.hitStop = Math.max(G.hitStop, .03);
+  tone(523 * Math.pow(1.0595, Math.min(G.niceN, 5) * 2), .12, 'bell', .05); // 止める演出（hitStop）はやめた：ジャンプのたびに一瞬止まって「重い」と感じる（2026-11-09 の報告）
   if (G.niceN >= 3 && Math.random() < .6) react(pick(['wink', 'happy']), 0);
   if (G.niceN === 3) G.slowT = .45;
   if (kind === 'slide') { G.slideRow = (now - (G.slideRowT || -9) < 4) ? (G.slideRow || 0) + 1 : 1; G.slideRowT = now; if (G.slideRow === 3) { G.stats.slideMaster = (G.stats.slideMaster || 0) + 1; const p2 = 200 * SV.mlevel; G.score += p2; floatText(W / 2, H * .34, lab('SLIDE MASTER!') + ' +' + fmt(p2), '#F2C230'); tone(523, .1, 'bell', .045); tone(784, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .08); } } // three slide-unders in a row (2026-11-08)
@@ -259,10 +259,12 @@ function act(a) {
     const nl = clamp(G.lane + d, 0, 2); if (nl !== G.lane) { G.prevLane = G.lane; G.lane = nl; G.laneT = .35; G.tutDid = 'side'; tone(392 + d * 30, .05, 'pluck', .045); }
   } else if (a === 'up') {
     if (G.pow.fly > 0) return;
+    G.player.look = 0; // ふり返り中でも、すぐ前を向いて跳ぶ
     if (!G.air || G.coyote > 0) { G.coyote = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up'; if (G.pow.jump > 0 && G.y < .2) skyHay(G.vy); } // one plain jump for everything (low things are cleared by its normal height)
     else G.jumpBuf = .2; // a jump pressed a moment before landing still counts (.16 → .2, 2026-11-08)
   } else if (a === 'down') {
     if (G.pow.fly > 0) return;
+    G.player.look = 0; // ふり返り中でも、すぐ前を向いてしゃがむ
     if (G.air) { G.vy = -22; G.slideT = .62; G.jumpBuf = 0; } else { if (G.slideT <= 0) { G.stats.slides++; SFX.slide(); } G.slideT = .68; }
     G.tutDid = 'down';
   }
