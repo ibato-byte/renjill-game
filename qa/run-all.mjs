@@ -33,6 +33,7 @@ const T = [
   { n: 'epgig', why: '動画のネタがステージの出来事に（最初のおしごと・1.5 倍）', ok: has('EPGIG OK') },
   { n: 'poseprio', why: 'ふり返り中でもしゃがむ・跳ぶ絵になる／ナイスジャンプで止まらない（2026-11-09 の報告）', ok: has('POSEPRIO OK') },
   { n: 'feedsync', why: '削除された動画を「新作」のリンクにしない', ok: has('FEEDSYNC OK') },
+  { n: 'closetdup', why: '着せかえに同じ見た目の品が2つ並ばない（2026-11-09 の報告）', ok: has('CLOSETDUP OK') },
   { n: 'community', why: 'みんなの集計（今日の名所・クラブ・行事の合計、古い月の記録の片づけ）', ok: has('COMMUNITY OK') },
   { n: 'titlecard', why: '新しい称号のシェア用カード（結果画面のボタン）', ok: has('TITLECARD OK') },
   { n: 'goldtie', why: '月間ランキング上位3人に金のネクタイ（経歴にバッジ）', ok: has('GOLDTIE OK') },

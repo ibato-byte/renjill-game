@@ -61,7 +61,7 @@ function shopHTML() {
   const clover = `<div class="shop-item"><img src="${SPR_URL.clover}" alt=""><p>${t('charmName')}<small>${t('charmNote', SV.clovers)}</small></p><button class="buy" data-buy="clover" ${SV.bank < 500 ? 'disabled' : ''}><img src="${SPR_URL.hay}" alt="">500</button></div>`;
   const mug = `<div class="shop-item"><img src="${SPR_URL.mugIcon}" alt=""><p>${t('mugName')}<small>${t('mugNote')}</small></p>${SV.mug ? `<button class="buy" data-mug="1">${SV.mugOn ? t('unwear') : t('wear')}</button>` : `<button class="buy" data-buy="mug" ${SV.bank < 1500 ? 'disabled' : ''}><img src="${SPR_URL.hay}" alt="">1,500</button>`}</div>`;
   const wear = SV.wear || (SV.wear = { ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' }, pom: { band: 'red', hat: '', suit: '' } }); if (!wear.pom) wear.pom = { band: 'red', hat: '', suit: '' }; SV.closet = SV.closet || {};
-  const closet = ['ren', 'jill'].concat(SV.pomMet ? ['pom'] : []).map(who => `<h3 class="ph" style="font-size:16px;margin:10px 0 4px">${LANG === 'en' ? who.toUpperCase() : tr(({ ren: 'レン', jill: 'ジル', pom: 'ポム' })[who], who)}<small>${esc(t('closet'))}</small></h3>` + CLOSET.filter(c => c.who === who && (!c.ev || c.ev === EVENT || SV.closet[c.id])).map(c => {
+  const closet = ['ren', 'jill'].concat(SV.pomMet ? ['pom'] : []).map(who => `<h3 class="ph" style="font-size:16px;margin:10px 0 4px">${LANG === 'en' ? who.toUpperCase() : tr(({ ren: 'レン', jill: 'ジル', pom: 'ポム' })[who], who)}<small>${esc(t('closet'))}</small></h3>` + closetList(who).map(c => {
     const own = SV.closet[c.id], on = own && wear[who][c.slot] === c.v;
     return `<div class="shop-item"><img src="${closetIcon(c)}" alt=""><p>${esc(L(c))}${on ? `<small>${esc(t('wearing'))}</small>` : ''}</p>${own ? `<button class="buy${on ? '' : ' off'}" data-wear="${c.id}">${on ? t('takeOff') : t('putOn')}</button>` : c.lg != null ? `<button class="buy" disabled>${tr('伝説で解放', 'Legend only')}</button>` : `<button class="buy" data-buy="${c.id}" ${SV.bank < c.cost ? 'disabled' : ''}><img src="${SPR_URL.hay}" alt="">${fmt(c.cost)}</button>`}</div>`; }).join('')).join('');
   const li = legendInfo(), ja = LANG === 'ja', tg = (k, on, ok) => ok ? `<button class="buy${on ? '' : ' off'}" data-lg="${k}">${on ? (tr('オン', 'On')) : (tr('オフ', 'Off'))}</button>` : `<span class="lock">🔒</span>`;
@@ -141,6 +141,11 @@ function openHow() {
 }
 // 文字の大きさ（C-29）：html に bigtext をつける
 function applyLook() { try { document.documentElement.classList.toggle('bigtext', !!OPT().big); } catch (e) { } }
+// 同じ見た目の品（例：レンのサンタ帽。買える物とクリスマスのプレゼント）は1つだけ出す：持っている物 → いつもの物 → 無料の物の順（2026-11-09 の報告）
+function closetList(who) { const vis = CLOSET.filter(c => c.who === who && (!c.ev || c.ev === EVENT || SV.closet[c.id])), pick = {};
+  const rank = c => SV.closet[c.id] ? (c.ev ? 1 : 0) : 4 + (c.ev ? 1 : 0) + (c.cost ? 2 : 0);
+  for (const c of vis) { const k = c.slot + ':' + c.v; if (!pick[k] || rank(c) < rank(pick[k])) pick[k] = c; }
+  return vis.filter(c => pick[c.slot + ':' + c.v] === c); }
 function errLogHTML() { let a = []; try { a = JSON.parse(localStorage.getItem('rjErrLog') || '[]'); } catch (e) { }
   return `<details class="m xfer errlog"><summary><b>${esc(t('errLogH'))}</b> (${a.length})</summary><p class="note">${esc(t('errLogNote'))}</p>${a.length ? `<ul>${a.slice().reverse().map(x => `<li><code>${esc(new Date(x.t).toLocaleString())}${x.n > 1 ? ' ×' + x.n : ''}</code> ${esc(x.m)}</li>`).join('')}</ul>` : `<p class="note">${esc(t('errLogNone'))}</p>`}</details>`; }
 function settingsHTML() {
