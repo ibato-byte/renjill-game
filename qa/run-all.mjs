@@ -47,7 +47,7 @@ const T = [
   { n: 'toastpos', why: '題名画面のお知らせがボタンにかぶらない（横向きなど6つの画面サイズ）（2026-11-10）', ok: has('TOASTPOS OK') },
   { n: 'charmtext', why: 'お守りの「続ける」が押せないときはグレーだけ（「（お守りがない）」と書かない）（2026-11-10 オーナー）', ok: has('CHARMTEXT OK') },
   { n: 'closetdup', why: '着せかえに同じ見た目の品が2つ並ばない（2026-11-09 の報告）', ok: has('CLOSETDUP OK') },
-  { n: 'community', why: 'みんなの集計（今日の名所・クラブ・行事の合計、古い月の記録の片づけ）', ok: has('COMMUNITY OK') },
+  { n: 'community', why: 'みんなの集計（今日の名所・行事の合計、古い月の記録の片づけ）・クラブのランキングが出ない（2026-11-10 にやめた）', ok: has('COMMUNITY OK') },
   { n: 'titlecard', why: '新しい称号のシェア用カード（結果画面のボタン）', ok: has('TITLECARD OK') },
   { n: 'goldtie', why: '月間ランキング上位3人に金のネクタイ（経歴にバッジ）', ok: has('GOLDTIE OK') },
   { n: 'album', why: '自己ベストの記念写真・牧草で育つ観葉植物', ok: has('ALBUM OK') },
