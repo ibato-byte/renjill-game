@@ -322,11 +322,6 @@
       "has": "function commRow(cur, info)"
     },
     {
-      "name": "クラブ",
-      "file": "src/6c_rank.js",
-      "has": "async function clubTop(mkey)"
-    },
-    {
       "name": "言語ボタン（題名画面の右上）",
       "file": "src/body.html",
       "has": "id=\"btnLangTop\""
