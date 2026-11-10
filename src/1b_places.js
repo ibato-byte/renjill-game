@@ -132,7 +132,7 @@ const SEASON_LBL = { spring: { ja: '春・4月 新年度', en: 'Spring · April'
 // the same street looks different by season
 const SEASONAL = {
   ueno: { spring: { ja: '上野公園・お花見', en: 'Ueno Park, cherry blossoms', tree: 'sakura', leaves: 0, petals: 1, spat: 'petals', side: ['#B7A797', '#AE9E8E'], rpat: 'petalstone', props: [['bonbori', 3], ['stall', 1], ['benchS', 1]], obs: ['picnic', 'picnic', 'bench', 'cone', 'stoneLanternO'], arrive: { ja: '花見客でにぎわう桜のトンネル', en: 'A tunnel of cherry blossoms, busy with picnics' } },
-    summer: { ja: '上野公園・緑の並木', en: 'Ueno Park, green avenue', tree: 'green', leaves: 0, spat: 'lawn', side: ['#7FA35E', '#77995A'], obs: ['bench', 'cone', 'stoneLanternO'], arrive: { ja: '雨にぬれた緑の並木道', en: 'A green avenue in the rain' } },
+    summer: { ja: '上野公園・緑の並木', en: 'Ueno Park, green avenue', tree: 'green', leaves: 0, spat: 'lawn', side: ['#7FA35E', '#77995A'], obs: ['bench', 'cone', 'stoneLanternO'], arrive: { ja: '夏の緑の並木道', en: 'A green summer avenue' } },
     winter: { ja: '上野公園・冬木立', en: 'Ueno Park in winter', tree: 'bare', leaves: 0, spat: 'gravel', side: ['#A89F8A', '#A0977F'], obs: ['bench', 'cone', 'stoneLanternO'], arrive: { ja: '葉を落とした冬の並木', en: 'Bare winter trees' } } },
   gaien: { spring: { ja: '神宮外苑いちょう並木（新緑）', tree: 'green', en: 'Jingu Gaien ginkgo, fresh green', cone: 'canopy_coneG', leaves: 0, spat: 'walk', side: ['#BDB7AC', '#B5AFA4'], obs: ['cone', 'bench', 'kick', 'car'], arrive: { ja: '新緑のいちょう並木', en: 'Ginkgo trees in fresh green' } },
     summer: { ja: '神宮外苑いちょう並木（夏）', tree: 'green', en: 'Jingu Gaien ginkgo, summer', cone: 'canopy_coneG', leaves: 0, spat: 'walk', side: ['#BDB7AC', '#B5AFA4'], obs: ['cone', 'bench', 'kick', 'car'], arrive: { ja: '濃い緑のいちょう並木', en: 'Deep green ginkgo' } },

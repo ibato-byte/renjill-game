@@ -816,7 +816,7 @@ function hud() {
   setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay))); { const hn = Math.floor(G.hay); if (hn !== HUDC.hayN) { const up = hn > (HUDC.hayN || 0); HUDC.hayN = hn; const e = el('hHay'); if (up && e && !OPT().calm) { e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } } } // the hay count hops a little when it goes up (2026-11-08)
   setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
   setText('hClock', clockStr(G.clock)); setText('hDay', t('dayN', G.day));
-  { const sg = curSeg(); const tail = sg.th.climb ? ` ${altitude(sg, G.s)}m` : '', key = sg.tid + '|' + LANG + '|' + tail + '|' + innerWidth, e = el('hRoom'); if (e && e.offsetParent && HUDC.roomK !== key) { HUDC.roomK = key; roomFit(e, sg.th, tail); } }
+  { const sg = curSeg(); const tail = sg.th.climb ? ` ${altitude(sg, G.s)}m` : '', key = sg.id + '|' + L(sg.th) + '|' + LANG + '|' + tail + '|' + innerWidth /* 同じ場所でも季節で名前が変わる（道ごとに見る） */, e = el('hRoom'); if (e && e.offsetParent && HUDC.roomK !== key) { HUDC.roomK = key; roomFit(e, sg.th, tail); } }
   { const danger = (G.chaseT > 0 && !G.chaseIntro) || G.rush; if (danger) G.bumped = 1; setCls('lives', 'hide', !G.bumped && !G.rush); setCls('lives', 'warn', danger); setCls('lives', 'one', danger);
     setText('livesTxt', G.rush ? t('livesRush') : danger ? t('livesWarn', Math.ceil(G.chaseT)) : ''); }
   const pct = clamp(G.feverG, 0, 100);
