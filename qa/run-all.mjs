@@ -45,6 +45,7 @@ const T = [
   { n: 'bannerdup', why: 'お知らせの帯の見出しと本文が同じことをくり返さない（2026-11-09）', ok: has('BANNERDUP OK') },
   { n: 'nofinish', why: '長く遊んでも、走りが壊れたら新しい道から続ける（「早退しました」で終わらない）（2026-11-10 の報告）', ok: has('NOFINISH OK') },
   { n: 'toastpos', why: '題名画面のお知らせがボタンにかぶらない（横向きなど6つの画面サイズ）（2026-11-10）', ok: has('TOASTPOS OK') },
+  { n: 'charmtext', why: 'お守りの「続ける」が押せないときはグレーだけ（「（お守りがない）」と書かない）（2026-11-10 オーナー）', ok: has('CHARMTEXT OK') },
   { n: 'closetdup', why: '着せかえに同じ見た目の品が2つ並ばない（2026-11-09 の報告）', ok: has('CLOSETDUP OK') },
   { n: 'community', why: 'みんなの集計（今日の名所・クラブ・行事の合計、古い月の記録の片づけ）', ok: has('COMMUNITY OK') },
   { n: 'titlecard', why: '新しい称号のシェア用カード（結果画面のボタン）', ok: has('TITLECARD OK') },
