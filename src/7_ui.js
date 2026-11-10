@@ -365,7 +365,6 @@ $('#sPanel').addEventListener('click', e => {
   if (op) { const k = op.dataset.opt; let v = op.dataset.v; if (v === 'true') v = true; else if (v === 'false') v = false; SV.opt[k] = v; save(); audioInit(); applyAudioOpt(); applyLook(); SFX.ui(); $('#pBody').innerHTML = settingsHTML(); }
   const rt = e.target.closest('[data-rt]'); if (rt) openRanking(rt.dataset.rt);
   if (e.target.id === 'nickSave') saveNick();
-  if (e.target.id === 'clubSave') saveClub();
   if (e.target.id === 'nameOk') nameDone(1);
   if (e.target.id === 'nameLater') nameDone(0);
   if (e.target.id === 'btnNameSet') openName(0);

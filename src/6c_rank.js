@@ -112,18 +112,17 @@ async function rankAfterRun(score) {
   } catch (e) { me0.textContent = tr('ランキングを読み込めませんでした', 'Could not load the ranking'); }
 }
 async function openRanking(tab) {
-  SFX.ui(); tab = tab || 'month';
+  SFX.ui(); tab = tab === 'all' ? 'all' : 'month'; // クラブのランキングは 2026-11-10 にやめた（オーナー：不要）
   const mkey = monthKey(), field = tab === 'all' ? 'all' : mkey;
-  openPanel('RANKING', tr('ランキング', 'Ranking'), `<div class="tabs"><button class="buy${tab === 'month' ? '' : ' off'}" data-rt="month">${esc(monthLabel(mkey))}</button><button class="buy${tab === 'all' ? '' : ' off'}" data-rt="all">${tr('歴代', 'All time')}</button><button class="buy${tab === 'club' ? '' : ' off'}" data-rt="club">${esc(t('clubTab'))}</button></div>
+  openPanel('RANKING', tr('ランキング', 'Ranking'), `<div class="tabs"><button class="buy${tab === 'month' ? '' : ' off'}" data-rt="month">${esc(monthLabel(mkey))}</button><button class="buy${tab === 'all' ? '' : ' off'}" data-rt="all">${tr('歴代', 'All time')}</button></div>
     <div class="nick"><label for="nickIn">${tr('ランキングでの名前', 'Your name on the ranking')}</label><input id="nickIn" maxlength="12" autocomplete="off"><button class="buy" id="nickSave">${tr('保存', 'Save')}</button></div>
-    <div class="nick"><label for="clubIn">${esc(t('clubLbl'))}</label><input id="clubIn" maxlength="12" autocomplete="off"><button class="buy" id="clubSave">${tr('保存', 'Save')}</button></div><p class="note" style="margin:0 0 6px">${esc(t('clubNote'))}</p>
     <p class="note" style="margin:4px 0 8px"><a class="notelink" href="${RANK_PAGE}" target="_blank" rel="noopener">${tr('みんなのランキングのページを開く（だれでも見られます）', 'Open the public ranking page (anyone can view)')}</a></p>
     <div class="rk-list" id="rkFull"><p class="note">${tr('読み込み中…', 'Loading…')}</p></div><p class="note">${tr('毎月1日（日本時間）に月間ランキングが新しくなります。名前を決めないときは「うさぎ#番号」の匿名で表示されます。', 'The monthly board starts fresh on the 1st (Japan time). Without a name you appear as an anonymous bunny.')}</p>`);
-  $('#nickIn').value = SV.nick || ''; $('#clubIn').value = SV.club || '';
+  $('#nickIn').value = SV.nick || '';
   const el = $('#rkFull');
   if (!RANK.ready) await new Promise(r => setTimeout(r, 1500));
   if (!rankOn()) { el.textContent = ''; const p = document.createElement('p'); p.className = 'note'; p.textContent = RANK.own === undefined && window.HAYDASH_APP ? (tr('ランキングは準備中です。', 'The ranking is coming soon.')) : tr('ランキングは公開ページで、サインインして遊んだ人の間で共有されます。', 'Sign in on the shared page to join the monthly ranking.'); el.appendChild(p); return; }
-  try { if (tab === 'club') { clubList(el, await clubTop(mkey)); return; } const rows = await rankTop(field, 50); rankList(el, rows, field, await rankNames(rows)); }
+  try { const rows = await rankTop(field, 50); rankList(el, rows, field, await rankNames(rows)); }
   catch (e) { el.textContent = tr('ランキングを読み込めませんでした。', 'Could not load the ranking.'); }
 }
 // one place that changes the name: saved locally and on the board
@@ -146,7 +145,7 @@ document.addEventListener('visibilitychange', () => {
 /* ================= みんなの集計（B-45・46・47、2026-11-09） =================
    サーバーの仕組みはそのまま（自分の行だけ書ける・だれでも読める）。それぞれが自分の行に小さな値を足し、集計は読む側でする。
    - 今日いちばん走られた場所（B-45）：pd＝今日の日付、pt＝その日の最後の走りでいちばん長くいた名所。今日の行を数える
-   - クラブ（B-46）：club＝会社名など（12文字まで、名前と同じ見張り）。今月の上位 300 行をクラブごとに足す
+   - クラブ（B-46）：2026-11-10 にやめた（オーナー：不要）。行に残っている club は書くときに消す
    - 季節イベントの合計（B-47）：e_<行事>＝その行事の間に集めたチモシーの合計。全員分を足す（足し算の集計、なければ読んで足す）
    行の項目は 60 個まで（ルール）なので、6 か月より前の月の記録と、終わった行事の値は書くときに消す */
 const EV_GOAL = 1000000;
@@ -157,7 +156,7 @@ function commRow(cur, info) {
   let ch = false;
   if (info.place) { const d = dayNum(); if (cur.pd !== d || cur.pt !== info.place) { cur.pd = d; cur.pt = info.place; ch = true; } }
   const ef = evField(); if (ef && info.hay > 0) { cur[ef] = Math.min(5e7, (cur[ef] | 0) + Math.floor(info.hay)); SV.evHay = { id: EVENT, n: cur[ef] }; ch = true; }
-  { const c = SV.club && !nameBad(SV.club) ? cleanName(SV.club) : ''; if ((cur.club || '') !== c) { if (c) cur.club = c; else delete cur.club; ch = true; } }
+  if ('club' in cur) { delete cur.club; ch = true; } // クラブの機能はやめた（2026-11-10）。前に保存したクラブ名は消す
   const j = new Date(Date.now() + 9 * 3600e3); j.setUTCDate(1); j.setUTCMonth(j.getUTCMonth() - 6); const oldest = j.getUTCFullYear() * 100 + j.getUTCMonth() + 1;
   for (const k of Object.keys(cur)) { const m = /^m(\d{6})[cd]?$/.exec(k); if ((m && +m[1] < oldest) || (/^e_/.test(k) && k !== ef)) { delete cur[k]; ch = true; } }
   return ch;
@@ -186,21 +185,4 @@ function commShow() {
     lines.push(`<span>${esc(t(done ? 'commEvDone' : 'commEv', fmt(COMM.ev.n), fmt(EV_GOAL)))}</span><i><b style="width:${(k * 100).toFixed(1)}%"></b></i>`);
     if (done && SV.evHay && SV.evHay.id === EVENT && SV.evHay.n > 0 && SV.evGoalGot !== EVENT) { SV.evGoalGot = EVENT; SV.bank += 500; save(); toastTitle(t('commEvGift', 500)); } }
   e.innerHTML = lines.join(''); e.hidden = !lines.length;
-}
-async function clubTop(mkey) {
-  const rows = await rankTop(mkey, 300), m = {};
-  for (const r of rows) { const c = typeof r.club === 'string' ? cleanName(r.club) : ''; if (!c || nameBad(c)) continue; const k = c.toLowerCase(); (m[k] = m[k] || { name: c, s: 0, n: 0, me: 0 }).s += +r[mkey] || 0; m[k].n++; if (r.id === RANK.uid) m[k].me = 1; }
-  return Object.values(m).sort((a, b) => b.s - a.s).slice(0, 30);
-}
-function clubList(el, list) {
-  el.textContent = '';
-  if (!list.length) { const p = document.createElement('p'); p.className = 'note'; p.textContent = t('clubNone'); el.appendChild(p); return; }
-  list.forEach((c, i) => { const li = document.createElement('div'); li.className = 'rk club' + (c.me ? ' me' : '') + (i < 3 ? ' top' + (i + 1) : '');
-    const n = document.createElement('b'); n.textContent = i + 1; const nm = document.createElement('span'); nm.textContent = c.name + t('clubMembers', c.n); const sc = document.createElement('em'); sc.textContent = fmt(c.s);
-    li.append(n, nm, sc); el.appendChild(li); });
-}
-async function saveClub() {
-  const v = cleanName($('#clubIn').value); if (v && nameBad(v)) { $('#clubIn').value = ''; $('#clubIn').placeholder = t('nameNG'); return; }
-  SV.club = v; save(); if (rankOn()) { try { const ref = RANK.db.doc('ranks/' + RANK.uid); const sn = await ref.get(); if (sn.exists) { const cur = Object.assign({}, sn.data()); if (v) cur.club = v; else delete cur.club; await ref.set(cur); } } catch (e) { } }
-  $('#clubSave').textContent = tr('保存しました', 'Saved');
 }
