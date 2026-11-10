@@ -278,7 +278,7 @@ function openRevive() {
   $('#rvEn').textContent = tr(cap[1], cap[0]); $('#rvJa').textContent = ''; showHit('rv');
   const bc = $('#btnRvClover'), bh = $('#btnRvHay');
   const free = freeRevive(); bc.dataset.free = free ? '1' : '';
-  bc.textContent = free ? t('reviveFree') : t('reviveClover', c.clover); bc.disabled = !free && SV.clovers < c.clover; bc.style.opacity = bc.disabled ? .45 : 1; if (bc.disabled) bc.textContent += t('rvNoClover'); /* 押せない理由を書く */
+  bc.textContent = free ? t('reviveFree') : t('reviveClover', c.clover); bc.disabled = !free && SV.clovers < c.clover; bc.style.opacity = bc.disabled ? .45 : 1; /* お守りが足りないときはグレーにするだけ（文字は足さない。2026-11-10 オーナー：グレーで分かる） */
   bh.textContent = t('reviveHay', c.hay); bh.disabled = SV.bank + Math.floor(G.hay) < c.hay; bh.style.opacity = bh.disabled ? .45 : 1; if (bh.disabled) bh.textContent += t('rvShort', fmt(c.hay - SV.bank - Math.floor(G.hay))); bh.hidden = free;
   $('#rvHave').textContent = free ? t('reviveFreeNote') : t('reviveHave', SV.clovers, fmt(SV.bank + Math.floor(G.hay)));
   const ba = $('#btnRvAd'); if (ba) { ba.hidden = !PORTAL.adOK(); ba.textContent = t('reviveAd'); }
