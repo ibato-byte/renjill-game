@@ -375,6 +375,21 @@
       "name": "おしごとの試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'gigcheck'"
+    },
+    {
+      "name": "消えたキャラクターの絵を描き直す（毎秒の見張り）",
+      "file": "src/7_ui.js",
+      "has": "picCheck(now)"
+    },
+    {
+      "name": "消えた絵の描き直し（キャラクター・アイテム・景色）",
+      "file": "src/2b_bunny.js",
+      "has": "function picRepair()"
+    },
+    {
+      "name": "消えた絵の見張りのテスト",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'vanish'"
     }
   ]
 }

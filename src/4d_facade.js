@@ -302,7 +302,8 @@ function drawFacadeTex(w, dist) {
 }
 
 const SPR_PEND = {};
-function sprPaint(k) { const f = SPR_PEND[k]; if (!f) return SPR[k]; delete SPR_PEND[k]; const low = CANVAS_LOW; try { SPR[k] = f(); if (CANVAS_LOW !== low) { delete SPR[k]; SPR_PEND[k] = f; return null; } /* out of picture memory: painted again later, not kept blank */ if (SPR[k] && !SPR[k].__keep) { SPR[k].__keep = 1; ART_KEPT++; } } catch (e) { } return SPR[k]; }
+const SPR_FN = {}; // how each late-painted picture is made, kept so that it can be painted again (picRepairAll)
+function sprPaint(k) { const f = SPR_PEND[k]; if (!f) return SPR[k]; delete SPR_PEND[k]; SPR_FN[k] = f; const low = CANVAS_LOW; try { SPR[k] = f(); if (CANVAS_LOW !== low) { delete SPR[k]; SPR_PEND[k] = f; return null; } /* out of picture memory: painted again later, not kept blank */ if (SPR[k] && !SPR[k].__keep) { SPR[k].__keep = 1; ART_KEPT++; } } catch (e) { } return SPR[k]; }
 // idle time: paint the fronts of the streets ahead (and their lit copies) before they come round the corner
 function texWarm(ms) {
   const end = performance.now() + Math.max(1.5, ms); const night = LT.night > .35;
@@ -324,4 +325,14 @@ function texWarm(ms) {
       if (sg.tid && THEMES[sg.tid] && THEMES[sg.tid].stamp) stampSprite(sg.tid);
       sg.warmA = key; }
   } finally { if (swapped && cur) computeLight(cur); }
+}
+
+// every kept picture is empty (see picCheck): the item and scenery pictures are painted again now, the late-painted ones when next needed
+function picRepairAll() {
+  // (their sizes are left alone: a street already built may still hold one, and drawing a picture of no size would stop the frame)
+  for (const k in SPR_FN) { const c = SPR[k]; if (c) { if (c.__keep) ART_KEPT = Math.max(0, ART_KEPT - 1); delete SPR[k]; } SPR_PEND[k] = SPR_FN[k]; }
+  ART_C.clear(); GRAINP = null;
+  TINT_CACHE.clear(); CLOUD_SPR.length = 0; for (const k in STAMP_CACHE) delete STAMP_CACHE[k];
+  buildItemSprites(); buildWorldSprites();
+  if (FTEX.asphalt) { for (const k in FTEX) delete FTEX[k]; buildFloorTex(); }
 }

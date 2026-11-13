@@ -432,8 +432,12 @@ function frameBody(now) {
   if (G.capture && G.capture.t <= 0) { takePhoto(G.capture.tid); G.capture = null; }
   if (G.mode === 'title') { drawCharCard($('#cvRen'), 'ren', G.t); drawCharCard($('#cvJill'), 'jill', G.t + 1.3); if (SV.pomMet) drawCharCard($('#cvPom'), 'pom', G.t + .6); }
   if (SAVE_DIRTY && G.mode !== 'play' && G.mode !== 'countdown') saveNow();
-  musicTick(); padTick();
+  musicTick(); padTick(); picCheck(now);
 }
+// back from the background, or the browser says the picture was lost: look at the kept pictures on the very next frame
+for (const ev of ['pageshow', 'focus']) addEventListener(ev, () => { PIC_NEXT = 0; });
+document.addEventListener('visibilitychange', () => { PIC_NEXT = 0; });
+for (const ev of ['contextlost', 'contextrestored']) cv.addEventListener(ev, () => { PIC_NEXT = 0; });
 // ゲームパッド（C-13）：十字キー・左スティックで操作、A でジャンプ、B でスライディング、スタートで一時停止
 const PAD = { prev: {} };
 function padTick() { let gp = null; try { const l = navigator.getGamepads ? navigator.getGamepads() : []; for (const g of l) if (g && g.connected) { gp = g; break; } } catch (e) { return; } if (!gp) return;

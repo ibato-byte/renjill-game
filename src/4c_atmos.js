@@ -80,7 +80,7 @@ function tintedSprite(img, rgb) {
   if (!img || !img.width) return img;
   const q = rgb.map(x => Math.min(255, Math.round(x / 12) * 12)); if (q[0] >= 252 && q[1] >= 252 && q[2] >= 252) return img;
   let m = TINT_CACHE.get(img); if (!m) { m = {}; TINT_CACHE.set(img, m); } const k = q.join(','); if (m[k]) return m[k];
-  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d') || noCtx();
+  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); if (!g) { noCtx(); return img; } // out of picture memory: the untinted picture, never a blank one kept
   g.drawImage(img, 0, 0); g.globalCompositeOperation = 'multiply'; g.fillStyle = rgbS(q); g.fillRect(0, 0, c.width, c.height); g.globalCompositeOperation = 'destination-in'; g.drawImage(img, 0, 0);
   const keys = Object.keys(m); while (keys.length > 3) { const kk = keys.shift(), o = m[kk]; delete m[kk]; try { o.width = o.height = 0; } catch (e) { } } m[k] = c; return c;
 }
