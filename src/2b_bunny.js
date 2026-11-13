@@ -463,7 +463,7 @@ function buildBunnies(only) {
   }
 }
 function paint(fn) { const c = mk(BS, BS + BTOP); const g = c.getContext('2d') || noCtx(); g.lineJoin = 'round'; g.translate(0, BTOP); fn(g); return c; }
-function bunFrame(who, pose, mug) { const k = mug && who === 'ren' ? 'm' : ''; return BUN[who][pose + k] || BUN[who][pose] || BUN[who]['front_open'] || BUN[who].run0; }
+function bunFrame(who, pose, mug) { const k = mug && who === 'ren' ? 'm' : ''; const f = BUN[who][pose + k] || BUN[who][pose] || BUN[who]['front_open'] || BUN[who].run0; if (f && PIC_SEEN.size < 12) PIC_SEEN.add(f); return f; }
 function drawCharCard(cv, who, t) {
   const g = cv.getContext('2d') || noCtx(); g.clearRect(0, 0, cv.width, cv.height);
   const mood = (t % 3.4) < .14 ? 'blink' : ((t % 9) > 7.4 ? 'happy' : 'open');
@@ -472,4 +472,30 @@ function drawCharCard(cv, who, t) {
   g.save(); g.translate(cv.width / 2, cv.height * .98 + bob * 0); g.scale(s, s * (1 + Math.sin(t * 2.2) * .012));
   g.fillStyle = 'rgba(59,42,32,.14)'; g.beginPath(); g.ellipse(0, -14, 100, 14, 0, 0, Math.PI * 2); g.fill();
   g.drawImage(img, -BS / 2, -GROUND_Y - 4 - BTOP); g.restore();
+}
+
+/* ---- kept pictures that went blank are painted again (2026-11-13 の報告：プレイ中にキャラクターが透明になって消え、選択画面でも消えたまま) ----
+   An iPhone that is short of memory (or comes back from the background) can empty the pictures a page keeps: the canvases are still
+   there, but with nothing in them. The stage is drawn fresh every frame, so it carried on, but the characters are kept pictures and
+   stayed invisible, in the run and on the title, until the page was loaded again. Once a second the pictures in use are looked at;
+   an empty one means: paint them again (and, when the item pictures are empty too, every other kept picture as well). */
+const PIC_SEEN = new Set(); let PIC_NEXT = 0, PIC_FIX = 0, PIC_BAD = 0, PIC_WAIT = 1000;
+const PIC_PROBE = (() => { try { const c = document.createElement('canvas'); c.width = c.height = 16; return c.getContext('2d', { willReadFrequently: true }); } catch (e) { return null; } })();
+function picBlank(img) { // true: nothing in it / false: something is drawn / null: cannot tell (then nothing is done)
+  if (!img) return null; if (!img.width || !img.height) return true; if (!PIC_PROBE) return null;
+  try { PIC_PROBE.clearRect(0, 0, 16, 16); PIC_PROBE.drawImage(img, 0, 0, 16, 16); const d = PIC_PROBE.getImageData(0, 0, 16, 16).data; for (let i = 3; i < d.length; i += 4) if (d[i] > 8) return false; return true; } catch (e) { return null; }
+}
+function picCheck(now, force) {
+  if (!force && now < PIC_NEXT) return; PIC_NEXT = now + PIC_WAIT;
+  let bad = PIC_BAD; const list = [...PIC_SEEN]; PIC_SEEN.clear(); for (const w of ['ren', 'jill', 'pom']) if (BUN[w] && BUN[w].front_open) list.push(BUN[w].front_open);
+  if (!bad) for (const f of list) if (picBlank(f) === true) { bad = 1; break; }
+  if (!bad) { PIC_WAIT = 1000; return; }
+  picRepair(); PIC_WAIT = PIC_BAD ? Math.min(8000, PIC_WAIT * 2) : 1000; PIC_NEXT = now + PIC_WAIT; // no picture memory yet: again in a moment, a little later each time
+}
+function picRepair() {
+  PIC_FIX++; window.__picFix = PIC_FIX; const low = CANVAS_LOW, all = picBlank(SPR.hay) === true;
+  try { freePictures(); } catch (e) { } // the loose copies first: the memory they held is what the new pictures need
+  for (const w of ['ren', 'jill', 'pom']) for (const k in BUN[w]) { try { BUN[w][k].width = BUN[w][k].height = 0; } catch (e) { } }
+  if (all) { try { picRepairAll(); } catch (e) { } }
+  buildBunnies(); PIC_BAD = CANVAS_LOW !== low ? 1 : 0;
 }

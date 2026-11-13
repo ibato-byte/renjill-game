@@ -45,6 +45,7 @@ const T = [
   { n: 'bannerdup', why: 'お知らせの帯の見出しと本文が同じことをくり返さない（2026-11-09）', ok: has('BANNERDUP OK') },
   { n: 'nofinish', why: '長く遊んでも、走りが壊れたら新しい道から続ける（「早退しました」で終わらない）（2026-11-10 の報告）', ok: has('NOFINISH OK') },
   { n: 'toastpos', why: '題名画面のお知らせがボタンにかぶらない（横向きなど6つの画面サイズ）（2026-11-10）', ok: has('TOASTPOS OK') },
+  { n: 'vanish', why: 'キャラクターが透明になって消えたままにならない（iPhone が保存してある絵を空にしても、2秒以内に描き直す。題名画面・プレイ中・全部の絵）（2026-11-13 の報告）', ok: has('VANISH OK') },
   { n: 'charmtext', why: 'お守りの「続ける」が押せないときはグレーだけ（「（お守りがない）」と書かない）（2026-11-10 オーナー）', ok: has('CHARMTEXT OK') },
   { n: 'closetdup', why: '着せかえに同じ見た目の品が2つ並ばない（2026-11-09 の報告）', ok: has('CLOSETDUP OK') },
   { n: 'community', why: 'みんなの集計（今日の名所・行事の合計、古い月の記録の片づけ）・クラブのランキングが出ない（2026-11-10 にやめた）', ok: has('COMMUNITY OK') },
@@ -97,7 +98,7 @@ const T = [
   { n: 'pbtest', why: '自己ベストを更新した瞬間に終わらない（1位の方からの報告・2026-11）', ok: has('PB OK'), timeout: 600 },
   { n: 'seo', why: '検索で見つけてもらう（タイトル・説明・ガイド・地図）', ok: has('SEO OK'), timeout: 200 },
 ];
-if (MODE === 'smoke') { const keep = new Set(['featureguard', 'dupcheck', 'qa', 'reltest', 'apptest', 'seo', 'reach', 'soundcheck']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
+if (MODE === 'smoke') { const keep = new Set(['featureguard', 'dupcheck', 'qa', 'reltest', 'apptest', 'seo', 'reach', 'soundcheck', 'vanish']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
 if (MODE === 'full') {
   for (let i = 0; i < 6; i++) T.push({ n: 'qa_stage', env: { NP: '6', PI: String(i) }, label: 'qa_stage#' + i, why: '全ステージ×5場面の表示（' + (i + 1) + '/6）', ok: has('bad 0'), timeout: 700 });
   T.push({ n: 'stuck', args: ['300'], env: { LATE: '0' }, label: 'stuck-long', why: 'とても長く走っても動けなくならない（5分×3人）', ok: has('NO STUCK'), timeout: 1200 });
