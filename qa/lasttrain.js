@@ -9,9 +9,9 @@ const { chromium } = require('playwright'); const path = require('path');
   const r = {};
   r.day = await setup(600);
   r.night = await setup(1300);
-  r.ok = await p.evaluate(() => { const D = window.__hayDash, G = D.G; const s0 = G.score; G.ci = 1; D.ev('lastTrainTick()'); return { bonus: G.score - s0, done: G.lastTrainDone, got: G.stats.lastTrain }; });
+  r.ok = await p.evaluate(() => { const D = window.__hayDash, G = D.G; const s0 = G.score; G.ci = 1; D.ev('lastTrainTick()'); return { bonus: Math.round(G.score - s0), done: G.lastTrainDone, got: G.stats.lastTrain }; }); // 点数は小数で積み上がるので、差は丸めて比べる（1499.9999… で落ちていた。依頼 #230）
   await setup(1300);
-  r.late = await p.evaluate(() => { const D = window.__hayDash, G = D.G; G.lastTrain.until = G.t - 1; D.ev('lastTrainTick()'); const closed = document.getElementById('hLast').textContent; const s0 = G.score; G.ci = 1; D.ev('lastTrainTick()'); return { closed, bonus: G.score - s0, mode: G.mode }; });
+  r.late = await p.evaluate(() => { const D = window.__hayDash, G = D.G; G.lastTrain.until = G.t - 1; D.ev('lastTrainTick()'); const closed = document.getElementById('hLast').textContent; const s0 = G.score; G.ci = 1; D.ev('lastTrainTick()'); return { closed, bonus: Math.round(G.score - s0), mode: G.mode }; });
   console.log(JSON.stringify(r));
   const ok = !r.day.on && r.night.on && /終電まで/.test(r.night.hud) && r.ok.bonus >= 1500 && r.ok.done === 1 && r.ok.got === 1 && /閉まった/.test(r.late.closed) && r.late.bonus === 0 && r.late.mode === 'play';
   console.log(ok && !errs.length ? 'LASTTRAIN OK' : 'LASTTRAIN NG ' + errs.join(' | ')); await b.close();
