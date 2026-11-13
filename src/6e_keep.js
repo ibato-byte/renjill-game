@@ -45,7 +45,8 @@ let KP_CHAIN = 0, KP_BOOST_ON = 0, KP_RIVALS = [], KP_RIVAL_T = 0;
 const kpN = v => Number.isFinite(+v) && +v > 0 ? Math.floor(+v) : 0;
 let KP_REF = null, KP_DAY = '';
 function kp() { // the kept numbers, always in shape (an old or damaged save has none or odd ones)
-  let k = SV.kp; if (k && k === KP_REF && KP_DAY === todayStr()) return k; // looked over once a day per save (this is asked for every frame of a run) if (!k || typeof k !== 'object' || Array.isArray(k)) k = SV.kp = {};
+  let k = SV.kp; if (k && k === KP_REF && KP_DAY === todayStr()) return k; // looked over once a day per save (this is asked for every frame of a run)
+  if (!k || typeof k !== 'object' || Array.isArray(k)) k = SV.kp = {};
   k.h = Array.isArray(k.h) ? k.h.map(kpN).slice(-10) : []; k.top = Array.isArray(k.top) ? k.top.filter(r => Array.isArray(r) && kpN(r[0])).slice(0, 10) : [];
   if (!k.cb || typeof k.cb !== 'object') k.cb = {}; if (!k.sp || typeof k.sp !== 'object') k.sp = {}; k.md = Math.min(KP_MEDAL.length, kpN(k.md));
   const td = todayStr(), wk = weekKey(); if (k.d !== td) { k.d = td; k.db = 0; } if (k.w !== wk) { k.lw = k.w ? kpN(k.wb) : 0; k.w = wk; k.wb = 0; k.lwDone = 0; }
