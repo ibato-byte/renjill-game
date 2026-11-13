@@ -36,6 +36,7 @@ function refreshTitle() {
   { let q = $('#btnPractice'); if (!q) { q = document.createElement('button'); q.id = 'btnPractice'; q.className = 'sub small quick'; q.onclick = openPractice; $('#btnQuick').after(q); } q.textContent = t('practice'); q.hidden = !SV.tutDone; } // 練習・場所えらび（B-31・B-38）
   { let e = $('#tDayGoal'); if (!e) { e = document.createElement('div'); e.id = 'tDayGoal'; $('#tDaily').after(e); } const n = SV.dayHay && SV.dayHay.d === todayStr() ? SV.dayHay.n : 0, k = Math.min(1, n / DAY_GOAL);
     e.className = 'daygoal' + (n >= DAY_GOAL ? ' done' : ''); e.innerHTML = `<span>${esc(tr('今日のチモシー', 'Hay today'))}</span><i><b style="width:${(k * 100).toFixed(0)}%"></b></i><em>${fmt(Math.min(n, DAY_GOAL))} / ${DAY_GOAL}${n >= DAY_GOAL ? ' ✓' : ''}</em>`; } // today's hay goal (2026-11-08)
+  try { kpTitle(); } catch (e) { reportErr(e); }
   $('#pickRen').setAttribute('aria-pressed', G.char === 'ren'); $('#pickJill').setAttribute('aria-pressed', G.char === 'jill'); $('#pickPom').setAttribute('aria-pressed', G.char === 'pom');
   if (SV.pomMet && !SV.pomTold) { SV.pomTold = 1; save(); setTimeout(() => { if (G.mode === 'title') toastTitle(t('pomUnlock')); }, 600); }
   $('#dotZukan').hidden = Object.keys(SV.zukan).length <= (SV.seenZukan || 0);
@@ -46,7 +47,7 @@ let PANEL_FROM = null;
 function openPanel(title, sub, html) { if ($('#sPanel').hidden) { const a = document.activeElement; PANEL_FROM = a && a !== document.body && !a.closest('#sPanel') ? a : null; } if (LANG !== 'en' && sub) { title = esc(sub); sub = ''; } document.querySelectorAll('.toast').forEach(x => x.remove()); if (sub && sub.toUpperCase() === title) sub = ''; $('#pTitle').innerHTML = `${title}<small>${esc(sub)}</small>`; $('#pBody').innerHTML = html; $('#pBody').scrollTop = 0; show('sPanel'); { const lt = $('#btnLangTop'); if (lt) lt.hidden = true; } $('#pClose').focus(); } // 言語ボタンが閉じるボタンにかぶらないよう、パネル中はかくす
 function closePanel() { $('#sPanel').hidden = true; { const lt = $('#btnLangTop'); if (lt) lt.hidden = false; } if (G.mode === 'title') refreshTitle(); const f = PANEL_FROM; PANEL_FROM = null; if (f && f.isConnected && !f.closest('[hidden]')) try { f.focus({ preventScroll: true }); } catch (e) { } }
 
-function openMissions() { SFX.ui(); openPanel('MISSIONS', t('missions'), `<div class="lvl"><b>×${SV.mlevel}</b><span>${esc(t('missionNote'))}</span></div>${missionHTML()}${dailyHTML()}${weekHTML()}${calHTML()}${achHTML()}`); }
+function openMissions() { SFX.ui(); openPanel('MISSIONS', t('missions'), `<div class="lvl"><b>×${SV.mlevel}</b><span>${esc(t('missionNote'))}</span></div>${missionHTML()}${kpRerollHTML()}${dailyHTML()}${weekHTML()}${calHTML()}${achHTML()}`); }
 // the days you came to work: the last four weeks as a little calendar of stamps (2026-11-08)
 function calHTML() { const days = new Set(SV.playDays || []), cells = []; const now = new Date(); const ds = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
   const start = new Date(now); start.setDate(now.getDate() - 27 - ((now.getDay() + 6) % 7) + 6); // 4 rows of 7, ending this week
@@ -300,7 +301,7 @@ const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'ri
 addEventListener('keydown', e => {
   if (e.target && e.target.closest && e.target.closest('input,textarea,[contenteditable]') && e.code !== 'Escape') return; // typing a name or a code: letters are letters (P is not pause)
   if (e.code === 'Escape' || e.code === 'KeyP') { if (G.mode === 'play') pause(); else if (G.mode === 'pause') resume(); else if (!$('#sPanel').hidden) closePanel(); return; }
-  if ((G.mode === 'title' || G.mode === 'result') && e.code === 'Enter' && $('#sPanel').hidden && !e.target.closest('button,a,summary,input,textarea')) { hideAll(); startRun(); return; }
+  if ((G.mode === 'title' || G.mode === 'result') && (e.code === 'Enter' || (e.code === 'Space' && G.mode === 'result')) && $('#sPanel').hidden && !e.target.closest('button,a,summary,input,textarea')) { hideAll(); startRun(); return; }
   const a = KEYMAP[e.code]; if (a && G.mode === 'play') { e.preventDefault(); if (!e.repeat) act(a); }
 });
 let tp = null;
@@ -350,6 +351,7 @@ $('#pClose').onclick = closePanel;
 $('#sPanel').addEventListener('click', e => {
   const up = e.target.closest('[data-up]'), buy = e.target.closest('[data-buy]'), mg = e.target.closest('[data-mug]'), z = e.target.closest('[data-z]'), sst = e.target.closest('[data-s]');
   if (e.target === $('#sPanel')) { closePanel(); return; }
+  { const rr = e.target.closest('[data-reroll]'); if (rr) { if (kpReroll(rr.dataset.reroll)) { SFX.ui(); openMissions(); refreshTitle(); } return; } } // ミッションの入れかえ
   if (up) { const k = up.dataset.up, c = UPG_COST[SV.upg[k] || 0]; if (SV.bank >= c && (SV.upg[k] || 0) < 5) { SV.bank -= c; SV.upg[k] = (SV.upg[k] || 0) + 1; save(); SFX.power(); $('#pBody').innerHTML = shopHTML(); } }
   if (buy) { const k = buy.dataset.buy; if (k === 'clover' && SV.bank >= 500) { SV.bank -= 500; SV.clovers++; } if (k === 'mug' && SV.bank >= 1500) { SV.bank -= 1500; SV.mug = true; SV.mugOn = true; SV.wear.ren.hat = ''; applyWear(); }
     const c = CLOSET.find(x => x.id === k); if (c && c.lg == null && !c.ev && !SV.closet[c.id] && SV.bank >= c.cost) { SV.bank -= c.cost; SV.closet[c.id] = 1; SV.wear[c.who][c.slot] = c.v; if (c.slot === 'hat' && c.who === 'ren') SV.mugOn = false; applyWear(); } save(); SFX.power(); $('#pBody').innerHTML = shopHTML(); }
@@ -456,6 +458,7 @@ function boot() {
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren'; missionsFix();
   goTitle(); document.documentElement.classList.remove('booting'); // the page shows only once its words are in the player's language
+  try { kpComeback(); } catch (e) { reportErr(e); }
   dailyBonus(); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && G.mode === 'title') dailyBonus(); }); // a phone that keeps the app open past midnight gets the next day's bonus when it comes back
   { // an event has ended: whoever still wears its gift goes back to their usual look once (the gift stays in the Shop and can be worn again)
     if (SV.lastEv !== EVENT) { let off = 0; for (const c of CLOSET) if (c.ev && c.ev !== EVENT && SV.wear[c.who] && SV.wear[c.who][c.slot] === c.v && !CLOSET.some(d => d !== c && d.who === c.who && d.slot === c.slot && d.v === c.v && (d.ev === EVENT || (!d.ev && SV.closet[d.id])))) { SV.wear[c.who][c.slot] = SLOT_DEF[c.slot] || ''; off = 1; } if (off) applyWear(); } // also on the first start after this update (saves without lastEv)

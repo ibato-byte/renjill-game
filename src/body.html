@@ -6,7 +6,7 @@
   <div id="hud" hidden>
     <div id="feverGlow"></div>
     <div class="hud-top">
-      <div class="score chip" id="hScoreBox"><b id="hScore">0</b><small id="hMult">×1</small><small id="combo"></small><small id="hChal"></small></div>
+      <div class="score chip" id="hScoreBox"><b id="hScore">0</b><small id="hMult">×1</small><small id="combo"></small><small id="hChal"></small><span id="kpGoal" hidden><i><s id="kpFill"></s></i><em id="kpNext"></em></span></div>
       <div class="clock chip"><span class="day" id="hDay">DAY 1</span><b id="hClock">8:00</b><span class="room" id="hRoom"></span><small id="hLast"></small></div>
       <div class="hay chip"><img id="hHayIco" alt=""><b id="hHay">0</b></div>
     </div>
@@ -99,6 +99,7 @@
       <span class="newbest" id="resBest" hidden>NEW BEST!</span><span class="newbest promo" id="resPromo" hidden></span>
       <div class="res-score"><small id="lbScore">SCORE</small><b id="resScore">0</b></div>
       <div class="res-sub"><span><small id="lbTime">TIME</small> <b id="resClock">8:00</b></span><span><small id="lbHay">HAY</small> <b id="resHay">0</b></span></div>
+      <div id="resKeep" hidden></div>
       <div class="hi" id="resHi"></div>
       <button class="big" id="btnAgain">ONE MORE RUN</button>
       <div class="sharebar"><b id="tShareBar"></b>
@@ -112,6 +113,7 @@
       <details class="more" id="resMore">
         <summary id="tResMore"></summary>
         <div class="spots" id="resSpots"></div>
+        <div id="resKeepMore" hidden></div>
         <p class="note" id="resNote" style="text-align:center;font-weight:700"></p>
         <div id="resMissions" class="stack"></div>
         <div class="zdetail" id="resTip"></div>

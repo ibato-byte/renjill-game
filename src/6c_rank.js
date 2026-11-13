@@ -108,7 +108,7 @@ async function rankAfterRun(score) {
     const nameOf = await rankNames(top);
     const me = box.querySelector('.rk-me'); me.innerHTML = t('rankYou', pos, fmt(best));
     if (res && res.err) me.textContent += tr('　※記録は保存できない設定です', ' · score not saved');
-    rankList(list, top, mkey, nameOf);
+    rankList(list, top, mkey, nameOf); kpRivalFetch(best);
   } catch (e) { me0.textContent = tr('ランキングを読み込めませんでした', 'Could not load the ranking'); }
 }
 async function openRanking(tab) {
