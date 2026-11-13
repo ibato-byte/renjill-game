@@ -390,6 +390,56 @@
       "name": "消えた絵の見張りのテスト",
       "file": "qa/run-all.mjs",
       "has": "n: 'vanish'"
+    },
+    {
+      "name": "続けて遊びたくなる仕組み（6e_keep.js）：走っている間",
+      "file": "src/6_game.js",
+      "has": "routeBar(); kpHud();"
+    },
+    {
+      "name": "続けて遊びたくなる仕組み：結果画面",
+      "file": "src/6_game.js",
+      "has": "kpEnd({ prevBest, newBest, gained })"
+    },
+    {
+      "name": "続けて遊びたくなる仕組み：題名画面",
+      "file": "src/7_ui.js",
+      "has": "kpTitle()"
+    },
+    {
+      "name": "続けて遊びたくなる仕組み：スタート（れんぞく・ブースト）",
+      "file": "src/6_game.js",
+      "has": "kpStart();"
+    },
+    {
+      "name": "点数のうちわけの記録（距離）",
+      "file": "src/6_game.js",
+      "has": "G.stats.ptD"
+    },
+    {
+      "name": "次の順位の相手を調べる",
+      "file": "src/6c_rank.js",
+      "has": "kpRivalFetch(best)"
+    },
+    {
+      "name": "ミッションの入れかえ",
+      "file": "src/7_ui.js",
+      "has": "kpReroll(rr.dataset.reroll)"
+    },
+    {
+      "name": "おかえりボーナス",
+      "file": "src/7_ui.js",
+      "has": "kpComeback()"
+    },
+    {
+      "name": "スコア勲章・きろくの画面",
+      "file": "src/6e_keep.js",
+      "has": "function kpRecords()"
+    },
+    {
+      "name": "続けて遊びたくなる仕組みのテスト",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'keepplay'"
     }
   ]
 }

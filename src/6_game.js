@@ -109,7 +109,7 @@ function titleFrame(dt) {
 }
 
 /* ---------- run lifecycle ---------- */
-function startRun() { G.drawRetry = 0;
+function startRun() { G.drawRetry = 0; kpPre();
   audioInit(); SFX.ui(); { const f = document.getElementById('tFresh'); if (f) f.remove(); } toastClear();
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
@@ -142,6 +142,7 @@ function startRun() { G.drawRetry = 0;
   show('hud'); musicKey = 0; musicArea = 'home'; musicStart();
   banner('8:00 AM', t('morning'), 'room');
   G.hint = 0; // the tutorial teaches everything on the first play; later runs start clean
+  kpStart();
 }
 // 挑戦状の旗（B-42）：挑戦状の点数の 9 割まで来たら、前の道に旗を3本（どのレーンでも通れる）。旗の点数をこえると「挑戦状クリア」
 function chalFlags() { if (!CHAL || G.chalWon || G.chalFlag || G.mode !== 'play' || G.score < CHAL.s * .9) return; const seg = curSeg(); if (seg.len - G.s < 40) return;
@@ -482,7 +483,7 @@ function update(dt) {
   { const tm = G.tidT || (G.tidT = {}); tm[seg.tid] = (tm[seg.tid] || 0) + dt; } // その走りでいちばん長くいた名所（B-45）
   G.s += step; G.dist += step; G.stats.cleanCur += step; G.stats.clean = Math.max(G.stats.clean, G.stats.cleanCur);
   const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
-  G.score += step * mult * (3 + G.speed * .12); // distance is the backbone: about 4-6 points per metre, more when fast
+  { const p = step * mult * (3 + G.speed * .12); G.score += p; G.stats.ptD = (G.stats.ptD || 0) + p; } // distance is the backbone: about 4-6 points per metre, more when fast
   const tl = LANES[G.lane]; const dl = tl - G.lat; if (G.pushT > 0) G.pushT -= dt; G.lat += Math.sign(dl) * Math.min(Math.abs(dl), dt * (G.pushT > 0 ? 7 : 17));
   if (G.laneT > 0) G.laneT -= dt;
   // support + movers
@@ -775,7 +776,7 @@ function collect(it, seg) {
   if (G.combo > 0 && G.combo % 30 === 0) react(pick(['happy', 'sparkle', 'wink']), 0);
   if (pomOn() && G.combo > 0 && G.combo % 50 === 0) pomSay(pick([t('pomNice'), t('pomNice2')]), 'happy', 1.2);
   G.stats.foods[it.type] = (G.stats.foods[it.type] || 0) + 1;
-  G.score += (def.pts + (G.fever > 0 ? 0 : Math.min(G.combo, 20) * 1.5)) * (G.fever > 0 ? mult * .75 : mult);
+  { const p = (def.pts + (G.fever > 0 ? 0 : Math.min(G.combo, 20) * 1.5)) * (G.fever > 0 ? mult * .75 : mult); G.score += p; G.stats.ptC = (G.stats.ptC || 0) + p; }
   if (def.kind === 'hay' && (pomOn() || G.char === 'pom')) pomPouch(def.gold ? 5 : 1);
   if (def.kind === 'hay' && G.air && G.pow.fly <= 0) { G.airN = (G.airN || 0) + 1; if (G.airN === 5) { const pts = 120 * SV.mlevel; G.score += pts; G.stats.airCatch = (G.stats.airCatch || 0) + 1; floatText(W / 2, H * .38, lab('AIR CATCH!') + ' +' + fmt(pts), '#9BD3F0'); tone(659, .1, 'bell', .045); tone(880, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .08); } } // five hay in one jump (2026-11-08)
   if (def.kind === 'hay') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; if (G.gig && G.gig.k === 'rain') { G.hay += def.gold ? 30 : 1; G.stats.hay += def.gold ? 30 : 1; } G.feverG += (def.gold ? 25 : .55) * feverK(); SFX.hay(G.combo % 13); burst(sx, sy, def.gold ? '#F2C230' : '#9BB85A', def.gold ? 16 : 3); leaves(sx, sy, def.gold ? 6 : 3); if (!def.gold) FX.push({ x: sx, y: sy, vx: 0, vy: -40, life: .18, t: 0, c: 'rgba(255,255,230,.9)', r: 7 }); /* a soft glint on every hay */ if (def.gold) { floatText(sx, sy - 20, '+30', '#F2C230'); react('sparkle', 0); } }
@@ -837,7 +838,7 @@ function hud() {
   setText('combo', G.combo >= 5 ? t('comboN', G.combo) : '');
   const h = $('#hint');
   if (G.hint > 0 && G.hint < 7) { h.style.opacity = 1; setText('hint', G.hint > 3.5 ? t('hintMove') : t('hintTurn')); } else h.style.opacity = 0;
-  routeBar();
+  routeBar(); kpHud();
 }
 // a slim one-line banner at the top; one message at a time
 const BQ = []; let bOn = null;
@@ -957,7 +958,8 @@ function endRun() {
   $('#resEn').textContent = tr(cap[1], cap[0]); $('#resJa').textContent = ''; showHit('res'); try { titleShareBtn(); } catch (e) { reportErr(e); }
   $('#resBest').hidden = !newBest;
   { const el = $('#resScore'), total = Math.floor(G.score), t0 = performance.now(), dur = Math.min(1400, 500 + total / 60); el.textContent = '0';
-    const tick = () => { if (G.mode !== 'result') return; const k = Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); fitResScore(el); if (k < 1) { if (Math.random() < .5) tone(440 + 220 * e, .04, 'pluck', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); fitResScore(el); SFX.mission(); } }; requestAnimationFrame(tick); }
+    G.resSkip = 0; el.onclick = () => { G.resSkip = 1; }; // a tap on the number shows it at once
+    const tick = () => { if (G.mode !== 'result') return; const k = G.resSkip ? 1 : Math.min(1, (performance.now() - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(total * e)); fitResScore(el); if (k < 1) { if (Math.random() < .5) tone(440 + 220 * e, .04, 'pluck', .025); requestAnimationFrame(tick); } else { el.textContent = fmt(total); fitResScore(el); SFX.mission(); } }; requestAnimationFrame(tick); }
   { const hi = []; if ((st.maxCombo || 0) >= 20) hi.push(t('hiCombo', st.maxCombo)); if ((st.nice || 0) >= 3) hi.push(t('hiNice', st.nice)); if ((st.fevers || 0) >= 2) hi.push(t('hiFever', st.fevers)); if ((st.looks || 0) >= 3) hi.push(t('hiLook', st.looks));
     $('#resHi').innerHTML = st.stampsNew.map(tid => `<span class="new">${esc(t('hiNew', L(THEMES[tid].stamp)))}</span>`).join('') + hi.map(x => `<span>${esc(x)}</span>`).join(''); }
   SV.last = { score: Math.floor(G.score), place: { ja: curSeg().th.ja, en: curSeg().th.en } }; // the place in every language (shown in whatever language the title is in later)
@@ -974,6 +976,7 @@ function endRun() {
   const kb = $('#kujiBox'); kb.hidden = G.dist < 300; $('#kujiRes').innerHTML = ''; $('#btnKuji').disabled = false; $('#btnKuji').textContent = tr('おみくじを引く', 'Draw a fortune slip');
   $('#resCareer').innerHTML = careerHTML();
   resultFollow((newBest && SV.runs >= 3) || G.score >= 30000 || !!G.chalWon);
+  try { kpEnd({ prevBest, newBest, gained }); } catch (e) { reportErr(e); }
   hideAll(); show('sResult');
   rankAfterRun(G.score);
 }
