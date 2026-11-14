@@ -440,6 +440,16 @@
       "name": "続けて遊びたくなる仕組みのテスト",
       "file": "qa/run-all.mjs",
       "has": "n: 'keepplay'"
+    },
+    {
+      "name": "長く走ると絵を手放す（スマホの絵のメモリ）",
+      "file": "src/4d_facade.js",
+      "has": "function sprTrim(maxPx)"
+    },
+    {
+      "name": "絵のメモリの試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'memlong'"
     }
   ]
 }

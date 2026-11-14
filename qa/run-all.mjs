@@ -81,6 +81,7 @@ const T = [
   { n: 'seasonal', why: '季節の企画がもれなく切り替わる（初回から・古いリンクで戻らない・終わった帽子）', ok: has('SEASONAL OK'), timeout: 300 },
   { n: 'legend', why: '伝説のうさぎの特典（到達ずみの人にも・二重にもらえない・まだの人は買えない）', ok: has('LEGEND OK'), timeout: 300 },
   { n: 'pomwear', why: 'ポムの着せ替え（会ってから・買う・かぶる・はずす）', ok: has('POM WEAR OK'), timeout: 200 },
+  { n: 'memlong', why: '長く走っても絵のメモリが増え続けない（8日目に「ここで一区切り」で終わった報告）・また来た場所の絵は描き直される', ok: has('MEM LONG OK'), timeout: 200 },
   { n: 'featureguard', why: '入れた機能が消えていない（古い版のファイルで上書きして、機能が気づかずに消えた事故の再発防止）', ok: has('FEATURE OK'), timeout: 60 },
   { n: 'portal', why: 'CrazyGames の中だけ：外へのリンクを出さない・遊んでいる合図・見たい人だけの広告。自社サイト版は広告なし', ok: has('PORTAL OK'), timeout: 200 },
   { n: 'jumpfair', why: '飛び越えられそうなのに越えられない障害物がない（見た目と当たりの高さが合う）', ok: has('JUMP FAIR OK'), timeout: 120 },

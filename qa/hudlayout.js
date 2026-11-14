@@ -1,4 +1,4 @@
-// 上の段の重なり（2026-11-09）：お知らせの帯が、ゲージ・ハート・パワーアップ・締め切りの山のバーに重ならない。分かれ道のカードは帯の下
+// 上の段の重なり（2026-11-09）：お知らせの帯が、ゲージ・ハート・パワーアップ・締め切りの山のバーに重ならない。分かれ道のカードと帯は重ならない（2026-11-14 から帯は画面の下）
 const { chromium } = require('playwright'); const path = require('path');
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined }); const errs = [];
@@ -15,6 +15,6 @@ const { chromium } = require('playwright'); const path = require('path');
   await p.waitForTimeout(900); r.fork = await rects();
   console.log(JSON.stringify(r));
   const below = (o, a) => !o[a] || !o.banner || o.banner[0] >= o[a][1] - 1;
-  const ok = r.boss.banner && r.boss.bossBar && ['feverBar', 'lives', 'pows', 'bossBar'].every(a => below(r.boss, a)) && (!r.fork.forkCards || !r.fork.banner || r.fork.forkCards[0] >= r.fork.banner[1] - 1);
+  const ok = r.boss.banner && r.boss.bossBar && ['feverBar', 'lives', 'pows', 'bossBar'].every(a => below(r.boss, a)) && (!r.fork.forkCards || !r.fork.banner || r.fork.forkCards[1] <= r.fork.banner[0] + 1 || r.fork.forkCards[0] >= r.fork.banner[1] - 1) && r.boss.banner[0] > 500 /* 2026-11-14：帯は走る2人の下（道の先をふさがない）。分かれ道のカードとは重ならない */;
   console.log(ok && !errs.length ? 'HUDLAYOUT OK' : 'HUDLAYOUT NG ' + errs.join(' | ')); await b.close();
 })();
