@@ -640,6 +640,56 @@
       "name": "つづきからの試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'resume'"
+    },
+    {
+      "name": "やわらかい光（ディフュージョン）",
+      "file": "src/4c_atmos.js",
+      "has": "function diffusion()"
+    },
+    {
+      "name": "重い時は、まずやわらかい光をやめる",
+      "file": "src/7_ui.js",
+      "has": "QLOG.push('glow0')"
+    },
+    {
+      "name": "跳ぶ瞬間の沈み",
+      "file": "src/4_render.js",
+      "has": "G.takeT > 0"
+    },
+    {
+      "name": "レーン移動の残像",
+      "file": "src/4_render.js",
+      "has": "G.smearN = (G.smearN || 0) + 1"
+    },
+    {
+      "name": "「本当にやめる？」（切れない）",
+      "file": "src/1_data.js",
+      "has": "quitSure: ['本当にやめる？'"
+    },
+    {
+      "name": "iPhone のホーム画面アプリで下まで表示",
+      "file": "src/7_ui.js",
+      "has": "function iosFill()"
+    },
+    {
+      "name": "画質の順番の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'quality'"
+    },
+    {
+      "name": "動きの試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'motion'"
+    },
+    {
+      "name": "一時停止の文字の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'pausefit'"
+    },
+    {
+      "name": "iPhone の手当ての試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'iosfill'"
     }
   ]
 }

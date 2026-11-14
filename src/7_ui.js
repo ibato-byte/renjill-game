@@ -475,6 +475,10 @@ document.addEventListener('fullscreenchange', () => { try { if (!$('#sPanel').hi
 /* 文字の形（フォント）があとから届いたら、町の看板などの絵を描き直す（最初は代わりの文字で描かれているため）。題名画面にいるときだけ・3回まで */
 let FONT_REDO = 0, FONT_T = 0;
 try { if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => { clearTimeout(FONT_T); FONT_T = setTimeout(() => { if (FONT_REDO >= 3 || G.mode !== 'title') return; FONT_REDO++; try { freePictures(); } catch (e) { } }, 600); }); } catch (e) { }
+/* 2026-11-15：iPhone のホーム画面アプリ（全画面）で、画面のいちばん下に暗い帯が残る（オーナーの画面で確認。iOS の既知の不具合：上のステータスバーの分だけ、画面の高さが短く計算される）。
+   アプリの枠が画面より「ステータスバーくらい（8〜80px）」短い時だけ、画面いっぱいの高さにする。ふつうのブラウザ・Android・PC では何もしない。キーボードが出ている間（大きく短い）も何もしない */
+function iosFill() { try { if (navigator.standalone !== true) return false; const app = $('#app'); if (!app) return false; const port = innerHeight >= innerWidth, a = screen.height, b = screen.width, full = port ? Math.max(a, b) : Math.min(a, b);
+  const was = app.style.height; app.style.height = ''; app.style.bottom = ''; const h = app.getBoundingClientRect().height, gap = full - h; if (gap > 8 && gap < 80) { app.style.height = full + 'px'; app.style.bottom = 'auto'; } return app.style.height !== was; /* 高さを変えた時だけ true */ } catch (e) { return false; } }
 function resizeKeep() { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); smoothOn(); G.drawNow = 1; }
 /* 重いとき：まず絵の細かさを1段ずつ下げ（見た目はほとんど変わらない）、それでも重ければ演出を減らす。とても重い端末（30コマ/秒に届かない）はすぐ軽くする。
    軽い状態が続いたら細かさを戻す（1回の走りで2回まで。行ったり来たりしない） */
@@ -494,6 +498,7 @@ function boot() {
   if (gfxMode() === 'low') lowQ = 1; /* 設定「画質：軽い」は最初から */
   applyLook();
   /* 2026-11-15：前は「全部描く → 着せかえを読んで、着がえた子をもう一度全部描く」で、着せかえている人ほど起動が遅かった。先に着せかえを読み、前向きの絵だけ描いて始める */
+  try { if (navigator.standalone === true) { iosFill(); const again = () => setTimeout(() => { if (iosFill()) resize(); }, 350); for (const ev of ['resize', 'orientationchange', 'focusout']) addEventListener(ev, again); document.addEventListener('visibilitychange', () => { if (!document.hidden) again(); }); } } catch (e) { }
   buildItemSprites(); buildWorldSprites(); BUN_LAZY = 1; try { applyWear(); for (const w of ['ren', 'jill', 'pom']) if (!BUN[w] || !BUN[w].front_open) buildBunnies(w); } finally { BUN_LAZY = 0; } bunniesLater(); rankIcons(); rankInit(); chatInit(); resize(); { let rz = 0; const later = () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { G.resizeN = (G.resizeN || 0) + 1; resize(); }); }; addEventListener('resize', later); addEventListener('orientationchange', later); } // 画面を回したとき、描き直しは 1 回だけ（C-63）
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren'; missionsFix();

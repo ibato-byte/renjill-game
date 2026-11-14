@@ -532,7 +532,7 @@ function update(dt) {
   else {
     if (!G.air && G.y > ground + .001 && G.vy <= 0) G.coyote = .1; // coyote time: a jump still counts for a tenth of a second after running off an edge
     if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault || 1); G.y += G.vy * dt; G.air = true;
-      { const cs = curSeg(); if (cs && cs.ceilH) { const jt = jumpTop(cs) + .12; if (G.y > jt) { G.y = jt; if (G.vy > 0) G.vy = 0; } } } /* 跳んだまま天井のある場所に入った時も、頭が天井をこえない */ }
+      { const cs = curSeg(); if (cs && cs.ceilH) { const jt = jumpTop(cs) + .12; if (G.y > jt && G.y < 20) { G.y = jt; if (G.vy > 0) G.vy = 0; } } } /* ありえない高さ（数値の壊れ）は、ここで直さず安全ネット（runOK）に任せる */ /* 跳んだまま天井のある場所に入った時も、頭が天井をこえない */ }
     if (G.y <= ground + .001 && G.vy <= 0) { // land: also when the fall stops a hair above the floor (a height of 0.0005 used to leave the runner 'in the air' forever: no gravity, no landing, no jump)
       if (G.air && G.vy < -4) { SFX.land(); const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
       if (G.air) { G.landT = .14; G.landK = clamp(-G.vy / 16, .4, 1); G.airN = 0; } // the landing squash (drawn in drawBunnyWorld)
