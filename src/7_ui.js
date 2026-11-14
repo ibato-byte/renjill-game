@@ -394,7 +394,7 @@ const toggleMute = () => { audioInit(); setMute(!SV.mute); applyLang(); };
 $('#btnMute').onclick = toggleMute; $('#btnMute2').onclick = toggleMute;
 $('#pauseBtn').onclick = pause; $('#btnResume').onclick = resume;
 /* 一時停止の「やめる」は2回押し（つづけるのとまちがえて押すと、その回が終わってしまっていた）2026-11-09 qa/quitconfirm */
-let QUITASK = 0;
+let QUITASK = -1e9; /* 2026-11-15：0 だと、ページを開いて 3 秒以内は「2 回目の押し」と見なされて 1 回でやめてしまう（ふつうの操作では起きないが、試験で見つけた） */
 $('#btnQuit').onclick = () => { const q = $('#btnQuit'); if (performance.now() - QUITASK > 3000) { QUITASK = performance.now(); q.textContent = t('quitSure'); q.classList.add('danger'); setTimeout(() => { if (performance.now() - QUITASK >= 2900) { q.textContent = t('quit'); q.classList.remove('danger'); } }, 3000); return; }
   QUITASK = 0; q.textContent = t('quit'); q.classList.remove('danger'); G.mode = 'dead'; G.cause = 'quit'; endRun(); };
 $('#btnRvClover').onclick = () => { clearInterval(rvTimer); doRevive($('#btnRvClover').dataset.free ? 'free' : 'clover'); };

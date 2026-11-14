@@ -149,6 +149,8 @@ for (const t of T) {
   const why = failLines(out);
   results.push({ name: t.label || t.n, why: t.why, pass, flaky, first, sec: Math.round((Date.now() - s) / 1000), tail: (why && !pass ? why + '\n...\n' : '') + out.trim().split('\n').slice(-6).join('\n').slice(-900) });
   console.log((pass ? (flaky ? 'PASS(retry) ' : 'PASS ') : 'FAIL ') + (t.label || t.n) + ' (' + Math.round((Date.now() - s) / 1000) + 's)' + (flaky ? ' first: ' + first.replace(/\n/g, ' | ').slice(0, 300) : ''));
+  /* 2026-11-15：落ちた試験は、その場で理由（出力の終わり）も記録に出す。前は「FAIL 名前」だけで、GitHub の記録からは理由が分からなかった */
+  if (!pass) console.log('  └ ' + results[results.length - 1].tail.replace(/\n/g, '\n    ').slice(0, 1500));
 }
 servers.forEach(s => s.close());
 const failed = results.filter(r => !r.pass);

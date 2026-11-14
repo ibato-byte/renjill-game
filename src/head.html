@@ -53,7 +53,7 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 #btnLangTop{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:10px;z-index:2;display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:6px 12px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);color:var(--ink);font:800 13px/1 var(--f-body,inherit);box-shadow:0 3px 0 rgba(59,42,32,.3);cursor:pointer}
 #btnLangTop b{font-weight:800}
 /* 一時停止の下の3つのボタン（やめる・音・ジルに聞く）が320px幅で2行に折れていた */
-#sPause .btns .sub{white-space:nowrap;font-size:clamp(11px,3.5vw,15px);padding-left:6px;padding-right:6px;overflow:hidden;text-overflow:clip}#sPause .btns .sub.danger{white-space:normal;line-height:1.15;font-size:clamp(10px,3.2vw,14px);padding-top:6px;padding-bottom:6px;text-wrap:balance} /* 2026-11-15：「…」で切らない。確かめの言葉は、入らなければ 2 行に */
+#sPause .btns .sub{white-space:normal;line-height:1.15;overflow-wrap:anywhere;text-wrap:balance;font-size:clamp(11px,3.5vw,15px);padding-left:6px;padding-right:6px;overflow:hidden;text-overflow:clip;min-height:44px}#sPause .btns .sub.danger{font-size:clamp(10px,3.2vw,14px);padding-top:6px;padding-bottom:6px} /* 2026-11-15：「…」で切らない。確かめの言葉は、入らなければ 2 行に */
 .langpick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}.langpick button{min-height:52px;font-size:17px}
 #feverGlow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;box-shadow:inset 0 0 46px 8px rgba(242,194,48,.4)} /* フィーバー中の黄色いふちが太く、左右のレーンが見づらかった */
 #feverGlow.on{opacity:1}
