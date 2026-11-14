@@ -453,8 +453,6 @@ function drawItem(it, sg, d) {
   ctx.globalAlpha = (1 - fogK(d) * .9) * passFade(d);
   if (d < 40 && !lowQ) { const gp = spriteAt(p[0], p[2], p[1]); if (gp) { const hk = clamp(1 - it.y / 3, .35, 1); ctx.fillStyle = `rgba(30,22,16,${(.16 * hk).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(gp.sx, gp.sy, size * .34 * hk, size * .09 * hk, 0, 0, Math.PI * 2); ctx.fill(); } } // a soft shadow on the ground under each item (2026-11-08)
   if (isPow || it.type === 'goldhay') { ctx.beginPath(); ctx.fillStyle = def.kind === 'stamp' ? 'rgba(255,120,110,.45)' : 'rgba(255,236,150,.5)'; ctx.arc(sp.sx, sp.sy, size * .62 * (1 + .08 * Math.sin(G.t * 6)), 0, Math.PI * 2); ctx.fill(); }
-  if (def.kind === 'kana') { const z = size * .62; ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(spin, 1); ctx.fillStyle = '#FFF3D6'; ctx.strokeStyle = '#E86A75'; ctx.lineWidth = Math.max(1.5, z * .08); ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-z / 2, -z / 2, z, z, z * .2); else ctx.rect(-z / 2, -z / 2, z, z); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#C8463C'; ctx.font = `900 ${Math.round(z * .62)}px "Zen Maru Gothic",sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('？', 0, z * .03); ctx.restore(); ctx.globalAlpha = 1; return; }
   const img = def.kind === 'stamp' ? stampSprite(sg.tid) : SPR[bad ? it.type + 'NG' : it.type];
   ctx.drawImage(img, sp.sx - size * spin / 2, sp.sy - size / 2, size * spin, size);
   ctx.globalAlpha = 1;
@@ -505,6 +503,7 @@ function drawBunnyWorld(b) {
   if (b === G.player && G.mode === 'play' && !OPT().calm && !b.fly) { const lc = G.laneT > 0 ? Math.sign(G.lane - G.prevLane) * Math.sin(G.laneT / .35 * Math.PI) * .09 : 0, tc = G.turnT > 0 && G.turnDir ? G.turnDir * Math.sin(G.turnT / .8 * Math.PI) * .12 : 0; if (lc || tc) ctx.rotate(lc + tc); } // lean into a lane change and a corner (2026-11-08)
   if (b === G.player && G.mode === 'play' && !OPT().calm) { // squash on landing, a touch of stretch at the top of a jump
     if (G.landT > 0 && !b.air && !b.slide) { const q = Math.sin(G.landT / .14 * Math.PI) * .2 * (G.landK || 1); ctx.scale(1 + q, 1 - q); }
+    else if (b.air && !b.fly && G.takeT > 0) { const q = Math.sin(clamp(G.takeT / .09, 0, 1) * Math.PI) * .11; ctx.scale(1 + q, 1 - q); G.takeN = (G.takeN || 0) + 1; } /* ふみ切り：跳ぶ瞬間だけ、ぐっと沈む（アニメの「予備動作」。跳び始めるのは今までどおり押した瞬間） */
     else if (b.air && !b.fly && G.vy > 5) { const q = Math.min(.08, (G.vy - 5) * .008); ctx.scale(1 - q, 1 + q); } }
   if (b.who === 'pom' && b.air && !b.fly && b.vy != null) { ctx.translate(0, -140); ctx.rotate(-(1 - clamp((b.vy + JUMPV) / (2 * JUMPV), 0, 1)) * Math.PI * 2); ctx.translate(0, 140); } // Pom flips on every jump
   if (b.who === 'pom' && b.slide) { ctx.translate(0, -110); ctx.rotate((G.t * 14) % (Math.PI * 2)); ctx.translate(0, 110); } // and rolls under things
@@ -515,6 +514,8 @@ function drawBunnyWorld(b) {
   // 2026-11-09：相棒とポムにも（メインのキャラクターだけ残像が出ていた）。ダッシュ中も
   if ((b === G.player || b === G.follow || b === G.pom) && (G.fever > 0 || G.pow.dash > 0) && G.mode === 'play' && !OPT().calm && !b.fly && !(b.look > 0)) { const lx = b === G.player && G.laneT > 0 ? -Math.sign(G.lane - G.prevLane) * 60 : 0; G.ghostN = (G.ghostN || 0) + 1; const tn = G.trailN || (G.trailN = {}); tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] = (tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] || 0) + 1;
     for (const [k, a] of [[2, .14], [1, .26]]) { ctx.globalAlpha = a; ctx.drawImage(img, -BS / 2 + lx * k, -GROUND_Y - BTOP + 34 * k, img.width, img.height); } ctx.globalAlpha = 1; }
+  else if (b === G.player && G.laneT > 0 && G.lane !== G.prevLane && G.mode === 'play' && !OPT().calm && !b.fly && !(b.look > 0) && !(typeof lowQ !== 'undefined' && lowQ)) { /* レーンを移る一瞬だけ、来た方にうすい残像（アニメの「オバケ」）。速く動いたことが目に残る */
+    const dl = -Math.sign(G.lane - G.prevLane), k = Math.sin(clamp(G.laneT / .35, 0, 1) * Math.PI); for (const [m, a] of [[2, .09], [1, .17]]) { ctx.globalAlpha = a * k; ctx.drawImage(img, -BS / 2 + dl * 62 * m * k, -GROUND_Y - BTOP, img.width, img.height); } ctx.globalAlpha = 1; G.smearN = (G.smearN || 0) + 1; }
   if (b.flash && Math.floor(G.t * 16) % 2) ctx.globalAlpha = .45;
   ctx.drawImage(LT.indoor ? img : litSprite(img, bunnyAmb(), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
   if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; ctx.drawImage(b.view === 'back' || !(b.look > 0) ? SPR.planeBack : SPR.planeBack, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Pom rides his own)

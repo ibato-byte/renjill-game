@@ -50,6 +50,11 @@ function drawSunGlow(horizon) {
   g.addColorStop(0, rgbS(col, .55 * k)); g.addColorStop(.18, rgbS(col, .22 * k)); g.addColorStop(1, rgbS(col, 0));
   ctx.fillStyle = g; ctx.fillRect(x - R, y - R, R * 2, R * 2);
   if (k === 1) { ctx.fillStyle = rgbS(mixRGB([255, 255, 248], col, .5), .95); ctx.beginPath(); ctx.arc(x, y, 9 + low * 5, 0, Math.PI * 2); ctx.fill(); }
+  /* 2026-11-15：朝と夕方、太陽が低い時だけ、太陽から光のすじがのびる（アニメの「入射光」）。うすく、ゆっくり回る。軽いモードでは出さない */
+  if (k === 1 && low > .3 && !(typeof lowQ !== 'undefined' && lowQ)) { const a0 = OPT().calm ? .3 : G.t * .02, L = FOCAL * (1.1 + low * .9), al = .05 * clamp((low - .3) / .4, 0, 1);
+    for (let i = 0; i < 7; i++) { const a = a0 + i * Math.PI * 2 / 7 + (i % 2) * .16, w = .05 + (i % 3) * .022, len = L * (.62 + (i * 37 % 10) / 26), gr = ctx.createLinearGradient(x, y, x + Math.cos(a) * len, y + Math.sin(a) * len);
+      gr.addColorStop(0, rgbS(col, al)); gr.addColorStop(1, rgbS(col, 0)); ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a - w) * len, y + Math.sin(a - w) * len); ctx.lineTo(x + Math.cos(a + w) * len, y + Math.sin(a + w) * len); ctx.closePath(); ctx.fill(); }
+    G.rayN = (G.rayN || 0) + 1; }
   ctx.globalCompositeOperation = 'source-over';
 }
 
@@ -132,8 +137,21 @@ function streetShade(sg) {
 
 /* ---- finishing: lens vignette, gentle contrast, a little film grain ---- */
 let GRAIN = null, VIG = null, VIGK = '';
+/* 2026-11-15：やわらかい光（アニメの撮影でいう「ディフュージョン」）。画面を小さく写し取り、明るい所だけを残して、ぼかして上から明るく重ねる。
+   窓・照明・空・白い物のまわりが、ふわっとにじむ。軽いモード・細かさを下げている時は使わない（設定「画質：きれい」では常に） */
+let DIFC = null, DIFG = null, DIF_K = 1;
+function diffusion() {
+  try { const g = gfxMode(); if (g === 'low' || (g !== 'high' && RES_K < 1) || DIF_K <= 0) return;
+    const sw = Math.max(24, Math.round(cv.width / 7)), sh = Math.max(24, Math.round(cv.height / 7));
+    if (!DIFC || DIFC.width !== sw || DIFC.height !== sh) { DIFC = document.createElement('canvas'); DIFC.width = sw; DIFC.height = sh; DIFG = DIFC.getContext('2d', { alpha: false }) || DIFC.getContext('2d'); if (!DIFG) { DIF_K = 0; return; } }
+    DIFG.globalCompositeOperation = 'copy'; DIFG.globalAlpha = 1; DIFG.imageSmoothingEnabled = true; DIFG.drawImage(cv, 0, 0, sw, sh);
+    DIFG.globalCompositeOperation = 'multiply'; DIFG.drawImage(DIFC, 0, 0); DIFG.drawImage(DIFC, 0, 0); /* 自分どうしを 2 回掛けて、とても明るい所だけを残す（全体が白っぽくならない） */
+    const a = (LT.night > .5 ? .42 : LT.indoor ? .16 : .2) * DIF_K;
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = a; ctx.imageSmoothingEnabled = true; ctx.drawImage(DIFC, 0, 0, cv.width, cv.height); ctx.restore(); smoothOn();
+  } catch (e) { DIF_K = 0; } }
 function postFX() {
   if (typeof lowQ !== 'undefined' && lowQ > 0) return;
+  diffusion();
   const key = W + 'x' + H;
   if (VIGK !== key) { VIGK = key; VIG = ctx.createRadialGradient(W / 2, H * .45, Math.min(W, H) * .35, W / 2, H * .5, Math.hypot(W, H) * .62); VIG.addColorStop(0, 'rgba(0,0,0,0)'); VIG.addColorStop(1, 'rgba(10,8,20,.28)'); }
   ctx.fillStyle = VIG; ctx.fillRect(0, 0, W, H);

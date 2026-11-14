@@ -92,10 +92,16 @@ const DRAW_ITEM = {
     rr(g, 26, 16, 76, 12, 3, '#C8463C', OUT, 2.5); rr(g, 30, 106, 68, 10, 3, '#C8463C', OUT, 2.5); ell(g, 64, 70, 22, 16, 0, '#F7DD8A', OUT, 2);
     g.fillStyle = '#C8463C'; g.font = '900 14px sans-serif'; g.textAlign = 'center'; g.fillText('CHIPS', 64, 46); },
 };
+const ITEM_NOSHADE = ['goldhay', 'planeBack', 'plane', 'hanko', 'memo']; /* 自分で色を重ねている物・紙のように平らな物には、陰影を足さない */
 function buildItemSprites() {
-  for (const k in DRAW_ITEM) { const c = mk(128); const g = c.getContext('2d') || noCtx(); g.lineJoin = 'round'; DRAW_ITEM[k](g); SPR[k] = c; try { SPR_URL[k] = c.toDataURL(); } catch (e) { SPR_URL[k] = ''; } }
+  /* 2026-11-15：アイテムの絵を 2 倍の細かさで作る（128 → 256）。スマホの細かい画面で、近くのアイテムがぼやけていた。絵のメモリが足りない端末（CANVAS_LOW）は今までどおり。
+     あわせて、のっぺりした面にうすい陰影（左上が明るく、右下が少し暗い）を重ねて、丸みを出す */
+  const IK = typeof CANVAS_LOW !== 'undefined' && CANVAS_LOW ? 1 : 2;
+  for (const k in DRAW_ITEM) { const c = mk(128 * IK); const g = c.getContext('2d') || noCtx(); g.lineJoin = 'round'; g.save(); g.scale(IK, IK); DRAW_ITEM[k](g); g.restore();
+    if (!ITEM_NOSHADE.includes(k)) { g.save(); g.globalCompositeOperation = 'source-atop'; const sh = g.createLinearGradient(c.width * .2, c.height * .1, c.width * .8, c.height * .95); sh.addColorStop(0, 'rgba(255,255,255,.16)'); sh.addColorStop(.45, 'rgba(255,255,255,0)'); sh.addColorStop(.6, 'rgba(40,24,10,0)'); sh.addColorStop(1, 'rgba(40,24,10,.17)'); g.fillStyle = sh; g.fillRect(0, 0, c.width, c.height); g.restore(); }
+    SPR[k] = c; try { SPR_URL[k] = c.toDataURL(); } catch (e) { SPR_URL[k] = ''; } }
   // NG badge over bad foods
-  for (const k of BADS) { const c = mk(128); const g = c.getContext('2d') || noCtx(); g.drawImage(SPR[k], 0, 0); ell(g, 100, 24, 20, 20, 0, '#C8463C', '#FBF6EE', 4);
+  for (const k of BADS) { const c = mk(128 * IK); const g = c.getContext('2d') || noCtx(); g.drawImage(SPR[k], 0, 0); g.scale(IK, IK); ell(g, 100, 24, 20, 20, 0, '#C8463C', '#FBF6EE', 4);
     g.strokeStyle = '#FBF6EE'; g.lineWidth = 6; g.beginPath(); g.moveTo(91, 15); g.lineTo(109, 33); g.moveTo(109, 15); g.lineTo(91, 33); g.stroke(); SPR[k + 'NG'] = c; }
 }
 

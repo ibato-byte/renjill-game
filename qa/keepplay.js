@@ -17,7 +17,7 @@ const { chromium } = require('playwright'); const path = require('path');
   // ---- A：記録のある人（ベスト 30,000・所持 950本）----
   let p = await open({ best: 30000, bank: 950, mlevel: 2, kp: { d: day(0), db: 12000, w: 'old', wb: 20000, h: [8000, 22000, 15000, 30000], last: 30000, cb: { ren: 30000, jill: 22000 }, top: [[30000, 'r', day(1), 'lobby']], sp: { 3: 3000 }, ls: day(0) } });
   const title = await p.evaluate(() => document.querySelector('#sTitle').innerText);
-  ok(/今日の目標スコア 18,000/.test(title), '題名：今日の目標スコア（ベストの6割）'); ok(/今日 12,000/.test(title), '題名：今日のベスト'); ok(/ベスト 30,000/.test(await txt(p, '#pickRen .cbest')) && /22,000/.test(await txt(p, '#pickJill .cbest')), '題名：キャラクターごとのベスト');
+  ok(/今日の目標 18,000/.test(title), '題名：今日の目標（ベストの6割）'); ok(/今日 12,000/.test(title), '題名：今日のベスト'); ok(/ベスト 30,000/.test(await txt(p, '#pickRen .cbest')) && /22,000/.test(await txt(p, '#pickJill .cbest')), '題名：キャラクターごとのベスト');
   await p.click('#btnRecords'); await p.waitForTimeout(250); { const r = await txt(p, '#pBody'); ok(/30,000/.test(r) && /見習いランナー/.test(r) && /最近10回の平均/.test(r), 'きろくの画面'); } await p.click('#pClose');
   await p.click('#btnMissions'); await p.waitForTimeout(250); { const before = await ev(p, 'JSON.stringify(SV.missions.slots.map(s => s.id))'), bank = await ev(p, 'SV.bank'); await p.click('[data-reroll]'); await p.waitForTimeout(250);
     const after = await ev(p, 'JSON.stringify(SV.missions.slots.map(s => s.id))'); ok(before !== after && (await ev(p, 'SV.bank')) === bank - 100 && (await ev(p, 'SV.missions.slots.length')) === 3, 'ミッションの入れかえ（100本）'); } await p.click('#pClose');
@@ -35,7 +35,7 @@ const { chromium } = require('playwright'); const path = require('path');
     ok(/自己ベスト\s30,000/.test(await txt(p, '#kpNext')), 'つぎの目標：自己ベスト → ' + await txt(p, '#kpNext')); }
   await finish(p);
   { const r = await txt(p, '#resKeep'), m = await p.evaluate(() => document.querySelector('#resKeepMore').textContent), g = await txt(p, '.kp-grade'), k = JSON.parse(await ev(p, 'JSON.stringify(SV.kp)')), again = await txt(p, '#btnAgain');
-    ok(g === 'A', '評価 A（ベストの8割以上）: ' + g); ok(/自己ベストの 9\d%/.test(r), '自己ベストとの差'); ok(/前回より −/.test(r), '前回との差'); ok(/今日のベスト 2\d,\d{3}/.test(r) && /今日のベスト更新/.test(r), '今日のベスト'); ok(/おしい！/.test(r), 'おしい！');
+    ok(g === 'A', '評価 A（ベストの8割以上）: ' + g); ok(/自己ベストの 9\d%/.test(r), '自己ベストとの差'); ok(/前回より −/.test(m), '前回との差（くわしく見る の中。2026-11-15：結果画面の文字を減らした）'); ok(/今日のベスト 2\d,\d{3}/.test(m) && /今日のベスト更新/.test(r), '今日のベスト'); ok(!/あと [\d,]+点）/.test(r), '「あと○点」が上の行と「おしい！」で 2 回出ていない'); ok(/おしい！/.test(r), 'おしい！');
     ok(/スコア勲章/.test(r) && k.md === 2, '勲章（10,000・30,000）'); ok(/コツ：/.test(r), 'コツ'); ok(/次の順位：ロロ さんまで/.test(r), '次の順位'); ok(/今日の目標スコア達成 ＋150本/.test(r), '今日の目標のごほうび');
     ok(/点数のうちわけ/.test(m) && /最近の5回/.test(m) && /スコア倍率 ×2/.test(m) && /が買える/.test(m) && /明日も来ると ログインボーナス 90本（3日連続）/.test(m), 'くわしく：うちわけ・最近の5回・倍率・次に買える物・明日の予告 ' + m.slice(0, 200));
     ok(k.h.length === 5 && k.top.length === 2 && k.cb.ren === 30000 && k.db > 27000 && k.wb === k.db && k.lw === 20000 && k.lwDone === 1 && /先週のベストをこえた/.test(r), '記録の保存・先週のベストごえ ' + JSON.stringify(k).slice(0, 300));
@@ -46,7 +46,7 @@ const { chromium } = require('playwright'); const path = require('path');
   await p.click('#resScore'); await p.waitForTimeout(120); ok(/^3\d,\d{3}$/.test(await txt(p, '#resScore')), '点数をタップで数え上げを飛ばす'); await p.waitForTimeout(800);
   { const r = await txt(p, '#resKeep'); ok((await txt(p, '.kp-grade')) === 'S' && /自己ベストを .* 更新/.test(r), '評価 S（自己ベスト）'); ok(/今日の1回目ボーナス ＋1\d\d本/.test(r) && /れんぞく2回目 ＋1\d本/.test(r), '今日の1回目・れんぞくのチモシー ' + r); ok(!/おしい/.test(r), '自己ベストのときは「おしい」を出さない');
     ok(Object.keys(JSON.parse(await ev(p, 'JSON.stringify(SV.kp.sp)'))).length >= 1, 'ベストのペースを保存'); }
-  await p.click('#btnMenu'); await p.waitForTimeout(500); ok(/今日の目標スコア .* ✓/.test(await txt(p, '#tKeep')), '題名：今日の目標スコア ✓');
+  await p.click('#btnMenu'); await p.waitForTimeout(500); ok(/今日の目標 .* ✓/.test(await txt(p, '#tKeep')), '題名：今日の目標スコア ✓');
   await p.context().close();
 
   // ---- B：やさしいモード・1分ダッシュでは出さない（記録にも入れない）----
@@ -56,11 +56,11 @@ const { chromium } = require('playwright'); const path = require('path');
 
   // ---- C：3日ぶり → おかえりボーナス。古いセーブ（kp なし）・こわれた kp でも動く ----
   p = await open({ best: 5000, bank: 100, clovers: 1, daily: day(4), streak: 3, kp: 'x' }); await p.waitForTimeout(1500);
-  ok((await ev(p, 'SV.bank')) >= 400 && (await ev(p, 'SV.clovers')) === 2, 'おかえりボーナス（300本とお守り）'); ok((await ev(p, 'typeof SV.kp')) === 'object' && /今日の目標スコア 3,000/.test(await txt(p, '#tKeep')), 'こわれた記録でも動く'); await p.context().close();
+  ok((await ev(p, 'SV.bank')) >= 400 && (await ev(p, 'SV.clovers')) === 2, 'おかえりボーナス（300本とお守り）'); ok((await ev(p, 'typeof SV.kp')) === 'object' && /今日の目標 3,000/.test(await txt(p, '#tKeep')), 'こわれた記録でも動く'); await p.context().close();
   p = await open({ best: 0, runs: 0, tutDone: 0, kp: { h: 'a', top: [1, [NaN]], cb: 3, md: -4, db: 'z' } }); ok(await p.evaluate(() => document.querySelector('#tKeep').hidden), 'はじめての人には出さない（チュートリアルの前）'); ok((await ev(p, 'SV.bank')) < 300, 'はじめての人におかえりボーナスを出さない'); await p.context().close();
 
   // ---- D：英語 ----
-  p = await open({ best: 30000, bank: 950, kp: { last: 9000 } }, 'en'); ok(/Today's score goal 18,000/.test(await txt(p, '#tKeep')) && /Start boost/.test(await txt(p, '#btnBoost')) && (await txt(p, '#btnRecords')) === 'Records', '英語の題名');
+  p = await open({ best: 30000, bank: 950, kp: { last: 9000 } }, 'en'); ok(/Today's goal 18,000/.test(await txt(p, '#tKeep')) && /Start boost/.test(await txt(p, '#btnBoost')) && (await txt(p, '#btnRecords')) === 'Records', '英語の題名');
   await p.click('#btnStart'); await p.waitForTimeout(900); await p.evaluate(() => { const G = window.__hayDash.G; G.invT = 99; G.score = 9500; }); await p.waitForTimeout(400); ok(/Next\s10,000/.test(await txt(p, '#kpNext')), '英語：つぎの目標'); await finish(p);
   { const all = await p.evaluate(() => document.querySelector('#resKeep').textContent + document.querySelector('#resKeepMore').textContent + document.querySelector('#btnAgain').textContent); ok(/of your best/.test(all) && /Tip:/.test(all) && /Where the points came from/.test(all) && /in a row/.test(all) && !/[ぁ-んァ-ヶ]/.test(all), '英語の結果（日本語がまざらない）'); }
   await p.context().close();

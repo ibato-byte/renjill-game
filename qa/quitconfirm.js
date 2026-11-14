@@ -8,5 +8,5 @@ const { chromium } = require('playwright'); const path = require('path');
   await p.click('#pauseBtn'); await p.waitForTimeout(200); await p.click('#btnQuit'); await p.waitForTimeout(200);
   const r = { once: await mode(), ask: await lbl() }; await p.waitForTimeout(3300); r.back = await lbl(); r.still = await mode();
   await p.click('#btnQuit'); await p.click('#btnQuit'); await p.waitForTimeout(600); r.twice = await mode();
-  const ok = r.once === 'pause' && /もう一度/.test(r.ask) && r.back === 'やめる' && r.still === 'pause' && r.twice !== 'pause' && r.twice !== 'play' && !errs.length;
+  const ok = r.once === 'pause' && /本当に|Really|確定|정말/.test(r.ask) /* 2026-11-15：確かめの言葉を「本当にやめる？」に変えた（前の言葉はボタンに入らず切れていた） */ && r.back === 'やめる' && r.still === 'pause' && r.twice !== 'pause' && r.twice !== 'play' && !errs.length;
   console.log(JSON.stringify(r), errs.join('|')); console.log(ok ? 'QUITCONFIRM OK' : 'QUITCONFIRM NG'); await b.close(); })();

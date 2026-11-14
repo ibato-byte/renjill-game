@@ -25,7 +25,6 @@ const T = [
   { n: 'ranktest', why: 'ランキング表示', ok: noErr },
   { n: 'saves', why: '壊れたセーブからの復旧', ok: noErr },
   { n: 'practice', why: '練習・場所えらび（ぶつかっても終わらない・記録に入らない）', ok: has('PRACTICE OK') },
-  { n: 'hunt', why: 'あいことばのかくれんぼ（1回の走りに1枚・そろうとチモシー・期間外は出ない）', ok: has('HUNT OK') },
   { n: 'matsuri', why: 'お祭りの日（提灯の通りで祭りばやし）', ok: has('MATSURI OK') },
   { n: 'lasttrain', why: '終電間際（夜の最後の電車に間に合えばボーナス）', ok: has('LASTTRAIN OK') },
   { n: 'revday', why: '逆走デー（夕方から家まで・ただいまボーナス・ランキングに入れない）', ok: has('REVDAY OK') },
@@ -82,6 +81,13 @@ const T = [
   { n: 'legend', why: '伝説のうさぎの特典（到達ずみの人にも・二重にもらえない・まだの人は買えない）', ok: has('LEGEND OK'), timeout: 300 },
   { n: 'pomwear', why: 'ポムの着せ替え（会ってから・買う・かぶる・はずす）', ok: has('POM WEAR OK'), timeout: 200 },
   { n: 'toriiview', why: '鳥居のトンネルで道の先が見える（横木がカメラの目の高さより上・道の先が赤い鳥居でかくれない。縦長のスマホ・ふつうのスマホ・PC）（2026-11-15 オーナーの報告）', ok: has('TORIIVIEW OK'), timeout: 200 },
+  { n: 'ceilview', why: '室内・電車で天井が低く見えない・ジャンプしてもカメラとキャラクターが天井をこえない・外は今までどおり（縦長のスマホ・ふつうのスマホ・PC）（2026-11-15 オーナーの報告）', ok: has('CEILVIEW OK'), timeout: 200 },
+  { n: 'resume', why: '途中で閉じてしまった走りを、つづきから再開できる（点・チモシー・日・時刻・場所がそのまま／終わった走りは出ない／3 回まで・12 時間／練習と1分ダッシュは対象外／保存データには入らない）（2026-11-15 オーナーの希望）', ok: has('RESUME OK'), timeout: 200 },
+  { n: 'quality', why: '重い端末の画質の自動調整の順番（やわらかい光をやめる → 細かさを下げる → 軽いモード）・軽くなったら戻る・「きれい」「軽い」の設定（2026-11-15）', ok: has('QUALITY OK'), timeout: 120 },
+  { n: 'motion', why: '跳ぶ瞬間の沈み・レーン移動の残像が出る／「動きをひかえめ」では出ない／跳び始めは押した瞬間（2026-11-15）', ok: has('MOTION OK'), timeout: 120 },
+  { n: 'pausefit', why: '一時停止のボタンの文字が切れない（「やめる」の確かめの言葉が「もう一度押…」と切れていた。4 言語 × 3 つの幅）（2026-11-15 オーナーの報告）', ok: has('PAUSEFIT OK'), timeout: 240 },
+  { n: 'iosfill', why: 'iPhone のホーム画面アプリで下に暗い帯が残らない手当てが、ほかの環境をこわさない（2026-11-15）', ok: has('IOSFILL OK'), timeout: 120 },
+  { n: 'lightfx', why: '夕方の光のすじ（昼・夜・軽いモードでは出ない）・やわらかい光（軽いモードでは働かない）（2026-11-15）', ok: has('LIGHTFX OK'), timeout: 120 },
   { n: 'audiotest', why: '音の仕組みが壊れていない（題名の曲・場所ごとの曲と調・メニューで音がこもる・効果音で曲が下がる・終わりの音・音量の上限）（2026-11-15）', ok: has('AUDIO OK'), timeout: 120 },
   { n: 'bootfast', why: '起動を速くした仕組みで絵が欠けない（開いて 3 秒で全部の絵・すぐスタートしても走る絵がある・着せかえは開いた時から・すぐ「あそびかた」でも走る絵）（2026-11-15）', ok: has('BOOTFAST OK'), timeout: 120 },
   { n: 'cardframe', why: 'シェア画像の写真に、キャラクターが頭から足まで入る（縦長のスマホで頭しか入らなかった）（2026-11-15）', ok: has('CARDFRAME OK'), timeout: 120 },
@@ -143,6 +149,8 @@ for (const t of T) {
   const why = failLines(out);
   results.push({ name: t.label || t.n, why: t.why, pass, flaky, first, sec: Math.round((Date.now() - s) / 1000), tail: (why && !pass ? why + '\n...\n' : '') + out.trim().split('\n').slice(-6).join('\n').slice(-900) });
   console.log((pass ? (flaky ? 'PASS(retry) ' : 'PASS ') : 'FAIL ') + (t.label || t.n) + ' (' + Math.round((Date.now() - s) / 1000) + 's)' + (flaky ? ' first: ' + first.replace(/\n/g, ' | ').slice(0, 300) : ''));
+  /* 2026-11-15：落ちた試験は、その場で理由（出力の終わり）も記録に出す。前は「FAIL 名前」だけで、GitHub の記録からは理由が分からなかった */
+  if (!pass) console.log('  └ ' + results[results.length - 1].tail.replace(/\n/g, '\n    ').slice(0, 1500));
 }
 servers.forEach(s => s.close());
 const failed = results.filter(r => !r.pass);

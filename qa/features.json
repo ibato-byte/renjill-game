@@ -287,11 +287,6 @@
       "has": "async function goldTieCheck()"
     },
     {
-      "name": "あいことばのかくれんぼ",
-      "file": "src/6_game.js",
-      "has": "function kanaGot(sx, sy)"
-    },
-    {
       "name": "お祭りの日",
       "file": "src/6_game.js",
       "has": "function matsuriSeg(th)"
@@ -580,6 +575,156 @@
       "name": "ジャンプの絵の試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'jumppose'"
+    },
+    {
+      "name": "天井のある場所：カメラは天井より下",
+      "file": "src/6_game.js",
+      "has": "ceilH - CAM_CEIL_GAP"
+    },
+    {
+      "name": "天井のある場所：ジャンプでカメラが天井をこえない",
+      "file": "src/6_game.js",
+      "has": "ceilH - CAM_CEIL_MIN"
+    },
+    {
+      "name": "天井のある場所：キャラクターの頭が天井をこえない",
+      "file": "src/1_data.js",
+      "has": "function jumpTop(seg)"
+    },
+    {
+      "name": "天井の高さのしるし",
+      "file": "src/3_world.js",
+      "has": "seg.ceilH = H"
+    },
+    {
+      "name": "天井の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'ceilview'"
+    },
+    {
+      "name": "天井そのものを高く（室内 4.4m・電車 3.9m）",
+      "file": "src/1_data.js",
+      "has": "const CEIL_ROOM = 4.4, CEIL_TRAIN = 3.9"
+    },
+    {
+      "name": "つるす物（中づり・つり革）は天井に合わせて上げる",
+      "file": "src/3_world.js",
+      "has": "type === 'nakazuri' || type === 'strapS') && seg.wallH > 2.9"
+    },
+    {
+      "name": "手すりの棒は天井まで",
+      "file": "src/3_world.js",
+      "has": "type === 'pole' && o.artH && seg.wallH > o.artH"
+    },
+    {
+      "name": "途中で閉じた走りを書いておく",
+      "file": "src/6_game.js",
+      "has": "function cpSave()"
+    },
+    {
+      "name": "つづきから走る",
+      "file": "src/6_game.js",
+      "has": "function resumeRun()"
+    },
+    {
+      "name": "題名画面の「つづきから走る」",
+      "file": "src/7_ui.js",
+      "has": "q.id = 'btnCont'"
+    },
+    {
+      "name": "走り終わったら、つづきは消す",
+      "file": "src/6_game.js",
+      "has": "cpClear(); /* 走り終わり"
+    },
+    {
+      "name": "つづきからの試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'resume'"
+    },
+    {
+      "name": "やわらかい光（ディフュージョン）",
+      "file": "src/4c_atmos.js",
+      "has": "function diffusion()"
+    },
+    {
+      "name": "重い時は、まずやわらかい光をやめる",
+      "file": "src/7_ui.js",
+      "has": "QLOG.push('glow0')"
+    },
+    {
+      "name": "跳ぶ瞬間の沈み",
+      "file": "src/4_render.js",
+      "has": "G.takeT > 0"
+    },
+    {
+      "name": "レーン移動の残像",
+      "file": "src/4_render.js",
+      "has": "G.smearN = (G.smearN || 0) + 1"
+    },
+    {
+      "name": "「本当にやめる？」（切れない）",
+      "file": "src/1_data.js",
+      "has": "quitSure: ['本当にやめる？'"
+    },
+    {
+      "name": "iPhone のホーム画面アプリで下まで表示",
+      "file": "src/7_ui.js",
+      "has": "function iosFill()"
+    },
+    {
+      "name": "画質の順番の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'quality'"
+    },
+    {
+      "name": "動きの試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'motion'"
+    },
+    {
+      "name": "一時停止の文字の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'pausefit'"
+    },
+    {
+      "name": "iPhone の手当ての試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'iosfill'"
+    },
+    {
+      "name": "夕方の光のすじ",
+      "file": "src/4c_atmos.js",
+      "has": "G.rayN = (G.rayN || 0) + 1"
+    },
+    {
+      "name": "アイテムの絵を 2 倍の細かさ・うすい陰影",
+      "file": "src/2_sprites.js",
+      "has": "const ITEM_NOSHADE"
+    },
+    {
+      "name": "光の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'lightfx'"
+    },
+    {
+      "name": "題名：朝・道中・夜の説明は、はじめの 3 回だけ",
+      "file": "src/7_ui.js",
+      "has": "$('#tStory').hidden = (SV.runs || 0) >= 3"
+    },
+    {
+      "name": "場所の説明の一文は、はじめて来た時だけ",
+      "file": "src/6_game.js",
+      "has": "firstVisit = !(SV.seen && SV.seen[n.tid])"
+    },
+    {
+      "name": "結果：コツは、はじめの 12 回と点が低い時だけ",
+      "file": "src/6e_keep.js",
+      "has": "showTip = (SV.runs || 0) <= 12"
+    },
+    {
+      "name": "結果：「あと○点」を 2 回言わない",
+      "file": "src/6e_keep.js",
+      "has": "vsDownS:"
     }
   ]
 }

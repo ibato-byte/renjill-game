@@ -7,7 +7,8 @@ function applyLang() {
   { const a = $('#tGuide'); if (a) { a.textContent = tr('遊び方・キャラクター紹介', 'How to play & characters'); a.href = window.HAYDASH_APP ? (tr('./guide.html', './guide-en.html')) : 'https://hay-dash.coana.co.jp/' + (tr('guide', 'guide-en')); if (window.HAYDASH_APP) a.removeAttribute('target'); } }
   { const a = $('#tSite'); if (a) { a.textContent = tr('REN & JILL 公式サイト', 'Ren & Jill official site'); a.href = SITE_REF; } } { const f = $('#tFollow'); if (f) f.innerHTML = followLinks(); } // タイトル画面の下の小さな文字：アニメの公式サイト（2026-10-31 オーナー指示）
   document.documentElement.lang = ({ zh: 'zh-Hant', ko: 'ko' })[LANG] || LANG; $('#cv').setAttribute('aria-label', tr('レンとジルのチモシーダッシュ', 'Ren & Jill: Hay Dash'));
-  $('#tStory').innerHTML = t('story'); $('#tStory').hidden = false; const lr = $('#tLast'); if (SV.runs > 0 && SV.last) { lr.hidden = false; lr.textContent = t('lastRun', fmt(SV.last.score), L(SV.last.place)) + (SV.best ? (tr('　', ' · ')) + t('lastBest', fmt(SV.best)) : ''); } else lr.hidden = true; $('#tSub').textContent = tr('レンとジル　チモシーダッシュ', 'Two office bunnies, one mad dash across Tokyo');
+  /* 2026-11-15（オーナー：文字が多い）：題名画面の文字を減らす。①「朝・道中・夜」の説明は、はじめの 3 回だけ ②「前回：○点・○まで到達」はやめる（自己ベストは下に出ている） */
+  $('#tStory').innerHTML = t('story'); $('#tStory').hidden = (SV.runs || 0) >= 3; const lr = $('#tLast'); lr.hidden = true; $('#tSub').textContent = tr('レンとジル　チモシーダッシュ', 'Two office bunnies, one mad dash across Tokyo');
   cardTxt('#tRenRole', t('renRole')); cardTxt('#tRenPerk', t('renPerk') + (SV.bond ? '・' + t('bondLbl', bondLv()) : '')); cardTxt('#tJillRole', t('jillRole')); cardTxt('#tJillPerk', t('jillPerk') + (SV.bond ? '・' + t('bondLbl', bondLv()) : '')); { const met = !!SV.pomMet; cardTxt('#tPomRole', t('pomRole')); cardTxt('#tPomPerk', t('pomPerk')); $('#pickPom').hidden = !met; $('#pickPom').parentNode.classList.toggle('three', met); } // the rookie stays a secret until you have met him on the road
   $('#tMis').textContent = t('missions'); $('#tSta').textContent = t('stamps'); $('#tBook').textContent = t('book'); $('#tShop').textContent = t('shop'); $('#tHow').textContent = t('how');
   $('#tBestL').textContent = t('best'); $('#sTitle .chars').setAttribute('aria-label', t('pickChar')); $('#sResult .shbtns').setAttribute('aria-label', tr('友だちに挑戦状を送ろう', 'Challenge a friend')); $('#sResult .shbtns').setAttribute('role', 'group'); $('#chatIn').setAttribute('aria-label', tr('ゲームについて質問してね', 'Ask about the game')); $('#btnRank').textContent = tr('ランキング', 'Ranking'); $('#btnRank2').textContent = tr('ランキングをもっと見る', 'See the full ranking');  { const lt = $('#btnLangTop'); if (lt) lt.setAttribute('aria-label', t('langLbl', LANG_NAME[LANG])); } $('#pauseBtn').setAttribute('aria-label', t('pauseLbl')); $('#btnSet').setAttribute('aria-label', t('settings')); $('#btnSet').title = t('settings'); for (const id of ['pClose', 'chatClose']) $('#' + id).setAttribute('aria-label', t('close')); $('#tPause').textContent = t('pause'); $('#btnQuit').textContent = t('quit');
@@ -26,12 +27,12 @@ function refreshTitle() {
   { const lv = plantLv(); if (lv > (SV.plantLv || 0)) { SV.plantLv = lv; save(); setTimeout(() => toastTitle(t('plantUp')), 1600); } } // 観葉植物が育った（B-12）
   applyLang();
   $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
-  { const dly = dailyToday(), done = SV.dailyDone === dly.key; $('#tDaily').textContent = (tr('今日のチャレンジ：', 'Today: ')) + L(dly.c.t(dly.n)) + (done ? ' ✓' : (tr('（チモシー300本＋お守り）', ' (300 hay + charm)'))); }
+  { const dly = dailyToday(), done = SV.dailyDone === dly.key; $('#tDaily').textContent = (tr('チャレンジ：', 'Challenge: ')) + L(dly.c.t(dly.n)) + (done ? ' ✓' : (tr('（+300本・お守り）', ' (+300 hay, charm)'))); }
   { let q = $('#btnQuick'); if (!q) { q = document.createElement('button'); q.id = 'btnQuick'; q.className = 'sub small quick'; q.onclick = () => { SFX.ui(); G.quickNext = 1; hideAll(); startRun(); }; $('#tDaily').after(q); } q.textContent = t('quick') + (SV.bestT ? '　' + tr('ベスト ', 'best ') + fmt(SV.bestT) : ''); q.hidden = !SV.tutDone; } // a short game for a short break (2026-11-08)
   try { commShow(); commFetch(); } catch (e) { } // みんなの集計（B-45・47）
-  { let e = $('#tHunt'); if (!e) { e = document.createElement('div'); e.id = 'tHunt'; e.className = 'hunt'; $('#tDaily').after(e); } const h = SV.tutDone ? huntNow() : null; e.hidden = !h; // あいことばのかくれんぼ（B-49）
-    if (h) { const ch = [...h.w], got = SV.hunt && SV.hunt.w === h.w ? SV.hunt.got : []; e.innerHTML = `<span>${esc(tr('あいことばのかくれんぼ', 'Secret word hunt'))}</span><b>${ch.map((c, i) => got.includes(i) ? esc(c) : '？').join(' ')}</b><small>${esc(t('kanaHint', got.length, ch.length))}${h.ep ? esc(tr('　ヒント：動画「' + h.ep + '」', '  Hint: the video "' + h.ep + '"')) : ''}</small>`; } }
+  { const e = $('#tHunt'); if (e) e.remove(); } // あいことばのかくれんぼ（B-49）はやめた（2026-11-15 オーナーの判断：何のためにあるのか分かりにくい。SNS の「あいことば」（設定で入れるとチモシーがもらえる）と名前が同じでまぎらわしい）
   { let q = $('#btnRev'); if (!q) { q = document.createElement('button'); q.id = 'btnRev'; q.className = 'sub small quick'; q.onclick = () => { SFX.ui(); G.revNext = 1; hideAll(); startRun(); }; $('#btnQuick').after(q); } q.textContent = t('revBtn'); q.hidden = !SV.tutDone || !revDay(); } // 逆走デー（B-37）
+  { let q = $('#btnCont'); const cp = cpLoad(); if (!q) { q = document.createElement('button'); q.id = 'btnCont'; q.className = 'sub resume'; q.onclick = () => { SFX.ui(); resumeRun(); }; $('#btnStart').before(q); } q.hidden = !cp; if (cp) q.textContent = t('cpBtn', cp.g.day | 0, fmt(Math.floor(cp.g.score))); } // 途中で閉じてしまった走りのつづき（2026-11-15）
   { const q = $('#btnDuo'); if (q) q.remove(); } // ふたりで交代（B-33）はやめた（2026-11-09 オーナーの判断）
   { let q = $('#btnPractice'); if (!q) { q = document.createElement('button'); q.id = 'btnPractice'; q.className = 'sub small quick'; q.onclick = openPractice; $('#btnQuick').after(q); } q.textContent = t('practice'); q.hidden = !SV.tutDone; } // 練習・場所えらび（B-31・B-38）
   { let e = $('#tDayGoal'); if (!e) { e = document.createElement('div'); e.id = 'tDayGoal'; $('#tDaily').after(e); } const n = SV.dayHay && SV.dayHay.d === todayStr() ? SV.dayHay.n : 0, k = Math.min(1, n / DAY_GOAL);
@@ -192,7 +193,7 @@ async function resetAll() {
   const msg = $('#resetMsg'); $('#btnResetYes').disabled = true; $('#btnResetNo').disabled = true; msg.textContent = t('resetDoing');
   try { if (rankOn()) await Promise.race([RANK.db.doc('ranks/' + RANK.uid).set({}), new Promise(r => setTimeout(r, 4000))]); } catch (e) { } // an empty row drops out of every ranking
   RESETTING = 1;
-  for (const k of [SAVE_KEY, 'rjChal', 'hd_fsauth']) { try { localStorage.removeItem(k); } catch (e) { } }
+  for (const k of [SAVE_KEY, 'rjChal', 'hd_fsauth', CP_KEY]) { try { localStorage.removeItem(k); } catch (e) { } }
   msg.textContent = t('resetDone'); setTimeout(() => location.reload(), 700);
 }
 /* ---- one account across browsers and devices: a short code (15 minutes) instead of a long transfer code ----
@@ -330,7 +331,7 @@ const endTouch = e => { if (!tp || tp.id !== e.pointerId) return; // a fast flic
     if (Math.abs(dx) > th || Math.abs(dy) > th) act(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')); }
   tp = null; };
 stage.addEventListener('pointerup', endTouch); stage.addEventListener('pointercancel', endTouch);
-document.addEventListener('visibilitychange', () => { if (document.hidden) { saveNow(); if (G.mode === 'countdown') { G.mode = 'play'; $('#tutCue').className = ''; } pause(); } });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { cpSave(); saveNow(); if (G.mode === 'countdown') { G.mode = 'play'; $('#tutCue').className = ''; } pause(); } });
 
 /* ================= buttons ================= */
 $('#btnStart').onclick = () => { hideAll(); startRun(); };
@@ -393,7 +394,7 @@ const toggleMute = () => { audioInit(); setMute(!SV.mute); applyLang(); };
 $('#btnMute').onclick = toggleMute; $('#btnMute2').onclick = toggleMute;
 $('#pauseBtn').onclick = pause; $('#btnResume').onclick = resume;
 /* 一時停止の「やめる」は2回押し（つづけるのとまちがえて押すと、その回が終わってしまっていた）2026-11-09 qa/quitconfirm */
-let QUITASK = 0;
+let QUITASK = -1e9; /* 2026-11-15：0 だと、ページを開いて 3 秒以内は「2 回目の押し」と見なされて 1 回でやめてしまう（ふつうの操作では起きないが、試験で見つけた） */
 $('#btnQuit').onclick = () => { const q = $('#btnQuit'); if (performance.now() - QUITASK > 3000) { QUITASK = performance.now(); q.textContent = t('quitSure'); q.classList.add('danger'); setTimeout(() => { if (performance.now() - QUITASK >= 2900) { q.textContent = t('quit'); q.classList.remove('danger'); } }, 3000); return; }
   QUITASK = 0; q.textContent = t('quit'); q.classList.remove('danger'); G.mode = 'dead'; G.cause = 'quit'; endRun(); };
 $('#btnRvClover').onclick = () => { clearInterval(rvTimer); doRevive($('#btnRvClover').dataset.free ? 'free' : 'clover'); };
@@ -433,7 +434,7 @@ function frameBody(now) {
   /* 画面の更新（60/90/120 回/秒）に合わせて、コマの間隔のゆらぎ（15ms・18ms…）をならす。走る速さは同じまま、流れる景色のかくつきが減る（2026-11-15） */
   if (raw > .004 && raw < .05) { FT_AVG = FT_AVG ? FT_AVG + (raw - FT_AVG) * .08 : raw; if (Math.abs(raw - FT_AVG) < FT_AVG * .22) { FT_DEBT += raw - FT_AVG; if (Math.abs(FT_DEBT) > .03) FT_DEBT = 0; dt = Math.max(0, FT_AVG + FT_DEBT * .1); FT_DEBT -= FT_DEBT * .1; } else FT_AVG += (raw - FT_AVG) * .2; } // never backwards (the first frame after a countdown can be stamped a hair before it)
   if (G.mode === 'play' && raw < .25) { perfAcc += raw; perfN++; if (perfN >= 90) { const avg = perfAcc / perfN; perfAcc = perfN = 0; qualityStep(avg); } }
-  TEXN = 0; TEXB = performance.now() + 3; wakeTick(now);
+  TEXN = 0; TEXB = performance.now() + 3; wakeTick(now); if (G.mode === 'play') cpTick(now);
   { let bad = null; if (G.mode !== 'pause' && G.mode !== 'dead' && G.mode !== 'result') { try { update(dt); } catch (e) { bad = e; } }
     if (bad) reportErr(bad); runGuard(Math.min(.1, Math.max(0, raw)), bad); } // a broken frame still draws, and the safety net looks at every frame
   // battery: while paused nothing on the stage moves, so it is drawn only a couple of times a second (2026-11-08)
@@ -459,7 +460,7 @@ function padTick() { let gp = null; try { const l = navigator.getGamepads ? navi
   for (const k of ['up', 'down', 'left', 'right']) if (now[k] && !PAD.prev[k] && G.mode === 'play') { act(k); G.padN = (G.padN || 0) + 1; }
   if (now.start && !PAD.prev.start) { if (G.mode === 'play') pause(); else if (G.mode === 'pause') resume(); }
   PAD.prev = now; }
-addEventListener('pagehide', () => { try { saveNow(); } catch (e) { } });
+addEventListener('pagehide', () => { try { cpSave(); saveNow(); } catch (e) { } });
 // a computer: clicking another window (the game keeps running behind it) pauses, like switching tabs does (2026-11-08)
 addEventListener('blur', () => { try { if (G.mode === 'play' && !matchMedia('(pointer:coarse)').matches) pause(); } catch (e) { } });
 /* 走っている間は、画面が暗くなったり消えたりしないようにする（まっすぐ走っていて指をふれない時間が続くと、スマホが画面を消すことがあった）。一時停止・結果・題名では、ふつうに戻す */
@@ -475,6 +476,10 @@ document.addEventListener('fullscreenchange', () => { try { if (!$('#sPanel').hi
 /* 文字の形（フォント）があとから届いたら、町の看板などの絵を描き直す（最初は代わりの文字で描かれているため）。題名画面にいるときだけ・3回まで */
 let FONT_REDO = 0, FONT_T = 0;
 try { if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => { clearTimeout(FONT_T); FONT_T = setTimeout(() => { if (FONT_REDO >= 3 || G.mode !== 'title') return; FONT_REDO++; try { freePictures(); } catch (e) { } }, 600); }); } catch (e) { }
+/* 2026-11-15：iPhone のホーム画面アプリ（全画面）で、画面のいちばん下に暗い帯が残る（オーナーの画面で確認。iOS の既知の不具合：上のステータスバーの分だけ、画面の高さが短く計算される）。
+   アプリの枠が画面より「ステータスバーくらい（8〜80px）」短い時だけ、画面いっぱいの高さにする。ふつうのブラウザ・Android・PC では何もしない。キーボードが出ている間（大きく短い）も何もしない */
+function iosFill() { try { if (navigator.standalone !== true) return false; const app = $('#app'); if (!app) return false; const port = innerHeight >= innerWidth, a = screen.height, b = screen.width, full = port ? Math.max(a, b) : Math.min(a, b);
+  const was = app.style.height; app.style.height = ''; app.style.bottom = ''; const h = app.getBoundingClientRect().height, gap = full - h; if (gap > 8 && gap < 80) { app.style.height = full + 'px'; app.style.bottom = 'auto'; } return app.style.height !== was; /* 高さを変えた時だけ true */ } catch (e) { return false; } }
 function resizeKeep() { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); smoothOn(); G.drawNow = 1; }
 /* 重いとき：まず絵の細かさを1段ずつ下げ（見た目はほとんど変わらない）、それでも重ければ演出を減らす。とても重い端末（30コマ/秒に届かない）はすぐ軽くする。
    軽い状態が続いたら細かさを戻す（1回の走りで2回まで。行ったり来たりしない） */
@@ -483,6 +488,7 @@ function qualityStep(avg) {
   if (G.lockQ) return; const g = gfxMode(); if (g === 'low') return;
   const slow = avg > 1 / (g === 'high' ? 36 : 42), verySlow = avg > 1 / 30, dev = window.devicePixelRatio || 1;
   if (slow) { Q_GOOD = 0;
+    if (g !== 'high' && !lowQ && typeof DIF_K !== 'undefined' && DIF_K > 0) { DIF_K = 0; QLOG.push('glow0'); return; } /* 重い時は、まず「やわらかい光」をやめる（細かさを下げるのはその後） */
     if (!verySlow && !lowQ && RES_K > .72 && Math.min(dev, 1.75) * RES_K > 1.08) { RES_K = Math.max(.7, RES_K - .15); DPR = dprWant(); resizeKeep(); QLOG.push('res' + RES_K.toFixed(2)); return; }
     if (lowQ < 2) { lowQ++; if (lowQ === 1) { DPR = 1; resizeKeep(); } QLOG.push('low' + lowQ); }
   } else if (avg < 1 / 55 && !lowQ && RES_K < 1 && Q_UP < 2) { if (++Q_GOOD >= 5) { Q_GOOD = 0; Q_UP++; RES_K = Math.min(1, RES_K + .15); DPR = dprWant(); resizeKeep(); QLOG.push('up' + RES_K.toFixed(2)); } }
@@ -493,6 +499,7 @@ function boot() {
   if (gfxMode() === 'low') lowQ = 1; /* 設定「画質：軽い」は最初から */
   applyLook();
   /* 2026-11-15：前は「全部描く → 着せかえを読んで、着がえた子をもう一度全部描く」で、着せかえている人ほど起動が遅かった。先に着せかえを読み、前向きの絵だけ描いて始める */
+  try { if (navigator.standalone === true) { iosFill(); const again = () => setTimeout(() => { if (iosFill()) resize(); }, 350); for (const ev of ['resize', 'orientationchange', 'focusout']) addEventListener(ev, again); document.addEventListener('visibilitychange', () => { if (!document.hidden) again(); }); } } catch (e) { }
   buildItemSprites(); buildWorldSprites(); BUN_LAZY = 1; try { applyWear(); for (const w of ['ren', 'jill', 'pom']) if (!BUN[w] || !BUN[w].front_open) buildBunnies(w); } finally { BUN_LAZY = 0; } bunniesLater(); rankIcons(); rankInit(); chatInit(); resize(); { let rz = 0; const later = () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { G.resizeN = (G.resizeN || 0) + 1; resize(); }); }; addEventListener('resize', later); addEventListener('orientationchange', later); } // 画面を回したとき、描き直しは 1 回だけ（C-63）
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren'; missionsFix();

@@ -109,7 +109,7 @@ function titleFrame(dt) {
 }
 
 /* ---------- run lifecycle ---------- */
-function startRun() { G.drawRetry = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); } catch (e) { } bunniesNow(); kpPre();
+function startRun() { G.drawRetry = 0; cpClear(); G.resumeN = 0; G.cpT = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); } catch (e) { } bunniesNow(); kpPre();
   audioInit(); SFX.ui(); { const f = document.getElementById('tFresh'); if (f) f.remove(); } toastClear();
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
@@ -132,7 +132,7 @@ function startRun() { G.drawRetry = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); 
   G.segDue = 0; const step = G.plan.shift(); const s0 = newSeg(null, step, { t0: G.rev ? 1080 : 480, day: 1, len: SV.tutDone ? 0 : 140 }); G.planClock = s0.t1; G.segs = [s0]; G.ci = 0; G.tutEnd = 0;
   if (!SV.tutDone) setupTutorial(s0); else { G.tut = null; G.tutSeg = null; }
   G.practice = SV.tutDone && G.practiceNext ? G.practiceNext : ''; G.practiceNext = '';
-  G.tidT = {}; G.epGigDone = 0; G.boss = null; G.revDone = 0; G.lastTrain = null; G.lastTrainDone = 0; G.kanaPut = 0; G.matsuri = matsuriDay(); G.matsuriTold = 0;
+  G.tidT = {}; G.epGigDone = 0; G.boss = null; G.revDone = 0; G.lastTrain = null; G.lastTrainDone = 0; G.matsuri = matsuriDay(); G.matsuriTold = 0;
   if (SV.ghost) delete SV.ghost; // ゴーストと競走（B-32）はやめた（2026-11-09 オーナーの判断）：前の版で残った記録を消す
   if (G.practice) { const tid = G.practice; G.plan = Array.from({ length: 8 }, () => ({ t: tid, d: 60 })); const p0 = newSeg(null, { t: tid, d: 60 }, { t0: 600, day: 1 }); G.segs = [p0]; G.ci = 0; G.planClock = p0.t1; G.clock = 600; G.chaseT = 0; G.chaseIntro = 0; G.chaseVis = 0; G.gigNext = 1e9; onEnterSeg(p0); banner('PRACTICE', t('practiceGo'), 'room'); } // 練習：選んだ場所から、同じ場所が続く
   ensureSegs();
@@ -180,6 +180,7 @@ function smash(o) { if (o.dead) return; o.dead = .001; o.vx = Math.random() < .5
 function die(cause) {
   if (G.mode !== 'play') return;
   if (G.practice && cause !== 'quit' && cause !== 'time') { practiceGoOn(cause); return; } // 練習ではぶつかっても終わらない
+  cpClear(); /* 走り終わり：「つづきから」は出さない（ぶつかる直前にアプリを閉じてやり直す、はできない） */
   G.cause = cause; G.mode = 'dying'; G.dyingT = .95; SFX.crash(); buzz([60, 40, 120]); G.flashT = 1; G.shake = 1; musicStop('end');
   G.player.look = 0; G.follow.look = 0; G.pom.look = 0;
   if (cause === 'papers') G.chaseVis = 1;
@@ -193,6 +194,35 @@ function practiceGoOn(cause) { G.cause = cause; G.stats.pracBumps = (G.stats.pra
 // retry as many times as your charms or hay allow (the price rises a little each time)
 function freeRevive() { return SV.runs <= 3 && G.reviveN === 0 && G.cause !== 'quit' && G.cause !== 'rescue'; } // the first fail of your first three runs: one free retry
 function canRevive() { if (G.cause === 'time') return false; if (freeRevive()) return true; const c = reviveCost(); return SV.clovers >= c.clover || SV.bank + Math.floor(G.hay) >= c.hay || (typeof PORTAL !== 'undefined' && PORTAL.adOK()); } // (inside a game portal: or a rewarded ad)
+/* 2026-11-15（オーナー：通信が悪くなった時などに強制終了になっても、途中から再開できるように）
+   走っている間、2 秒ごとに「いまの走り」の要点を端末に書いておく（CP_KEY）。アプリが急に閉じた・読み込み直しになった時は、題名画面に「つづきから走る」が出る。
+   ・ふつうの走りだけ（練習・1分ダッシュ・逆走・はじめての練習は対象外）
+   ・走り終わった（ぶつかった・やめた）ら消す。新しく走り始めても消す。データを消す時も消す
+   ・1 回の走りで CP_MAX 回まで。CP_AGE（12 時間）たったら出ない
+   ・保存データ（SV）とは別の場所なので、データ引き継ぎ（RJ1.）には入らない
+   ・道すじ：いまの場所から、同じ日の残りの予定（もう作ってあった先の道＋予定）を続ける。次の日からは新しく決める */
+const CP_KEY = 'renjill-hay-dash-run', CP_MAX = 3, CP_AGE = 12 * 3600e3;
+const CP_NUM = ['t', 'speed', 'dist', 'distEst', 'speedEst', 'score', 'hay', 'shield', 'feverG', 'clock', 'day', 'reviveN', 'bestTold', 'niceN', 'niceT', 'bumped', 'rush', 'chimed', 'soonTold', 'gaugeTold', 'feverMax', 'gigNext', 'bumpN', 'chalWon', 'spTier', 'epGigDone', 'revDone', 'lastTrainDone', 'matsuriTold'];
+function cpOK() { return G.mode === 'play' && !!SV.tutDone && !G.practice && !G.timed && !G.rev && !G.tut; }
+function cpSave() { try { if (!cpOK()) return false; const seg = curSeg(); if (!seg || !seg.tid || !THEMES[seg.tid]) return false;
+  const same = G.segs.slice(G.ci + 1).filter(s => s.day === seg.day && s.step && !s.step.fork).map(s => s.step);
+  const o = { v: 1, at: Date.now(), char: G.char, easy: G.easy ? 1 : 0, tid: seg.tid, t1: seg.t1, n: G.resumeN || 0, g: {}, stats: G.stats, plan: same.concat(G.planDay === seg.day ? G.plan : []) };
+  for (const k of CP_NUM) { const v = G[k]; if (typeof v === 'number' && Number.isFinite(v)) o.g[k] = v; else if (typeof v === 'boolean') o.g[k] = v ? 1 : 0; }
+  localStorage.setItem(CP_KEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
+function cpClear() { try { localStorage.removeItem(CP_KEY); } catch (e) { } }
+function cpLoad() { try { const o = JSON.parse(localStorage.getItem(CP_KEY) || 'null'), now = Date.now();
+  if (!o || o.v !== 1 || !o.g || !THEMES[o.tid] || !(o.at > 0) || now - o.at > CP_AGE || now < o.at - 6e5 || (o.n | 0) >= CP_MAX || !(o.g.score >= 0) || !(o.g.day >= 1) || !(o.g.clock >= 0) || !SV.tutDone) return null;
+  if (!['ren', 'jill', 'pom'].includes(o.char) || (o.char === 'pom' && !SV.pomMet)) return null; return o; } catch (e) { return null; } }
+function cpTick(now) { if (now < (G.cpT || 0)) return; G.cpT = now + 2000; cpSave(); }
+function resumeRun() { const o = cpLoad(); if (!o) { cpClear(); return false; }
+  G.char = o.char; G.quickNext = 0; G.practiceNext = ''; G.revNext = 0; hideAll(); startRun(); // まず新しい走りとして用意し、その上に、書いておいた要点を戻す
+  try { for (const k of CP_NUM) if (typeof o.g[k] === 'number' && Number.isFinite(o.g[k])) G[k] = o.g[k]; if (o.stats && typeof o.stats === 'object') Object.assign(G.stats, o.stats);
+    G.easy = !!o.easy; G.resumeN = (o.n | 0) + 1; SV.runs = Math.max(0, (SV.runs | 0) - 1); /* 同じ走りの続きなので、走った回数は増やさない */
+    const d0 = Math.max(6, Math.min(60, (+o.t1 || 0) - G.clock || 20)), s0 = newSeg(null, { t: o.tid, d: d0 }, { t0: G.clock, day: G.day }); G.segs = [s0]; G.ci = 0; G.s = 0; G.lane = 1; G.prevLane = 1; G.lat = 0; G.fork = null; G.forkRest = null;
+    G.planDay = G.day; G.plan = (Array.isArray(o.plan) ? o.plan : []).filter(x => x && typeof x.t === 'string' ? THEMES[x.t] : x && x.fork); G.planClock = s0.t1; G.segDue = 0; ensureSegs();
+    const p = segPos(s0, 0, 0); G.rx = p[0]; G.rz = p[1]; G.camYaw = s0.dir * Math.PI / 2; G.ey = G.camE = null; G.camSl = 0; onEnterSeg(s0);
+    G.combo = 0; G.comboT = 0; G.invT = 3; G.chaseT = 2.0; G.chaseIntro = 0; G.chaseVis = 0; G.cpT = 0; cpSave(); save(); } catch (e) { reportErr(e); }
+  banner('WELCOME BACK', t('cpBack'), 'good'); G.mode = 'pause'; resume(); return true; }
 function reviveCost() { return { clover: G.reviveN + 1, hay: 400 * (G.reviveN + 1) }; }
 function doRevive(kind) {
   const c = reviveCost();
@@ -262,7 +292,7 @@ function act(a) {
   } else if (a === 'up') {
     if (G.pow.fly > 0) return;
     G.player.look = 0; // ふり返り中でも、すぐ前を向いて跳ぶ
-    if (!G.air || G.coyote > 0) { G.coyote = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up'; if (G.pow.jump > 0 && G.y < .2) skyHay(G.vy); } // one plain jump for everything (low things are cleared by its normal height)
+    if (!G.air || G.coyote > 0) { G.coyote = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y, 0, jumpTop(curSeg())); G.takeT = .09; G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up'; if (G.pow.jump > 0 && G.y < .2) skyHay(G.vy); } // one plain jump for everything (low things are cleared by its normal height)
     else G.jumpBuf = .2; // a jump pressed a moment before landing still counts (.16 → .2, 2026-11-08)
   } else if (a === 'down') {
     if (G.pow.fly > 0) return;
@@ -312,7 +342,7 @@ function doTurn() {
 function onEnterSeg(n) {
   BQ.length = Math.min(BQ.length, 1);
   try { sprTrim(); } catch (e) { reportErr(e); } // 長く走っても絵のメモリが増え続けないように（2026-11-12）
-  const th = n.th; G.day = n.day; G.stats[n.tid] = 1; G.forkHinted = 0; markSeen(n.tid);
+  const th = n.th, firstVisit = !(SV.seen && SV.seen[n.tid]); /* 2026-11-15（文字を減らす）：場所の説明の一文は、はじめて来た時だけ。2 回目からは場所の名前だけ */ G.day = n.day; G.stats[n.tid] = 1; G.forkHinted = 0; markSeen(n.tid);
   G.weather = WEATHERS[(n.day - 1) % WEATHERS.length];
   if (!G.stats.spots.includes(n.tid) && th.stamp) G.stats.spots.push(n.tid);
   if (n.step && n.step.cont) { /* still the same place */ }
@@ -320,8 +350,8 @@ function onEnterSeg(n) {
   else if (n.tid === 'lobby' || n.tid === 'ehall') { G.stats.office = 1; const b = 500 * SV.mlevel; G.score += b; banner('9:00 ON TIME!', t('onTime', fmt(b)), 'good'); SFX.mission(); react('cheer', 1); }
   else if (n.t0 >= 1080 && !G.chimed) { G.chimed = 1; G.rush = 0; G.stats.chime = 1; const b = 1000 * SV.mlevel; G.score += b; SFX.chime(); startFever(7); bannerNow("IT'S 6 PM! FEVER", t('chime', fmt(b)), 'good'); react('sparkle', 1); }
   else if (n.step && n.step.last) banner('LAST TRAIN', t('lastTrain'), 'room');
-  else if (th.arrive || ARRIVE[n.tid]) banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), L(th.arrive || ARRIVE[n.tid]), 'room');
-  else banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), LANG === 'en' ? '' : (L(th).split('・')[1] || ''), 'room');
+  else if (th.arrive || ARRIVE[n.tid]) banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), firstVisit ? L(th.arrive || ARRIVE[n.tid]) : '', 'room');
+  else banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), LANG === 'en' || !firstVisit ? '' : (L(th).split('・')[1] || ''), 'room');
   if (th.rush) { G.rush = 1; G.chaseT = 0; G.boss = { seg: n, rev: G.reviveN || 0 }; bannerNow('BOSS: DEADLINE', t('bossGo'), 'bad'); } else { G.rush = 0; G.boss = null; } // 締め切りの山（B-39）：ボス戦ふう
   if (n.th.kind === 'train' && n.step.line) { G.announce = n.step.line.map((st, i) => ({ s: n.len * (i + 1) / (n.step.line.length + 1), st })); }
   else G.announce = [];
@@ -501,12 +531,13 @@ function update(dt) {
   if (flying) { G.y = lerp(G.y, G.flyY, 1 - Math.exp(-dt * 4)); G.vy = 0; G.air = true; }
   else {
     if (!G.air && G.y > ground + .001 && G.vy <= 0) G.coyote = .1; // coyote time: a jump still counts for a tenth of a second after running off an edge
-    if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault || 1); G.y += G.vy * dt; G.air = true; }
+    if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault || 1); G.y += G.vy * dt; G.air = true;
+      { const cs = curSeg(); if (cs && cs.ceilH) { const jt = jumpTop(cs) + .12; if (G.y > jt && G.y < 20) { G.y = jt; if (G.vy > 0) G.vy = 0; } } } /* ありえない高さ（数値の壊れ）は、ここで直さず安全ネット（runOK）に任せる */ /* 跳んだまま天井のある場所に入った時も、頭が天井をこえない */ }
     if (G.y <= ground + .001 && G.vy <= 0) { // land: also when the fall stops a hair above the floor (a height of 0.0005 used to leave the runner 'in the air' forever: no gravity, no landing, no jump)
       if (G.air && G.vy < -4) { SFX.land(); const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
       if (G.air) { G.landT = .14; G.landK = clamp(-G.vy / 16, .4, 1); G.airN = 0; } // the landing squash (drawn in drawBunnyWorld)
       G.y = ground; G.vy = 0;
-      if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; G.vaultDown = 0; } else { G.air = false; G.vault = 0; G.vaultDown = 0; }
+      if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y, 0, jumpTop(curSeg())); G.takeT = .09; G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; G.vaultDown = 0; } else { G.air = false; G.vault = 0; G.vaultDown = 0; }
     }
   }
   if (G.slideT > 0) G.slideT -= dt;
@@ -577,7 +608,7 @@ function update(dt) {
   if (G.lookCD > 0) G.lookCD -= dt;
   if (G.jumpBuf > 0) G.jumpBuf -= dt;
   if (G.coyote > 0) G.coyote -= dt;
-  if (G.landT > 0) G.landT -= dt;
+  if (G.landT > 0) G.landT -= dt; if (G.takeT > 0) G.takeT -= dt;
   if (G.comboT > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
   if (G.chaseT > 0) G.chaseT = Math.max(0, G.chaseT - dt);
   chalFlags(); // 社長・おつかいは「おしごと」（gigTick）と同じなので、そちらに一本化（2026-11-08）
@@ -618,8 +649,16 @@ function placeCamera(dt) {
   CAM.x = G.rx - fx * dist + Math.cos(G.camYaw) * (sh + sway); CAM.z = G.rz - fz * dist - Math.sin(G.camYaw) * (sh + sway);
   G.fovK = lerp(G.fovK || 0, (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0, Math.min(1, dt * 4)); FOCAL = BASEF * (1 - .09 * G.fovK);
   const eC = segE(seg, G.s - 2.5), slope = clamp((segE(seg, Math.min(seg.len, G.s + 14)) - eP) / 14, -.3, .3);
+  const camNew = G.camE == null;
   G.camE = G.camE == null ? eC : lerp(G.camE, Math.max(eC, eP - .4), Math.min(1, dt * 10)); G.camSl = lerp(G.camSl || 0, slope, Math.min(1, dt * 3));
-  CAM.y = G.camE + (tall ? 2.75 : 2.1) + G.y * .6 + sh * .5; CAM.yaw = G.camYaw; CAM.pitch = (tall ? .27 : .19) - G.camSl * .55 + Math.min(.1, G.y * .03);
+  /* 2026-11-15（オーナーの報告：電車や室内で天井が低く見える・ジャンプすると天井から飛び出る）
+     縦長のスマホはカメラが高い（2.75m）ので、天井（2.9〜3m）のすぐ下をはうように見えていた。ジャンプするとカメラが天井をつきぬけた。
+     天井のある場所では ①カメラの高さを「天井より CAM_CEIL_GAP 下」までにする ②ジャンプでカメラが上がる分は、天井の手前でなめらかに止める ③それでも天井より上には絶対に出さない */
+  const ceilH = seg.ceilH || 0, camB = tall ? 2.75 : 2.1, camT = ceilH ? Math.min(camB, Math.max(2.1, ceilH - CAM_CEIL_GAP)) : camB;
+  G.camH = camNew || G.camH == null ? camT : lerp(G.camH, camT, Math.min(1, dt * 5));
+  let camUp = G.y * .6 + sh * .5; if (ceilH && camUp > 0) { const room = Math.max(.05, ceilH - CAM_CEIL_MIN - G.camH); camUp = room * (1 - Math.exp(-camUp / room)); }
+  CAM.y = G.camE + G.camH + camUp; if (ceilH) CAM.y = Math.min(CAM.y, G.camE + ceilH - CAM_CEIL_MIN + .08);
+  CAM.yaw = G.camYaw; CAM.pitch = (tall ? .19 + .08 * clamp((G.camH - 2.1) / .65, 0, 1) : .19) - G.camSl * .55 + Math.min(.1, G.y * .03);
   camPrep();
   P.depth = (P.wx - CAM.x) * CAM.s + (P.wz - CAM.z) * CAM.c; F.depth = (F.wx - CAM.x) * CAM.s + (F.wz - CAM.z) * CAM.c;
   if (F.tuck) F.depth = P.depth + .3;
@@ -754,7 +793,6 @@ function collect(it, seg) {
   }
   if (def.kind === 'pom') { pomJoin(); return; }
   if (def.kind === 'flag') { burst(sx, sy, '#F2C230', 14); burst(sx, sy, '#E86A75', 8); tone(784, .1, 'bell', .04); return; } // 挑戦状の旗：通りぬけるとお祝いの紙ふぶき（点は旗の点数をこえたときに chalTick で）
-  if (def.kind === 'kana') { kanaGot(sx, sy); return; }
   if (def.kind === 'memo') { // dropped papers (B-24): the partner turns round to say thanks
     const pts = def.pts * mult; G.score += pts; G.stats.memos = (G.stats.memos || 0) + 1; floatText(sx, sy - 10, '+' + fmt(pts), '#F6EBDC'); burst(sx, sy, '#FFFDF7', 8);
     tone(659, .08, 'bell', .045); tone(988, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .07);
@@ -826,7 +864,7 @@ function hud() {
   setCls('feverBar', 'on', G.fever > 0); setCls('feverBar', 'soon', G.fever <= 0 && pct >= 80);
   setCls('feverBar', 'gain', G.fever <= 0 && G.gainT > 0 && pct < 80);
   setCls('feverGlow', 'on', G.fever > 0);
-  setText('feverLbl', G.fever > 0 ? (tr('もぐもぐフィーバー中！', 'FEVER!')) : t('gauge'));
+  setText('feverLbl', G.fever > 0 ? (tr('もぐもぐフィーバー中！', 'FEVER!')) : (SV.runs || 0) <= 3 ? t('gauge') : ''); /* ゲージの名前は、はじめの 3 回だけ（そのあとは棒と % だけ） */
   setText('feverPct', G.fever > 0 ? G.fever.toFixed(1) + 's' : Math.floor(pct) + '%');
   if (pct >= 15 && !G.gaugeTold && SV.runs <= 3) { G.gaugeTold = 1; banner('', t('gaugeHint'), ''); }
   if (!G.bestTold && SV.best > 500 && G.score > SV.best) { bestPhoto(); G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.best(); react('sparkle', 1); if (!OPT().calm) { burst(W / 2, H * .3, '#F2C230', 40); burst(W / 2, H * .3, '#E86A75', 24); burst(W / 2, H * .3, '#6FC3DF', 18); } }
@@ -934,6 +972,7 @@ const CAPS = {
 const DAY_GOAL = 300;
 const bondLv = () => 1 + Math.floor(Math.sqrt((SV.bond || 0) / 3));
 function endRun() {
+  cpClear();
   if (G.practice) { practiceEnd(); return; }
   chalSave();
   if (!SV.tutDone && (!G.tut || G.tut.every(x => x.done) || G.dist > 150)) { SV.tutDone = 1; } // the lesson is done once it was played through
@@ -1108,18 +1147,8 @@ function buildShareCard(cap, place, gained) {
 
 
 
-// あいことばのかくれんぼ（B-49）：FEED.hunt = { w: 'しっぽ', hay: 300, from, until, note }（動画の最新話につながる言葉）。
-//  走っていて「？」の札を取ると、まだの文字が1つ見つかる。全部そろうとチモシー。進みぐあいは SV.hunt（言葉ごと）
-function huntNow() { const h = typeof FEED !== 'undefined' && FEED && FEED.hunt; if (!h || typeof h.w !== 'string' || !h.w || h.w.length > 8) return null; const d = isoDay();
-  if ((h.from && h.from > d) || (h.until && h.until < d)) return null; const st = SV.hunt && SV.hunt.w === h.w ? SV.hunt : null; return st && st.done ? null : h; }
-function kanaGot(sx, sy) {
-  const h = huntNow(); if (!h) return; const ch = [...h.w]; if (!SV.hunt || SV.hunt.w !== h.w) SV.hunt = { w: h.w, got: [], done: 0 };
-  const left = ch.map((_, i) => i).filter(i => !SV.hunt.got.includes(i)); if (!left.length) return; const i = pick(left); SV.hunt.got.push(i);
-  G.score += 100 * SV.mlevel; burst(sx, sy, '#E86A75', 14); burst(sx, sy, '#F2C230', 10); tone(880, .1, 'bell', .05); tone(1175, .14, 'bell', .045, AU.ctx && AU.ctx.currentTime + .08);
-  if (SV.hunt.got.length >= ch.length) { const hay = Math.max(0, Math.min(1000, h.hay | 0 || 300)); SV.hunt.done = 1; SV.bank += hay; bannerNow('SECRET WORD!', t('kanaDone', h.w, fmt(hay)), 'good'); react('sparkle', 1); SFX.mission(); }
-  else bannerNow('LETTER!', t('kanaGot', ch[i], SV.hunt.got.length, ch.length), 'good');
-  save();
-}
+// あいことばのかくれんぼ（B-49）はやめた（2026-11-15 オーナーの判断）。前の保存データに SV.hunt が残っていても読まないだけで害はない。feed.json の hunt も読まない
+
 
 // お祭りの日（B-29）：土日と、feed の行事 'matsuri' の日。提灯の並ぶ通り（浅草・アメ横・神楽坂など）に入ると、音楽が祭りばやしに
 function matsuriDay() { const d = new Date().getDay(); return d === 0 || d === 6 || EVENT === 'matsuri'; }

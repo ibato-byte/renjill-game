@@ -132,7 +132,6 @@ const STR = {
   errLogH: ['エラーの記録', 'Error log'], errLogNote: ['うまく動かなかったときの記録です（この端末だけに残ります）。お問い合わせのときに見せてください', 'Problems this device ran into (kept only here). Handy if you contact us'], errLogNone: ['記録はありません', 'Nothing recorded'],
   goldTie: ['{0}の月間ランキング {1}位！ 金のネクタイをどうぞ', '#{1} in the {0} ranking! Here is your gold tie'], goldTieBadge: ['金のネクタイ（{0} {1}位）', 'Gold tie ({0}, #{1})'],
   titleNew: ['新しい称号を手に入れた！', 'New title!'], titleShareBtn: ['称号「{0}」をシェア', 'Share your title: {0}'], titleShareText: ['「レンとジルのチモシーダッシュ」で称号「{0}」を手に入れた！ #レンとジル #チモシーダッシュ', 'Got the title “{0}” in Ren & Jill: Hay Dash! #RenAndJill #HayDash'], titleSaved: ['称号カードの画像を保存しました（文章もコピー済み）', 'Title card saved (text copied too)'],
-  kanaGot: ['あいことばの文字「{0}」を見つけた！（{1}/{2}）', 'Secret word letter "{0}" found! ({1}/{2})'], kanaDone: ['あいことば「{0}」がそろった！ +{1}', 'Secret word "{0}" complete! +{1}'], kanaHint: ['走っていると、あいことばの文字が落ちていることがあります（{0}/{1}）', 'Letters of a secret word are hidden along the way ({0}/{1})'],
   lastGo: ['終電まで {0} 秒！ ドアが閉まる前に飛び乗ろう', 'Last train in {0}s! Make it before the doors close'], lastOk: ['終電に飛び乗り！ +{0}', 'Made the last train! +{0}'], lastMiss: ['ドアが閉まった…次の電車で帰ろう', 'The doors closed... take the next one'], lastHud: ['終電まで {0}秒', 'Last train {0}s'], lastClosed: ['ドアが閉まった', 'Doors closed'],
   revBtn: ['🌙 逆走デー：夕方から家まで', '🌙 Reverse day: home from 6 PM'], revGo: ['逆走デー！ 会社から家まで帰ろう', 'Reverse day! Run home from the office'], revHome: ['ただいま！ 家に着いた +{0}', 'Home at last! +{0}'],
   bossGo: ['締め切りの山がせまる！ ぶつからずに逃げ切れ', 'The Deadline Mountain is coming! Escape without a bump'], bossName: ['締め切りの山　あと {0}m', 'Deadline Mountain: {0}m to go'], bossWin: ['締め切りの山から逃げ切った！ +{0}', 'Escaped the Deadline Mountain! +{0}'], bossWin2: ['なんとか逃げ切った！ +{0}', 'Just got away! +{0}'],
@@ -153,18 +152,18 @@ const STR = {
   gameTitle: ['レンとジルのチモシーダッシュ', 'Ren & Jill: Hay Dash'], tagline: ['寝坊した課長と、東京をかけぬけて出社！', 'Two office bunnies, one mad dash across Tokyo'],
   missions: ['ミッション', 'Missions'], shop: ['購買部', 'Shop'], book: ['えさ図鑑', 'Food book'], stamps: ['スタンプ帳', 'Stamps'], how: ['あそびかた', 'How to play'],
   best: ['ベスト', 'Best'], soundOn: ['音：オン', 'Sound: on'], soundOff: ['音：オフ', 'Sound: off'], lang: ['English', '日本語'],
-  quit: ['やめる', 'Quit'], quitSure: ['もう一度押すとやめる', 'Tap again to quit'], menu: ['メニュー', 'Menu'], copy: ['リンクをコピー', 'Copy link'], copied: ['コピー済み', 'Copied'], copyFail: ['コピーできませんでした', 'Could not copy'],
+  quit: ['やめる', 'Quit'], quitSure: ['本当にやめる？', 'Really quit?'] /* 2026-11-15：前の「もう一度押すとやめる」は、ボタンに入らず「もう一度押…」と切れていた（オーナーの報告）。ボタンに入る短い言葉に */, menu: ['メニュー', 'Menu'], copy: ['リンクをコピー', 'Copy link'], copied: ['コピー済み', 'Copied'], copyFail: ['コピーできませんでした', 'Could not copy'],
   share: ['シェア画像を見る', 'See the share image'], shareImg: ['画像を長押し（右クリック）で保存できます', 'Long-press (or right-click) the image to save it'],
   pause: ['ひと休み', 'Taking a break'],
   story: ['<span class="stp"><b>朝</b>課長と出社</span><span class="stp"><b>道中</b>チモシー集め</span><span class="stp"><b>夜</b>東京を寄り道</span>',
     '<span class="stp"><b>AM</b>Off to work</span><span class="stp"><b>Run</b>Grab hay</span><span class="stp"><b>PM</b>See Tokyo</span>'],
-  pomRole: ['新人・キンクマ・ハムスター', 'Rookie · Golden hamster'], pomPerk: ['ほお袋：60本で\u200bボーナス', 'Pouches: bonus every 60 hay'], pomUnlock: ['新人のポムで走れるようになりました！', 'You can now run as Pom, the rookie!'], worryPom: ['ポム、大丈夫か!?', 'Pom, you OK!?'],
+  pomRole: ['新人', 'Rookie'], pomPerk: ['60本で\u200bボーナス', 'Bonus every 60 hay'], pomUnlock: ['新人のポムで走れるようになりました！', 'You can now run as Pom, the rookie!'], worryPom: ['ポム、大丈夫か!?', 'Pom, you OK!?'],
   mateRenH: ['レン課長、合流！', 'REN JOINS!'], mateRen: ['寝坊した課長が追いついた！', 'The sleepy boss caught up!'],
   mateJillH: ['ジル先輩、合流！', 'JILL JOINS!'], mateJill: ['ジル先輩が追いついた！', 'Jill caught up!'],
   mateAll: ['　3人そろって出社！', ' The whole team is here!'], mateRenSay: ['ポム、早すぎるぞ…！', 'Pom, slow down...!'], mateJillSay: ['ポムくん、お待たせ！', 'Sorry I’m late, Pom!'],
   matePomSay: ['先輩！待ってたっす！', 'Senpai! I waited for you!'], matePomAll: ['全員そろったっす！', 'The whole team, let’s go!'],
-  renRole: ['課長・ホーランド\u200bロップ', 'Boss · Holland Lop'], jillRole: ['部下・ネザーランド・ドワーフ', 'Assistant · Netherland Dwarf'],
-  renPerk: ['牧草好き：チモシー +20%', 'Hay lover: +20% hay'], jillPerk: ['段取り上手：パワーアップ 30%長く', 'Organized: power-ups +30%'],
+  renRole: ['課長', 'Boss'] /* 2026-11-15：題名のカードの文字を減らす（種類の名前は「遊び方・キャラクター紹介」のページにある） */, jillRole: ['部下', 'Assistant'],
+  renPerk: ['チモシー +20%', '+20% hay'], jillPerk: ['パワーアップ +30%', 'Power-ups +30%'],
   hintMove: ['左右スワイプでレーン移動・上でジャンプ・下でスライディング', 'Swipe left/right to change lanes, up to jump, down to slide'],
   hintTurn: ['矢印が出たら、その向きにスワイプして曲がる', 'When an arrow appears, swipe that way to turn'],
   hintSwipe: ['行きたい方へスワイプ', 'Swipe toward where you want to go'],
@@ -278,6 +277,7 @@ const STR = {
   easy: ['あそびの速さ', 'Pace'], easyN: ['ふつう', 'Normal'], easyY: ['のんびり', 'Relaxed'], easyNote: ['のんびり：速くならず、障害物も少なめ。小さな子や、はじめての人に。ランキングと自己ベストには入りません', 'Relaxed: the speed stays gentle and there are fewer obstacles. Good for small children and first-timers. Not counted for the ranking or your best.'],
   richHay: ['こっちはチモシー多め！', 'More hay this way!'],
   calH: ['出社カレンダー', 'Days at work'], calN: ['この4週間で {0} 日', '{0} days in the last 4 weeks'],
+  cpBtn: ['▶ つづきから走る（{0}日目・{1}点）', '▶ Continue your run (Day {0} · {1} pts)'], cpBack: ['途中から再開しました', 'Picked up where you left off'],
   quick: ['⏱ 1分ダッシュ', '⏱ 1-minute dash'], quickHud: ['のこり {0} 秒', '{0}s left'], quickBest: ['1分ダッシュの自己ベスト：{0}', '1-minute best: {0}'], easyRes: ['のんびりモード（ランキング・自己ベストには入りません）', 'Relaxed mode (not counted for the ranking or your best)'], bond: ['なかよし', 'Buddies'], bondUp: ['レンとジルのなかよし度が上がった！ Lv.{0}', 'Ren & Jill are better buddies! Lv.{0}'], bondLbl: ['なかよし Lv.{0}', 'Buddies Lv.{0}'],
   vib: ['振動', 'Vibration'], calm: ['画面の揺れ・演出をひかえめに', 'Reduce screen shake and flashes'], music: ['音楽', 'Music'], sfx: ['効果音', 'Sound effects'], on: ['オン', 'On'], off: ['オフ', 'Off'], lvLow: ['小さめ', 'Low'], vibLow: ['弱め', 'Light'],
   resetTut: ['チュートリアルをもう一度', 'Replay the tutorial'], xfer: ['記録のバックアップ（予備）', 'Backup of your progress (spare)'], xferNote: ['ネットにつながらないときなどの予備です。長いコードをメモ帳などに保存しておけば、あとで記録をもどせます。ふだんの引き継ぎは上の「記録の引き継ぎ」が簡単です。（写真アルバムは入りません）', 'A spare for when you are offline: save the long code somewhere and restore it later. For everyday moves, “Move your progress” above is easier. (Photos are not included.)'], xferMake: ['バックアップのコードを作る', 'Make a backup code'], xferCopied: ['コードをコピーしました。メモ帳などに保存しておいてください', 'Code copied. Keep it somewhere safe'], xferPaste: ['ここにバックアップのコードを貼り付け', 'Paste a backup code here'], xferLoad: ['このコードで復元', 'Restore from this code'], xferDone: ['記録をもどしました！', 'Restored!'], xferBad: ['コードが正しくありません。最後まで貼り付けられているか確認してください', 'That code does not look right. Check it was pasted in full'], xferConfirm: ['今の記録はこのコードの記録で上書きされます。もう一度押すと復元します', 'Your current progress will be replaced. Tap again to restore'], xferMine: ['この端末にも記録があります（ベスト {0}点・チモシー {1}本・{2}回プレイ）。続けると、この端末の記録は上の記録に入れかわります', 'This device has progress too (best {0}, hay {1}, {2} runs). It will be replaced by the progress above.'], resetDone: ['次のスタートでチュートリアルが始まります', 'The tutorial will play on your next run'],
@@ -293,7 +293,11 @@ const DIRS = [[0, 1], [1, 0], [0, -1], [-1, 0]];
 const GRAV = 24, JUMPV = 8.0, SUPERV = 9.6, VAULT_G = .5; // a car vault is a long, floaty leap (half the gravity) just over the roof, not a big high jump. Tall cars are dodged, not jumped
 const vaultV = h => Math.sqrt(2 * GRAV * VAULT_G * h);
 const MAX_JUMP = 2.1; // no jump ever goes higher than this above the floor (standing on a box, super jump or not)
-const capV = (v, y, g) => Math.min(v, Math.sqrt(2 * GRAV * (g || 1) * Math.max(.25, MAX_JUMP - (y || 0))));
+const capV = (v, y, g, top) => Math.min(v, Math.sqrt(2 * GRAV * (g || 1) * Math.max(.25, (top || MAX_JUMP) - (y || 0))));
+/* 天井のある場所（2026-11-15）：カメラは天井より CAM_CEIL_GAP 下まで・どんな時も CAM_CEIL_MIN より近づかない。キャラクターの足は「天井 − HEAD_ROOM」より上に行かない（頭が天井をつきぬけない） */
+const CAM_CEIL_GAP = .8, CAM_CEIL_MIN = .3, HEAD_ROOM = 1.3;
+const CEIL_ROOM = 4.4, CEIL_TRAIN = 3.9; /* 室内・電車の天井の高さの下限（m）。場所ごとの wallH がこれより低くても、ここまで上げる */
+function jumpTop(seg) { const c = seg && seg.ceilH; return c ? Math.min(MAX_JUMP, Math.max(1.4, c - HEAD_ROOM)) : MAX_JUMP; }
 const STAND_H = 0.92, SLIDE_H = 0.42;
 
 /* ================= items ================= */
@@ -319,7 +323,6 @@ const ITEMS = {
   pomseed:  { ja: 'ひまわりの種', en: 'Sunflower seeds', kind: 'pom', pts: 200, tip: { ja: 'キンクマハムスターのポムの大好物。これをとるとポムが合流する。脂肪が多いので、うさぎのレンとジルは食べません。', en: 'Pom the hamster’s favorite. Pick them up and Pom joins you. Too fatty for bunnies, so Ren and Jill skip them.' } },
   stamp:    { ja: '観光スタンプ', en: 'Tokyo stamp', kind: 'stamp', pts: 500, tip: { ja: '', en: '' } },
   chalflag: { ja: '挑戦状の旗', en: 'Challenge flag', kind: 'flag', pts: 0, tip: { ja: '', en: '' } }, // 挑戦状の点数の手前に立つ旗（図鑑には入らない）
-  kana:     { ja: 'あいことばの文字', en: 'Secret word letter', kind: 'kana', pts: 100, tip: { ja: '', en: '' } }, // かくれんぼ（B-49）：1回の走りに1枚まで（図鑑には入らない）
   memo:     { ja: '落とした書類', en: 'Dropped papers', kind: 'memo', pts: 150, tip: { ja: '', en: '' } }, // 拾うと相棒がお礼（図鑑には入らない）
   choco:    { ja: 'チョコレート', en: 'Chocolate', kind: 'bad', tip: { ja: 'うさぎには毒になる成分（テオブロミンなど）を含みます。絶対にあげないで。', en: 'Contains theobromine, which is toxic to rabbits. Never feed it.' } },
   onion:    { ja: '玉ねぎ・ネギ', en: 'Onions & leeks', kind: 'bad', tip: { ja: 'ネギの仲間（ニラ・ニンニクも）は中毒の原因になります。絶対にダメ（長野県資料）。', en: 'Onions and their relatives (leeks, garlic) are poisonous to rabbits (Nagano guide).' } },
