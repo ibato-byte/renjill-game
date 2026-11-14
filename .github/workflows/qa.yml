@@ -66,7 +66,9 @@ jobs:
           if [ -f kpi.json ]; then
             extra+=(--kpi "遊んだ人=$(node -p "require('./kpi.json').players_total")" --kpi "今月遊んだ人=$(node -p "require('./kpi.json').players_this_month")" --kpi "直近7日に遊んだ人=$(node -p "require('./kpi.json').active_7d")")
           fi
-          bash "$RUNNER_TEMP/hub/scripts/gha.sh" report renjill-game "$JOB_STATUS" "$PAUSED" "ゲームの自動チェックが全部合格しました。" \
+          # 結果の文は合否で変える（不合格でも「全部合格」と書いていた。Hub 依頼 #230・PR #8 から）
+          if [ "$JOB_STATUS" = "success" ]; then msg="ゲームの自動チェックが全部合格しました。"; else msg="ゲームの自動チェックで不合格がありました：$(node -p "(require('./qa-report.json').failed||[]).join('、')" 2>/dev/null || echo 不明)"; fi
+          bash "$RUNNER_TEMP/hub/scripts/gha.sh" report renjill-game "$JOB_STATUS" "$PAUSED" "$msg" \
             --outcome done --does "ゲームの自動チェックを動かし、遊んだ人の数を数えた" \
             --next-run-at "$(bash "$RUNNER_TEMP/hub/scripts/gha.sh" next-daily 20:17)" "${extra[@]}"
   deploy:
