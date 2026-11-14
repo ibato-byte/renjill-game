@@ -483,6 +483,7 @@ function qualityStep(avg) {
   if (G.lockQ) return; const g = gfxMode(); if (g === 'low') return;
   const slow = avg > 1 / (g === 'high' ? 36 : 42), verySlow = avg > 1 / 30, dev = window.devicePixelRatio || 1;
   if (slow) { Q_GOOD = 0;
+    if (g !== 'high' && !lowQ && typeof DIF_K !== 'undefined' && DIF_K > 0) { DIF_K = 0; QLOG.push('glow0'); return; } /* 重い時は、まず「やわらかい光」をやめる（細かさを下げるのはその後） */
     if (!verySlow && !lowQ && RES_K > .72 && Math.min(dev, 1.75) * RES_K > 1.08) { RES_K = Math.max(.7, RES_K - .15); DPR = dprWant(); resizeKeep(); QLOG.push('res' + RES_K.toFixed(2)); return; }
     if (lowQ < 2) { lowQ++; if (lowQ === 1) { DPR = 1; resizeKeep(); } QLOG.push('low' + lowQ); }
   } else if (avg < 1 / 55 && !lowQ && RES_K < 1 && Q_UP < 2) { if (++Q_GOOD >= 5) { Q_GOOD = 0; Q_UP++; RES_K = Math.min(1, RES_K + .15); DPR = dprWant(); resizeKeep(); QLOG.push('up' + RES_K.toFixed(2)); } }

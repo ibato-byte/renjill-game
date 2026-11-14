@@ -152,7 +152,7 @@ const STR = {
   gameTitle: ['レンとジルのチモシーダッシュ', 'Ren & Jill: Hay Dash'], tagline: ['寝坊した課長と、東京をかけぬけて出社！', 'Two office bunnies, one mad dash across Tokyo'],
   missions: ['ミッション', 'Missions'], shop: ['購買部', 'Shop'], book: ['えさ図鑑', 'Food book'], stamps: ['スタンプ帳', 'Stamps'], how: ['あそびかた', 'How to play'],
   best: ['ベスト', 'Best'], soundOn: ['音：オン', 'Sound: on'], soundOff: ['音：オフ', 'Sound: off'], lang: ['English', '日本語'],
-  quit: ['やめる', 'Quit'], quitSure: ['もう一度押すとやめる', 'Tap again to quit'], menu: ['メニュー', 'Menu'], copy: ['リンクをコピー', 'Copy link'], copied: ['コピー済み', 'Copied'], copyFail: ['コピーできませんでした', 'Could not copy'],
+  quit: ['やめる', 'Quit'], quitSure: ['本当にやめる？', 'Really quit?'] /* 2026-11-15：前の「もう一度押すとやめる」は、ボタンに入らず「もう一度押…」と切れていた（オーナーの報告）。ボタンに入る短い言葉に */, menu: ['メニュー', 'Menu'], copy: ['リンクをコピー', 'Copy link'], copied: ['コピー済み', 'Copied'], copyFail: ['コピーできませんでした', 'Could not copy'],
   share: ['シェア画像を見る', 'See the share image'], shareImg: ['画像を長押し（右クリック）で保存できます', 'Long-press (or right-click) the image to save it'],
   pause: ['ひと休み', 'Taking a break'],
   story: ['<span class="stp"><b>朝</b>課長と出社</span><span class="stp"><b>道中</b>チモシー集め</span><span class="stp"><b>夜</b>東京を寄り道</span>',
