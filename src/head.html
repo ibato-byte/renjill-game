@@ -218,7 +218,7 @@ html[lang="ja"] .mini span{display:none}html[lang="ja"] .ph small{display:none}
 .small-print{font-size:10px;color:var(--paper);opacity:.75;text-align:center;margin-top:8px;font-weight:700}
 @media (prefers-reduced-motion:reduce){.toast{animation:none}}
 #sTitle>.small-print{margin-bottom:auto}
-#banner{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 158px);transform:translate(-50%,-8px);opacity:0;transition:opacity .18s,transform .18s;
+#banner{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 158px);transform:translate(-50%,8px);opacity:0;transition:opacity .18s,transform .18s;
   display:flex;align-items:baseline;gap:8px;max-width:calc(100% - 32px);padding:5px 12px;border-radius:999px;background:rgba(59,42,32,.78);color:var(--paper);white-space:nowrap;overflow:hidden;pointer-events:none}
 #banner.long{white-space:normal;border-radius:14px;align-items:center;width:min(calc(100% - 24px),440px);max-width:none;box-sizing:border-box}#banner.long .ja{flex:1}#banner.long .ja{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25;text-overflow:clip}
 /* 2026-11-08 見やすさ：夜の外では帯を少し明るく（C-27）／なくしたハートは色だけでなく、しま模様でも区別（C-28）／もぐもぐメーターに 4 分の目もり（C-28）／文字を大きく（C-29） */
@@ -374,7 +374,7 @@ details.more>*:not(summary){margin-top:8px}
 @media (max-height:620px){.story{display:none}.logo{padding-top:6px}.logo .k{display:none}.logo h1{font-size:28px}.logo .ja{display:none}.char{padding:4px 6px 6px}.char canvas{max-width:64px}.chars{gap:6px}.char .perk{font-size:10px}.char .role{display:none}.card{gap:6px;padding:10px}.big{padding:8px;font-size:18px}.daily{font-size:11px}.small-print{display:none}}
 /* タブレット（幅・高さとも 700px 以上）：上の枠と数字を少し大きく（C-25） */
 @media (min-width:700px) and (min-height:700px){.hud-top{padding-top:16px;gap:14px}.chip{padding:8px 14px;border-radius:16px}.score b{font-size:38px}.score small{font-size:14px}.clock{min-width:130px}.clock .day{font-size:12px}.clock b{font-size:32px}.clock .room{font-size:13px}.hay img{width:34px;height:34px}.hay b{font-size:31px}#feverBar{width:min(440px,60%);height:22px}}
-@media (max-height:500px){#hud .hud-top{gap:4px}#routeBar{display:none!important}#lives{margin-top:3px}#lives em{display:none}#feverBar{height:10px;margin-top:4px}#feverBar span,#feverBar b{display:none}#banner{top:calc(env(safe-area-inset-top,0px) + 116px)!important}.gig{bottom:calc(64px + env(safe-area-inset-bottom,0px))}}
+@media (max-height:500px){#hud .hud-top{gap:4px}#routeBar{display:none!important}#lives{margin-top:3px}#lives em{display:none}#feverBar{height:10px;margin-top:4px}#feverBar span,#feverBar b{display:none}#banner{bottom:calc(env(safe-area-inset-bottom,0px) + 104px)!important}.gig{bottom:calc(64px + env(safe-area-inset-bottom,0px))}}
 
 /* ---- brush-up 2026-11: no words broken in the middle, the follow row, the share bar in two rows ---- */
 .tog .sub.small{white-space:nowrap;padding:6px 8px}.card>.bank{flex-wrap:wrap;gap:6px 8px}.card>.bank .tog{margin-left:auto}

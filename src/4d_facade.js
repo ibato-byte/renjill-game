@@ -303,11 +303,33 @@ function drawFacadeTex(w, dist) {
 
 const SPR_PEND = {};
 const SPR_FN = {}; // how each late-painted picture is made, kept so that it can be painted again (picRepairAll)
-function sprPaint(k) { const f = SPR_PEND[k]; if (!f) return SPR[k]; delete SPR_PEND[k]; SPR_FN[k] = f; const low = CANVAS_LOW; try { SPR[k] = f(); if (CANVAS_LOW !== low) { delete SPR[k]; SPR_PEND[k] = f; return null; } /* out of picture memory: painted again later, not kept blank */ if (SPR[k] && !SPR[k].__keep) { SPR[k].__keep = 1; ART_KEPT++; } } catch (e) { } return SPR[k]; }
+const SPR_OFF = new Set(); // pictures let go to save memory (painted again only when a street that uses them comes near)
+function sprPaint(k) { const f = SPR_PEND[k]; if (!f) return SPR[k]; delete SPR_PEND[k]; SPR_FN[k] = f; SPR_OFF.delete(k); const low = CANVAS_LOW; try { SPR[k] = f(); if (CANVAS_LOW !== low) { delete SPR[k]; SPR_PEND[k] = f; return null; } /* out of picture memory: painted again later, not kept blank */ if (SPR[k] && !SPR[k].__keep) { SPR[k].__keep = 1; ART_KEPT++; } } catch (e) { } return SPR[k]; }
+/* 長く走ると、通った場所の家具・看板などの絵がたまり続けていた（8日目に「ここで一区切り」で終わった報告 2026-11-12。
+   スマホで 7日目→13日目に絵の合計が 25→50 Mpx と増え続け、iPhone の絵のメモリが足りなくなって描けなくなる）。
+   スマホでは、今の道と先の道で使っていない絵を手放し、また通ったら描き直す。 */
+const SPR_MAXPX = FAC_PHONE ? 6e6 : 24e6;
+function sprTrim(maxPx) {
+  maxPx = maxPx == null ? SPR_MAXPX : maxPx; let px = 0; const ks = [];
+  for (const k in SPR) { if (k.slice(0, 3) !== 'pa|') continue; const c = SPR[k]; if (c && c.width) { px += c.width * c.height; ks.push(k); } }
+  if (px <= maxPx) return 0;
+  const live = new Set(); for (const sg of (G.segs || []).concat(G.fork || [])) { if (!sg) continue; for (const q of sg.spr || []) live.add(q.img); for (const pr of sg.props || []) for (const q of pr.spr || []) live.add(q.img); }
+  let n = 0;
+  for (const k of ks) {
+    if (px <= maxPx * .7) break;
+    if (live.has(k) || live.has(k.replace(/N$/, '')) || !SPR_FN[k]) continue;
+    const c = SPR[k]; delete SPR[k]; SPR_PEND[k] = SPR_FN[k]; SPR_OFF.add(k); px -= c.width * c.height; n++;
+    for (const [ak, av] of ART_C) if (av === c) { ART_C.delete(ak); break; }
+    if (c.__keep) { ART_KEPT = Math.max(0, ART_KEPT - 1); c.__keep = 0; }
+    if (typeof TINT_CACHE !== 'undefined') TINT_CACHE.delete(c); // no size change: a picture still held somewhere must stay drawable (picRepairAll); the memory goes once nothing holds it
+  }
+  return n;
+}
 // idle time: paint the fronts of the streets ahead (and their lit copies) before they come round the corner
 function texWarm(ms) {
   const end = performance.now() + Math.max(1.5, ms); const night = LT.night > .35;
-  for (const k in SPR_PEND) { sprPaint(k); if (performance.now() > end) return; }
+  let near = null; if (SPR_OFF.size) { near = new Set(); for (const sg of G.segs.slice(G.ci, G.ci + 3).concat(G.fork || [])) { if (!sg) continue; for (const q of sg.spr || []) { near.add(q.img); near.add(q.img + 'N'); } for (const pr of sg.props || []) for (const q of pr.spr || []) { near.add(q.img); near.add(q.img + 'N'); } } }
+  for (const k in SPR_PEND) { if (near && SPR_OFF.has(k) && !near.has(k)) continue; sprPaint(k); if (performance.now() > end) return; } // a picture let go is painted again only when its street comes near
   const list = G.segs.slice(G.ci, G.ci + (FAC_PHONE ? 2 : 3)).concat(G.fork || []); // only what can come into view soon (warming further ahead pushed the current street out of the phone's cache)
   for (const sg of list) { if (!sg || !sg.walls) continue;
     for (const w of sg.walls) { if (w.pat !== 'fac' || w.fv == null) continue;
