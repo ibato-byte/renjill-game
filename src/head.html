@@ -147,7 +147,7 @@ html[lang="ja"] .mini em{white-space:nowrap;font-size:10px;letter-spacing:-.02em
 .big:active{transform:translateY(3px);box-shadow:0 2px 0 #1d140f}
 .row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .mini{border:0;border-radius:14px;background:var(--cream);padding:8px 4px;font-weight:900;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
-html[lang="ja"] .mini span{display:none}html[lang="ja"] .ph small{display:none}
+.mini span{display:none} /* 2026-11-15：ボタンの上の英語の見出し（MISSION など）は、どの言葉でも出さない（下の言葉と同じ意味が 2 つ並んでいた） */html[lang="ja"] .ph small{display:none}
 .mini span{font-family:var(--f-display);font-size:10px;font-weight:400;letter-spacing:.06em;color:var(--ink-soft)}
 .mini em{font-style:normal;font-size:11px;line-height:1.2;text-align:center}
 .mini .dot{position:absolute;top:4px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--stamp)}

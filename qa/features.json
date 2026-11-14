@@ -705,6 +705,26 @@
       "name": "光の試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'lightfx'"
+    },
+    {
+      "name": "題名：朝・道中・夜の説明は、はじめの 3 回だけ",
+      "file": "src/7_ui.js",
+      "has": "$('#tStory').hidden = (SV.runs || 0) >= 3"
+    },
+    {
+      "name": "場所の説明の一文は、はじめて来た時だけ",
+      "file": "src/6_game.js",
+      "has": "firstVisit = !(SV.seen && SV.seen[n.tid])"
+    },
+    {
+      "name": "結果：コツは、はじめの 12 回と点が低い時だけ",
+      "file": "src/6e_keep.js",
+      "has": "showTip = (SV.runs || 0) <= 12"
+    },
+    {
+      "name": "結果：「あと○点」を 2 回言わない",
+      "file": "src/6e_keep.js",
+      "has": "vsDownS:"
     }
   ]
 }

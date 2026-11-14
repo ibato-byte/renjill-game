@@ -342,7 +342,7 @@ function doTurn() {
 function onEnterSeg(n) {
   BQ.length = Math.min(BQ.length, 1);
   try { sprTrim(); } catch (e) { reportErr(e); } // 長く走っても絵のメモリが増え続けないように（2026-11-12）
-  const th = n.th; G.day = n.day; G.stats[n.tid] = 1; G.forkHinted = 0; markSeen(n.tid);
+  const th = n.th, firstVisit = !(SV.seen && SV.seen[n.tid]); /* 2026-11-15（文字を減らす）：場所の説明の一文は、はじめて来た時だけ。2 回目からは場所の名前だけ */ G.day = n.day; G.stats[n.tid] = 1; G.forkHinted = 0; markSeen(n.tid);
   G.weather = WEATHERS[(n.day - 1) % WEATHERS.length];
   if (!G.stats.spots.includes(n.tid) && th.stamp) G.stats.spots.push(n.tid);
   if (n.step && n.step.cont) { /* still the same place */ }
@@ -350,8 +350,8 @@ function onEnterSeg(n) {
   else if (n.tid === 'lobby' || n.tid === 'ehall') { G.stats.office = 1; const b = 500 * SV.mlevel; G.score += b; banner('9:00 ON TIME!', t('onTime', fmt(b)), 'good'); SFX.mission(); react('cheer', 1); }
   else if (n.t0 >= 1080 && !G.chimed) { G.chimed = 1; G.rush = 0; G.stats.chime = 1; const b = 1000 * SV.mlevel; G.score += b; SFX.chime(); startFever(7); bannerNow("IT'S 6 PM! FEVER", t('chime', fmt(b)), 'good'); react('sparkle', 1); }
   else if (n.step && n.step.last) banner('LAST TRAIN', t('lastTrain'), 'room');
-  else if (th.arrive || ARRIVE[n.tid]) banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), L(th.arrive || ARRIVE[n.tid]), 'room');
-  else banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), LANG === 'en' ? '' : (L(th).split('・')[1] || ''), 'room');
+  else if (th.arrive || ARRIVE[n.tid]) banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), firstVisit ? L(th.arrive || ARRIVE[n.tid]) : '', 'room');
+  else banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), LANG === 'en' || !firstVisit ? '' : (L(th).split('・')[1] || ''), 'room');
   if (th.rush) { G.rush = 1; G.chaseT = 0; G.boss = { seg: n, rev: G.reviveN || 0 }; bannerNow('BOSS: DEADLINE', t('bossGo'), 'bad'); } else { G.rush = 0; G.boss = null; } // 締め切りの山（B-39）：ボス戦ふう
   if (n.th.kind === 'train' && n.step.line) { G.announce = n.step.line.map((st, i) => ({ s: n.len * (i + 1) / (n.step.line.length + 1), st })); }
   else G.announce = [];
@@ -864,7 +864,7 @@ function hud() {
   setCls('feverBar', 'on', G.fever > 0); setCls('feverBar', 'soon', G.fever <= 0 && pct >= 80);
   setCls('feverBar', 'gain', G.fever <= 0 && G.gainT > 0 && pct < 80);
   setCls('feverGlow', 'on', G.fever > 0);
-  setText('feverLbl', G.fever > 0 ? (tr('もぐもぐフィーバー中！', 'FEVER!')) : t('gauge'));
+  setText('feverLbl', G.fever > 0 ? (tr('もぐもぐフィーバー中！', 'FEVER!')) : (SV.runs || 0) <= 3 ? t('gauge') : ''); /* ゲージの名前は、はじめの 3 回だけ（そのあとは棒と % だけ） */
   setText('feverPct', G.fever > 0 ? G.fever.toFixed(1) + 's' : Math.floor(pct) + '%');
   if (pct >= 15 && !G.gaugeTold && SV.runs <= 3) { G.gaugeTold = 1; banner('', t('gaugeHint'), ''); }
   if (!G.bestTold && SV.best > 500 && G.score > SV.best) { bestPhoto(); G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.best(); react('sparkle', 1); if (!OPT().calm) { burst(W / 2, H * .3, '#F2C230', 40); burst(W / 2, H * .3, '#E86A75', 24); burst(W / 2, H * .3, '#6FC3DF', 18); } }

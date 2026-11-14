@@ -11,7 +11,7 @@ const KS = {
   todayUp: ['今日のベストをこえた！', "Past today's best!"], goalHit: ['今日の目標スコア達成！ チモシー＋{0}本', "Today's score goal done! +{0} hay"], rivalUp: ['{0} さんをぬいた！', 'You passed {0}!'],
   comboB: ['{0}コンボ！ ＋{1}', '{0} combo! +{1}'], paceUp: ['ベストのときより ＋{0}', '+{0} vs your best run'], paceDn: ['ベストのときより −{0}', '−{0} vs your best run'],
   boostGo: ['スタートブースト！ スコア2倍とマグネット', 'Start boost! x2 score and magnet'],
-  vsFirst: ['最初の記録！ 次はこの点をこえよう', 'Your first score! Beat it next'], vsUp: ['自己ベストを {0} 更新！', 'New best by {0}!'], vsDown: ['自己ベストの {1}%（あと {0}点）', '{1}% of your best ({0} to go)'],
+  vsFirst: ['最初の記録！ 次はこの点をこえよう', 'Your first score! Beat it next'], vsUp: ['自己ベストを {0} 更新！', 'New best by {0}!'], vsDown: ['自己ベストの {1}%（あと {0}点）', '{1}% of your best ({0} to go)'], vsDownS: ['自己ベストの {1}%', '{1}% of your best'],
   lastUp: ['前回より ＋{0}', '+{0} vs last run'], lastDn: ['前回より −{0}', '−{0} vs last run'], todayB: ['今日のベスト {0}', "Today's best {0}"], weekB: ['今週のベスト {0}', "This week's best {0}"],
   near: ['おしい！ あと {0}点で自己ベスト。もう1回！', 'So close! {0} more for a new best. One more run!'],
   tipFever: ['コツ：チモシーを続けて取るとゲージがたまり、フィーバーで点が2倍', 'Tip: keep collecting hay to fill the gauge — Fever doubles your points'],
@@ -29,7 +29,7 @@ const KS = {
   unlockNow: ['「{0}」が買える！（購買部）', 'You can buy “{0}” now (Shop)'], unlockLeft: ['あと {0}本で「{1}」が買える', '{0} more hay buys “{1}”'],
   tmrw: ['明日も来ると ログインボーナス {0}本（{1}日連続）', 'Come back tomorrow: +{0} hay (day {1} in a row)'],
   rivalNext: ['次の順位：{0} さんまで あと {1}点', 'Next up: {0} — {1} points ahead'], rivalTop: ['今月の1位です！', "You're #1 this month!"],
-  tToday: ['今日 {0}', 'Today {0}'], tWeek: ['今週 {0}', 'Week {0}'], tGoal: ['今日の目標スコア {0}（チモシー{1}本）', "Today's score goal {0} ({1} hay)"], tGoalOk: ['今日の目標スコア {0} ✓', "Today's score goal {0} ✓"],
+  tToday: ['今日 {0}', 'Today {0}'], tWeek: ['今週 {0}', 'Week {0}'], tGoal: ['今日の目標 {0}点（+{1}本）', "Today's goal {0} (+{1} hay)"], tGoalOk: ['今日の目標 {0}点 ✓', "Today's goal {0} ✓"],
   boostOff: ['スタートブースト（チモシー{0}本）', 'Start boost ({0} hay)'], boostOn: ['スタートブースト ON ✓', 'Start boost ON ✓'], boostNo: ['チモシーが足りません（{0}本）', 'Not enough hay ({0})'],
   rec: ['きろく', 'Records'], recH: ['自分の記録', 'Your records'], recTop: ['ベスト10', 'Top 10 runs'], recNone: ['まだ記録がありません。まず1回走ろう！', 'No records yet. Go for a run!'],
   recAvg: ['最近10回の平均', 'Average of last 10'], recChar: ['キャラクターごとのベスト', 'Best by runner'], recMedal: ['スコア勲章', 'Score medals'], recNext: ['次の勲章：{0}点', 'Next medal: {0}'],
@@ -123,17 +123,19 @@ function kpEnd(o) {
   if (extra) { SV.bank += extra; $('#resHay').textContent = fmt(o.gained + extra); }
   save();
   const grade = kpGrade(sc, prevBest, newBest), near = !newBest && prevBest > 0 && sc >= prevBest * .85;
-  const vs = !(prevBest > 0) ? kt('vsFirst') : newBest ? kt('vsUp', fmt(sc - prevBest)) : kt('vsDown', fmt(prevBest - sc + 1), Math.floor(sc / prevBest * 100)) /* 「あと○点」は、すぐ下の「おしい！」と同じ数（こえるのに要る点）にそろえる。前は 1 点ずれていた */;
-  const sub = []; if (last > 0 && sc !== last) sub.push(sc > last ? kt('lastUp', fmt(sc - last)) : kt('lastDn', fmt(last - sc))); sub.push(kt('todayB', fmt(k.db))); if (k.wb > k.db) sub.push(kt('weekB', fmt(k.wb)));
-  box.hidden = false; box.innerHTML = `<div class="kp-top">${grade ? `<b class="kp-grade g${grade}" aria-label="${grade}">${grade}</b>` : ''}<div class="kp-lines"><p class="kp-vs">${esc(vs)}</p><p class="kp-sub">${sub.map(esc).join('<i>・</i>')}</p></div></div>`
+  /* 2026-11-15（オーナー：文字が多い）：結果画面の文字を減らす。①「あと○点」は、すぐ下の「おしい！」が言うので、近い時は上の行から外す ②前回との差・今週のベストは「くわしく見る」の中へ。今日のベストは、今回がそれに届かなかった時だけ ③コツは、はじめの 12 回と、自己ベストの半分に届かなかった時だけ */
+  const vs = !(prevBest > 0) ? kt('vsFirst') : newBest ? kt('vsUp', fmt(sc - prevBest)) : near ? kt('vsDownS', 0, Math.floor(sc / prevBest * 100)) : kt('vsDown', fmt(prevBest - sc + 1), Math.floor(sc / prevBest * 100)) /* 「あと○点」は、すぐ下の「おしい！」と同じ数（こえるのに要る点）にそろえる。前は 1 点ずれていた */;
+  const subAll = []; if (last > 0 && sc !== last) subAll.push(sc > last ? kt('lastUp', fmt(sc - last)) : kt('lastDn', fmt(last - sc))); subAll.push(kt('todayB', fmt(k.db))); if (k.wb > k.db) subAll.push(kt('weekB', fmt(k.wb)));
+  const sub = sc < k.db ? [kt('todayB', fmt(k.db))] : [], showTip = (SV.runs || 0) <= 12 || (prevBest > 0 && sc < prevBest * .5);
+  box.hidden = false; box.innerHTML = `<div class="kp-top">${grade ? `<b class="kp-grade g${grade}" aria-label="${grade}">${grade}</b>` : ''}<div class="kp-lines"><p class="kp-vs">${esc(vs)}</p>${sub.length ? `<p class="kp-sub">${sub.map(esc).join('<i>・</i>')}</p>` : ''}</div></div>`
     + (near ? `<p class="kp-near">${esc(kt('near', fmt(prevBest - sc + 1)))}</p>` : '') + (badges.length ? `<div class="kp-badges">${badges.map(b => `<span class="${b[0]}">${esc(b[1])}</span>`).join('')}</div>` : '')
-    + `<p class="kp-tip">${esc(kpTip(st))}</p><p class="kp-rival" id="kpRival" hidden></p>`;
+    + (showTip ? `<p class="kp-tip">${esc(kpTip(st))}</p>` : '') + `<p class="kp-rival" id="kpRival" hidden></p>`;
   if (near && !OPT().calm) again.classList.add('pulse');
   { const n = Math.min(5, KP_CHAIN + 1); again.innerHTML = `${esc(t('again'))}<small>${esc(kt('again', KP_CHAIN + 2, n * 5))}</small>`; }
   // the folded part: where the points came from, the last five runs, what comes next
   const d = Math.max(0, st.ptD || 0), c = Math.max(0, st.ptC || 0), b = Math.max(0, sc - d - c), tot = Math.max(1, d + c + b), row = (l, v, cl) => `<div class="kp-bd"><span>${esc(l)}</span><i><b class="${cl}" style="width:${(v / tot * 100).toFixed(1)}%"></b></i><em>${fmt(Math.floor(v))}</em></div>`;
   const h = k.h.slice(-5), hm = Math.max(1, ...h), left = SV.missions ? SV.missions.slots.filter(s => !s.done).length : 0, ul = kpUnlock(), strk = (SV.streak || 0) + 1;
-  more.hidden = false; more.innerHTML = `<p class="kp-h">${esc(kt('bdH'))}</p>${row(kt('bdD'), d, 'd')}${row(kt('bdC'), c, 'c')}${row(kt('bdB'), b, 'b')}`
+  more.hidden = false; more.innerHTML = `<p class="kp-line">${subAll.map(esc).join('<i>・</i>')}</p><p class="kp-h">${esc(kt('bdH'))}</p>${row(kt('bdD'), d, 'd')}${row(kt('bdC'), c, 'c')}${row(kt('bdB'), b, 'b')}`
     + `<p class="kp-h">${esc(kt('histH'))}</p><div class="kp-hist">${h.map((v, i) => `<span${i === h.length - 1 ? ' class="now"' : ''}><i style="height:${Math.max(6, Math.round(v / hm * 100))}%"></i><em>${fmtShort(v)}</em></span>`).join('')}</div>`
     + (left > 0 ? `<p class="kp-line">${esc(kt('multL', SV.mlevel, left, SV.mlevel + 1))}</p>` : '') + (ul ? `<p class="kp-line">${esc(ul)}</p>` : '')
     + `<p class="kp-line">${esc(kt('tmrw', 30 + Math.min(7, strk) * 20, strk))}</p>`;
