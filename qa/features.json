@@ -690,6 +690,21 @@
       "name": "iPhone の手当ての試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'iosfill'"
+    },
+    {
+      "name": "夕方の光のすじ",
+      "file": "src/4c_atmos.js",
+      "has": "G.rayN = (G.rayN || 0) + 1"
+    },
+    {
+      "name": "アイテムの絵を 2 倍の細かさ・うすい陰影",
+      "file": "src/2_sprites.js",
+      "has": "const ITEM_NOSHADE"
+    },
+    {
+      "name": "光の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'lightfx'"
     }
   ]
 }

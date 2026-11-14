@@ -50,6 +50,11 @@ function drawSunGlow(horizon) {
   g.addColorStop(0, rgbS(col, .55 * k)); g.addColorStop(.18, rgbS(col, .22 * k)); g.addColorStop(1, rgbS(col, 0));
   ctx.fillStyle = g; ctx.fillRect(x - R, y - R, R * 2, R * 2);
   if (k === 1) { ctx.fillStyle = rgbS(mixRGB([255, 255, 248], col, .5), .95); ctx.beginPath(); ctx.arc(x, y, 9 + low * 5, 0, Math.PI * 2); ctx.fill(); }
+  /* 2026-11-15：朝と夕方、太陽が低い時だけ、太陽から光のすじがのびる（アニメの「入射光」）。うすく、ゆっくり回る。軽いモードでは出さない */
+  if (k === 1 && low > .3 && !(typeof lowQ !== 'undefined' && lowQ)) { const a0 = OPT().calm ? .3 : G.t * .02, L = FOCAL * (1.1 + low * .9), al = .05 * clamp((low - .3) / .4, 0, 1);
+    for (let i = 0; i < 7; i++) { const a = a0 + i * Math.PI * 2 / 7 + (i % 2) * .16, w = .05 + (i % 3) * .022, len = L * (.62 + (i * 37 % 10) / 26), gr = ctx.createLinearGradient(x, y, x + Math.cos(a) * len, y + Math.sin(a) * len);
+      gr.addColorStop(0, rgbS(col, al)); gr.addColorStop(1, rgbS(col, 0)); ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a - w) * len, y + Math.sin(a - w) * len); ctx.lineTo(x + Math.cos(a + w) * len, y + Math.sin(a + w) * len); ctx.closePath(); ctx.fill(); }
+    G.rayN = (G.rayN || 0) + 1; }
   ctx.globalCompositeOperation = 'source-over';
 }
 
