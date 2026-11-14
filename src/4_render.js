@@ -402,6 +402,7 @@ function drawSpr(s, sg, d) {
   const w = s.w * sp.k, h = s.h * sp.k;
   ctx.globalAlpha = 1 - fogK(d) * .9;
   if (s.nv && d < 9) ctx.globalAlpha *= clamp((d - 1.5) / 7.5, 0, 1); // big crowns fade as you pass under them, so the way ahead stays clear
+  else if (s.beamY && d < 3.6) { ctx.globalAlpha *= clamp((d - 1.3) / 2.3, 0, 1); G.gateFadeN = (G.gateFadeN || 0) + 1; } /* くぐる鳥居は、カメラの横を通りすぎる手前ですっと消える（上の数字の後ろを赤い横木がちらちら横切らない）（2026-11-15） */
   else if (s.y > 1.9 && !s.trunk && d < 6) { ctx.globalAlpha *= clamp((d - 1) / 5, 0, 1); G.sprFadeN = (G.sprFadeN || 0) + 1; } /* 頭の上の吊り広告・看板は近づくと消える（画面の上半分とHUDをふさがない） */
   if (s.img === 'glow') { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha *= LT.indoor ? .35 : .55 * LT.night; }
   if (s.trunk) { // one piece: a tapered trunk with a little root flare, and the crown sitting on it

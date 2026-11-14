@@ -770,7 +770,8 @@ function paintPendant(g, W, H) { // a paper pendant lamp on a cord, lit from ins
 }
 PROP_ART.pendant = () => artCanvas('pendant', 140, 140, paintPendant);
 function paintTorii(g, W, H, v) { // a myojin torii: round pillars leaning in a little, the tie beam through them, the upswept top beam with its black cap, the name plaque
-  const [col, top] = String(v).split('/'); const c = col || '#C8463C', k = top || '#2B2B2B';
+  const [col, top, kind] = String(v).split('/'); const c = col || '#C8463C', k = top || '#2B2B2B';
+  if (kind === 'tunnel') return paintToriiTunnel(g, W, H, c, k);
   const px = [W * .2, W * .8], pw = W * .055, base = H, py0 = H * .2;
   for (const x of px) { const lean = (x < W / 2 ? 1 : -1) * W * .012; const gr = g.createLinearGradient(x - pw, 0, x + pw, 0); gr.addColorStop(0, shadeHex(c, .72)); gr.addColorStop(.4, shadeHex(c, 1.12)); gr.addColorStop(1, shadeHex(c, .62));
     g.fillStyle = gr; g.beginPath(); g.moveTo(x - pw - lean * .2, base); g.lineTo(x + pw - lean * .2, base); g.lineTo(x + pw * .85 + lean, py0); g.lineTo(x - pw * .85 + lean, py0); g.closePath(); g.fill();
@@ -784,6 +785,17 @@ function paintTorii(g, W, H, v) { // a myojin torii: round pillars leaning in a 
   g.fillStyle = vgrad(g, H * .12, H * .18, [[0, shadeHex(c, 1.08)], [1, shadeHex(c, .72)]]); g.fillRect(W * .06, H * .125, W * .88, H * .055);
   g.fillStyle = k; g.beginPath(); g.moveTo(0, H * .02); g.quadraticCurveTo(W * .5, H * .1, W, H * .02); g.lineTo(W * .97, H * .125); g.quadraticCurveTo(W * .5, H * .17, W * .03, H * .125); g.closePath(); g.fill();
   g.fillStyle = 'rgba(255,255,255,.12)'; g.beginPath(); g.moveTo(W * .02, H * .04); g.quadraticCurveTo(W * .5, H * .11, W * .98, H * .04); g.lineTo(W * .98, H * .055); g.quadraticCurveTo(W * .5, H * .125, W * .02, H * .055); g.closePath(); g.fill();
+}
+/* 鳥居のトンネル用：背が高く、横木は上のほう（絵の上から 22% まで）にまとめ、額はなし。くぐる人の目の高さより下に何も渡さないので、道の先が見える（2026-11-15） */
+function paintToriiTunnel(g, W, H, c, k) {
+  const px = [W * .2, W * .8], pw = W * .05, base = H, py0 = H * .124;
+  for (const x of px) { const lean = (x < W / 2 ? 1 : -1) * W * .012; const gr = g.createLinearGradient(x - pw, 0, x + pw, 0); gr.addColorStop(0, shadeHex(c, .72)); gr.addColorStop(.4, shadeHex(c, 1.12)); gr.addColorStop(1, shadeHex(c, .62));
+    g.fillStyle = gr; g.beginPath(); g.moveTo(x - pw - lean * .2, base); g.lineTo(x + pw - lean * .2, base); g.lineTo(x + pw * .85 + lean, py0); g.lineTo(x - pw * .85 + lean, py0); g.closePath(); g.fill();
+    g.fillStyle = '#2B2B2B'; g.fillRect(x - pw * 1.25, base - H * .034, pw * 2.5, H * .034); }
+  g.fillStyle = vgrad(g, H * .186, H * .22, [[0, shadeHex(c, 1.1)], [1, shadeHex(c, .75)]]); g.fillRect(W * .08, H * .186, W * .84, H * .034);                 // 貫（目の高さより上）
+  g.fillStyle = vgrad(g, H * .078, H * .112, [[0, shadeHex(c, 1.08)], [1, shadeHex(c, .72)]]); g.fillRect(W * .06, H * .078, W * .88, H * .034);              // 島木
+  g.fillStyle = k; g.beginPath(); g.moveTo(0, H * .012); g.quadraticCurveTo(W * .5, H * .062, W, H * .012); g.lineTo(W * .97, H * .078); g.quadraticCurveTo(W * .5, H * .106, W * .03, H * .078); g.closePath(); g.fill();   // 笠木
+  g.fillStyle = 'rgba(255,255,255,.12)'; g.beginPath(); g.moveTo(W * .02, H * .025); g.quadraticCurveTo(W * .5, H * .069, W * .98, H * .025); g.lineTo(W * .98, H * .034); g.quadraticCurveTo(W * .5, H * .078, W * .02, H * .034); g.closePath(); g.fill();
 }
 function paintStreetGate(g, W, H, v) { // a shopping-street arch: two slim posts, a lit sign board with the street's name, a row of bulbs
   const [txt, col] = String(v).split('/'); const c = col || '#2F5579';

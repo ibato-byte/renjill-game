@@ -450,6 +450,26 @@
       "name": "絵のメモリの試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'memlong'"
+    },
+    {
+      "name": "鳥居のトンネル：横木は目の高さより上（道の先が見える）",
+      "file": "src/3_world.js",
+      "has": "const TORII_TUNNEL_H = 4.8"
+    },
+    {
+      "name": "鳥居のトンネルの絵（額なし・横木は上）",
+      "file": "src/4e_art.js",
+      "has": "function paintToriiTunnel("
+    },
+    {
+      "name": "くぐる鳥居はカメラの手前で消える",
+      "file": "src/4_render.js",
+      "has": "s.beamY && d < 3.6"
+    },
+    {
+      "name": "鳥居で先が見える試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'toriiview'"
     }
   ]
 }
