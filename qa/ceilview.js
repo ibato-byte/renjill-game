@@ -1,4 +1,5 @@
 // 天井のある場所（室内・電車）で、天井が低く見えない・ジャンプしてもカメラとキャラクターが天井をこえない（2026-11-15 オーナーの報告）
+//  ⓪ 天井そのものが高い（室内 4.4m・電車 3.9m 以上。空港のロビーのように）
 //  ① 走っている時、カメラは天井より 0.75m 以上 下（縦長のスマホ・ふつうのスマホ・PC）
 //  ② ジャンプ・スーパージャンプの間じゅう、カメラは天井より 0.2m 以上 下
 //  ③ キャラクターの頭（足 + 1.2m）が天井をこえない
@@ -17,6 +18,7 @@ const { chromium } = require('playwright'); const path = require('path');
       if (r.maxY < .9) { bad.push(tag + ' ジャンプできていない（試験の前提）' + r.maxY.toFixed(2)); continue; }
       if (tid === 'street') { if (r.ceil0) bad.push(tag + ' 外なのに天井あつかい'); if (h / w > 1.6 && Math.abs(r.rest - 2.75) > .12) bad.push(tag + ' 外のカメラの高さが変わった（' + r.rest.toFixed(2) + '）'); if (sup && r.maxY < 1.6) bad.push(tag + ' 外のスーパージャンプが低くなった（' + r.maxY.toFixed(2) + '）'); continue; }
       if (!r.ceil0 || r.ceil !== r.ceil0) { bad.push(tag + ' 天井の高さが取れない／途中で場所が変わった'); continue; }
+      if (r.ceil0 < 3.85) bad.push(tag + ' 天井そのものが低い（' + r.ceil0 + 'm。室内 4.4m・電車 3.9m 以上にする：オーナーの希望「空港のロビーのように」）');
       if (r.rest > r.ceil0 - .75) bad.push(tag + ' 走っている時のカメラが天井に近い（天井まで ' + (r.ceil0 - r.rest).toFixed(2) + 'm）');
       if (r.maxCam > r.ceil0 - .2) bad.push(tag + ' ジャンプでカメラが天井に近づきすぎ／こえた（天井まで ' + (r.ceil0 - r.maxCam).toFixed(2) + 'm）');
       if (r.maxY + 1.2 > r.ceil0 + .05) bad.push(tag + ' キャラクターの頭が天井をこえる（足 ' + r.maxY.toFixed(2) + ' + 1.2 > ' + r.ceil0 + '）'); }

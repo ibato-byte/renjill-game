@@ -453,8 +453,6 @@ function drawItem(it, sg, d) {
   ctx.globalAlpha = (1 - fogK(d) * .9) * passFade(d);
   if (d < 40 && !lowQ) { const gp = spriteAt(p[0], p[2], p[1]); if (gp) { const hk = clamp(1 - it.y / 3, .35, 1); ctx.fillStyle = `rgba(30,22,16,${(.16 * hk).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(gp.sx, gp.sy, size * .34 * hk, size * .09 * hk, 0, 0, Math.PI * 2); ctx.fill(); } } // a soft shadow on the ground under each item (2026-11-08)
   if (isPow || it.type === 'goldhay') { ctx.beginPath(); ctx.fillStyle = def.kind === 'stamp' ? 'rgba(255,120,110,.45)' : 'rgba(255,236,150,.5)'; ctx.arc(sp.sx, sp.sy, size * .62 * (1 + .08 * Math.sin(G.t * 6)), 0, Math.PI * 2); ctx.fill(); }
-  if (def.kind === 'kana') { const z = size * .62; ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(spin, 1); ctx.fillStyle = '#FFF3D6'; ctx.strokeStyle = '#E86A75'; ctx.lineWidth = Math.max(1.5, z * .08); ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-z / 2, -z / 2, z, z, z * .2); else ctx.rect(-z / 2, -z / 2, z, z); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#C8463C'; ctx.font = `900 ${Math.round(z * .62)}px "Zen Maru Gothic",sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('？', 0, z * .03); ctx.restore(); ctx.globalAlpha = 1; return; }
   const img = def.kind === 'stamp' ? stampSprite(sg.tid) : SPR[bad ? it.type + 'NG' : it.type];
   ctx.drawImage(img, sp.sx - size * spin / 2, sp.sy - size / 2, size * spin, size);
   ctx.globalAlpha = 1;

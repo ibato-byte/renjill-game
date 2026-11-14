@@ -43,7 +43,7 @@ function newSeg(prev, step, opts) {
   const seg = { id: ++SEGN, turnIn: first ? 0 : turnIn, prevFork: !!(prev && prev.fork), tid: step.t, th, step, t0: opts.t0 ?? 480, t1: (opts.t0 ?? 480) + step.d, dir, sx, sz, f: DIRS[dir], r: DIRS[(dir + 1) % 4], first, day: opts.day || 1,
     len, turn: opts.fork ? 0 : (turnIn ? -turnIn : (Math.random() < .5 ? -1 : 1)), fork: opts.fork || null,
     floor: [], walls: [], decos: [], obs: [], items: [], props: [], lines: [], spr: [] };
-  seg.wallH = th.wallH || 3;
+  seg.wallH = th.wallH || 3; { const k0 = th.kind; if (k0 === 'room' || k0 === 'glass') seg.wallH = Math.max(seg.wallH, CEIL_ROOM); else if (k0 === 'train') seg.wallH = Math.max(seg.wallH, CEIL_TRAIN); } /* 2026-11-15 オーナー：天井そのものを高く（空港のロビーのように）。低い天井だと、縦長のスマホで天井のすぐ下をはうように見え、ジャンプでつきぬけた */
   terrainFor(seg, prev);
   buildGeometry(seg);
   buildProps(seg); buildWalkers(seg);
@@ -485,6 +485,7 @@ function buildProps(seg) {
       }
       if (p.bx && p.bx.length && FACE_OF[type]) { const [i, k, pw, ph] = FACE_OF[type]; if (p.bx[i]) Object.assign(p.bx[i], { face: k, faceW: pw, faceH: ph }); }
       if (p.bx && p.bx.length) seg.props.push(mkProp(seg, p.bx));
+      if ((type === 'nakazuri' || type === 'strapS') && seg.wallH > 2.9) { const dy = seg.wallH - 2.9; for (const q of p.spr || []) q.y += dy; for (const l of p.ln || []) { l.a[2] += dy; l.b[2] += dy; } } /* 天井からつるす物（中づり広告・つり革）は、高くした天井に合わせて上げる（2026-11-15） */
       if (p.spr) for (const sp of p.spr) seg.spr.push(sp);
       if (p.ln) for (const l of p.ln) seg.lines.push(l);
       if (p.pole) { // overhead wires between poles
@@ -595,6 +596,7 @@ function gateRow(L, closed, office) {
 function makeObs(seg, type, s, lane, extra) {
   const L = lane == null ? 0 : LANES[lane];
   const o = type === 'gates' || type === 'ogates' ? gateRow(L, extra, type === 'ogates') : OBS[type](L);
+  if (type === 'pole' && o.artH && seg.wallH > o.artH && (seg.th.kind === 'train' || seg.th.kind === 'room')) { o.artH = seg.wallH; for (const b of o.bx) if (b.y0 === 0) b.y1 = Math.max(b.y1, seg.wallH); } /* 手すりの棒は天井まで（2026-11-15：天井を高くした） */
   o.bx.forEach(b => { b.s0 += s; b.s1 += s; b.cc = C(b.c); });
   let l0 = 9, l1 = -9, s0 = 1e9, s1 = -1e9, y1 = 0;
   for (const b of o.bx) { l0 = Math.min(l0, b.l0); l1 = Math.max(l1, b.l1); s0 = Math.min(s0, b.s0); s1 = Math.max(s1, b.s1); if (b.y0 < 2.5) y1 = Math.max(y1, Math.min(b.y1, 3.5)); }
@@ -694,9 +696,7 @@ function populate(seg) {
     const i = Math.max(0, ((rows.length - 1) / 2) | 0), at = rows[i].s + 4.5, nx = rows[i + 1], free = [0, 1, 2].filter(l => !nx || nx.s - at > 7 || !nx.lanes[l]);
     if (free.length && at < L - 20) { seg.items = seg.items.filter(it => !(Math.abs(it.s - at) < 2.5)); addItem(seg, 'pomseed', at, pick(free), .6); G.pomSeedAt = G.dist; G.pomSeedN = (G.pomSeedN || 0) + 1; } }
   // あいことばのかくれんぼ（B-49）：期間中、まだそろっていなければ、1回の走りに1枚まで「？」の札。次の列が空けるレーンに
-  if ((th.kind === 'street' || th.kind === 'room') && rows.length >= 2 && G.t > 25 && !G.kanaPut && huntNow() && Math.random() < .3) {
-    const i = Math.min(rows.length - 2, 1 + ((Math.random() * (rows.length - 1)) | 0)), at = (rows[i - 1 >= 0 ? i - 1 : 0].s + rows[i].s) / 2, free = [0, 1, 2].filter(l => !rows[i].lanes[l]);
-    if (free.length && at > 10 && at < L - 20 && !seg.items.some(it => Math.abs(it.s - at) < 2)) { addItem(seg, 'kana', at, pick(free), .5); G.kanaPut = 1; } }
+  /* あいことばのかくれんぼ（「？」の札）はやめた（2026-11-15 オーナーの判断） */
   // dropped papers (B-24): now and then on a street, in a lane the next row leaves open. Picking them up earns a thank-you from the partner
   if (th.kind === 'street' && rows.length >= 2 && G.t > 15 && !(G.memoAt > 0 && G.dist - G.memoAt < 900) && Math.random() < .35) {
     const i = Math.min(rows.length - 2, 1 + ((Math.random() * (rows.length - 1)) | 0)), at = (rows[i - 1 >= 0 ? i - 1 : 0].s + rows[i].s) / 2, free = [0, 1, 2].filter(l => !rows[i].lanes[l]);

@@ -25,7 +25,6 @@ const T = [
   { n: 'ranktest', why: 'ランキング表示', ok: noErr },
   { n: 'saves', why: '壊れたセーブからの復旧', ok: noErr },
   { n: 'practice', why: '練習・場所えらび（ぶつかっても終わらない・記録に入らない）', ok: has('PRACTICE OK') },
-  { n: 'hunt', why: 'あいことばのかくれんぼ（1回の走りに1枚・そろうとチモシー・期間外は出ない）', ok: has('HUNT OK') },
   { n: 'matsuri', why: 'お祭りの日（提灯の通りで祭りばやし）', ok: has('MATSURI OK') },
   { n: 'lasttrain', why: '終電間際（夜の最後の電車に間に合えばボーナス）', ok: has('LASTTRAIN OK') },
   { n: 'revday', why: '逆走デー（夕方から家まで・ただいまボーナス・ランキングに入れない）', ok: has('REVDAY OK') },

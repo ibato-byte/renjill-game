@@ -132,7 +132,7 @@ function startRun() { G.drawRetry = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); 
   G.segDue = 0; const step = G.plan.shift(); const s0 = newSeg(null, step, { t0: G.rev ? 1080 : 480, day: 1, len: SV.tutDone ? 0 : 140 }); G.planClock = s0.t1; G.segs = [s0]; G.ci = 0; G.tutEnd = 0;
   if (!SV.tutDone) setupTutorial(s0); else { G.tut = null; G.tutSeg = null; }
   G.practice = SV.tutDone && G.practiceNext ? G.practiceNext : ''; G.practiceNext = '';
-  G.tidT = {}; G.epGigDone = 0; G.boss = null; G.revDone = 0; G.lastTrain = null; G.lastTrainDone = 0; G.kanaPut = 0; G.matsuri = matsuriDay(); G.matsuriTold = 0;
+  G.tidT = {}; G.epGigDone = 0; G.boss = null; G.revDone = 0; G.lastTrain = null; G.lastTrainDone = 0; G.matsuri = matsuriDay(); G.matsuriTold = 0;
   if (SV.ghost) delete SV.ghost; // ゴーストと競走（B-32）はやめた（2026-11-09 オーナーの判断）：前の版で残った記録を消す
   if (G.practice) { const tid = G.practice; G.plan = Array.from({ length: 8 }, () => ({ t: tid, d: 60 })); const p0 = newSeg(null, { t: tid, d: 60 }, { t0: 600, day: 1 }); G.segs = [p0]; G.ci = 0; G.planClock = p0.t1; G.clock = 600; G.chaseT = 0; G.chaseIntro = 0; G.chaseVis = 0; G.gigNext = 1e9; onEnterSeg(p0); banner('PRACTICE', t('practiceGo'), 'room'); } // 練習：選んだ場所から、同じ場所が続く
   ensureSegs();
@@ -763,7 +763,6 @@ function collect(it, seg) {
   }
   if (def.kind === 'pom') { pomJoin(); return; }
   if (def.kind === 'flag') { burst(sx, sy, '#F2C230', 14); burst(sx, sy, '#E86A75', 8); tone(784, .1, 'bell', .04); return; } // 挑戦状の旗：通りぬけるとお祝いの紙ふぶき（点は旗の点数をこえたときに chalTick で）
-  if (def.kind === 'kana') { kanaGot(sx, sy); return; }
   if (def.kind === 'memo') { // dropped papers (B-24): the partner turns round to say thanks
     const pts = def.pts * mult; G.score += pts; G.stats.memos = (G.stats.memos || 0) + 1; floatText(sx, sy - 10, '+' + fmt(pts), '#F6EBDC'); burst(sx, sy, '#FFFDF7', 8);
     tone(659, .08, 'bell', .045); tone(988, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .07);
@@ -1117,18 +1116,8 @@ function buildShareCard(cap, place, gained) {
 
 
 
-// あいことばのかくれんぼ（B-49）：FEED.hunt = { w: 'しっぽ', hay: 300, from, until, note }（動画の最新話につながる言葉）。
-//  走っていて「？」の札を取ると、まだの文字が1つ見つかる。全部そろうとチモシー。進みぐあいは SV.hunt（言葉ごと）
-function huntNow() { const h = typeof FEED !== 'undefined' && FEED && FEED.hunt; if (!h || typeof h.w !== 'string' || !h.w || h.w.length > 8) return null; const d = isoDay();
-  if ((h.from && h.from > d) || (h.until && h.until < d)) return null; const st = SV.hunt && SV.hunt.w === h.w ? SV.hunt : null; return st && st.done ? null : h; }
-function kanaGot(sx, sy) {
-  const h = huntNow(); if (!h) return; const ch = [...h.w]; if (!SV.hunt || SV.hunt.w !== h.w) SV.hunt = { w: h.w, got: [], done: 0 };
-  const left = ch.map((_, i) => i).filter(i => !SV.hunt.got.includes(i)); if (!left.length) return; const i = pick(left); SV.hunt.got.push(i);
-  G.score += 100 * SV.mlevel; burst(sx, sy, '#E86A75', 14); burst(sx, sy, '#F2C230', 10); tone(880, .1, 'bell', .05); tone(1175, .14, 'bell', .045, AU.ctx && AU.ctx.currentTime + .08);
-  if (SV.hunt.got.length >= ch.length) { const hay = Math.max(0, Math.min(1000, h.hay | 0 || 300)); SV.hunt.done = 1; SV.bank += hay; bannerNow('SECRET WORD!', t('kanaDone', h.w, fmt(hay)), 'good'); react('sparkle', 1); SFX.mission(); }
-  else bannerNow('LETTER!', t('kanaGot', ch[i], SV.hunt.got.length, ch.length), 'good');
-  save();
-}
+// あいことばのかくれんぼ（B-49）はやめた（2026-11-15 オーナーの判断）。前の保存データに SV.hunt が残っていても読まないだけで害はない。feed.json の hunt も読まない
+
 
 // お祭りの日（B-29）：土日と、feed の行事 'matsuri' の日。提灯の並ぶ通り（浅草・アメ横・神楽坂など）に入ると、音楽が祭りばやしに
 function matsuriDay() { const d = new Date().getDay(); return d === 0 || d === 6 || EVENT === 'matsuri'; }

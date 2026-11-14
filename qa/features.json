@@ -287,11 +287,6 @@
       "has": "async function goldTieCheck()"
     },
     {
-      "name": "あいことばのかくれんぼ",
-      "file": "src/6_game.js",
-      "has": "function kanaGot(sx, sy)"
-    },
-    {
       "name": "お祭りの日",
       "file": "src/6_game.js",
       "has": "function matsuriSeg(th)"
@@ -605,6 +600,21 @@
       "name": "天井の試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'ceilview'"
+    },
+    {
+      "name": "天井そのものを高く（室内 4.4m・電車 3.9m）",
+      "file": "src/1_data.js",
+      "has": "const CEIL_ROOM = 4.4, CEIL_TRAIN = 3.9"
+    },
+    {
+      "name": "つるす物（中づり・つり革）は天井に合わせて上げる",
+      "file": "src/3_world.js",
+      "has": "type === 'nakazuri' || type === 'strapS') && seg.wallH > 2.9"
+    },
+    {
+      "name": "手すりの棒は天井まで",
+      "file": "src/3_world.js",
+      "has": "type === 'pole' && o.artH && seg.wallH > o.artH"
     }
   ]
 }

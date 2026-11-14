@@ -132,7 +132,6 @@ const STR = {
   errLogH: ['エラーの記録', 'Error log'], errLogNote: ['うまく動かなかったときの記録です（この端末だけに残ります）。お問い合わせのときに見せてください', 'Problems this device ran into (kept only here). Handy if you contact us'], errLogNone: ['記録はありません', 'Nothing recorded'],
   goldTie: ['{0}の月間ランキング {1}位！ 金のネクタイをどうぞ', '#{1} in the {0} ranking! Here is your gold tie'], goldTieBadge: ['金のネクタイ（{0} {1}位）', 'Gold tie ({0}, #{1})'],
   titleNew: ['新しい称号を手に入れた！', 'New title!'], titleShareBtn: ['称号「{0}」をシェア', 'Share your title: {0}'], titleShareText: ['「レンとジルのチモシーダッシュ」で称号「{0}」を手に入れた！ #レンとジル #チモシーダッシュ', 'Got the title “{0}” in Ren & Jill: Hay Dash! #RenAndJill #HayDash'], titleSaved: ['称号カードの画像を保存しました（文章もコピー済み）', 'Title card saved (text copied too)'],
-  kanaGot: ['あいことばの文字「{0}」を見つけた！（{1}/{2}）', 'Secret word letter "{0}" found! ({1}/{2})'], kanaDone: ['あいことば「{0}」がそろった！ +{1}', 'Secret word "{0}" complete! +{1}'], kanaHint: ['走っていると、あいことばの文字が落ちていることがあります（{0}/{1}）', 'Letters of a secret word are hidden along the way ({0}/{1})'],
   lastGo: ['終電まで {0} 秒！ ドアが閉まる前に飛び乗ろう', 'Last train in {0}s! Make it before the doors close'], lastOk: ['終電に飛び乗り！ +{0}', 'Made the last train! +{0}'], lastMiss: ['ドアが閉まった…次の電車で帰ろう', 'The doors closed... take the next one'], lastHud: ['終電まで {0}秒', 'Last train {0}s'], lastClosed: ['ドアが閉まった', 'Doors closed'],
   revBtn: ['🌙 逆走デー：夕方から家まで', '🌙 Reverse day: home from 6 PM'], revGo: ['逆走デー！ 会社から家まで帰ろう', 'Reverse day! Run home from the office'], revHome: ['ただいま！ 家に着いた +{0}', 'Home at last! +{0}'],
   bossGo: ['締め切りの山がせまる！ ぶつからずに逃げ切れ', 'The Deadline Mountain is coming! Escape without a bump'], bossName: ['締め切りの山　あと {0}m', 'Deadline Mountain: {0}m to go'], bossWin: ['締め切りの山から逃げ切った！ +{0}', 'Escaped the Deadline Mountain! +{0}'], bossWin2: ['なんとか逃げ切った！ +{0}', 'Just got away! +{0}'],
@@ -296,6 +295,7 @@ const MAX_JUMP = 2.1; // no jump ever goes higher than this above the floor (sta
 const capV = (v, y, g, top) => Math.min(v, Math.sqrt(2 * GRAV * (g || 1) * Math.max(.25, (top || MAX_JUMP) - (y || 0))));
 /* 天井のある場所（2026-11-15）：カメラは天井より CAM_CEIL_GAP 下まで・どんな時も CAM_CEIL_MIN より近づかない。キャラクターの足は「天井 − HEAD_ROOM」より上に行かない（頭が天井をつきぬけない） */
 const CAM_CEIL_GAP = .8, CAM_CEIL_MIN = .3, HEAD_ROOM = 1.3;
+const CEIL_ROOM = 4.4, CEIL_TRAIN = 3.9; /* 室内・電車の天井の高さの下限（m）。場所ごとの wallH がこれより低くても、ここまで上げる */
 function jumpTop(seg) { const c = seg && seg.ceilH; return c ? Math.min(MAX_JUMP, Math.max(1.4, c - HEAD_ROOM)) : MAX_JUMP; }
 const STAND_H = 0.92, SLIDE_H = 0.42;
 
@@ -322,7 +322,6 @@ const ITEMS = {
   pomseed:  { ja: 'ひまわりの種', en: 'Sunflower seeds', kind: 'pom', pts: 200, tip: { ja: 'キンクマハムスターのポムの大好物。これをとるとポムが合流する。脂肪が多いので、うさぎのレンとジルは食べません。', en: 'Pom the hamster’s favorite. Pick them up and Pom joins you. Too fatty for bunnies, so Ren and Jill skip them.' } },
   stamp:    { ja: '観光スタンプ', en: 'Tokyo stamp', kind: 'stamp', pts: 500, tip: { ja: '', en: '' } },
   chalflag: { ja: '挑戦状の旗', en: 'Challenge flag', kind: 'flag', pts: 0, tip: { ja: '', en: '' } }, // 挑戦状の点数の手前に立つ旗（図鑑には入らない）
-  kana:     { ja: 'あいことばの文字', en: 'Secret word letter', kind: 'kana', pts: 100, tip: { ja: '', en: '' } }, // かくれんぼ（B-49）：1回の走りに1枚まで（図鑑には入らない）
   memo:     { ja: '落とした書類', en: 'Dropped papers', kind: 'memo', pts: 150, tip: { ja: '', en: '' } }, // 拾うと相棒がお礼（図鑑には入らない）
   choco:    { ja: 'チョコレート', en: 'Chocolate', kind: 'bad', tip: { ja: 'うさぎには毒になる成分（テオブロミンなど）を含みます。絶対にあげないで。', en: 'Contains theobromine, which is toxic to rabbits. Never feed it.' } },
   onion:    { ja: '玉ねぎ・ネギ', en: 'Onions & leeks', kind: 'bad', tip: { ja: 'ネギの仲間（ニラ・ニンニクも）は中毒の原因になります。絶対にダメ（長野県資料）。', en: 'Onions and their relatives (leeks, garlic) are poisonous to rabbits (Nagano guide).' } },
