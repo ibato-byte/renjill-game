@@ -262,7 +262,7 @@ function act(a) {
   } else if (a === 'up') {
     if (G.pow.fly > 0) return;
     G.player.look = 0; // ふり返り中でも、すぐ前を向いて跳ぶ
-    if (!G.air || G.coyote > 0) { G.coyote = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up'; if (G.pow.jump > 0 && G.y < .2) skyHay(G.vy); } // one plain jump for everything (low things are cleared by its normal height)
+    if (!G.air || G.coyote > 0) { G.coyote = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y, 0, jumpTop(curSeg())); G.vault = 0; G.vaultDown = 0; G.air = true; G.slideT = 0; G.stats.jumps++; SFX.jump(); G.tutDid = 'up'; if (G.pow.jump > 0 && G.y < .2) skyHay(G.vy); } // one plain jump for everything (low things are cleared by its normal height)
     else G.jumpBuf = .2; // a jump pressed a moment before landing still counts (.16 → .2, 2026-11-08)
   } else if (a === 'down') {
     if (G.pow.fly > 0) return;
@@ -501,12 +501,13 @@ function update(dt) {
   if (flying) { G.y = lerp(G.y, G.flyY, 1 - Math.exp(-dt * 4)); G.vy = 0; G.air = true; }
   else {
     if (!G.air && G.y > ground + .001 && G.vy <= 0) G.coyote = .1; // coyote time: a jump still counts for a tenth of a second after running off an edge
-    if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault || 1); G.y += G.vy * dt; G.air = true; }
+    if (G.y > ground + .001 || G.vy > 0) { G.vy -= GRAV * dt * (G.vy < 0 ? 1.25 : 1) * (G.vault || 1); G.y += G.vy * dt; G.air = true;
+      { const cs = curSeg(); if (cs && cs.ceilH) { const jt = jumpTop(cs) + .12; if (G.y > jt) { G.y = jt; if (G.vy > 0) G.vy = 0; } } } /* 跳んだまま天井のある場所に入った時も、頭が天井をこえない */ }
     if (G.y <= ground + .001 && G.vy <= 0) { // land: also when the fall stops a hair above the floor (a height of 0.0005 used to leave the runner 'in the air' forever: no gravity, no landing, no jump)
       if (G.air && G.vy < -4) { SFX.land(); const sp = spriteAt(G.player.wx, G.ey || 0, G.player.wz); if (sp) for (let k = 0; k < 8; k++) FX.push({ x: sp.sx + rand(-30, 30), y: sp.sy, vx: rand(-120, 120), vy: rand(-90, -20), life: rand(.25, .45), t: 0, c: 'rgba(230,220,205,.85)', r: rand(2, 4) }); }
       if (G.air) { G.landT = .14; G.landK = clamp(-G.vy / 16, .4, 1); G.airN = 0; } // the landing squash (drawn in drawBunnyWorld)
       G.y = ground; G.vy = 0;
-      if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y); G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; G.vaultDown = 0; } else { G.air = false; G.vault = 0; G.vaultDown = 0; }
+      if (G.air && G.jumpBuf > 0) { G.jumpBuf = 0; G.vy = capV(G.pow.jump > 0 ? SUPERV : JUMPV, G.y, 0, jumpTop(curSeg())); G.stats.jumps++; SFX.jump(); G.y += .01; G.vault = 0; G.vaultDown = 0; } else { G.air = false; G.vault = 0; G.vaultDown = 0; }
     }
   }
   if (G.slideT > 0) G.slideT -= dt;
@@ -618,8 +619,16 @@ function placeCamera(dt) {
   CAM.x = G.rx - fx * dist + Math.cos(G.camYaw) * (sh + sway); CAM.z = G.rz - fz * dist - Math.sin(G.camYaw) * (sh + sway);
   G.fovK = lerp(G.fovK || 0, (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0, Math.min(1, dt * 4)); FOCAL = BASEF * (1 - .09 * G.fovK);
   const eC = segE(seg, G.s - 2.5), slope = clamp((segE(seg, Math.min(seg.len, G.s + 14)) - eP) / 14, -.3, .3);
+  const camNew = G.camE == null;
   G.camE = G.camE == null ? eC : lerp(G.camE, Math.max(eC, eP - .4), Math.min(1, dt * 10)); G.camSl = lerp(G.camSl || 0, slope, Math.min(1, dt * 3));
-  CAM.y = G.camE + (tall ? 2.75 : 2.1) + G.y * .6 + sh * .5; CAM.yaw = G.camYaw; CAM.pitch = (tall ? .27 : .19) - G.camSl * .55 + Math.min(.1, G.y * .03);
+  /* 2026-11-15（オーナーの報告：電車や室内で天井が低く見える・ジャンプすると天井から飛び出る）
+     縦長のスマホはカメラが高い（2.75m）ので、天井（2.9〜3m）のすぐ下をはうように見えていた。ジャンプするとカメラが天井をつきぬけた。
+     天井のある場所では ①カメラの高さを「天井より CAM_CEIL_GAP 下」までにする ②ジャンプでカメラが上がる分は、天井の手前でなめらかに止める ③それでも天井より上には絶対に出さない */
+  const ceilH = seg.ceilH || 0, camB = tall ? 2.75 : 2.1, camT = ceilH ? Math.min(camB, Math.max(2.1, ceilH - CAM_CEIL_GAP)) : camB;
+  G.camH = camNew || G.camH == null ? camT : lerp(G.camH, camT, Math.min(1, dt * 5));
+  let camUp = G.y * .6 + sh * .5; if (ceilH && camUp > 0) { const room = Math.max(.05, ceilH - CAM_CEIL_MIN - G.camH); camUp = room * (1 - Math.exp(-camUp / room)); }
+  CAM.y = G.camE + G.camH + camUp; if (ceilH) CAM.y = Math.min(CAM.y, G.camE + ceilH - CAM_CEIL_MIN + .08);
+  CAM.yaw = G.camYaw; CAM.pitch = (tall ? .19 + .08 * clamp((G.camH - 2.1) / .65, 0, 1) : .19) - G.camSl * .55 + Math.min(.1, G.y * .03);
   camPrep();
   P.depth = (P.wx - CAM.x) * CAM.s + (P.wz - CAM.z) * CAM.c; F.depth = (F.wx - CAM.x) * CAM.s + (F.wz - CAM.z) * CAM.c;
   if (F.tuck) F.depth = P.depth + .3;

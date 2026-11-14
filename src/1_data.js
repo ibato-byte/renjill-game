@@ -293,7 +293,10 @@ const DIRS = [[0, 1], [1, 0], [0, -1], [-1, 0]];
 const GRAV = 24, JUMPV = 8.0, SUPERV = 9.6, VAULT_G = .5; // a car vault is a long, floaty leap (half the gravity) just over the roof, not a big high jump. Tall cars are dodged, not jumped
 const vaultV = h => Math.sqrt(2 * GRAV * VAULT_G * h);
 const MAX_JUMP = 2.1; // no jump ever goes higher than this above the floor (standing on a box, super jump or not)
-const capV = (v, y, g) => Math.min(v, Math.sqrt(2 * GRAV * (g || 1) * Math.max(.25, MAX_JUMP - (y || 0))));
+const capV = (v, y, g, top) => Math.min(v, Math.sqrt(2 * GRAV * (g || 1) * Math.max(.25, (top || MAX_JUMP) - (y || 0))));
+/* 天井のある場所（2026-11-15）：カメラは天井より CAM_CEIL_GAP 下まで・どんな時も CAM_CEIL_MIN より近づかない。キャラクターの足は「天井 − HEAD_ROOM」より上に行かない（頭が天井をつきぬけない） */
+const CAM_CEIL_GAP = .8, CAM_CEIL_MIN = .3, HEAD_ROOM = 1.3;
+function jumpTop(seg) { const c = seg && seg.ceilH; return c ? Math.min(MAX_JUMP, Math.max(1.4, c - HEAD_ROOM)) : MAX_JUMP; }
 const STAND_H = 0.92, SLIDE_H = 0.42;
 
 /* ================= items ================= */

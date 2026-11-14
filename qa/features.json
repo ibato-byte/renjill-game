@@ -580,6 +580,31 @@
       "name": "ジャンプの絵の試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'jumppose'"
+    },
+    {
+      "name": "天井のある場所：カメラは天井より下",
+      "file": "src/6_game.js",
+      "has": "ceilH - CAM_CEIL_GAP"
+    },
+    {
+      "name": "天井のある場所：ジャンプでカメラが天井をこえない",
+      "file": "src/6_game.js",
+      "has": "ceilH - CAM_CEIL_MIN"
+    },
+    {
+      "name": "天井のある場所：キャラクターの頭が天井をこえない",
+      "file": "src/1_data.js",
+      "has": "function jumpTop(seg)"
+    },
+    {
+      "name": "天井の高さのしるし",
+      "file": "src/3_world.js",
+      "has": "seg.ceilH = H"
+    },
+    {
+      "name": "天井の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'ceilview'"
     }
   ]
 }

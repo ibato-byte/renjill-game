@@ -147,7 +147,7 @@ function addDecals(seg, fS, fE) {
   if (stone) for (let s = fS + 4; s < fE - 6; s += rand(4, 9)) { const l = rand(-ROAD + .4, ROAD - 1.2); out(s, s + rand(.6, 1.2), l, l + rand(.6, 1.1), 'patch', { pc: pick(['#8A8478', '#A09A8E', '#77716A']) }); }
 }
 function buildRoom(seg, s0, lEnd, rEnd) {
-  const th = seg.th, H = seg.wallH, L = seg.len, glass = th.kind === 'glass';
+  const th = seg.th, H = seg.wallH, L = seg.len, glass = th.kind === 'glass'; seg.ceilH = H; /* 天井の高さ（カメラとジャンプが天井をこえないために使う） */
   const wc = C(th.wall || '#E9EEF2'), bc = C(th.base || '#7D8B97');
   const wallRun = (side, a0, a1) => {
     for (let a = a0; a < a1 - .01; a += 3) {
