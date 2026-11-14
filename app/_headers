@@ -3,3 +3,17 @@
   Cache-Control: max-age=300
 /og.png
   Cache-Control: max-age=86400
+/icon-192.png
+  Cache-Control: max-age=604800
+/icon-512.png
+  Cache-Control: max-age=604800
+/maskable-512.png
+  Cache-Control: max-age=604800
+/apple-touch-icon.png
+  Cache-Control: max-age=604800
+/favicon.png
+  Cache-Control: max-age=604800
+/img/*
+  Cache-Control: max-age=604800
+/*
+  X-Content-Type-Options: nosniff

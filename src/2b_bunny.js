@@ -444,34 +444,69 @@ function lanyard(g, x, y) { g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.line
 
 const BUN = { ren: {}, jill: {}, pom: {} };
 const RUN_FRAMES = 8;
-function buildBunnies(only) {
+/* 2026-11-15：起動を速く。開いた直後（題名画面）に要るのは前向きの絵だけなので、まずそれだけ描く（part = 'front'）。
+   走る・跳ぶ・ふり返るの絵（part = 'rest'・全体の 7 割）は、題名が出たあと少しずつ描く。スタートを押した時にまだ残っていれば、その場で描き終える（bunniesNow）。
+   part なし＝全部（着せかえ・消えた絵の描き直し。今までどおり） */
+let BUN_LAZY = 0; const BUN_TODO = new Set();
+function buildBunnies(only, part) {
+  if (!part && BUN_LAZY) part = 'front';
   for (const who of ['ren', 'jill', 'pom']) {
     if (only && who !== only) continue; BUN[who] = BUN[who] || {};
+    if (part === 'front') BUN_TODO.add(who); else BUN_TODO.delete(who);
     for (const mug of [0, 1]) {
       if (who !== 'ren' && mug) continue;
       const key = mug ? 'm' : '';
+      if (part !== 'front') {
       for (let k = 0; k < RUN_FRAMES; k++) {
         const ph = k / RUN_FRAMES * Math.PI * 2;
         SEED = 11 + k;
         BUN[who]['run' + k + key] = paint(g => drawBody(g, who, { lift: Math.max(0, Math.sin(ph)) * 16, sq: 1 - .08 * Math.cos(ph * 2), feet: -Math.sin(ph), ear: Math.sin(ph + .9) * .12, tie: 0, tiePh: ph, view: 'back', mug }));
       }
       SEED = 3; BUN[who]['air' + key] = paint(g => drawBody(g, who, { lift: 10, sq: 1.04, feet: -.6, ear: -.3, tie: 0, tiePh: 1.2, air: 1, view: 'back', mug }));
+      /* 2026-11-15：落ちてくる時の絵（前は跳んでいる間ずっと同じ絵だった）。のぼりは耳が下に流れて足をたたむ、くだりは耳がふわっと開いて足を着地にのばす */
+      SEED = 3; BUN[who]['fall' + key] = paint(g => drawBody(g, who, { lift: 10, sq: .98, feet: .55, ear: .32, tie: 0, tiePh: 2.6, air: 1, view: 'back', mug }));
       SEED = 4; BUN[who]['slide' + key] = paint(g => drawBody(g, who, { lift: 0, sq: 1, feet: .5, ear: .35, tie: 0, tiePh: 2.4, view: 'back', slide: 1, mug }));
       for (const mood of ['happy', 'sparkle', 'wink', 'open', 'sick', 'worry', 'cheer'].concat(who === 'pom' ? ['puff'] : [])) { SEED = 5; BUN[who]['look_' + mood + key] = paint(g => drawBody(g, who, { lift: 6, sq: 1, feet: 0, ear: 0, view: 'look', mood, mug })); }
-      for (const mood of ['open', 'blink', 'happy', 'cheer', 'sleepy', 'yawn'].concat(who === 'pom' ? ['puff', 'sparkle'] : [])) { SEED = 6; BUN[who]['front_' + mood + key] = paint(g => drawBody(g, who, { lift: 0, sq: 1, feet: 0, ear: 0, view: 'front', mood, mug })); }
+      }
+      if (part !== 'rest') for (const mood of ['open', 'blink', 'happy', 'cheer', 'sleepy', 'yawn'].concat(who === 'pom' ? ['puff', 'sparkle'] : [])) { SEED = 6; BUN[who]['front_' + mood + key] = paint(g => drawBody(g, who, { lift: 0, sq: 1, feet: 0, ear: 0, view: 'front', mood, mug })); }
     }
   }
 }
+// 残りの絵（走る・跳ぶ・ふり返る）を今すぐ描き終える（スタートの直前など）
+function bunniesNow() { for (const who of [...BUN_TODO]) buildBunnies(who, 'rest'); }
+// 残りの絵を、題名が出たあと 1 匹ずつ描く（画面を止めない）
+function bunniesLater() { const step = () => { const who = [...BUN_TODO][0]; if (!who) return; try { buildBunnies(who, 'rest'); } catch (e) { } if (BUN_TODO.size) setTimeout(step, 80); }; setTimeout(step, 350); }
 function paint(fn) { const c = mk(BS, BS + BTOP); const g = c.getContext('2d') || noCtx(); g.lineJoin = 'round'; g.translate(0, BTOP); fn(g); return c; }
 function bunFrame(who, pose, mug) { const k = mug && who === 'ren' ? 'm' : ''; const f = BUN[who][pose + k] || BUN[who][pose] || BUN[who]['front_open'] || BUN[who].run0; if (f && PIC_SEEN.size < 12) PIC_SEEN.add(f); return f; }
+/* 題名画面のカード用の、くっきりした絵（2026-11-15）。キャラクターごとに 2 つまで（ふだんの顔と、まばたき）。元の絵が描き直されたら（着せかえ・消えた絵の描き直し）作り直す。
+   走り始めたら手放す（スマホの絵のメモリを空ける）。作れないときは、今までの絵で描く */
+const BUN_HI = { ren: [], jill: [], pom: [] };
+function bunHi(who, mood, base, k) {
+  const L = BUN_HI[who] || (BUN_HI[who] = []); let e = L.find(x => x.mood === mood);
+  if (e && e.base === base && e.k >= k - .01 && e.c.width) { e.t = performance.now(); return e.c; }
+  try { const c = mk(Math.round(BS * k), Math.round((BS + BTOP) * k)), g = c.getContext('2d'); if (!g) return base; g.lineJoin = 'round'; g.scale(k, k); g.translate(0, BTOP); SEED = 6;
+    drawBody(g, who, { lift: 0, sq: 1, feet: 0, ear: 0, view: 'front', mood, mug: who === 'ren' && SV.mugOn ? 1 : 0 });
+    if (e) { try { e.c.width = e.c.height = 0; } catch (x) { } L.splice(L.indexOf(e), 1); }
+    while (L.length >= 2) { L.sort((a, b) => a.t - b.t); const o = L.shift(); try { o.c.width = o.c.height = 0; } catch (x) { } }
+    L.push({ mood, base, k, c, t: performance.now() }); return c;
+  } catch (x) { return base; }
+}
+function bunHiFree() { for (const w in BUN_HI) { for (const e of BUN_HI[w]) { try { e.c.width = e.c.height = 0; } catch (x) { } } BUN_HI[w] = []; } }
+/* カードの絵の細かさを、画面の細かさに合わせる（220×200 の絵を正方形の枠に入れていて、縦に 1 割のびていた。正方形の絵にして、のびをなくす） */
+function charCardFit() { const dpr = Math.min(3, window.devicePixelRatio || 1); for (const id of ['cvRen', 'cvJill', 'cvPom']) { const c = document.getElementById(id); if (!c) continue; const cw = c.clientWidth || 110, n = Math.max(160, Math.min(450, Math.round(cw * dpr))); if (Math.abs(c.width - n) > 8 || c.height !== c.width) { c.width = n; c.height = n; } } }
 function drawCharCard(cv, who, t) {
   const g = cv.getContext('2d') || noCtx(); g.clearRect(0, 0, cv.width, cv.height);
-  const mood = (t % 3.4) < .14 ? 'blink' : ((t % 9) > 7.4 ? 'happy' : 'open');
-  const img = bunFrame(who, 'front_' + mood, SV.mugOn);
+  /* 選んだ子は、0.6 秒うれしそうにはねる（選んだ手ごたえ。「動きをひかえめ」でははねない） */
+  const pk = G.cardPick && G.cardPick.who === who ? (performance.now() - G.cardPick.at) / 1000 : 9, picked = pk < .6;
+  const mood = picked ? 'happy' : (t % 3.4) < .14 ? 'blink' : ((t % 9) > 7.4 ? 'happy' : 'open');
+  const hop = picked && !OPT().calm ? Math.abs(Math.sin(pk / .6 * Math.PI * 2)) * (1 - pk / .6) * cv.height * .07 : 0;
+  const base = bunFrame(who, 'front_' + mood, SV.mugOn);
   const s = cv.width / BS * 1.05 * (who === 'pom' ? 1.25 : 1), bob = Math.sin(t * 2.2) * 2;
+  const img = s > 1.15 ? bunHi(who, mood, base, Math.min(2, s)) : base; /* 大きく映すときは、その大きさで描いた絵を使う（小さい絵を引きのばすと、ぼやける） */
+  g.imageSmoothingQuality = 'high';
   g.save(); g.translate(cv.width / 2, cv.height * .98 + bob * 0); g.scale(s, s * (1 + Math.sin(t * 2.2) * .012));
-  g.fillStyle = 'rgba(59,42,32,.14)'; g.beginPath(); g.ellipse(0, -14, 100, 14, 0, 0, Math.PI * 2); g.fill();
-  g.drawImage(img, -BS / 2, -GROUND_Y - 4 - BTOP); g.restore();
+  g.fillStyle = 'rgba(59,42,32,.14)'; g.beginPath(); g.ellipse(0, -14, 100 * (1 - hop / cv.height * 2), 14, 0, 0, Math.PI * 2); g.fill();
+  g.drawImage(img, -BS / 2, -GROUND_Y - 4 - BTOP - hop / s, BS, BS + BTOP); g.restore();
 }
 
 /* ---- kept pictures that went blank are painted again (2026-11-13 の報告：プレイ中にキャラクターが透明になって消え、選択画面でも消えたまま) ----

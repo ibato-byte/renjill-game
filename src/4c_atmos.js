@@ -145,7 +145,7 @@ function postFX() {
     g.addColorStop(0, LT.night > .5 ? 'rgba(60,80,160,.35)' : 'rgba(90,130,200,.22)'); g.addColorStop(1, LT.night > .5 ? 'rgba(255,170,90,.18)' : 'rgba(255,200,140,.22)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over'; }
   if (!GRAIN) { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d') || noCtx(), d = g.createImageData(128, 128), r = rnd(3);
     for (let i = 0; i < d.data.length; i += 4) { const v = 128 + (r() - .5) * 90; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } g.putImageData(d, 0, 0); GRAIN = ctx.createPattern(c, 'repeat'); }
-  ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .07; ctx.fillStyle = GRAIN; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .07; ctx.fillStyle = GRAIN; { const calm = OPT().calm, ox = calm ? 0 : (Math.random() * 128) | 0, oy = calm ? 0 : (Math.random() * 128) | 0; ctx.translate(-ox, -oy); ctx.fillRect(0, 0, W + 128, H + 128); ctx.translate(ox, oy); } ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; /* ざらつきは毎コマ場所を変える（止まっていると、画面のよごれに見える）。「動きをひかえめ」では動かさない */
 }
 
 /* ---- tree crowns with light from above: dark inner mass, lit clumps, sky gaps ---- */

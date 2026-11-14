@@ -120,7 +120,11 @@ function wallPattern(w, d) {
 }
 function ceiling(w, d) {
   const cp = w.cp, li = w.light;
+  /* 2026-11-15：のっぺりした天井に、走っても動いて見えない（道に沿った）物だけを足す。壁ぎわのうすい陰・板の継ぎ目・電車の手すり棒と空調の筋。横切る線は足さない（上の数字の後ろでちらつくため） */
+  bquad(0, 0, 1, .075, 'rgba(30,22,16,.085)'); bquad(0, .925, 1, 1, 'rgba(30,22,16,.085)'); bquad(0, .075, 1, .15, 'rgba(30,22,16,.035)'); bquad(0, .85, 1, .925, 'rgba(30,22,16,.035)');
+  if (w.train) { bquad(0, .43, 1, .57, 'rgba(255,255,255,.16)'); ctx.strokeStyle = 'rgba(70,80,92,.5)'; ctx.lineWidth = Math.max(1, Math.min(3, 9 / Math.max(1, d))); ctx.beginPath(); bline(0, .2, 1, .2); bline(0, .8, 1, .8); ctx.stroke(); }
   ctx.strokeStyle = 'rgba(0,0,0,.12)'; ctx.lineWidth = 1; ctx.beginPath();
+  if (cp === 'plain' && !w.train) { bline(0, 1 / 3, 1, 1 / 3); bline(0, 2 / 3, 1, 2 / 3); }
   if (cp === 'wood') { for (let k = 1; k < 8; k++) bline(0, k / 8, 1, k / 8); bline(0, 0, 1, 0); }
   else if (cp === 'grid') { for (let k = 1; k < 4; k++) bline(0, k / 4, 1, k / 4); bline(0, 0, 1, 0); bline(.5, 0, .5, 1); }
   else if (cp === 'beams' || cp === 'girder') { ctx.stroke(); bquad(0, 0, .12, 1, cp === 'girder' ? tint('#2B2B30') : tint('#7D8791')); if (cp === 'girder') { ctx.strokeStyle = tint('#55555C'); ctx.beginPath(); bline(0, 0, 1, 1); bline(0, 1, 1, 0); } }
@@ -128,8 +132,8 @@ function ceiling(w, d) {
   const on = `rgba(255,253,240,${(.95 * clamp((d - 1.2) / 3, 0, 1)).toFixed(2)})`; // fixtures right overhead fade out instead of slicing the top of the screen
   if (li === 'panel' && w.ti % 2 === 0) { bquad(.2, .18, .8, .32, on); bquad(.2, .68, .8, .82, on); }
   else if (li === 'strip') { bquad(.1, .3, .9, .36, on); bquad(.1, .64, .9, .7, on); }
-  else if (li === 'round' && w.ti % 3 === 1) { const c = bil(.5, .5), r = Math.abs(bil(.62, .5)[0] - c[0]) + Math.abs(bil(.5, .62)[1] - c[1]); ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(2, r), Math.max(1, r * .35), 0, 0, Math.PI * 2); ctx.fillStyle = on; ctx.fill(); }
-  else if (li === 'bulb') { for (let k = 0; k < 3; k++) { const c = bil(.5, .2 + k * .3); ctx.beginPath(); ctx.arc(c[0], c[1], Math.max(1.5, 90 / d), 0, Math.PI * 2); ctx.fillStyle = '#FFD27A'; ctx.fill(); } }
+  else if (li === 'round' && w.ti % 3 === 1) { const c = bil(.5, .5), r = Math.abs(bil(.62, .5)[0] - c[0]) + Math.abs(bil(.5, .62)[1] - c[1]); ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(3, r * 1.9), Math.max(1.5, r * .68), 0, 0, Math.PI * 2); ctx.fillStyle = on.replace(/[\d.]+\)$/, m => (parseFloat(m) * .18).toFixed(3) + ')'); ctx.fill(); /* 明かりのまわりのうすい光 */ ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(2, r), Math.max(1, r * .35), 0, 0, Math.PI * 2); ctx.fillStyle = on; ctx.fill(); }
+  else if (li === 'bulb') { /* 裸電球：すぐ頭の上では巨大な黄色い丸になっていた（ガード下・横丁）。大きさに上限をつけ、近づくと消え、まわりにうすい光の輪 */ const rr = Math.min(7, Math.max(1.5, 34 / d)), al = clamp((d - 2.2) / 3, 0, 1); if (al > .02) for (let k = 0; k < 3; k++) { const c = bil(.5, .2 + k * .3); ctx.globalAlpha = al * .22; ctx.beginPath(); ctx.arc(c[0], c[1], rr * 2.4, 0, Math.PI * 2); ctx.fillStyle = '#FFC860'; ctx.fill(); ctx.globalAlpha = al; ctx.beginPath(); ctx.arc(c[0], c[1], rr, 0, Math.PI * 2); ctx.fillStyle = '#FFE2A0'; ctx.fill(); } ctx.globalAlpha = 1; }
 }
 function glassFrame(w) { ctx.strokeStyle = 'rgba(240,245,250,.75)'; ctx.lineWidth = 2; ctx.beginPath(); bline(0, 0, 1, 0); bline(0, 1, 1, 1); bline(0, 0, 0, 1); if (!w.ceil) bline(0, .05, 1, .05); ctx.stroke(); }
 // building fronts; w.st = style
@@ -254,10 +258,13 @@ function altitude(seg, s) { const c = seg.th.climb; return c ? Math.round(lerp(c
 function drawSky(seg) {
   const th = seg.th, open = th.kind !== 'room' && th.kind !== 'train';
   const horizon = HORIZON - Math.tan(CAM.pitch) * FOCAL;
-  if (!open && th.kind) { const gr = ctx.createLinearGradient(0, 0, 0, horizon + 30); gr.addColorStop(0, `rgb(${LT.top.map(x => x | 0)})`); gr.addColorStop(1, `rgb(${LT.bot.map(x => x | 0)})`); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H); return; }
+  if (!open && th.kind) { /* 室内・車内：天井の板がまだ無い所（部屋に入った直後・縦長の画面のいちばん上）に空の青が見えていた。天井と同じ色で塗る（2026-11-15） */
+    const cc = C(th.ceil || '#EEF0F2'), gr = ctx.createLinearGradient(0, 0, 0, Math.max(40, horizon + 30)); gr.addColorStop(0, fogged(cc, .82, 2)); gr.addColorStop(.7, fogged(cc, .8, 18)); gr.addColorStop(1, fogged(cc, .74, 60)); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H); G.skyIn = 1; return; }
+  G.skyIn = 0;
   skyGradient(horizon);
   const N = LT.night;
-  if (N > .5) { ctx.fillStyle = 'rgba(255,255,255,.8)'; for (let i = 0; i < 50; i++) { const x = ((i * 97.3 - CAM.yaw * 80) % W + W) % W, y = (i * 53.7) % (horizon * .85); ctx.fillRect(x, y, 1.5, 1.5); } }
+  if (N > .5) { /* 星：四角い点 → 丸く、大きさと明るさをばらばらに、ゆっくりまたたく（「動きをひかえめ」ではまたたかない）。地平線の近くは町の明かりでうすく（2026-11-15） */ const calm = OPT().calm, tt = G.t || 0; ctx.fillStyle = '#FFFFFF';
+    for (let i = 0; i < 56; i++) { const x = ((i * 97.3 - CAM.yaw * 80) % W + W) % W, y = (i * 53.7) % (horizon * .85), big = i % 7 === 0, tw = calm ? .8 : .62 + .38 * Math.sin(tt * (1.1 + (i % 5) * .35) + i * 1.7); ctx.globalAlpha = clamp((N - .5) * 2, 0, 1) * tw * (big ? .95 : .7) * clamp(1.15 - y / Math.max(1, horizon * .85), .25, 1); ctx.beginPath(); ctx.arc(x, y, big ? 1.5 : .6 + (i % 3) * .28, 0, Math.PI * 2); ctx.fill(); } ctx.globalAlpha = 1; }
   drawSunGlow(horizon);
   if (N > .6 && G.weather === 'clear' && adSeason() === 'summer') drawFireworks(horizon);
   drawClouds2(horizon);
@@ -468,7 +475,7 @@ function treeLimbs(g, r, x, y, ang, len, wid, depth, col, tips, droop) {
 }
 function sakuraTree(dir, night, seed) {
   const S = 512, c = mk(S), g = c.getContext('2d') || noCtx(), r = rnd(seed), tips = [];
-  const bark = night ? '#17110F' : '#3B2F2B', bx = 256 - dir * 92;
+  const bark = night ? '#1E1512' : '#5B4338', bx = 256 - dir * 92; /* 2026-11-15：花の間からのぞく枝が黒い棒に見えていたので、桜の幹らしいこげ茶に */
   // trunk: short and thick, leaning
   const tx = bx + dir * 46, ty = 330;
   g.fillStyle = bark; g.beginPath(); g.moveTo(bx - 20, S); g.quadraticCurveTo(bx - 16 + dir * 10, 420, tx - 11, ty); g.lineTo(tx + 11, ty); g.quadraticCurveTo(bx + 18 + dir * 14, 420, bx + 22, S); g.fill();
@@ -490,7 +497,7 @@ function sakuraTree(dir, night, seed) {
   for (const [x, y, R] of clumps) for (let i = 0; i < 16; i++) { const a = -Math.PI * (.1 + r() * .8), d = Math.sqrt(r()) * R * .85; dot(x + Math.cos(a) * d, y - R * .12 + Math.sin(a) * d * .55, 3 + r() * 5, pal.lt); }
   for (const [x, y, R] of clumps) for (let i = 0; i < 7; i++) { const a = -Math.PI * (.15 + r() * .7), d = r() * R * .7; dot(x + Math.cos(a) * d, y - R * .2 + Math.sin(a) * d * .5, 1.6 + r() * 2, pal.hi); }
   // a few dark twigs showing through the blossoms
-  g.globalAlpha = .7; for (const [x, y, d] of tips) if (d === 0 && r() < .5) { g.strokeStyle = bark; g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 30, y - 8 - r() * 14); g.stroke(); } g.globalAlpha = 1;
+  g.globalAlpha = .7; for (const [x, y, d] of tips) if (d === 0 && r() < .5) { g.strokeStyle = bark; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 30, y - 8 - r() * 14); g.stroke(); } g.globalAlpha = 1;
   if (night) { // lit from below by paper lanterns
     g.globalCompositeOperation = 'source-atop'; const gr = g.createLinearGradient(0, 120, 0, 380); gr.addColorStop(0, 'rgba(40,30,70,.25)'); gr.addColorStop(1, 'rgba(255,190,140,.38)'); g.fillStyle = gr; g.fillRect(0, 0, S, S); g.globalCompositeOperation = 'source-over'; }
   return c;

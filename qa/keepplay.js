@@ -26,13 +26,13 @@ const { chromium } = require('playwright'); const path = require('path');
   await p.click('#btnStart'); await p.waitForTimeout(1200); await banners(p);
   ok((await ev(p, 'SV.bank')) === 650 && (await ev(p, 'G.pow.x2 > 0 && G.pow.magnet > 0')), 'スタートブースト：200本でスコア2倍とマグネット');
   await p.evaluate(() => { const G = window.__hayDash.G; G.invT = 999; G.score = 4000; }); await p.waitForTimeout(500);
-  ok(/ミミ 5,200/.test(await txt(p, '#kpNext')), 'つぎの目標：すぐ上の相手 → ' + await txt(p, '#kpNext'));
+  ok(/ミミ\s5,200/.test(await txt(p, '#kpNext')), 'つぎの目標：すぐ上の相手 → ' + await txt(p, '#kpNext'));
   await p.evaluate(() => { window.__hayDash.G.score = 5300; }); await p.waitForTimeout(2600);
   for (const s of [10100, 12100, 18100, 23000, 27500]) { await p.evaluate(s => { window.__hayDash.G.score = s; }, s); await p.waitForTimeout(450); }
   await p.evaluate(() => { const G = window.__hayDash.G; G.jumpTo('lobby', 545); G.invT = 999; G.combo = 31; G.comboT = 9; }); await p.waitForTimeout(600);
   { const s = await ev(p, 'JSON.stringify({ m: G.stats.kpMile, r: G.stats.kpRival, g: G.stats.kpGoal, c: G.stats.kpCombo, pace: G.stats.kpPace, t75: G.kp.t75, t90: G.kp.t90, day: G.kp.dayTold, tg: SV.kp.tg })'), o = JSON.parse(s), bn = (await p.evaluate(() => window.__bn)).join('|');
     ok(o.m === 2, '大台（10,000・25,000）' + s); ok(o.r === 1 && /ミミ さんをぬいた/.test(bn), 'ぬいた相手の名前'); ok(o.g === 1 && o.tg === day(0), '今日の目標スコア達成'); ok(o.c === 1, '30コンボのボーナス'); ok(typeof o.pace === 'number', 'ペース（ベストのときとの差）'); ok(o.t75 && o.t90 && o.day, '75%・90%・今日のベスト');
-    ok(/自己ベスト 30,000/.test(await txt(p, '#kpNext')), 'つぎの目標：自己ベスト → ' + await txt(p, '#kpNext')); }
+    ok(/自己ベスト\s30,000/.test(await txt(p, '#kpNext')), 'つぎの目標：自己ベスト → ' + await txt(p, '#kpNext')); }
   await finish(p);
   { const r = await txt(p, '#resKeep'), m = await p.evaluate(() => document.querySelector('#resKeepMore').textContent), g = await txt(p, '.kp-grade'), k = JSON.parse(await ev(p, 'JSON.stringify(SV.kp)')), again = await txt(p, '#btnAgain');
     ok(g === 'A', '評価 A（ベストの8割以上）: ' + g); ok(/自己ベストの 9\d%/.test(r), '自己ベストとの差'); ok(/前回より −/.test(r), '前回との差'); ok(/今日のベスト 2\d,\d{3}/.test(r) && /今日のベスト更新/.test(r), '今日のベスト'); ok(/おしい！/.test(r), 'おしい！');
@@ -61,7 +61,7 @@ const { chromium } = require('playwright'); const path = require('path');
 
   // ---- D：英語 ----
   p = await open({ best: 30000, bank: 950, kp: { last: 9000 } }, 'en'); ok(/Today's score goal 18,000/.test(await txt(p, '#tKeep')) && /Start boost/.test(await txt(p, '#btnBoost')) && (await txt(p, '#btnRecords')) === 'Records', '英語の題名');
-  await p.click('#btnStart'); await p.waitForTimeout(900); await p.evaluate(() => { const G = window.__hayDash.G; G.invT = 99; G.score = 9500; }); await p.waitForTimeout(400); ok(/Next 10,000/.test(await txt(p, '#kpNext')), '英語：つぎの目標'); await finish(p);
+  await p.click('#btnStart'); await p.waitForTimeout(900); await p.evaluate(() => { const G = window.__hayDash.G; G.invT = 99; G.score = 9500; }); await p.waitForTimeout(400); ok(/Next\s10,000/.test(await txt(p, '#kpNext')), '英語：つぎの目標'); await finish(p);
   { const all = await p.evaluate(() => document.querySelector('#resKeep').textContent + document.querySelector('#resKeepMore').textContent + document.querySelector('#btnAgain').textContent); ok(/of your best/.test(all) && /Tip:/.test(all) && /Where the points came from/.test(all) && /in a row/.test(all) && !/[ぁ-んァ-ヶ]/.test(all), '英語の結果（日本語がまざらない）'); }
   await p.context().close();
 

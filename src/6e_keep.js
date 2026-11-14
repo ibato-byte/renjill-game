@@ -93,7 +93,7 @@ function kpHud() {
   if (!K.tgt || sc >= K.tgt.s) { K.tgt = kpTarget(); K.from = K.tgt ? Math.min(sc, K.tgt.s * .5) : 0; }
   if (!K.tgt) { if (!box.hidden) box.hidden = true; return; }
   if (box.hidden) box.hidden = false;
-  setStyle('kpFill', 'width', Math.round(clamp((sc - K.from) / Math.max(1, K.tgt.s - K.from), 0, 1) * 50) * 2 + '%'); setText('kpNext', K.tgt.l + ' ' + fmt(K.tgt.s));
+  setStyle('kpFill', 'width', Math.round(clamp((sc - K.from) / Math.max(1, K.tgt.s - K.from), 0, 1) * 50) * 2 + '%'); setText('kpNext', K.tgt.l + '\n' + fmt(K.tgt.s));
 }
 function kpGrade(sc, prevBest, newBest) { if (!(prevBest > 0)) return ''; if (newBest) return 'S'; const r = sc / prevBest; return r >= .8 ? 'A' : r >= .5 ? 'B' : r >= .25 ? 'C' : 'D'; }
 function kpTip(st) { // one thing that would have raised this score the most
@@ -123,7 +123,7 @@ function kpEnd(o) {
   if (extra) { SV.bank += extra; $('#resHay').textContent = fmt(o.gained + extra); }
   save();
   const grade = kpGrade(sc, prevBest, newBest), near = !newBest && prevBest > 0 && sc >= prevBest * .85;
-  const vs = !(prevBest > 0) ? kt('vsFirst') : newBest ? kt('vsUp', fmt(sc - prevBest)) : kt('vsDown', fmt(prevBest - sc), Math.floor(sc / prevBest * 100));
+  const vs = !(prevBest > 0) ? kt('vsFirst') : newBest ? kt('vsUp', fmt(sc - prevBest)) : kt('vsDown', fmt(prevBest - sc + 1), Math.floor(sc / prevBest * 100)) /* 「あと○点」は、すぐ下の「おしい！」と同じ数（こえるのに要る点）にそろえる。前は 1 点ずれていた */;
   const sub = []; if (last > 0 && sc !== last) sub.push(sc > last ? kt('lastUp', fmt(sc - last)) : kt('lastDn', fmt(last - sc))); sub.push(kt('todayB', fmt(k.db))); if (k.wb > k.db) sub.push(kt('weekB', fmt(k.wb)));
   box.hidden = false; box.innerHTML = `<div class="kp-top">${grade ? `<b class="kp-grade g${grade}" aria-label="${grade}">${grade}</b>` : ''}<div class="kp-lines"><p class="kp-vs">${esc(vs)}</p><p class="kp-sub">${sub.map(esc).join('<i>・</i>')}</p></div></div>`
     + (near ? `<p class="kp-near">${esc(kt('near', fmt(prevBest - sc + 1)))}</p>` : '') + (badges.length ? `<div class="kp-badges">${badges.map(b => `<span class="${b[0]}">${esc(b[1])}</span>`).join('')}</div>` : '')

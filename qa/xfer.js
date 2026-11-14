@@ -12,8 +12,8 @@ const { chromium } = require('playwright');
  await B.click('#btnSet'); await B.waitForTimeout(300);
  await B.fill('#xferIn', 'RJ1.garbage.123'); await B.click('#btnXferLoad'); await B.waitForTimeout(300); const bad = await B.evaluate(() => document.querySelector('#xferMsg').textContent);
  await B.fill('#xferIn', code); await B.click('#btnXferLoad'); await B.waitForTimeout(300); const confirm = await B.evaluate(() => document.querySelector('#xferMsg').textContent);
- await B.click('#btnXferLoad'); await B.waitForTimeout(1500);
+ await B.click('#btnXferLoad'); await B.waitForTimeout(1500); await B.waitForFunction(() => window.__hayDash && window.__hayDash.SV, null, { timeout: 15000 }); /* 読み込み直しが遅い環境（フォントが取れない回線）でも、ページができるまで待つ */
  const sv = await B.evaluate(() => { const S = window.__hayDash.SV; return JSON.stringify({ best: S.best, bank: S.bank, closet: S.closet, suit: S.wear.ren.suit, nick: S.nick, stamps: S.stamps, career: S.career, pid: S.pid, album: Object.keys(S.album || {}).length }); });
- await B.reload(); await B.waitForTimeout(600); const after = await B.evaluate(() => window.__hayDash.SV.best + ' ' + window.__hayDash.SV.pid + ' title:' + !document.querySelector('#sTitle').hidden);
+ await B.reload(); await B.waitForTimeout(600); await B.waitForFunction(() => window.__hayDash && window.__hayDash.SV, null, { timeout: 15000 }); const after = await B.evaluate(() => window.__hayDash.SV.best + ' ' + window.__hayDash.SV.pid + ' title:' + !document.querySelector('#sTitle').hidden);
  console.log('code length', code.length, code.slice(0, 20)); console.log('A msg', msgA); console.log('bad', bad); console.log('confirm', confirm); console.log('B', sv); console.log('pidA', pidA); console.log('after reload', after); console.log(errs.join('\n') || 'no errors');
  await b.close(); })();

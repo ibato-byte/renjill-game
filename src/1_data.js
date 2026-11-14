@@ -105,7 +105,7 @@ let RESETTING = 0; // set while the player wipes their data: nothing may write i
 function saveNow() { if (RESETTING) return; // if storage is full, give up the oldest photos one by one (never the progress)
   SAVE_DIRTY = 0;
   for (let k = 0; k < 100; k++) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); return; } catch (e) { if (SV.bestPics && SV.bestPics.length > 1) { SV.bestPics.pop(); continue; } const ks = Object.keys(SV.album || {}); if (!ks.length) return; delete SV.album[ks[0]]; } } }
-const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true, easy: false, big: false, hand: false }, SV.opt || {}));
+const OPT = () => (SV.opt = Object.assign({ ctrl: 'swipe', sens: 'normal', vib: true, calm: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), music: true, sfx: true, easy: false, big: false, hand: false, gfx: 'auto' }, SV.opt || {}));
 /* ---- languages: the same four as the official site (日本語・English・繁體中文・한국어) ----
    Chinese and Korean come from I18N (src/0_i18n.js, keyed by the Japanese text); anything missing falls back to English. */
 const LANGS = ['ja', 'en', 'zh', 'ko'], LANG_NAME = { ja: '日本語', en: 'English', zh: '繁體中文', ko: '한국어' };
@@ -125,6 +125,8 @@ const STR = {
   pomWorry: ['先輩!? 大丈夫っすか!?', 'Senpai!? You OK!?'], pomDonmai: ['ドンマイっす！', "Shake it off!"], pomFever: ['ファイトーー！', 'Go, go, gooo!'], pomNice: ['ナイスっす！', 'Nice one!'], pomNice2: ['まだまだいけるっす！', 'Keep it up!'], pomStamp: ['スタンプ、映えるっす！', 'Ooh, picture-perfect!'],
   bigText: ['文字の大きさ', 'Text size'], bigN: ['ふつう', 'Normal'], bigY: ['大きめ', 'Large'], bigNote: ['画面の上の数字・お知らせの帯・この画面の文字を少し大きくします', 'Makes the top numbers, the message strip and these menus a little bigger'],
   sensNote: ['「敏感」にすると、短いスワイプでも反応します', 'High: shorter swipes count'], calmNote: ['画面のゆれ・フラッシュ・残像をおさえます', 'Less shaking, flashing and trails'],
+  setCtrl: ['プレイ', 'Play'], setView: ['画面', 'Display'], setSound: ['音', 'Sound'], setData: ['名前・記録', 'Name & data'], fsH: ['全画面', 'Full screen'], fsOn: ['全画面にする', 'Go full screen'], fsOff: ['もとに戻す', 'Exit'], verL: ['版 {0}', 'Version {0}'],
+  gfx: ['画質', 'Picture quality'], gfxAuto: ['自動', 'Auto'], gfxHigh: ['きれい', 'Sharp'], gfxLow: ['軽い', 'Light'], gfxNote: ['「自動」は端末に合わせて調整します。「軽い」は電池が長持ちします', 'Auto adjusts to your device. Light saves battery'],
   hitWhat: ['ぶつかったのは、これ', 'You bumped into this'], hitWhatN: ['ぶつかったのは「{0}」', 'You bumped into this'],
   hand: ['片手で操作', 'One-handed'], handNote: ['タップ操作を画面の下半分だけにします（左右＝移動、まんなかの上＝ジャンプ、下＝スライディング）', 'Tap controls use only the lower half (sides = move, middle top = jump, bottom = slide)'],
   errLogH: ['エラーの記録', 'Error log'], errLogNote: ['うまく動かなかったときの記録です（この端末だけに残ります）。お問い合わせのときに見せてください', 'Problems this device ran into (kept only here). Handy if you contact us'], errLogNone: ['記録はありません', 'Nothing recorded'],

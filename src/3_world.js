@@ -29,6 +29,7 @@ function terrainFor(seg, prev) {
 
 function quad(seg, pts, flat) { const v = []; for (const [s, lat, y] of pts) { const p = segPos(seg, s, lat); v.push(p[0], y + (flat ? seg.e0 || 0 : p[2]), p[1]); } return v; }
 const C = hexRgb;
+const TORII_TUNNEL_H = 4.8; // 鳥居のトンネルの高さ（m）。横木の下は 3.7m：縦長のスマホのカメラ（2.75m）より十分に上
 let SEGN = 0;
 
 function newSeg(prev, step, opts) {
@@ -166,7 +167,7 @@ function buildRoom(seg, s0, lEnd, rEnd) {
   const cc = C(th.ceil || '#EEF0F2');
   for (let a = seg.fS, i = 0; a < seg.fE - .01; a += 3, i++) {
     const b = Math.min(a + 3, seg.fE);
-    seg.walls.push({ v: quad(seg, [[a, HW, H], [b, HW, H], [b, -HW, H], [a, -HW, H]]), c: cc, n3: [0, -1, 0], sh: .82, pat: 'ceil', cp: th.cpat, light: th.light, ti: i, glass: glass ? 1 : 0, ceil: 1 });
+    seg.walls.push({ v: quad(seg, [[a, HW, H], [b, HW, H], [b, -HW, H], [a, -HW, H]]), c: cc, n3: [0, -1, 0], sh: .82, pat: 'ceil', cp: th.cpat, light: th.light, ti: i, glass: glass ? 1 : 0, ceil: 1, train: th.kind === 'train' ? 1 : 0 });
   }
   // lintels above the openings
   for (const sd of [-1, 1]) if (seg.turn === sd || seg.fork) addWallQuad(seg, sd, L - HW, L + HW, H - .5, H, bc, { sh: .8 });
@@ -207,8 +208,8 @@ function buildStreet(seg, s0, lEnd, rEnd) {
   if (th.gate && !cont) { const gc = th.gateColor || '#2F5579', s1 = (seg.first ? 6 : HW) + (th.gateColor ? 22 : 7); // the street's name gate, painted whole
     seg.spr.push({ lat: 0, s: s1 + .2, y: 0, w: (ROAD + .9) * 2, h: 6.5, img: artKey('sgate', th.gate + '/' + gc), far: 1, keep: 1 }); }
   if (th.torii && !cont) { const tc = th.torii, s1 = (seg.first ? 6 : HW) + 10, W2 = ROAD + 1.3; // a big shrine gate across the approach, painted whole
-    seg.spr.push({ lat: 0, s: s1 + .35, y: 0, w: (W2 + 1.9) * 2, h: 8.35, img: artKey('torii', tc + '/' + (th.toriiTop || '#2B2B2B')), far: 1, keep: 1 }); }
-  if (th.toriiTunnel) { const W2 = ROAD + .45, key = artKey('torii', '#D9452B/#2B2B2B'); for (let a = (seg.first ? 10 : HW + 8); a < L - HW - 10; a += 2.4) seg.spr.push({ lat: 0, s: a + .14, y: 0, w: (W2 + .5) * 2, h: 3.52, img: key, keep: 1 }); } // rows of small vermilion gates
+    seg.spr.push({ lat: 0, s: s1 + .35, y: 0, w: (W2 + 1.9) * 2, h: 8.35, img: artKey('torii', tc + '/' + (th.toriiTop || '#2B2B2B') + (th.plaque ? '/' + th.plaque : '')), far: 1, keep: 1 }); }
+  if (th.toriiTunnel) { const W2 = ROAD + .45, key = artKey('torii', '#D9452B/#2B2B2B/tunnel'); for (let a = (seg.first ? 10 : HW + 8); a < L - HW - 10; a += 2.8) seg.spr.push({ lat: 0, s: a + .14, y: 0, w: (W2 + .5) * 2, h: TORII_TUNNEL_H, img: key, keep: 1, beamY: TORII_TUNNEL_H * (1 - .22) }); } /* beamY＝いちばん下の横木の下の高さ（qa/toriiview が、カメラより上にあることを確かめる） */ // rows of small vermilion gates
   if (seg.hp && seg.hp.shape === 'underpass') { // a railway bridge across the bottom of the dip, painted whole (deck, railing, piers, the height sign)
     const mid = (seg.hp.a + seg.hp.b) / 2, a0 = mid - 4, a1 = mid + 4;
     seg.spr.push({ lat: 0, s: a0, y: 0, w: (HW + 1.2) * 2, h: 7.6, img: artKey('overpass', 'rail'), far: 1, keep: 1 });
