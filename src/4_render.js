@@ -1,14 +1,21 @@
 /* ================= tiny 3D renderer on Canvas 2D ================= */
-const cv = $('#cv'), ctx = cv.getContext('2d');
+const cv = $('#cv'), ctx = cv.getContext('2d', { alpha: false }) || cv.getContext('2d'); /* 透けない画面として描く（ブラウザが重ね合わせを省けるので軽い） */
 let W = 0, H = 0, DPR = 1, FOCAL = 400, BASEF = 400, HORIZON = 0;
+/* 画質（2026-11-15）：設定「画質」＝ 自動（上限 1.75 倍）／きれい（上限 2 倍・軽くするのは本当に重いときだけ）／軽い（1 倍・演出も少なめ）。
+   自動で重いときは、まず細かさ（RES_K）を1段ずつ下げる。演出を減らす（lowQ）のはその後。軽くなったら細かさは戻す */
+let RES_K = 1;
+function gfxMode() { try { const g = OPT().gfx; return g === 'high' || g === 'low' ? g : 'auto'; } catch (e) { return 'auto'; } }
+function dprWant() { const dev = window.devicePixelRatio || 1, g = gfxMode(); if (g === 'low' || (typeof lowQ !== 'undefined' && lowQ)) return 1; return Math.max(1, Math.min(dev, g === 'high' ? 2 : 1.75) * RES_K); }
 function resize() {
-  DPR = Math.min(window.devicePixelRatio || 1, typeof lowQ !== 'undefined' && lowQ ? 1 : 1.75);
+  DPR = dprWant();
   W = cv.clientWidth || innerWidth; H = cv.clientHeight || innerHeight;
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); smoothOn();
   FOCAL = BASEF = Math.min(W * 1.12, H * .84);
+  try { G.drawNow = 1; } catch (e) { } /* 大きさを変えると絵が消えるので、止まっている画面でもすぐ描き直す */
   HORIZON = H * (H / W > 1.6 ? .48 : .41); // tall phones: the road ahead sits lower, clear of the bars at the top (2026-11-14 「スマホだと奥が見づらい」); the empty floor at the bottom gets smaller
 }
+function smoothOn() { try { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = gfxMode() === 'high' ? 'high' : 'low'; } catch (e) { } } /* 絵を縮めて描くときの質。設定「画質：きれい」のときだけ上げる（端末によっては重くなるので、自動では今までどおり）。画面の大きさを変えると初期値に戻るので、そのたびに入れ直す */
 const CAM = { x: 0, y: 2, z: 0, yaw: 0, pitch: .3, c: 1, s: 0, cp: 1, sp: 0 };
 function camPrep() { CAM.c = Math.cos(CAM.yaw); CAM.s = Math.sin(CAM.yaw); CAM.cp = Math.cos(CAM.pitch); CAM.sp = Math.sin(CAM.pitch); }
 const NEAR = 0.25, FAR = 120;
@@ -489,7 +496,7 @@ function drawBunnyWorld(b) {
   let pose;
   // しゃがむ・跳ぶが、ふり返り（look）より先（ふり返っている間に下スワイプしても、しゃがまなかった：2026-11-09 の報告）
   if (b.view === 'front') pose = 'front_' + (b.mood || 'open');
-  else if (b.slide) pose = 'slide'; else if (b.air) pose = 'air';
+  else if (b.slide) pose = 'slide'; else if (b.air) pose = !b.fly && (b === G.player ? G.vy : b.vy) < -2.5 ? 'fall' : 'air'; /* くだりは「落ちてくる絵」 */
   else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
   else pose = 'run' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES;
   b.pose = pose; const img = bunFrame(b.who, pose, SV.mugOn);
@@ -585,19 +592,20 @@ function drawFX() {
       ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-p.w / 2, -p.w * .65, p.w, p.w * 1.3); ctx.strokeStyle = 'rgba(59,42,32,.3)'; ctx.strokeRect(-p.w / 2, -p.w * .65, p.w, p.w * 1.3);
       ctx.fillStyle = 'rgba(59,42,32,.25)'; for (let k = 0; k < 4; k++) ctx.fillRect(-p.w * .35, -p.w * .45 + k * p.w * .22, p.w * .7, 2); ctx.restore(); }
   } else paper.length = 0;
+  if (FX.length > 280) FX.splice(0, FX.length - 280); /* つぶが増えすぎたら古い物から消す（重い端末でフィーバーと紙吹雪が重なったとき） */
   for (let i = FX.length - 1; i >= 0; i--) {
     const p = FX[i]; p.t += dt; if (p.t > p.life) { FX.splice(i, 1); continue; }
     p.x += p.vx * dt; p.y += p.vy * dt; if (p.leaf) { p.vy += 140 * dt; p.vx *= 1 - dt * 2.5; p.x += Math.sin(p.t * 9 + p.r) * 30 * dt; p.rot += p.vr * dt; } else if (!p.txt) p.vy += 600 * dt;
     ctx.globalAlpha = 1 - p.t / p.life;
-    if (p.txt) { ctx.font = '900 15px "Zen Maru Gothic",sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(59,42,32,.85)'; ctx.strokeText(p.txt, p.x, p.y); ctx.fillStyle = p.c; ctx.fillText(p.txt, p.x, p.y); }
+    if (p.txt) { /* 浮かぶ文字：出た瞬間だけ少し大きく（ぽんっ）、最後の3割でうすくなる（前は出た瞬間からうすくなり始めて読みにくかった） */ const u = p.t / p.life, pop = OPT().calm ? 1 : 1 + .28 * Math.max(0, 1 - p.t / .12); ctx.globalAlpha = u < .7 ? 1 : 1 - (u - .7) / .3; ctx.font = `900 ${Math.round(15 * pop)}px "Zen Maru Gothic",sans-serif`; ctx.textAlign = 'center'; ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(59,42,32,.85)'; ctx.strokeText(p.txt, p.x, p.y); ctx.fillStyle = p.c; ctx.fillText(p.txt, p.x, p.y); }
     else if (p.leaf) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.c; ctx.beginPath(); ctx.ellipse(0, 0, p.r * 1.9, p.r * .55, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = 'rgba(80,110,40,.55)'; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(-p.r * 1.6, 0); ctx.lineTo(p.r * 1.6, 0); ctx.stroke(); ctx.restore(); } // hay blades flutter down (2026-11-08)
-    else { ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
+    else { ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 - .45 * p.t / p.life), 0, Math.PI * 2); ctx.fill(); } /* つぶは消えながら小さくなる */
   }
   ctx.globalAlpha = 1;
   // 集中線はダッシュ・フィーバー・飛んでいる間だけ。ふつうに速いだけのときの薄い線は、画面のあちこちに「薄い斜めの残像」が出ているように見えたのでやめた（2026-11-08 の報告）
   const spdK = (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0;
   if (G.mode === 'play' && !OPT().calm && spdK > 0) { G.spdN = (G.spdN || 0) + 1;
-    ctx.strokeStyle = G.fever > 0 ? `rgba(242,194,48,${(.55 * spdK).toFixed(2)})` : `rgba(255,255,255,${(.55 * spdK).toFixed(2)})`; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.strokeStyle = G.fever > 0 ? `rgba(242,194,48,${(.55 * spdK).toFixed(2)})` : `rgba(255,255,255,${(.55 * spdK).toFixed(2)})`; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.beginPath();
     for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2 + G.t * .5, r0 = Math.min(W, H) * (.32 + ((G.t * 3 + k * .37) % 1) * .5); ctx.moveTo(W / 2 + Math.cos(a) * r0, HORIZON + Math.sin(a) * r0 * .8); ctx.lineTo(W / 2 + Math.cos(a) * (r0 + 40), HORIZON + Math.sin(a) * (r0 + 40) * .8); }
     ctx.stroke();
   }

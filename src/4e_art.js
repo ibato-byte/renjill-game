@@ -781,6 +781,7 @@ function paintTorii(g, W, H, v) { // a myojin torii: round pillars leaning in a 
   g.fillStyle = vgrad(g, H * .3, H * .36, [[0, shadeHex(c, 1.1)], [1, shadeHex(c, .75)]]); g.fillRect(W * .08, H * .3, W * .84, H * .055);
   // the plaque between the beams
   g.fillStyle = shadeHex(c, .85); g.fillRect(W * .47, H * .19, W * .06, H * .11); g.fillStyle = '#2B2420'; g.fillRect(W * .445, H * .17, W * .11, H * .13); g.strokeStyle = '#C9A030'; g.lineWidth = 2; g.strokeRect(W * .45, H * .175, W * .1, H * .12);
+  if (kind && kind !== 'tunnel') { /* 額の文字（縦書き・金）。前はまっ黒な板だった */ const tx = [...kind].slice(0, 2); g.fillStyle = '#E2BE55'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `900 ${Math.round(H * (tx.length > 1 ? .05 : .075))}px "Zen Maru Gothic","Hiragino Sans",sans-serif`; tx.forEach((ch, i) => g.fillText(ch, W * .5, H * (tx.length > 1 ? .207 + i * .056 : .235))); }
   // the lower top beam (shimaki) and the upswept kasagi with its dark cap
   g.fillStyle = vgrad(g, H * .12, H * .18, [[0, shadeHex(c, 1.08)], [1, shadeHex(c, .72)]]); g.fillRect(W * .06, H * .125, W * .88, H * .055);
   g.fillStyle = k; g.beginPath(); g.moveTo(0, H * .02); g.quadraticCurveTo(W * .5, H * .1, W, H * .02); g.lineTo(W * .97, H * .125); g.quadraticCurveTo(W * .5, H * .17, W * .03, H * .125); g.closePath(); g.fill();

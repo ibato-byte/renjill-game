@@ -232,7 +232,7 @@ Object.assign(THEMES, {
     stamp: ST('屋形', '屋形船', 'Yakatabune', 'ちょうちんを下げた屋根つきの船。食事をしながら川からの夜景を楽しむ。', 'A roofed pleasure boat hung with lanterns, for dinner with a view of the city from the river.') },
   /* ---- more sightseeing: west ---- */
   sando:    { ja: '代々木の杜・森の参道', lbl: '森の参道', en: 'Forest approach, Yoyogi', kind: 'street', len: [104, 116], road: ['#D9CBA8', '#D1C29E'], rpat: 'gravel', side: ['#5E7F48', '#577744'], spat: 'lawn', curb: '#8A7A5A',
-    fac: { style: 'park' }, torii: '#8A6A48', toriiTop: '#6B5040', props: [['tree', 6], ['stoneLantern', 1]], obs: ['bench', 'leafpile', 'stoneLanternO', 'cone'], tree: 'green', flat: 1,
+    fac: { style: 'park' }, torii: '#8A6A48', toriiTop: '#6B5040', plaque: '参道', props: [['tree', 6], ['stoneLantern', 1]], obs: ['bench', 'leafpile', 'stoneLanternO', 'cone'], tree: 'green', flat: 1,
     stamp: ST('杜', '代々木の森の参道', 'Forest approach', '大きな木の鳥居をくぐると、都心とは思えない深い森が続く。', 'Pass under the great wooden torii into a forest you would never expect in the heart of the city.') },
   takeshita:{ ja: '原宿・竹下通り', lbl: '竹下通り', en: 'Harajuku, Takeshita Street', kind: 'street', len: [92, 104], road: ['#9A968E', '#928E86'], rpat: 'stone', side: ['#A8A49C', '#A09C94'], spat: 'walk', curb: '#C9C5BD',
     fac: { style: 'neon', mood: 'harajuku', h: [7, 14], pal: ['#F3E8EE', '#E8F0F6', '#FFF6E0', '#EDE6F6', '#F6E9E0'], screen: .3, vsign: .7 }, props: [['stall', 2], ['planter', 1], ['vending', 1]], obs: ['bags', 'stroller', 'sign', 'cone', 'bike'], gate: '竹下通り', gateColor: '#D97AAE',
@@ -334,7 +334,7 @@ Object.assign(THEMES, {
     fac: { style: 'market', mood: 'monja', h: [6, 12], pal: ['#E9E2D5', '#D6CDBF', '#C9BFAF', '#F3E8DA'] }, props: [['nobori', 3], ['vending', 1], ['bikes', 1]], obs: ['bike', 'sign', 'cone', 'stoolsO', 'kick'], lm: [{ t: 'cyl', sc: .7, off: -.25 }],
     stamp: ST('月島', '月島', 'Tsukishima', '鉄板で焼くもんじゃ焼きの店が70軒以上ならぶ。路地には古い長屋も残る。', 'Over seventy griddle restaurants serving monja-yaki (a runny savory pancake), with old row houses in the alleys.') },
   kanda:    { ja: '神田・明神さまの門前', lbl: '神田の門前', en: 'Kanda shrine approach', kind: 'street', len: [96, 108], road: ['#C9C2B6', '#BFB8AB'], rpat: 'plaza', side: ['#BDB5A7', '#B3AB9D'], spat: 'stone', curb: '#9A9384',
-    fac: { style: 'nakamise', h: [4.5, 6], pal: ['#C9432F', '#B83B29', '#D04A33'] }, torii: '#9A8A7A', toriiTop: '#4A4F57', props: [['chochin', 3], ['stoneLantern', 1]], obs: ['bench', 'rickshaw', 'stoneLanternO', 'cone'], flat: 1,
+    fac: { style: 'nakamise', h: [4.5, 6], pal: ['#C9432F', '#B83B29', '#D04A33'] }, torii: '#9A8A7A', toriiTop: '#4A4F57', plaque: '神田', props: [['chochin', 3], ['stoneLantern', 1]], obs: ['bench', 'rickshaw', 'stoneLanternO', 'cone'], flat: 1,
     stamp: ST('神田', '神田の明神さま', 'Kanda shrine', '江戸の町を守ってきた神社の門前。商売繁盛を願う会社員も多くお参りする。', 'The approach to the shrine that has watched over Tokyo since it was Edo; many office workers pray here for good business.') },
   kuramae:  { ja: '蔵前・川沿いの工房の町', lbl: '蔵前', en: 'Kuramae workshops', kind: 'street', len: [96, 108], road: ['#7A7B80', '#74757A'], rpat: 'road', side: ['#B8B2A6', '#B0AA9E'], spat: 'walk', curb: '#D9D6CE',
     fac: { style: 'mixed', h: [6, 14], pal: ['#D6CDBF', '#B5A48A', '#9A8E80', '#E9E2D5', '#8A8F99'] }, props: [['cafe', 2], ['bikes', 1], ['planter', 1], ['tree', 1]], obs: ['bike', 'cone', 'bench', 'box', 'kick'], lm: [{ t: 'skytree', sc: 1.1, off: .2 }],

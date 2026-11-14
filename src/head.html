@@ -1,7 +1,10 @@
 <title>レンとジルのチモシーダッシュ</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 2026-11-15：文字の形（フォント）の取得を待たずにゲームを始める。前は、回線が遅い・つながらないと、その間ずっと「読み込み中」のままだった。届いたら自動で入れかわる -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap"></noscript>
 <style>
 /* Layout: one full-screen game stage; menus are paper cards laid over the 3D house. Single warm "office memo" look by choice. */
 :root{
@@ -33,7 +36,7 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 .clock{justify-self:center;text-align:center;line-height:1.05;min-width:96px}
 .clock .day{font-size:10px;font-weight:900;letter-spacing:.14em;color:var(--ink-soft)}
 .clock b{display:block;font-family:var(--f-display);font-weight:400;font-size:clamp(20px,5vw,26px);font-variant-numeric:tabular-nums}
-.clock .room{font-size:11px;font-weight:700;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:max(27vw,84px);line-height:1.2;word-break:normal;line-break:strict;overflow-wrap:anywhere}
+.clock .room{font-size:11px;font-weight:700;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:max(27vw,84px);line-height:1.2;white-space:pre-line;word-break:normal;word-break:auto-phrase;line-break:strict;overflow-wrap:anywhere;text-wrap:balance}
 .hay{justify-self:end;display:flex;align-items:center;gap:6px;min-width:0;max-width:100%}
 .hay img{width:26px;height:26px}
 .hay b{font-family:var(--f-display);font-weight:400;font-size:clamp(18px,4.6vw,24px);font-variant-numeric:tabular-nums}
@@ -421,7 +424,8 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--badge);outline-off
 #forkCards .fc.rich{display:grid;grid-template-columns:auto auto;column-gap:6px;align-items:center;box-shadow:0 0 0 3px #9BB85A inset,0 3px 0 rgba(59,42,32,.35)}#forkCards .fc.rich i{grid-row:1/3;grid-column:1}#forkCards .fc.rich b,#forkCards .fc.rich small{grid-column:2}#forkCards .fc.r.rich{grid-template-columns:auto auto}#forkCards .fc.r.rich i{grid-column:2}#forkCards .fc.r.rich b,#forkCards .fc.r.rich small{grid-column:1}#forkCards .fc.rich small{display:block;font-size:10px;line-height:1.1;color:#3F7A3A;font-weight:900;white-space:nowrap;text-align:center}
 /* もっと高い点を目指す（2026-11-13）：点数の下の「つぎの目標」・結果の評価・自分の記録 */
 #kpGoal{display:block;margin-top:3px;width:0;min-width:100%;overflow:hidden}#kpGoal[hidden]{display:none}#kpGoal i{display:block;height:4px;border-radius:2px;background:rgba(59,42,32,.16);overflow:hidden}#kpGoal s{display:block;height:100%;width:0;background:var(--tie);border-radius:2px;text-decoration:none;transition:width .25s}
-#kpGoal em{display:block;font-style:normal;font-size:9.5px;font-weight:900;color:var(--ink-soft);overflow-wrap:anywhere;line-height:1.2;margin-top:2px;font-variant-numeric:tabular-nums}
+#kpGoal em{display:block;font-style:normal;font-size:9px;font-weight:900;color:var(--ink-soft);white-space:pre;overflow:hidden;text-overflow:ellipsis;line-height:1.25;margin-top:2px;font-variant-numeric:tabular-nums}
+.score.chip:has(#kpGoal:not([hidden])){min-width:min(56px,calc(100% - 20px))}
 @media (max-height:500px){#kpGoal{display:none}}
 #resKeep{display:flex;flex-direction:column;gap:6px}#resKeep[hidden],#resKeepMore[hidden]{display:none}
 .kp-top{display:flex;align-items:center;gap:10px;justify-content:center}.kp-lines{min-width:0;text-align:left}.kp-lines p{margin:0}
@@ -447,4 +451,33 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--badge);outline-off
 #tKeepBtns{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:4px}#tKeepBtns[hidden]{display:none}#tKeepBtns .sub{flex:0 1 auto}
 #btnAgain small{display:block;font-family:var(--f-body);font-size:11px;font-weight:900;opacity:.85;margin-top:2px;letter-spacing:0}
 @media (max-height:620px){#tKeepBtns,.tkeep p.s{display:none}}
+
+/* ---------- 2026-11-15 みがき直し（見た目・手ざわり） ---------- */
+/* 字の輪郭をなめらかに。日本語のかな・記号のすきまをつめて、ボタンや見出しをひきしめる */
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+html[lang="ja"] .big,html[lang="ja"] .sub,html[lang="ja"] .mini,html[lang="ja"] .buy,html[lang="ja"] .toast,html[lang="ja"] .story .stp,html[lang="ja"] .logo .ja,html[lang="ja"] .panel header,html[lang="ja"] .clock .room{font-feature-settings:"palt" 1}
+.seth{margin:14px 2px 4px;font-size:11px;font-weight:900;letter-spacing:.12em;color:var(--ink-soft)}.seth:first-of-type{margin-top:10px}.setver{text-align:center;opacity:.7;margin-top:10px;-webkit-user-select:text;user-select:text}
+.chip{box-shadow:0 2px 0 rgba(59,42,32,.25),inset 0 1px 0 rgba(255,255,255,.7)}
+/* 読み込み中：3つの点がはねる */
+#bootMsg{flex-direction:column;gap:12px}#bootMsg::after{content:'';width:8px;height:8px;border-radius:50%;background:#D6A23C;box-shadow:-16px 0 0 #FBF6EE,16px 0 0 #FBF6EE;animation:bootDot .7s ease-in-out infinite alternate}@keyframes bootDot{from{transform:translateY(0)}to{transform:translateY(-7px)}}
+/* 押した手ごたえ：少し沈む */
+.big,.sub,.mini,.buy,.char,#pauseBtn,#btnLangTop{transition:transform .08s ease-out,filter .08s ease-out}
+.big:active,.sub:active,.mini:active,.buy:active,.char:active,#pauseBtn:active,#btnLangTop:active{transform:translateY(2px);filter:brightness(.95)}
+.big:active{box-shadow:0 2px 0 #1d140f}
+button[disabled]{cursor:default}
+/* メニューの出かた：下からすっと */
+@keyframes panelIn{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+.screen.center:not([hidden])>.panel,.screen.center:not([hidden])>.card{animation:panelIn .14s cubic-bezier(.2,.9,.3,1) both}
+/* スクロール：細い帯・行きすぎても後ろの画面は動かない */
+#pBody,.chatlog,.screen{scrollbar-width:thin;scrollbar-color:rgba(59,42,32,.28) transparent}
+#pBody,.chatlog{overscroll-behavior:contain}
+/* 一時停止ボタン：文字の「II」ではなく、2本の棒の絵 */
+#pauseBtn{font-size:0;display:grid;place-items:center;padding:0}
+#pauseBtn::before{content:'';width:4.5px;height:15px;border-radius:2px;background:var(--ink);box-shadow:9.5px 0 0 var(--ink);transform:translateX(-4.75px)}
+/* 見出し・お知らせは行の長さをそろえ、説明文は行末に1文字だけ残さない */
+.toast .ja,.toast .en,#hint,.daily,.char .perk{text-wrap:balance}
+.note,.shop-item p,.msg{text-wrap:pretty}
+/* 設定「画面の揺れ・演出をひかえめに」と、端末の「視差効果を減らす」：画面の飾りの動きも止める */
+html.calm *,html.calm *::before,html.calm *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+html.calm .howanim .ha-cap span:first-child{opacity:1}
 </style>

@@ -2,7 +2,7 @@
 const SCREENS = ['sTitle', 'sPanel', 'sPause', 'sRevive', 'sResult', 'hud'];
 function hideAll() { SCREENS.forEach(id => { $('#' + id).hidden = true; }); }
 function show(id) { $('#' + id).hidden = false; }
-function goTitle() { hideAll(); setupTitle(); show('sTitle'); refreshTitle(); }
+function goTitle() { hideAll(); setupTitle(); show('sTitle'); refreshTitle(); try { titleMusic(); } catch (e) { } }
 function applyLang() {
   { const a = $('#tGuide'); if (a) { a.textContent = tr('遊び方・キャラクター紹介', 'How to play & characters'); a.href = window.HAYDASH_APP ? (tr('./guide.html', './guide-en.html')) : 'https://hay-dash.coana.co.jp/' + (tr('guide', 'guide-en')); if (window.HAYDASH_APP) a.removeAttribute('target'); } }
   { const a = $('#tSite'); if (a) { a.textContent = tr('REN & JILL 公式サイト', 'Ren & Jill official site'); a.href = SITE_REF; } } { const f = $('#tFollow'); if (f) f.innerHTML = followLinks(); } // タイトル画面の下の小さな文字：アニメの公式サイト（2026-10-31 オーナー指示）
@@ -44,8 +44,8 @@ function refreshTitle() {
   $('#dotMissions').hidden = !(SV.missions && SV.missions.slots.some(s => s.done));
 }
 let PANEL_FROM = null;
-function openPanel(title, sub, html) { if ($('#sPanel').hidden) { const a = document.activeElement; PANEL_FROM = a && a !== document.body && !a.closest('#sPanel') ? a : null; } if (LANG !== 'en' && sub) { title = esc(sub); sub = ''; } document.querySelectorAll('.toast').forEach(x => x.remove()); if (sub && sub.toUpperCase() === title) sub = ''; $('#pTitle').innerHTML = `${title}<small>${esc(sub)}</small>`; $('#pBody').innerHTML = html; $('#pBody').scrollTop = 0; show('sPanel'); { const lt = $('#btnLangTop'); if (lt) lt.hidden = true; } $('#pClose').focus(); } // 言語ボタンが閉じるボタンにかぶらないよう、パネル中はかくす
-function closePanel() { $('#sPanel').hidden = true; { const lt = $('#btnLangTop'); if (lt) lt.hidden = false; } if (G.mode === 'title') refreshTitle(); const f = PANEL_FROM; PANEL_FROM = null; if (f && f.isConnected && !f.closest('[hidden]')) try { f.focus({ preventScroll: true }); } catch (e) { } }
+function openPanel(title, sub, html) { if ($('#sPanel').hidden) { const a = document.activeElement; PANEL_FROM = a && a !== document.body && !a.closest('#sPanel') ? a : null; } if (LANG !== 'en' && sub) { title = esc(sub); sub = ''; } document.querySelectorAll('.toast').forEach(x => x.remove()); toastSubBack(); musicMuffle(true); /* メニューを開いている間、曲は少しこもらせる */ if (sub && sub.toUpperCase() === title) sub = ''; $('#pTitle').innerHTML = `${title}<small>${esc(sub)}</small>`; $('#pBody').innerHTML = html; $('#pBody').scrollTop = 0; show('sPanel'); { const lt = $('#btnLangTop'); if (lt) lt.hidden = true; } $('#pClose').focus(); } // 言語ボタンが閉じるボタンにかぶらないよう、パネル中はかくす
+function closePanel() { $('#sPanel').hidden = true; musicMuffle(false); { const lt = $('#btnLangTop'); if (lt) lt.hidden = false; } if (G.mode === 'title') refreshTitle(); const f = PANEL_FROM; PANEL_FROM = null; if (f && f.isConnected && !f.closest('[hidden]')) try { f.focus({ preventScroll: true }); } catch (e) { } }
 
 function openMissions() { SFX.ui(); openPanel('MISSIONS', t('missions'), `<div class="lvl"><b>×${SV.mlevel}</b><span>${esc(t('missionNote'))}</span></div>${missionHTML()}${kpRerollHTML()}${dailyHTML()}${weekHTML()}${calHTML()}${achHTML()}`); }
 // the days you came to work: the last four weeks as a little calendar of stamps (2026-11-08)
@@ -131,7 +131,7 @@ function openHow() {
   SFX.ui();
   const ic = k => `<kbd><img src="${SPR_URL[k]}" width="28" alt=""></kbd>`;
   // 動く絵（C-74）：指が左右・上・下にスワイプして、うさぎがよける・跳ぶ・すべる。「動きを減らす」設定・OS の設定では止まる
-  const demo = `<div class="howanim${OPT().calm ? ' still' : ''}" aria-hidden="true"><div class="ha-road"><i class="ha-l"></i><i class="ha-l r"></i></div><img class="ha-bun" src="${(() => { try { return bunFrame(SV.char === 'jill' ? 'jill' : 'ren', 'run0', false).toDataURL(); } catch (e) { return SPR_URL.hay; } })()}" alt=""><b class="ha-box"></b><span class="ha-finger"></span><em class="ha-cap"><span>${esc(t('howA1'))}</span><span>${esc(t('howA2'))}</span><span>${esc(t('howA3'))}</span></em></div>`;
+  const demo = `<div class="howanim${OPT().calm ? ' still' : ''}" aria-hidden="true"><div class="ha-road"><i class="ha-l"></i><i class="ha-l r"></i></div><img class="ha-bun" src="${(() => { try { bunniesNow(); return bunFrame(SV.char === 'jill' ? 'jill' : 'ren', 'run0', false).toDataURL(); } catch (e) { return SPR_URL.hay; } })()}" alt=""><b class="ha-box"></b><span class="ha-finger"></span><em class="ha-cap"><span>${esc(t('howA1'))}</span><span>${esc(t('howA2'))}</span><span>${esc(t('howA3'))}</span></em></div>`;
   openPanel('HOW TO PLAY', t('how'), demo + `<div class="how">
     <kbd>← →</kbd><span>${t('howSwipeLR')}</span><kbd>↑</kbd><span>${t('howUp')}</span><kbd>↓</kbd><span>${t('howDown')}</span>${matchMedia('(hover:none) and (pointer:coarse)').matches ? '' : `<kbd>ESC</kbd><span>${t('howKeys')}</span>`}</div>
     <div class="zdetail"><b>${lab('GOAL')}</b>${esc(t('howGoal'))}</div>
@@ -143,7 +143,7 @@ function openHow() {
     <div class="zdetail"><b>${tr('クレジット・ご注意', 'CREDITS & NOTES')}</b>${esc(t('legal'))}</div>`);
 }
 // 文字の大きさ（C-29）：html に bigtext をつける
-function applyLook() { try { document.documentElement.classList.toggle('bigtext', !!OPT().big); } catch (e) { } }
+function applyLook() { try { document.documentElement.classList.toggle('bigtext', !!OPT().big); document.documentElement.classList.toggle('calm', !!OPT().calm); } catch (e) { } }
 // 同じ見た目の品（例：レンのサンタ帽。買える物とクリスマスのプレゼント）は1つだけ出す：持っている物 → いつもの物 → 無料の物の順（2026-11-09 の報告）
 function closetList(who) { const vis = CLOSET.filter(c => c.who === who && (!c.ev || c.ev === EVENT || SV.closet[c.id])), pick = {};
   const rank = c => SV.closet[c.id] ? (c.ev ? 1 : 0) : 4 + (c.ev ? 1 : 0) + (c.cost ? 2 : 0);
@@ -154,18 +154,19 @@ function errLogHTML() { let a = []; try { a = JSON.parse(localStorage.getItem('r
 function settingsHTML() {
   const o = OPT(), row = (lbl, key, opts) => `<div class="m"><p><b>${esc(lbl)}</b></p><span class="seg">${opts.map(([v, txt]) => `<button class="buy${o[key] === v ? '' : ' off'}" data-opt="${key}" data-v="${v}">${esc(txt)}</button>`).join('')}</span></div>`;
   const langRow = `<div class="m langrow"><p><b>🌐 Language</b></p><span class="seg langseg">${LANGS.map(l => `<button class="buy${LANG === l ? '' : ' off'}" data-lang="${l}" lang="${({ zh: 'zh-Hant' })[l] || l}">${LANG_NAME[l]}</button>`).join('')}</span></div>`; // all four, side by side (the title button cycles)
-  return langRow + row(t('ctrl'), 'ctrl', [['swipe', t('ctrlSwipe')], ['tap', t('ctrlTap')]]) + `<p class="note">${esc(t('ctrlNote'))}</p>` +
+  const hd = k => `<h3 class="seth">${esc(t(k))}</h3>`;
+  return langRow + hd('setCtrl') + row(t('ctrl'), 'ctrl', [['swipe', t('ctrlSwipe')], ['tap', t('ctrlTap')]]) + `<p class="note">${esc(t('ctrlNote'))}</p>` +
     (OPT().ctrl === 'tap' ? row(t('hand'), 'hand', [[false, t('off')], [true, t('on')]]) + `<p class="note">${esc(t('handNote'))}</p>` : '') +
     row(t('sens'), 'sens', [['normal', t('sensN')], ['high', t('sensH')]]) + `<p class="note">${esc(t('sensNote'))}</p>` + row(t('vib'), 'vib', [[true, t('on')], ['low', t('vibLow')], [false, t('off')]]) +
-    row(t('bigText'), 'big', [[false, t('bigN')], [true, t('bigY')]]) + `<p class="note">${esc(t('bigNote'))}</p>` +
     row(t('easy'), 'easy', [[false, t('easyN')], [true, t('easyY')]]) + `<p class="note">${esc(t('easyNote'))}</p>` +
-    row(t('calm'), 'calm', [[true, t('on')], [false, t('off')]]) + `<p class="note">${esc(t('calmNote'))}</p>` + row(t('music'), 'music', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) + row(t('sfx'), 'sfx', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) +
-    `<button class="sub" id="btnNameSet">${esc(SV.nick ? t('nameBtn', SV.nick) : t('nameNone'))}</button> <button class="sub" id="btnTut">${esc(t('resetTut'))}</button>` +
+    hd('setView') + row(t('bigText'), 'big', [[false, t('bigN')], [true, t('bigY')]]) + `<p class="note">${esc(t('bigNote'))}</p>` +
+    row(t('calm'), 'calm', [[true, t('on')], [false, t('off')]]) + `<p class="note">${esc(t('calmNote'))}</p>` + row(t('gfx'), 'gfx', [['auto', t('gfxAuto')], ['high', t('gfxHigh')], ['low', t('gfxLow')]]) + `<p class="note">${esc(t('gfxNote'))}</p>` + (fsCan() ? `<div class="m"><p><b>${esc(t('fsH'))}</b></p><span class="seg"><button class="buy${fsOn() ? '' : ' off'}" id="btnFs" type="button">${esc(t(fsOn() ? 'fsOff' : 'fsOn'))}</button></span></div>` : '') + hd('setSound') + row(t('music'), 'music', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) + row(t('sfx'), 'sfx', [[true, t('on')], ['low', t('lvLow')], [false, t('off')]]) +
+    hd('setData') + `<button class="sub" id="btnNameSet">${esc(SV.nick ? t('nameBtn', SV.nick) : t('nameNone'))}</button> <button class="sub" id="btnTut">${esc(t('resetTut'))}</button>` +
     `<div class="m xfer"><p><b>${esc(t('codeH'))}</b></p><p class="note">${esc(t('codeNote'))}</p><div class="btns" style="display:flex;gap:8px"><input id="codeIn" aria-label="${esc(t('codeH'))}" maxlength="24" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="${esc(t('codePh'))}" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px"><button class="sub" id="btnCode" style="width:auto">${esc(t('codeOk'))}</button></div><p class="note" id="codeMsg" aria-live="polite"></p></div>` +
     `<div class="m xfer sns"><p><b>${esc(t('snsH'))}</b></p><p class="note">${esc(t('snsNote'))}</p>${followLinks('chips')}</div>` + linkHTML() + `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" aria-label="${esc(t('xfer'))}" readonly rows="3" hidden></textarea>` +
     `<textarea id="xferIn" aria-label="${esc(t('xferPaste'))}" rows="3" placeholder="${esc(t('xferPaste'))}"></textarea><button class="sub" id="btnXferLoad">${esc(t('xferLoad'))}</button><p class="note" id="xferMsg" aria-live="polite"></p></div>` +
     errLogHTML() + `<div class="m xfer reset"><p><b>${esc(t('resetH'))}</b></p><p class="note">${esc(t('resetNote'))}</p><button class="sub danger" id="btnReset">${esc(t('resetBtn'))}</button>` +
-    `<div id="resetAsk" hidden><p class="note"><b>${esc(t('resetAsk'))}</b></p><div style="display:flex;gap:8px"><button class="sub danger" id="btnResetYes">${esc(t('resetYes'))}</button><button class="sub" id="btnResetNo">${esc(t('resetNo'))}</button></div></div><p class="note" id="resetMsg" aria-live="polite"></p></div>`;
+    `<div id="resetAsk" hidden><p class="note"><b>${esc(t('resetAsk'))}</b></p><div style="display:flex;gap:8px"><button class="sub danger" id="btnResetYes">${esc(t('resetYes'))}</button><button class="sub" id="btnResetNo">${esc(t('resetNo'))}</button></div></div><p class="note" id="resetMsg" aria-live="polite"></p></div>` + (window.HAYDASH_VER ? `<p class="note setver">${esc(t('verL', window.HAYDASH_VER))}</p>` : '');
 }
 /* ---- the player's name for the ranking: asked before the first run, editable any time ---- */
 let nameThenStart = 0;
@@ -293,19 +294,23 @@ function openRevive() {
 function pause() { if (G.mode !== 'play') return; G.mode = 'pause'; saveFlush(); musicStop(); $('#pauseMissions').innerHTML = missionHTML(); hideAll(); show('hud'); show('sPause'); applyLang(); }
 function resume() { if (G.mode !== 'pause') return; hideAll(); show('hud');
   const cue = $('#tutCue'); let n = 3; cue.className = 'show'; cue.innerHTML = `<b>${n}</b>`; G.mode = 'countdown';
-  const tick = () => { if (G.mode !== 'countdown') { cue.className = ''; return; } n--; if (n > 0) { cue.innerHTML = `<b>${n}</b>`; SFX.ui(); setTimeout(tick, 450); } else { cue.innerHTML = '<b>GO!</b>'; setTimeout(() => { if (G.mode === 'countdown') cue.className = ''; }, 400); G.mode = 'play'; G.invT = Math.max(G.invT, .6); musicStart(); last = performance.now(); } };
+  const tick = () => { if (G.mode !== 'countdown') { cue.className = ''; return; } n--; if (n > 0) { cue.innerHTML = `<b>${n}</b>`; SFX.ui(); setTimeout(tick, 450); } else { cue.innerHTML = '<b>GO!</b>'; SFX.go(); setTimeout(() => { if (G.mode === 'countdown') cue.className = ''; }, 400); G.mode = 'play'; G.invT = Math.max(G.invT, .6); musicStart(); last = performance.now(); } };
   SFX.ui(); setTimeout(tick, 450); }
 
 /* ================= input ================= */
 const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'up', KeyW: 'up', Space: 'up', ArrowDown: 'down', KeyS: 'down' };
 addEventListener('keydown', e => {
   if (e.target && e.target.closest && e.target.closest('input,textarea,[contenteditable]') && e.code !== 'Escape') return; // typing a name or a code: letters are letters (P is not pause)
+  if (e.code === 'KeyM' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) { toggleMute(); return; } /* M：音のオン・オフ */
   if (e.code === 'Escape' || e.code === 'KeyP') { if (G.mode === 'play') pause(); else if (G.mode === 'pause') resume(); else if (!$('#sPanel').hidden) closePanel(); return; }
   if ((G.mode === 'title' || G.mode === 'result') && (e.code === 'Enter' || (e.code === 'Space' && G.mode === 'result')) && $('#sPanel').hidden && !e.target.closest('button,a,summary,input,textarea')) { hideAll(); startRun(); return; }
   const a = KEYMAP[e.code]; if (a && G.mode === 'play') { e.preventDefault(); if (!e.repeat) act(a); }
 });
 let tp = null;
 const stage = $('#app');
+/* 長押し・右クリックのメニュー（「画像を保存」など）と、2本指での拡大を、ゲームの画面では出さない。シェア用の画像・入力欄・リンクは今までどおり（2026-11-15） */
+stage.addEventListener('contextmenu', e => { const el = e.target; if (el && el.closest && el.closest('input,textarea,a,img,[contenteditable],.chatlog,#xferOut')) return; e.preventDefault(); });
+for (const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, e => { if (G.mode === 'play' || G.mode === 'countdown' || G.mode === 'title') e.preventDefault(); }, { passive: false });
 stage.addEventListener('pointerdown', e => {
   if (G.mode !== 'play') return; if (e.target.closest('button')) return;
   if (OPT().ctrl === 'tap') { const fx = e.clientX / W, fy = e.clientY / H;
@@ -339,9 +344,9 @@ $('#shFb').onclick = e => { SFX.ui(); e.preventDefault(); shareFacebook(); };
 for (const [id, ch] of [['shX', 'x'], ['shLine', 'line'], ['shTh', 'th']]) $('#' + id).onclick = () => { SFX.ui(); copyText(SHARE.caption(ch)); }; // the link itself opens X / LINE with the text filled in; the text is also copied, just in case
 $('#resNameOk').onclick = () => { $('#resNameToggle').hidden = true; const v = cleanName($('#resNameIn').value); if (!v) return; if (nameBad(v)) { $('#resNameIn').value = ''; $('#resNameIn').placeholder = t('nameNG'); return; } SFX.ui(); setNick(v); SV.nickAsked = 1; save(); $('#resRank .rk-name').hidden = true; rankAfterRun(G.score); };
 $('#resNameIn').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('#resNameOk').click(); } };
-$('#pickRen').onclick = () => { G.char = 'ren'; SV.char = 'ren'; save(); refreshTitle(); audioInit(); SFX.ui(); };
-$('#pickJill').onclick = () => { G.char = 'jill'; SV.char = 'jill'; save(); refreshTitle(); audioInit(); SFX.ui(); };
-$('#pickPom').onclick = () => { audioInit(); if (!SV.pomMet) return; G.char = 'pom'; SV.char = 'pom'; save(); refreshTitle(); SFX.ui(); };
+$('#pickRen').onclick = () => { G.char = 'ren'; SV.char = 'ren'; G.cardPick = { who: 'ren', at: performance.now() }; save(); refreshTitle(); audioInit(); SFX.ui(); };
+$('#pickJill').onclick = () => { G.char = 'jill'; SV.char = 'jill'; G.cardPick = { who: 'jill', at: performance.now() }; save(); refreshTitle(); audioInit(); SFX.ui(); };
+$('#pickPom').onclick = () => { audioInit(); if (!SV.pomMet) return; G.char = 'pom'; SV.char = 'pom'; G.cardPick = { who: 'pom', at: performance.now() }; save(); refreshTitle(); SFX.ui(); };
 $('#btnMissions').onclick = openMissions; $('#btnShop').onclick = openShop; $('#btnZukan').onclick = openZukan; $('#btnHow').onclick = openHow; $('#btnStamps').onclick = openStamps;
 $('#btnSet').onclick = openSettings;
 $('#btnRank').onclick = () => openRanking('month'); $('#btnRank2').onclick = () => { hideAll(); show('sTitle'); setupTitle(); refreshTitle(); openRanking('month'); };
@@ -363,8 +368,9 @@ $('#sPanel').addEventListener('click', e => {
   { const lp = e.target.closest('[data-langpick]'); if (lp && LANGS.includes(lp.dataset.langpick)) { LANG = lp.dataset.langpick; SV.lang = LANG; save(); refreshTitle(); SFX.ui(); closePanel(); return; } }
   { const lb = e.target.closest('[data-lang]'); if (lb && LANGS.includes(lb.dataset.lang)) { LANG = lb.dataset.lang; SV.lang = LANG; save(); refreshTitle(); SFX.ui(); openPanel('SETTINGS', t('settings'), settingsHTML()); } }
   { const pr = e.target.closest('[data-prac]'); if (pr) { SFX.ui(); G.practiceNext = pr.dataset.prac; closePanel(); hideAll(); startRun(); return; } }
+  if (e.target.closest('#btnFs')) { SFX.ui(); fsToggle(); return; }
   const op = e.target.closest('[data-opt]');
-  if (op) { const k = op.dataset.opt; let v = op.dataset.v; if (v === 'true') v = true; else if (v === 'false') v = false; SV.opt[k] = v; save(); audioInit(); applyAudioOpt(); applyLook(); SFX.ui(); $('#pBody').innerHTML = settingsHTML(); }
+  if (op) { const k = op.dataset.opt; let v = op.dataset.v; if (v === 'true') v = true; else if (v === 'false') v = false; SV.opt[k] = v; save(); audioInit(); applyAudioOpt(); applyLook(); if (k === 'gfx') applyGfx(); SFX.ui(); $('#pBody').innerHTML = settingsHTML(); }
   const rt = e.target.closest('[data-rt]'); if (rt) openRanking(rt.dataset.rt);
   if (e.target.id === 'nickSave') saveNick();
   if (e.target.id === 'nameOk') nameDone(1);
@@ -407,7 +413,7 @@ $('#btnShare').onclick = () => { SFX.ui(); shareMore(); };
 
 /* ================= boot ================= */
 let last = performance.now();
-let perfAcc = 0, perfN = 0, lowQ = 0;
+let perfAcc = 0, perfN = 0, lowQ = 0, FT_AVG = 0, FT_DEBT = 0;
 // the loop must never die: an error in one frame is reported once and the next frame goes on
 let FRAME_ERRS = 0, FRAME_BAD = 0;
 function frame(now) {
@@ -423,16 +429,21 @@ function frameTrouble() {
   if (FRAME_BAD >= 150 && G.mode === 'play') { FRAME_BAD = 0; errLog('draw trouble ' + (G.drawRetry || 0)); if ((G.drawRetry || 0) < 2) { G.drawRetry = (G.drawRetry || 0) + 1; try { freePictures(); } catch (e) { } lowQ = 2; DPR = 1; try { resizeKeep(); } catch (e) { } return; } finishRun('draw'); } // 絵が描けないときも、まずは軽くして2回までやり直す（すぐ終わらせない）
 }
 function frameBody(now) {
-  const raw = (now - last) / 1000, dt = Math.min(.05, Math.max(0, raw)); last = now; // never backwards (the first frame after a countdown can be stamped a hair before it)
-  if (G.mode === 'play' && raw < .25) { perfAcc += raw; perfN++; if (perfN >= 90) { const avg = perfAcc / perfN; perfAcc = perfN = 0; if (avg > 1 / 42 && lowQ < 2 && !G.lockQ) { lowQ++; if (lowQ === 1) { DPR = 1; resizeKeep(); } } } }
-  TEXN = 0; TEXB = performance.now() + 3;
+  const raw = (now - last) / 1000; let dt = Math.min(.05, Math.max(0, raw)); last = now;
+  /* 画面の更新（60/90/120 回/秒）に合わせて、コマの間隔のゆらぎ（15ms・18ms…）をならす。走る速さは同じまま、流れる景色のかくつきが減る（2026-11-15） */
+  if (raw > .004 && raw < .05) { FT_AVG = FT_AVG ? FT_AVG + (raw - FT_AVG) * .08 : raw; if (Math.abs(raw - FT_AVG) < FT_AVG * .22) { FT_DEBT += raw - FT_AVG; if (Math.abs(FT_DEBT) > .03) FT_DEBT = 0; dt = Math.max(0, FT_AVG + FT_DEBT * .1); FT_DEBT -= FT_DEBT * .1; } else FT_AVG += (raw - FT_AVG) * .2; } // never backwards (the first frame after a countdown can be stamped a hair before it)
+  if (G.mode === 'play' && raw < .25) { perfAcc += raw; perfN++; if (perfN >= 90) { const avg = perfAcc / perfN; perfAcc = perfN = 0; qualityStep(avg); } }
+  TEXN = 0; TEXB = performance.now() + 3; wakeTick(now);
   { let bad = null; if (G.mode !== 'pause' && G.mode !== 'dead' && G.mode !== 'result') { try { update(dt); } catch (e) { bad = e; } }
     if (bad) reportErr(bad); runGuard(Math.min(.1, Math.max(0, raw)), bad); } // a broken frame still draws, and the safety net looks at every frame
   // battery: while paused nothing on the stage moves, so it is drawn only a couple of times a second (2026-11-08)
-  if (G.mode !== 'pause' || now - (G.pauseDrawT || 0) > 500) { G.pauseDrawT = now; render(); }
+  /* 2026-11-15：結果の画面・「続ける？」の画面も、舞台は止まっているので 1 秒に 2 回だけ描く（結果の画面を開いたままシェアしている間、スマホが熱くなりにくい）。
+     題名画面は 1 秒に 30 コマ（メニューを開いている間は 4 コマ）。走っている間は今までどおり毎コマ */
+  { const still = G.mode === 'pause' || G.mode === 'result' || G.mode === 'dead', gap = still ? 500 : G.mode === 'title' ? ($('#sPanel').hidden && $('#sChat').hidden ? 30 : 250) : 0;
+    if (!gap || now - (G.pauseDrawT || 0) >= gap || G.drawNow) { G.pauseDrawT = now; G.drawNow = 0; render(); G.drawN = (G.drawN || 0) + 1; } }
   if (G.mode === 'play') texWarm(Math.max(0, Math.min(3, TEXB - performance.now())));
   if (G.capture && G.capture.t <= 0) { takePhoto(G.capture.tid); G.capture = null; }
-  if (G.mode === 'title') { drawCharCard($('#cvRen'), 'ren', G.t); drawCharCard($('#cvJill'), 'jill', G.t + 1.3); if (SV.pomMet) drawCharCard($('#cvPom'), 'pom', G.t + .6); }
+  if (G.mode === 'title') { if ((G.cardFitT = (G.cardFitT || 0) + 1) % 45 === 1) charCardFit(); drawCharCard($('#cvRen'), 'ren', G.t); drawCharCard($('#cvJill'), 'jill', G.t + 1.3); if (SV.pomMet) drawCharCard($('#cvPom'), 'pom', G.t + .6); }
   if (SAVE_DIRTY && G.mode !== 'play' && G.mode !== 'countdown') saveNow();
   musicTick(); padTick(); picCheck(now);
 }
@@ -451,10 +462,38 @@ function padTick() { let gp = null; try { const l = navigator.getGamepads ? navi
 addEventListener('pagehide', () => { try { saveNow(); } catch (e) { } });
 // a computer: clicking another window (the game keeps running behind it) pauses, like switching tabs does (2026-11-08)
 addEventListener('blur', () => { try { if (G.mode === 'play' && !matchMedia('(pointer:coarse)').matches) pause(); } catch (e) { } });
-function resizeKeep() { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+/* 走っている間は、画面が暗くなったり消えたりしないようにする（まっすぐ走っていて指をふれない時間が続くと、スマホが画面を消すことがあった）。一時停止・結果・題名では、ふつうに戻す */
+let WAKE = null, WAKE_T = 0;
+function wakeTick(now) { if (now < WAKE_T) return; WAKE_T = now + 1500; const want = (G.mode === 'play' || G.mode === 'countdown') && !document.hidden;
+  try { if (want && !WAKE && navigator.wakeLock && navigator.wakeLock.request) { WAKE = 1; navigator.wakeLock.request('screen').then(w => { WAKE = w; try { w.addEventListener('release', () => { if (WAKE === w) WAKE = null; }); } catch (e) { } }).catch(() => { WAKE = null; WAKE_T = performance.now() + 20000; }); }
+    else if (!want && WAKE && WAKE !== 1) { const w = WAKE; WAKE = null; w.release().catch(() => { }); } } catch (e) { WAKE = null; } }
+/* 全画面（対応している端末だけ。iPhone のブラウザは対応していないので、ボタンを出さない） */
+function fsCan() { const d = document, e = d.documentElement; return !!((d.fullscreenEnabled || d.webkitFullscreenEnabled) && (e.requestFullscreen || e.webkitRequestFullscreen)) && !(window.navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)); }
+function fsOn() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+function fsToggle() { try { const d = document, e = d.documentElement; if (fsOn()) (d.exitFullscreen || d.webkitExitFullscreen).call(d); else { const p = (e.requestFullscreen || e.webkitRequestFullscreen).call(e, { navigationUI: 'hide' }); if (p && p.catch) p.catch(() => { }); } } catch (x) { } }
+document.addEventListener('fullscreenchange', () => { try { if (!$('#sPanel').hidden && $('#btnFs')) $('#pBody').innerHTML = settingsHTML(); } catch (e) { } });
+/* 文字の形（フォント）があとから届いたら、町の看板などの絵を描き直す（最初は代わりの文字で描かれているため）。題名画面にいるときだけ・3回まで */
+let FONT_REDO = 0, FONT_T = 0;
+try { if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => { clearTimeout(FONT_T); FONT_T = setTimeout(() => { if (FONT_REDO >= 3 || G.mode !== 'title') return; FONT_REDO++; try { freePictures(); } catch (e) { } }, 600); }); } catch (e) { }
+function resizeKeep() { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); smoothOn(); G.drawNow = 1; }
+/* 重いとき：まず絵の細かさを1段ずつ下げ（見た目はほとんど変わらない）、それでも重ければ演出を減らす。とても重い端末（30コマ/秒に届かない）はすぐ軽くする。
+   軽い状態が続いたら細かさを戻す（1回の走りで2回まで。行ったり来たりしない） */
+let Q_GOOD = 0, Q_UP = 0; const QLOG = [];
+function qualityStep(avg) {
+  if (G.lockQ) return; const g = gfxMode(); if (g === 'low') return;
+  const slow = avg > 1 / (g === 'high' ? 36 : 42), verySlow = avg > 1 / 30, dev = window.devicePixelRatio || 1;
+  if (slow) { Q_GOOD = 0;
+    if (!verySlow && !lowQ && RES_K > .72 && Math.min(dev, 1.75) * RES_K > 1.08) { RES_K = Math.max(.7, RES_K - .15); DPR = dprWant(); resizeKeep(); QLOG.push('res' + RES_K.toFixed(2)); return; }
+    if (lowQ < 2) { lowQ++; if (lowQ === 1) { DPR = 1; resizeKeep(); } QLOG.push('low' + lowQ); }
+  } else if (avg < 1 / 55 && !lowQ && RES_K < 1 && Q_UP < 2) { if (++Q_GOOD >= 5) { Q_GOOD = 0; Q_UP++; RES_K = Math.min(1, RES_K + .15); DPR = dprWant(); resizeKeep(); QLOG.push('up' + RES_K.toFixed(2)); } }
+  else Q_GOOD = 0;
+}
+function applyGfx() { const g = gfxMode(); if (g === 'low') { if (!lowQ) lowQ = 1; } else if (!G.lockQ && lowQ && !QLOG.some(x => x[0] === 'l')) lowQ = 0; if (g !== 'low' && !QLOG.length) RES_K = 1; DPR = dprWant(); try { resizeKeep(); } catch (e) { } }
 function boot() {
+  if (gfxMode() === 'low') lowQ = 1; /* 設定「画質：軽い」は最初から */
   applyLook();
-  buildItemSprites(); buildWorldSprites(); buildBunnies(); applyWear(); rankIcons(); rankInit(); chatInit(); resize(); { let rz = 0; const later = () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { G.resizeN = (G.resizeN || 0) + 1; resize(); }); }; addEventListener('resize', later); addEventListener('orientationchange', later); } // 画面を回したとき、描き直しは 1 回だけ（C-63）
+  /* 2026-11-15：前は「全部描く → 着せかえを読んで、着がえた子をもう一度全部描く」で、着せかえている人ほど起動が遅かった。先に着せかえを読み、前向きの絵だけ描いて始める */
+  buildItemSprites(); buildWorldSprites(); BUN_LAZY = 1; try { applyWear(); for (const w of ['ren', 'jill', 'pom']) if (!BUN[w] || !BUN[w].front_open) buildBunnies(w); } finally { BUN_LAZY = 0; } bunniesLater(); rankIcons(); rankInit(); chatInit(); resize(); { let rz = 0; const later = () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { G.resizeN = (G.resizeN || 0) + 1; resize(); }); }; addEventListener('resize', later); addEventListener('orientationchange', later); } // 画面を回したとき、描き直しは 1 回だけ（C-63）
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren'; missionsFix();
   goTitle(); document.documentElement.classList.remove('booting'); // the page shows only once its words are in the player's language
@@ -542,8 +581,20 @@ const isoDay = () => { const d = new Date(); return d.getFullYear() + '-' + Stri
 const TOASTQ = [];
 function toastTitle(msg) { // one message at a time (the login bonus, a seasonal gift and a promotion used to land on top of each other)
   if (!msg) return; TOASTQ.push(msg); if (TOASTQ.length === 1) toastNext(); }
-function toastNext() { const msg = TOASTQ[0]; if (msg == null) return; const d = document.createElement('div'); d.className = 'toast ttoast'; d.style.cssText = 'pointer-events:none;position:fixed;left:0;right:0;margin:0 auto;width:max-content;max-width:min(86vw,560px);top:calc(54px + env(safe-area-inset-top,0px));z-index:5;animation:pop .35s both, fade .5s ease-in 3.5s forwards'; d.innerHTML = '<span class="ja"></span>'; d.firstChild.textContent = msg; $('#app').appendChild(d); setTimeout(() => { if (!d.isConnected) return; d.remove(); TOASTQ.shift(); toastNext(); }, 4200); }
-function toastClear() { TOASTQ.length = 0; document.querySelectorAll('.ttoast').forEach(d => d.remove()); } // the title's messages never follow you into the run
+function toastNext() { const msg = TOASTQ[0]; if (msg == null) return; const d = document.createElement('div'); d.className = 'toast ttoast'; d.style.cssText = 'pointer-events:none;position:fixed;left:0;right:0;margin:0 auto;width:max-content;max-width:min(86vw,560px);top:calc(54px + env(safe-area-inset-top,0px));z-index:5;animation:pop .35s both, fade .5s ease-in 3.5s forwards'; d.innerHTML = '<span class="ja"></span>'; d.firstChild.textContent = msg; $('#app').appendChild(d); toastPlace(d); setTimeout(() => { if (!d.isConnected) return; d.remove(); toastSubBack(); TOASTQ.shift(); toastNext(); }, 4200); }
+function toastSubBack() { try { if (!document.querySelector('.ttoast[data-sub]')) $('#tSub').style.visibility = ''; } catch (e) { } }
+/* お知らせは、題名のロゴ（チモシーダッシュ！）にかぶせない（毎日の出社ボーナスが、ロゴの1行目をかくしていた：2026-11-15）。
+   ロゴの下の一言の帯の上に重ねる（同じ形の帯なので、帯の中身が入れかわったように見える）。帯が見えない画面（横向きなど）では、ロゴより上か、今までの位置 */
+function toastPlace(d) { try { const sub = $('#tSub'), logo = $('#tLogo'), app = $('#app').getBoundingClientRect(); const h = d.offsetHeight || 36;
+    const sr = sub && sub.offsetParent ? sub.getBoundingClientRect() : null, lr = logo && logo.offsetParent ? logo.getBoundingClientRect() : null;
+    let top = null;
+    if (sr && sr.height > 8 && sr.top > 0 && sr.bottom < app.bottom) { top = sr.top + sr.height / 2 - h / 2; d.style.minWidth = Math.min(Math.round(sr.width), Math.round(app.width * .86)) + 'px'; sub.style.visibility = 'hidden'; d.dataset.sub = '1'; } /* 帯の上に重ねる間、下の帯の字はかくす（2つの文が重なって読めなかった） */
+    else if (lr && lr.height > 8 && lr.bottom + h + 6 < app.bottom * .5) top = lr.bottom + 4;
+    if (top != null) { d.style.top = Math.max(4, Math.round(top - app.top)) + 'px';
+      const hit = [...document.querySelectorAll('#sTitle button')].some(x => { if (!x.offsetParent) return false; const q = x.getBoundingClientRect(), a = d.getBoundingClientRect(); return q.right > a.left && q.left < a.right && q.bottom > a.top && q.top < a.bottom; });
+      if (hit) { d.style.top = 'calc(54px + env(safe-area-inset-top,0px))'; d.style.minWidth = ''; if (d.dataset.sub) { delete d.dataset.sub; sub.style.visibility = ''; } } }
+  } catch (e) { } }
+function toastClear() { TOASTQ.length = 0; document.querySelectorAll('.ttoast').forEach(d => d.remove()); toastSubBack(); } // the title's messages never follow you into the run
 /*TEST-ONLY*/
 window.__hayDash = { ev: s => eval(s), BUN, addObs: (seg, t, s, l) => makeObs(seg, t, s, l), markSeen: t => markSeen(t), THEMES, chatRules: () => chatRules(), dbg2: () => { const out = []; computeLight(G.segs[G.ci]); camPrep(); for (const sg of segOrder()) { for (const f of sg.floor.concat(sg.walls.map(w => Object.assign({ wall: 1 }, w)), sg.decos.map(w => Object.assign({ deco: 1 }, w)))) { const m = project(f.v); if (!m) continue; const n = Math.abs(m); let inside = false; const px = W / 2, py = H * .62; for (let i = 0, j = n - 1; i < n; j = i++) { const xi = SCR[i * 2], yi = SCR[i * 2 + 1], xj = SCR[j * 2], yj = SCR[j * 2 + 1]; if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside; } if (inside) { const sv = []; for (let i = 0; i < f.v.length; i += 3) { const dx = f.v[i] - sg.sx, dz = f.v[i + 2] - sg.sz; sv.push([+(dx * sg.f[0] + dz * sg.f[1]).toFixed(1), +(dx * sg.r[0] + dz * sg.r[1]).toFixed(1)]); } out.push({ seg: sg.id, wall: f.wall, deco: f.deco, pat: f.pat, c: f.c, cur: sg === G.segs[G.ci], len: sg.len, turn: sg.turn, turnIn: sg.turnIn, m, sv }); } } } return JSON.stringify({ G: [G.s, G.lat, G.ci], cam: [CAM.x, CAM.z], out: out.slice(0, 8) }); }, G, act, ITEMS, THEMES, makeObs, startFever, dayPlan, resetRoutes, dbg: () => { const sg = G.segs[G.ci]; computeLight(sg); camPrep(); const camS = (CAM.x - sg.sx) * sg.f[0] + (CAM.z - sg.sz) * sg.f[1]; const out = { camS, Gs: G.s, camY: CAM.y, pitch: CAM.pitch };
     out.q = sg.floor.filter(p => p.mid && p.a < camS + 6 && p.b > camS - 3).map(p => ({ a: p.a, b: p.b, ti: p.ti, m: project(p.v), d: +depthOf(p.v).toFixed(2), y: [SCR[1] | 0, SCR[3] | 0, SCR[5] | 0, SCR[7] | 0] })); return JSON.stringify(out); }, setQ: q => { lowQ = q; G.lockQ = 1; }, prof: () => { // timing of one frame's parts, for tests

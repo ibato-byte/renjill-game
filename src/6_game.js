@@ -109,7 +109,7 @@ function titleFrame(dt) {
 }
 
 /* ---------- run lifecycle ---------- */
-function startRun() { G.drawRetry = 0; kpPre();
+function startRun() { G.drawRetry = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); } catch (e) { } bunniesNow(); kpPre();
   audioInit(); SFX.ui(); { const f = document.getElementById('tFresh'); if (f) f.remove(); } toastClear();
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
@@ -180,7 +180,7 @@ function smash(o) { if (o.dead) return; o.dead = .001; o.vx = Math.random() < .5
 function die(cause) {
   if (G.mode !== 'play') return;
   if (G.practice && cause !== 'quit' && cause !== 'time') { practiceGoOn(cause); return; } // 練習ではぶつかっても終わらない
-  G.cause = cause; G.mode = 'dying'; G.dyingT = .95; SFX.crash(); buzz([60, 40, 120]); G.flashT = 1; G.shake = 1; musicStop();
+  G.cause = cause; G.mode = 'dying'; G.dyingT = .95; SFX.crash(); buzz([60, 40, 120]); G.flashT = 1; G.shake = 1; musicStop('end');
   G.player.look = 0; G.follow.look = 0; G.pom.look = 0;
   if (cause === 'papers') G.chaseVis = 1;
 }
@@ -328,7 +328,7 @@ function onEnterSeg(n) {
   G.photoT = th.stamp && !SV.album[n.tid] && !(n.step && n.step.cont) ? 2.4 : 0; G.capture = null;
   { const ar = areaOf(n.tid, n.t0); musicArea = ar === 'evening' && n.t0 >= 1170 ? 'night' : ar; const prevArea = G.musicArea; G.musicArea = musicArea; musicKey = { home: 0, commute: 2, office: 5, evening: -3, night: -5 }[musicArea];
     if (G.matsuri && matsuriSeg(n.th)) { musicArea = 'matsuri'; G.musicArea = 'matsuri'; musicKey = 0; if (!G.matsuriTold) { G.matsuriTold = 1; banner('FESTIVAL!', t('matsuri'), 'good'); } } // お祭りの日（B-29）
-    if (prevArea !== musicArea) AU.step = 0; }
+    if (prevArea !== musicArea) AU.swap = 1; } /* 曲の切りかえは小節の頭で（musicTick）。前は場面が変わった瞬間に、曲の途中からいきなり変わっていた */
   if (n.tid === 'station') setTimeout(jingle, 400);
   if (G.rev && n.tid === 'bedroom' && n.step && n.step.home && !G.revDone) { G.revDone = 1; const b = 3000 * SV.mlevel; G.score += b; G.stats.revHome = 1; bannerNow('HOME!', t('revHome', fmt(b)), 'good'); SFX.mission(); react('sparkle', 1); } // 逆走デー：家に着いた
 }
@@ -829,7 +829,7 @@ function hud() {
   setText('feverLbl', G.fever > 0 ? (tr('もぐもぐフィーバー中！', 'FEVER!')) : t('gauge'));
   setText('feverPct', G.fever > 0 ? G.fever.toFixed(1) + 's' : Math.floor(pct) + '%');
   if (pct >= 15 && !G.gaugeTold && SV.runs <= 3) { G.gaugeTold = 1; banner('', t('gaugeHint'), ''); }
-  if (!G.bestTold && SV.best > 500 && G.score > SV.best) { bestPhoto(); G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.mission(); react('sparkle', 1); if (!OPT().calm) { burst(W / 2, H * .3, '#F2C230', 40); burst(W / 2, H * .3, '#E86A75', 24); burst(W / 2, H * .3, '#6FC3DF', 18); } }
+  if (!G.bestTold && SV.best > 500 && G.score > SV.best) { bestPhoto(); G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.best(); react('sparkle', 1); if (!OPT().calm) { burst(W / 2, H * .3, '#F2C230', 40); burst(W / 2, H * .3, '#E86A75', 24); burst(W / 2, H * .3, '#6FC3DF', 18); } }
   if (G.fever <= 0 && pct >= 80 && !G.soonTold) { G.soonTold = 1; banner('ALMOST!', t('feverSoon'), 'good'); }
   const on = Object.keys(G.pow).filter(k => G.pow[k] > 0);
   const key = on.join(',') + (G.shield ? ',s' : '');
@@ -1070,7 +1070,11 @@ function titleShareBtn() { let box = document.getElementById('titleShare'); cons
 function buildShareCard(cap, place, gained) {
   const c = document.createElement('canvas'); c.width = 1080; c.height = 1080; const g = c.getContext('2d') || noCtx();
   g.fillStyle = '#F6EBDC'; g.fillRect(0, 0, 1080, 1080);
-  try { const sh = Math.round(cv.width * .62); g.drawImage(cv, 0, Math.max(0, (cv.height - sh) / 2), cv.width, Math.min(sh, cv.height), 60, 260, 960, 595); } catch (e) { }
+  /* 2026-11-15：シェア画像の写真は、キャラクターが切れない位置で切り出す（前は画面のまん中を切り出していて、縦長のスマホでは走っている2人の頭しか入らなかった）。拡大もなめらかに */
+  try { const sh = Math.min(cv.height, Math.round(cv.width * .62)); let top = (cv.height - sh) / 2;
+    try { const sp = spriteAt(G.player.wx, G.player.wy || 0, G.player.wz); if (sp && Number.isFinite(sp.sy)) top = sp.sy * DPR + cv.height * .085 - sh; /* 後ろを走る相棒も入るよう、足もとの下に少し余白 */ } catch (e2) { }
+    top = Math.max(0, Math.min(cv.height - sh, Math.round(top))); G.cardTop = top / Math.max(1, cv.height);
+    g.imageSmoothingQuality = 'high'; g.drawImage(cv, 0, top, cv.width, sh, 60, 260, 960, 595); } catch (e) { }
   g.strokeStyle = '#3B2A20'; g.lineWidth = 8; g.strokeRect(60, 260, 960, 595);
   const pom = G.char === 'pom', kH = (BS + BTOP) / BS, who = (w, mood, x, size) => g.drawImage(bunFrame(w, mood, w === 'ren' && SV.mugOn), x, 278 - size * kH, size, size * kH);
   const titleW = pom ? 540 : 610; g.fillStyle = '#3B2A20'; g.textAlign = 'left'; fitFont(g, tr('チモシーダッシュ', 'HAY DASH!'), titleW, LANG === 'ja' ? 74 : 92, '400 {}px "Dela Gothic One","Hiragino Sans",sans-serif'); g.fillText(tr('チモシーダッシュ', 'HAY DASH!'), 60, 150);
@@ -1161,8 +1165,29 @@ function roomNames(th) { const n = L(th), b = th.base || th, en = LANG === 'en',
   const cand = en ? [g('lblEn'), st && st.en, n.split(',')[0], n.split(/[:,·(]/)[0].trim()] : [g('lbl') && L({ ja: g('lbl'), en: g('lblEn') || b.en }), n.split('・').slice(-1)[0], n.split(/[・：（]/)[0], st && L(st)];
   return [n].concat(cand.filter(x => x && x.length < n.length).sort((x, y) => y.length - x.length)).filter((x, k, a) => a.indexOf(x) === k); }
 function roomFit(e, th, tail) { const list = roomNames(th), fits = () => e.scrollHeight <= e.clientHeight + 1 && e.scrollWidth <= e.clientWidth + 1; e.style.fontSize = '';
-  for (const fs of [0, 10, 9]) { if (fs) e.style.fontSize = fs + 'px'; for (let k = 0; k < list.length; k++) { e.textContent = list[k] + (tail || ''); if (fits()) { G.roomFitK = k; return e.textContent; } } } /* 短い名前でも入らないときは、字を少し小さく */
+  for (const fs of [0, 10, 9]) { if (fs) e.style.fontSize = fs + 'px'; for (let k = 0; k < list.length; k++) { e.textContent = list[k] + (tail || ''); if (fits()) { G.roomFitK = k; roomBreak(e, fits); return e.textContent; } } } /* 短い名前でも入らないときは、字を少し小さく */
   G.roomFitK = -1; return e.textContent; }
+/* 2026-11-15：2 行になる場所の名前は、切りのいい所で折り返す（前は「渋谷スクランブル交差／点」のように 1 文字だけ下の行に落ちることがあった）。
+   カタカナ語・英数字の途中では切らない。「・」「の」のあと、文字の種類が変わる所（カタカナ→漢字など）を優先し、上下の行の長さが近いものを選ぶ。入らなければ元のまま */
+const KATA_CUT = ['エレベーター|ホール', 'フリー|アドレス', 'キャット|ストリート', 'ボード|ウォーク']; /* 場所の名前に出てくる、カタカナ語のつなぎ目（qa/roomfit.js が、新しい長いカタカナ語を見つけたら止める） */
+function roomBreakAt(s) {
+  const n = s.length, asc = c => /[A-Za-z0-9.]/.test(c), kind = c => /[\u30A1-\u30FA\u30FC-\u30FF]/.test(c) ? 'k' : asc(c) ? 'a' : /[\u3040-\u309F]/.test(c) ? 'h' : /[\u4E00-\u9FFF々]/.test(c) ? 'j' : /[\uAC00-\uD7AF]/.test(c) ? 'g' : 'o';
+  const wid = t => { let w = 0; for (const c of t) w += asc(c) || c === ' ' ? .55 : 1; return w; }, out = [];
+  for (let i = 2; i <= n - 2; i++) { const a = s[i - 1], b = s[i], ka = kind(a), kb = kind(b); let p = Math.abs(wid(s.slice(0, i).trim()) - wid(s.slice(i).trim()));
+    const cut = ka === 'k' && kb === 'k' && KATA_CUT.some(w => { const j = w.indexOf('|'), a0 = w.slice(0, j), b0 = w.slice(j + 1); return s.slice(Math.max(0, i - a0.length), i) === a0 && s.slice(i, i + b0.length) === b0; }); /* 2 つのカタカナ語がつながった所（エレベーター｜ホール）は切ってよい */
+    if (ka === kb && (ka === 'k' || ka === 'a' || ka === 'g') && !cut) p += 50; /* カタカナ語・英数字・ハングルの語の途中 */
+    if (/[、。・·ー）」』：:,.!?！？)ゃゅょっャュョッァィゥェォ々]/.test(b) || /[（「『]/.test(a)) p += 50; /* 行のはじめ・終わりに来てはいけない字 */
+    if (/[のをにはがでとへも]/.test(b) && (ka === 'j' || ka === 'k')) p += 50; /* 名詞のあとの「の」「を」などが行のはじめに来ない */
+    if (/[・·：、]/.test(a) || b === '（' || a === ' ' || b === ' ') p -= 6; else if (a === 'の' && s[i - 2] !== '丸') p -= 2; else if (kb === 'h' && (ka === 'j' || ka === 'k') && !/^[\u3040-\u309F]{3,}/.test(s.slice(i))) p += 4; /* 送りがな（川沿｜い）の前では切らない。ひらがなが 3 字以上続くなら、ひらがなの語のはじまり（｜いちょう） */ else if (ka !== kb || cut) p -= 1.5; else if (ka === 'h') p += 6; else if (ka === 'j') p += 2;
+    out.push([p, i]); }
+  return out.sort((x, y) => x[0] - y[0] || x[1] - y[1]).filter(x => x[0] < 40); } /* [悪さ, 切る位置] のよい順 */
+function roomBreak(e, fits) {
+  try { if (LANG === 'en') return; const s = e.textContent; if (s.length < 6 || s.includes('\n')) return; const fs = parseFloat(getComputedStyle(e).fontSize) || 11; if (e.scrollHeight < fs * 1.2 * 1.5) return; /* 1 行に入っている */
+    const all = roomBreakAt(s), keep = e.style.fontSize; if (!all.length) return;
+    /* まず「いちばん切りのいい所」とほぼ同じ良さの候補だけ（今の字の大きさ → 少し小さく）。それでも入らなければ、残りの候補 */
+    for (const at of [all.filter(x => x[0] <= all[0][0] + 2.5), all.slice(0, 6)]) for (const f of [0, 10, 9]) { if (f) { if (f >= fs) continue; e.style.fontSize = f + 'px'; } else e.style.fontSize = keep;
+      for (const [, i] of at) { e.textContent = s.slice(0, i).trim() + '\n' + s.slice(i).trim(); if (fits()) return; } }
+    e.style.fontSize = keep; e.textContent = s; } catch (er) { } }
 function roomName(th) { return roomNames(th)[0]; }
 function layoutHud() {
   const now = performance.now(); if (now - HUDL < 100) return; HUDL = now;

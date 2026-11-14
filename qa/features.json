@@ -470,6 +470,116 @@
       "name": "鳥居で先が見える試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'toriiview'"
+    },
+    {
+      "name": "画質の設定（自動・きれい・軽い）",
+      "file": "src/4_render.js",
+      "has": "function gfxMode()"
+    },
+    {
+      "name": "重いときは細かさを 1 段ずつ下げる",
+      "file": "src/7_ui.js",
+      "has": "function qualityStep("
+    },
+    {
+      "name": "走っている間は画面が消えない",
+      "file": "src/7_ui.js",
+      "has": "function wakeTick("
+    },
+    {
+      "name": "全画面のボタン",
+      "file": "src/7_ui.js",
+      "has": "function fsToggle("
+    },
+    {
+      "name": "止まっている画面は描く回数を減らす（電池）",
+      "file": "src/7_ui.js",
+      "has": "G.drawNow"
+    },
+    {
+      "name": "お知らせの帯の置き場所",
+      "file": "src/7_ui.js",
+      "has": "function toastPlace("
+    },
+    {
+      "name": "設定の見出し（プレイ・画面・音・データ）",
+      "file": "src/7_ui.js",
+      "has": "hd('setCtrl')"
+    },
+    {
+      "name": "題名カードのくっきりした絵",
+      "file": "src/2b_bunny.js",
+      "has": "function bunHi("
+    },
+    {
+      "name": "起動：前向きの絵だけ先に描く",
+      "file": "src/2b_bunny.js",
+      "has": "function bunniesLater("
+    },
+    {
+      "name": "ジャンプのくだりの絵",
+      "file": "src/2b_bunny.js",
+      "has": "BUN[who]['fall' + key]"
+    },
+    {
+      "name": "場所の名前を切りのいい所で折り返す",
+      "file": "src/6_game.js",
+      "has": "function roomBreak("
+    },
+    {
+      "name": "シェア画像はキャラクターが入る位置で切り出す",
+      "file": "src/6_game.js",
+      "has": "G.cardTop = "
+    },
+    {
+      "name": "新記録の音",
+      "file": "src/6_game.js",
+      "has": "SFX.best()"
+    },
+    {
+      "name": "終わりの音",
+      "file": "src/6_game.js",
+      "has": "musicStop('end')"
+    },
+    {
+      "name": "題名の曲",
+      "file": "src/5_audio.js",
+      "has": "function titleMusic("
+    },
+    {
+      "name": "効果音のとき曲を少し下げる",
+      "file": "src/5_audio.js",
+      "has": "function duck("
+    },
+    {
+      "name": "メニューを開くと曲がこもる",
+      "file": "src/5_audio.js",
+      "has": "function musicMuffle("
+    },
+    {
+      "name": "室内で空の青が見えない",
+      "file": "src/4b_patterns.js",
+      "has": "G.skyIn = 1"
+    },
+    {
+      "name": "音の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'audiotest'"
+    },
+    {
+      "name": "起動の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'bootfast'"
+    },
+    {
+      "name": "シェア画像の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'cardframe'"
+    },
+    {
+      "name": "ジャンプの絵の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'jumppose'"
     }
   ]
 }
