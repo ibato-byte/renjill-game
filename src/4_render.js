@@ -7,7 +7,7 @@ function resize() {
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   FOCAL = BASEF = Math.min(W * 1.12, H * .84);
-  HORIZON = H * .41;
+  HORIZON = H * (H / W > 1.6 ? .48 : .41); // tall phones: the road ahead sits lower, clear of the bars at the top (2026-11-14 「スマホだと奥が見づらい」); the empty floor at the bottom gets smaller
 }
 const CAM = { x: 0, y: 2, z: 0, yaw: 0, pitch: .3, c: 1, s: 0, cp: 1, sp: 0 };
 function camPrep() { CAM.c = Math.cos(CAM.yaw); CAM.s = Math.sin(CAM.yaw); CAM.cp = Math.cos(CAM.pitch); CAM.sp = Math.sin(CAM.pitch); }
@@ -535,6 +535,9 @@ function heart(g, x, y, r) { g.beginPath(); g.moveTo(x, y + r * .9); g.bezierCur
 const FX = [];
 function leaves(x, y, n) { if (OPT().calm || lowQ) n = Math.min(n, 2); for (let i = 0; i < n; i++) FX.push({ x, y, vx: rand(-110, 110), vy: rand(-170, -60), life: rand(.55, .9), t: 0, c: pick(['#B8D98A', '#9BB85A', '#C9C46A', '#D9C27A']), r: rand(2.2, 3.4), leaf: 1, rot: rand(0, 6.3), vr: rand(-9, 9) }); }
 function burst(x, y, color, n) { for (let i = 0; i < n; i++) FX.push({ x, y, vx: rand(-160, 160), vy: rand(-260, -60), life: rand(.35, .7), t: 0, c: color, r: rand(2, 5) }); }
+// praise words ('NICE JUMP!', 'FEVER!' …) used to pop up in the middle of the screen, right over the road ahead (2026-11-14: 「その調子などのせいで先が見づらい」).
+// They now rise from the floor below the runners, where nothing is coming at you; the old heights keep their order.
+function cheerY(k) { return H - 196 - (k - .3) * 110; }
 function floatText(x, y, txt, color) { FX.push({ x, y, vx: 0, vy: -60, life: .9, t: 0, txt, c: color }); }
 let paper = [];
 // the title room's morning: sunlight through the shoji falls across the tatami, dust drifts in it, the mug steams, the boss snores

@@ -418,7 +418,7 @@ function frame(now) {
 // if it still cannot be drawn, the run ends the normal way rather than leave a frozen, half-drawn screen
 function frameTrouble() {
   FRAME_BAD++;
-  if (FRAME_BAD === 3 || FRAME_BAD % 60 === 0) { try { freePictures(); } catch (e) { } }
+  if (FRAME_BAD === 3 || FRAME_BAD % 60 === 0) { try { freePictures(); sprTrim(0); } catch (e) { } }
   if (FRAME_BAD === 30 && !lowQ) { lowQ = 1; DPR = 1; try { resizeKeep(); } catch (e) { } }
   if (FRAME_BAD >= 150 && G.mode === 'play') { FRAME_BAD = 0; errLog('draw trouble ' + (G.drawRetry || 0)); if ((G.drawRetry || 0) < 2) { G.drawRetry = (G.drawRetry || 0) + 1; try { freePictures(); } catch (e) { } lowQ = 2; DPR = 1; try { resizeKeep(); } catch (e) { } return; } finishRun('draw'); } // 絵が描けないときも、まずは軽くして2回までやり直す（すぐ終わらせない）
 }

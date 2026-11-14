@@ -86,9 +86,9 @@ function kpHud() {
   if (!K.goalTold && !kpGoalDone() && sc >= kpGoal()) { K.goalTold = 1; k.tg = todayStr(); G.hay += KP_GOAL_HAY; G.stats.kpGoal = 1; banner('GOAL!', kt('goalHit', KP_GOAL_HAY), 'good'); SFX.mission(); save(); }
   while (K.rivals.length && sc > K.rivals[0].s) { const r = K.rivals.shift(); G.stats.kpRival = (G.stats.kpRival || 0) + 1; banner('RANK UP!', kt('rivalUp', r.n), 'good'); tone(880, .1, 'bell', .05); react('cheer', 0); }
   // combo bonuses: 30, 60, 100 ... (they start over when the combo breaks)
-  if (G.combo < 5) K.comboI = 0; else if (K.comboI < KP_COMBO.length && G.combo >= KP_COMBO[K.comboI]) { const n = KP_COMBO[K.comboI++], pts = n * 5 * SV.mlevel; G.score += pts; G.stats.kpCombo = (G.stats.kpCombo || 0) + 1; floatText(W / 2, H * .42, kt('comboB', n, fmt(pts)), '#FF8A5C'); tone(1047, .1, 'bell', .045); }
+  if (G.combo < 5) K.comboI = 0; else if (K.comboI < KP_COMBO.length && G.combo >= KP_COMBO[K.comboI]) { const n = KP_COMBO[K.comboI++], pts = n * 5 * SV.mlevel; G.score += pts; G.stats.kpCombo = (G.stats.kpCombo || 0) + 1; floatText(W / 2, cheerY(.42), kt('comboB', n, fmt(pts)), '#FF8A5C'); tone(1047, .1, 'bell', .045); }
   // pace: your score at every 3-hour mark of the day, next to the same mark of your best run
-  { const ck = Math.floor(((G.day - 1) * 1440 + G.clock) / 180); if (ck > K.ck) { K.ck = ck; K.split[ck] = Math.floor(sc); const was = kpN(k.sp[ck]); if (was > 0 && best > 500) { const d = Math.floor(sc) - was; G.stats.kpPace = d; floatText(W / 2, H * .3, d >= 0 ? kt('paceUp', fmt(d)) : kt('paceDn', fmt(-d)), d >= 0 ? '#7DD87A' : '#F6EBDC'); } } }
+  { const ck = Math.floor(((G.day - 1) * 1440 + G.clock) / 180); if (ck > K.ck) { K.ck = ck; K.split[ck] = Math.floor(sc); const was = kpN(k.sp[ck]); if (was > 0 && best > 500) { const d = Math.floor(sc) - was; G.stats.kpPace = d; floatText(W / 2, cheerY(.3), d >= 0 ? kt('paceUp', fmt(d)) : kt('paceDn', fmt(-d)), d >= 0 ? '#7DD87A' : '#F6EBDC'); } } }
   // the bar under the score: the next thing to beat
   if (!K.tgt || sc >= K.tgt.s) { K.tgt = kpTarget(); K.from = K.tgt ? Math.min(sc, K.tgt.s * .5) : 0; }
   if (!K.tgt) { if (!box.hidden) box.hidden = true; return; }
