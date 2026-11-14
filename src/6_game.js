@@ -109,7 +109,7 @@ function titleFrame(dt) {
 }
 
 /* ---------- run lifecycle ---------- */
-function startRun() { G.drawRetry = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); } catch (e) { } bunniesNow(); kpPre();
+function startRun() { G.drawRetry = 0; cpClear(); G.resumeN = 0; G.cpT = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); } catch (e) { } bunniesNow(); kpPre();
   audioInit(); SFX.ui(); { const f = document.getElementById('tFresh'); if (f) f.remove(); } toastClear();
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
@@ -180,6 +180,7 @@ function smash(o) { if (o.dead) return; o.dead = .001; o.vx = Math.random() < .5
 function die(cause) {
   if (G.mode !== 'play') return;
   if (G.practice && cause !== 'quit' && cause !== 'time') { practiceGoOn(cause); return; } // 練習ではぶつかっても終わらない
+  cpClear(); /* 走り終わり：「つづきから」は出さない（ぶつかる直前にアプリを閉じてやり直す、はできない） */
   G.cause = cause; G.mode = 'dying'; G.dyingT = .95; SFX.crash(); buzz([60, 40, 120]); G.flashT = 1; G.shake = 1; musicStop('end');
   G.player.look = 0; G.follow.look = 0; G.pom.look = 0;
   if (cause === 'papers') G.chaseVis = 1;
@@ -193,6 +194,35 @@ function practiceGoOn(cause) { G.cause = cause; G.stats.pracBumps = (G.stats.pra
 // retry as many times as your charms or hay allow (the price rises a little each time)
 function freeRevive() { return SV.runs <= 3 && G.reviveN === 0 && G.cause !== 'quit' && G.cause !== 'rescue'; } // the first fail of your first three runs: one free retry
 function canRevive() { if (G.cause === 'time') return false; if (freeRevive()) return true; const c = reviveCost(); return SV.clovers >= c.clover || SV.bank + Math.floor(G.hay) >= c.hay || (typeof PORTAL !== 'undefined' && PORTAL.adOK()); } // (inside a game portal: or a rewarded ad)
+/* 2026-11-15（オーナー：通信が悪くなった時などに強制終了になっても、途中から再開できるように）
+   走っている間、2 秒ごとに「いまの走り」の要点を端末に書いておく（CP_KEY）。アプリが急に閉じた・読み込み直しになった時は、題名画面に「つづきから走る」が出る。
+   ・ふつうの走りだけ（練習・1分ダッシュ・逆走・はじめての練習は対象外）
+   ・走り終わった（ぶつかった・やめた）ら消す。新しく走り始めても消す。データを消す時も消す
+   ・1 回の走りで CP_MAX 回まで。CP_AGE（12 時間）たったら出ない
+   ・保存データ（SV）とは別の場所なので、データ引き継ぎ（RJ1.）には入らない
+   ・道すじ：いまの場所から、同じ日の残りの予定（もう作ってあった先の道＋予定）を続ける。次の日からは新しく決める */
+const CP_KEY = 'renjill-hay-dash-run', CP_MAX = 3, CP_AGE = 12 * 3600e3;
+const CP_NUM = ['t', 'speed', 'dist', 'distEst', 'speedEst', 'score', 'hay', 'shield', 'feverG', 'clock', 'day', 'reviveN', 'bestTold', 'niceN', 'niceT', 'bumped', 'rush', 'chimed', 'soonTold', 'gaugeTold', 'feverMax', 'gigNext', 'bumpN', 'chalWon', 'spTier', 'epGigDone', 'revDone', 'lastTrainDone', 'matsuriTold'];
+function cpOK() { return G.mode === 'play' && !!SV.tutDone && !G.practice && !G.timed && !G.rev && !G.tut; }
+function cpSave() { try { if (!cpOK()) return false; const seg = curSeg(); if (!seg || !seg.tid || !THEMES[seg.tid]) return false;
+  const same = G.segs.slice(G.ci + 1).filter(s => s.day === seg.day && s.step && !s.step.fork).map(s => s.step);
+  const o = { v: 1, at: Date.now(), char: G.char, easy: G.easy ? 1 : 0, tid: seg.tid, t1: seg.t1, n: G.resumeN || 0, g: {}, stats: G.stats, plan: same.concat(G.planDay === seg.day ? G.plan : []) };
+  for (const k of CP_NUM) { const v = G[k]; if (typeof v === 'number' && Number.isFinite(v)) o.g[k] = v; else if (typeof v === 'boolean') o.g[k] = v ? 1 : 0; }
+  localStorage.setItem(CP_KEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
+function cpClear() { try { localStorage.removeItem(CP_KEY); } catch (e) { } }
+function cpLoad() { try { const o = JSON.parse(localStorage.getItem(CP_KEY) || 'null'), now = Date.now();
+  if (!o || o.v !== 1 || !o.g || !THEMES[o.tid] || !(o.at > 0) || now - o.at > CP_AGE || now < o.at - 6e5 || (o.n | 0) >= CP_MAX || !(o.g.score >= 0) || !(o.g.day >= 1) || !(o.g.clock >= 0) || !SV.tutDone) return null;
+  if (!['ren', 'jill', 'pom'].includes(o.char) || (o.char === 'pom' && !SV.pomMet)) return null; return o; } catch (e) { return null; } }
+function cpTick(now) { if (now < (G.cpT || 0)) return; G.cpT = now + 2000; cpSave(); }
+function resumeRun() { const o = cpLoad(); if (!o) { cpClear(); return false; }
+  G.char = o.char; G.quickNext = 0; G.practiceNext = ''; G.revNext = 0; hideAll(); startRun(); // まず新しい走りとして用意し、その上に、書いておいた要点を戻す
+  try { for (const k of CP_NUM) if (typeof o.g[k] === 'number' && Number.isFinite(o.g[k])) G[k] = o.g[k]; if (o.stats && typeof o.stats === 'object') Object.assign(G.stats, o.stats);
+    G.easy = !!o.easy; G.resumeN = (o.n | 0) + 1; SV.runs = Math.max(0, (SV.runs | 0) - 1); /* 同じ走りの続きなので、走った回数は増やさない */
+    const d0 = Math.max(6, Math.min(60, (+o.t1 || 0) - G.clock || 20)), s0 = newSeg(null, { t: o.tid, d: d0 }, { t0: G.clock, day: G.day }); G.segs = [s0]; G.ci = 0; G.s = 0; G.lane = 1; G.prevLane = 1; G.lat = 0; G.fork = null; G.forkRest = null;
+    G.planDay = G.day; G.plan = (Array.isArray(o.plan) ? o.plan : []).filter(x => x && typeof x.t === 'string' ? THEMES[x.t] : x && x.fork); G.planClock = s0.t1; G.segDue = 0; ensureSegs();
+    const p = segPos(s0, 0, 0); G.rx = p[0]; G.rz = p[1]; G.camYaw = s0.dir * Math.PI / 2; G.ey = G.camE = null; G.camSl = 0; onEnterSeg(s0);
+    G.combo = 0; G.comboT = 0; G.invT = 3; G.chaseT = 2.0; G.chaseIntro = 0; G.chaseVis = 0; G.cpT = 0; cpSave(); save(); } catch (e) { reportErr(e); }
+  banner('WELCOME BACK', t('cpBack'), 'good'); G.mode = 'pause'; resume(); return true; }
 function reviveCost() { return { clover: G.reviveN + 1, hay: 400 * (G.reviveN + 1) }; }
 function doRevive(kind) {
   const c = reviveCost();
@@ -942,6 +972,7 @@ const CAPS = {
 const DAY_GOAL = 300;
 const bondLv = () => 1 + Math.floor(Math.sqrt((SV.bond || 0) / 3));
 function endRun() {
+  cpClear();
   if (G.practice) { practiceEnd(); return; }
   chalSave();
   if (!SV.tutDone && (!G.tut || G.tut.every(x => x.done) || G.dist > 150)) { SV.tutDone = 1; } // the lesson is done once it was played through

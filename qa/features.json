@@ -615,6 +615,31 @@
       "name": "手すりの棒は天井まで",
       "file": "src/3_world.js",
       "has": "type === 'pole' && o.artH && seg.wallH > o.artH"
+    },
+    {
+      "name": "途中で閉じた走りを書いておく",
+      "file": "src/6_game.js",
+      "has": "function cpSave()"
+    },
+    {
+      "name": "つづきから走る",
+      "file": "src/6_game.js",
+      "has": "function resumeRun()"
+    },
+    {
+      "name": "題名画面の「つづきから走る」",
+      "file": "src/7_ui.js",
+      "has": "q.id = 'btnCont'"
+    },
+    {
+      "name": "走り終わったら、つづきは消す",
+      "file": "src/6_game.js",
+      "has": "cpClear(); /* 走り終わり"
+    },
+    {
+      "name": "つづきからの試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'resume'"
     }
   ]
 }

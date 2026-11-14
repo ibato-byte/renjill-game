@@ -460,6 +460,8 @@ html[lang="ja"] .big,html[lang="ja"] .sub,html[lang="ja"] .mini,html[lang="ja"] 
 .chip{box-shadow:0 2px 0 rgba(59,42,32,.25),inset 0 1px 0 rgba(255,255,255,.7)}
 /* 読み込み中：3つの点がはねる */
 #bootMsg{flex-direction:column;gap:12px}#bootMsg::after{content:'';width:8px;height:8px;border-radius:50%;background:#D6A23C;box-shadow:-16px 0 0 #FBF6EE,16px 0 0 #FBF6EE;animation:bootDot .7s ease-in-out infinite alternate}@keyframes bootDot{from{transform:translateY(0)}to{transform:translateY(-7px)}}
+/* 途中で閉じてしまった走りの「つづきから」（スタートのすぐ上・目立つ色） */
+.sub.resume{display:block;width:100%;margin:0 0 10px;padding:12px 10px;font-size:15px;font-weight:900;background:#F2C230;color:#3B2A20;border-color:#3B2A20}
 /* 押した手ごたえ：少し沈む */
 .big,.sub,.mini,.buy,.char,#pauseBtn,#btnLangTop{transition:transform .08s ease-out,filter .08s ease-out}
 .big:active,.sub:active,.mini:active,.buy:active,.char:active,#pauseBtn:active,#btnLangTop:active{transform:translateY(2px);filter:brightness(.95)}

@@ -31,6 +31,7 @@ function refreshTitle() {
   try { commShow(); commFetch(); } catch (e) { } // みんなの集計（B-45・47）
   { const e = $('#tHunt'); if (e) e.remove(); } // あいことばのかくれんぼ（B-49）はやめた（2026-11-15 オーナーの判断：何のためにあるのか分かりにくい。SNS の「あいことば」（設定で入れるとチモシーがもらえる）と名前が同じでまぎらわしい）
   { let q = $('#btnRev'); if (!q) { q = document.createElement('button'); q.id = 'btnRev'; q.className = 'sub small quick'; q.onclick = () => { SFX.ui(); G.revNext = 1; hideAll(); startRun(); }; $('#btnQuick').after(q); } q.textContent = t('revBtn'); q.hidden = !SV.tutDone || !revDay(); } // 逆走デー（B-37）
+  { let q = $('#btnCont'); const cp = cpLoad(); if (!q) { q = document.createElement('button'); q.id = 'btnCont'; q.className = 'sub resume'; q.onclick = () => { SFX.ui(); resumeRun(); }; $('#btnStart').before(q); } q.hidden = !cp; if (cp) q.textContent = t('cpBtn', cp.g.day | 0, fmt(Math.floor(cp.g.score))); } // 途中で閉じてしまった走りのつづき（2026-11-15）
   { const q = $('#btnDuo'); if (q) q.remove(); } // ふたりで交代（B-33）はやめた（2026-11-09 オーナーの判断）
   { let q = $('#btnPractice'); if (!q) { q = document.createElement('button'); q.id = 'btnPractice'; q.className = 'sub small quick'; q.onclick = openPractice; $('#btnQuick').after(q); } q.textContent = t('practice'); q.hidden = !SV.tutDone; } // 練習・場所えらび（B-31・B-38）
   { let e = $('#tDayGoal'); if (!e) { e = document.createElement('div'); e.id = 'tDayGoal'; $('#tDaily').after(e); } const n = SV.dayHay && SV.dayHay.d === todayStr() ? SV.dayHay.n : 0, k = Math.min(1, n / DAY_GOAL);
@@ -191,7 +192,7 @@ async function resetAll() {
   const msg = $('#resetMsg'); $('#btnResetYes').disabled = true; $('#btnResetNo').disabled = true; msg.textContent = t('resetDoing');
   try { if (rankOn()) await Promise.race([RANK.db.doc('ranks/' + RANK.uid).set({}), new Promise(r => setTimeout(r, 4000))]); } catch (e) { } // an empty row drops out of every ranking
   RESETTING = 1;
-  for (const k of [SAVE_KEY, 'rjChal', 'hd_fsauth']) { try { localStorage.removeItem(k); } catch (e) { } }
+  for (const k of [SAVE_KEY, 'rjChal', 'hd_fsauth', CP_KEY]) { try { localStorage.removeItem(k); } catch (e) { } }
   msg.textContent = t('resetDone'); setTimeout(() => location.reload(), 700);
 }
 /* ---- one account across browsers and devices: a short code (15 minutes) instead of a long transfer code ----
@@ -329,7 +330,7 @@ const endTouch = e => { if (!tp || tp.id !== e.pointerId) return; // a fast flic
     if (Math.abs(dx) > th || Math.abs(dy) > th) act(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')); }
   tp = null; };
 stage.addEventListener('pointerup', endTouch); stage.addEventListener('pointercancel', endTouch);
-document.addEventListener('visibilitychange', () => { if (document.hidden) { saveNow(); if (G.mode === 'countdown') { G.mode = 'play'; $('#tutCue').className = ''; } pause(); } });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { cpSave(); saveNow(); if (G.mode === 'countdown') { G.mode = 'play'; $('#tutCue').className = ''; } pause(); } });
 
 /* ================= buttons ================= */
 $('#btnStart').onclick = () => { hideAll(); startRun(); };
@@ -432,7 +433,7 @@ function frameBody(now) {
   /* 画面の更新（60/90/120 回/秒）に合わせて、コマの間隔のゆらぎ（15ms・18ms…）をならす。走る速さは同じまま、流れる景色のかくつきが減る（2026-11-15） */
   if (raw > .004 && raw < .05) { FT_AVG = FT_AVG ? FT_AVG + (raw - FT_AVG) * .08 : raw; if (Math.abs(raw - FT_AVG) < FT_AVG * .22) { FT_DEBT += raw - FT_AVG; if (Math.abs(FT_DEBT) > .03) FT_DEBT = 0; dt = Math.max(0, FT_AVG + FT_DEBT * .1); FT_DEBT -= FT_DEBT * .1; } else FT_AVG += (raw - FT_AVG) * .2; } // never backwards (the first frame after a countdown can be stamped a hair before it)
   if (G.mode === 'play' && raw < .25) { perfAcc += raw; perfN++; if (perfN >= 90) { const avg = perfAcc / perfN; perfAcc = perfN = 0; qualityStep(avg); } }
-  TEXN = 0; TEXB = performance.now() + 3; wakeTick(now);
+  TEXN = 0; TEXB = performance.now() + 3; wakeTick(now); if (G.mode === 'play') cpTick(now);
   { let bad = null; if (G.mode !== 'pause' && G.mode !== 'dead' && G.mode !== 'result') { try { update(dt); } catch (e) { bad = e; } }
     if (bad) reportErr(bad); runGuard(Math.min(.1, Math.max(0, raw)), bad); } // a broken frame still draws, and the safety net looks at every frame
   // battery: while paused nothing on the stage moves, so it is drawn only a couple of times a second (2026-11-08)
@@ -458,7 +459,7 @@ function padTick() { let gp = null; try { const l = navigator.getGamepads ? navi
   for (const k of ['up', 'down', 'left', 'right']) if (now[k] && !PAD.prev[k] && G.mode === 'play') { act(k); G.padN = (G.padN || 0) + 1; }
   if (now.start && !PAD.prev.start) { if (G.mode === 'play') pause(); else if (G.mode === 'pause') resume(); }
   PAD.prev = now; }
-addEventListener('pagehide', () => { try { saveNow(); } catch (e) { } });
+addEventListener('pagehide', () => { try { cpSave(); saveNow(); } catch (e) { } });
 // a computer: clicking another window (the game keeps running behind it) pauses, like switching tabs does (2026-11-08)
 addEventListener('blur', () => { try { if (G.mode === 'play' && !matchMedia('(pointer:coarse)').matches) pause(); } catch (e) { } });
 /* 走っている間は、画面が暗くなったり消えたりしないようにする（まっすぐ走っていて指をふれない時間が続くと、スマホが画面を消すことがあった）。一時停止・結果・題名では、ふつうに戻す */
