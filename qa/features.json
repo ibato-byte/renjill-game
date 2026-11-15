@@ -727,6 +727,21 @@
       "has": "n: 'picksteady'"
     },
     {
+      "name": "帽子が自然に見える試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'wearfit'"
+    },
+    {
+      "name": "帽子のふちの影・毛・かたむき",
+      "file": "src/2b_bunny.js",
+      "has": "function hatTufts("
+    },
+    {
+      "name": "ジルの帽子は頭の横に（耳が見える）",
+      "file": "src/2b_bunny.js",
+      "has": "function jillHat("
+    },
+    {
       "name": "ランキングの顔が真ん中の試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'rankicon'"
