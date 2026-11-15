@@ -722,6 +722,46 @@
       "has": "n: 'buntint'"
     },
     {
+      "name": "選んだときにチカチカしない試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'picksteady'"
+    },
+    {
+      "name": "紙飛行機で仲間が消えない試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'planekeep'"
+    },
+    {
+      "name": "紙飛行機の絵は捨てられても描き直す",
+      "file": "src/4e_art.js",
+      "has": "function planePic()"
+    },
+    {
+      "name": "1 人の絵の失敗でほかの人が消えない",
+      "file": "src/4_render.js",
+      "has": "while (CTXD > d0) ctx.restore();"
+    },
+    {
+      "name": "アニメと同じ絵かの試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'animelook'"
+    },
+    {
+      "name": "キャラクターはアニメと同じ形（レンの頭）",
+      "file": "src/2b_bunny.js",
+      "has": "M180 105 C 252 105 292 150 292 202"
+    },
+    {
+      "name": "キャラクターはアニメと同じ形（ジルの頭）",
+      "file": "src/2b_bunny.js",
+      "has": "M188 130 C 248 130 284 166 284 210"
+    },
+    {
+      "name": "キャラクターはアニメと同じ形（ポムの頭）",
+      "file": "src/2b_bunny.js",
+      "has": "function pomHead("
+    },
+    {
       "name": "紹介動画を 1 コマずつ撮る道具",
       "file": "qa/promo_frames.js",
       "has": "p.clock.pauseAt"

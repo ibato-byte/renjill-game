@@ -1,5 +1,7 @@
 /* ================= tiny 3D renderer on Canvas 2D ================= */
 const cv = $('#cv'), ctx = cv.getContext('2d', { alpha: false }) || cv.getContext('2d'); /* 透けない画面として描く（ブラウザが重ね合わせを省けるので軽い） */
+/* 絵の保存（save）の深さを数える：だれか 1 人の絵を描く途中で失敗しても、そこまでの save を戻して、ほかの人は描く（2026-11-15：紙飛行機の絵の失敗で、仲間まで消えた） */
+let CTXD = 0; { const sv0 = ctx.save.bind(ctx), rs0 = ctx.restore.bind(ctx); ctx.save = () => { CTXD++; sv0(); }; ctx.restore = () => { if (CTXD > 0) CTXD--; rs0(); }; }
 let W = 0, H = 0, DPR = 1, FOCAL = 400, BASEF = 400, HORIZON = 0;
 /* 画質（2026-11-15）：設定「画質」＝ 自動（上限 1.75 倍）／きれい（上限 2 倍・軽くするのは本当に重いときだけ）／軽い（1 倍・演出も少なめ）。
    自動で重いときは、まず細かさ（RES_K）を1段ずつ下げる。演出を減らす（lowQ）のはその後。軽くなったら細かさは戻す */
@@ -364,7 +366,7 @@ function drawObj(e, sg) {
     else if (e[1] === 4) { drawItem(e[2], sg, e[0]); pm('items'); }
     else if (e[1] === 9) drawBird(e[2], sg, e[0]);
     else if (e[1] === 10) drawPuddle(e[2], sg, e[0] - 4);
-    else { drawBunnyWorld(e[2]); pm('bunny'); }
+    else { const d0 = CTXD; try { drawBunnyWorld(e[2]); } catch (x) { while (CTXD > d0) ctx.restore(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; reportErr(x); } pm('bunny'); }
   }
 }
 /* a small chip over an obstacle type you have not met a few times yet: what to do with it */
@@ -518,7 +520,7 @@ function drawBunnyWorld(b) {
     const dl = -Math.sign(G.lane - G.prevLane), k = Math.sin(clamp(G.laneT / .35, 0, 1) * Math.PI); for (const [m, a] of [[2, .09], [1, .17]]) { ctx.globalAlpha = a * k; ctx.drawImage(img, -BS / 2 + dl * 62 * m * k, -GROUND_Y - BTOP, img.width, img.height); } ctx.globalAlpha = 1; G.smearN = (G.smearN || 0) + 1; }
   if (b.flash && Math.floor(G.t * 16) % 2) ctx.globalAlpha = .45;
   ctx.drawImage(LT.indoor ? img : litSprite(img, bunnyAmb(), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
-  if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; ctx.drawImage(b.view === 'back' || !(b.look > 0) ? SPR.planeBack : SPR.planeBack, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Pom rides his own)
+  if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; const pl = planePic(); if (pl) ctx.drawImage(pl, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Pom rides his own)
   if (G.weather === 'rain' && !LT.indoor && G.mode !== 'title' && !b.fly) { ctx.globalAlpha = .55; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 5; ctx.lineCap = 'round'; for (const [x, y, a] of [[-60, -190, 0], [55, -150, .6], [-20, -120, 1.2]]) { const k = .5 + .5 * Math.sin(G.t * 3 + a * 3); ctx.globalAlpha = .25 + .3 * k; ctx.beginPath(); ctx.arc(x, y, 14, -2.4, -1.3); ctx.stroke(); } ctx.globalAlpha = 1; G.wetN = (G.wetN || 0) + 1; } // 雨の日はうっすらぬれて光る（C-34）
   if (b.glow) { ctx.globalAlpha = .9; ctx.strokeStyle = b.glow; ctx.lineWidth = 7; ctx.beginPath(); ctx.ellipse(0, -110, 130, 120, 0, 0, Math.PI * 2); ctx.stroke(); }
   if (!(b.look > 0) && b.who !== 'pom') b.say = '';
