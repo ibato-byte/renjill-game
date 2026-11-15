@@ -104,7 +104,8 @@ function hat(g, kind, w, H) { // H = half the width of the head where the brim s
     const gr = g.createRadialGradient(-H * .2, -H * .5, 2, 0, -H * .3, H * 1.1); gr.addColorStop(0, '#DA5A4E'); gr.addColorStop(1, '#B63A30'); g.fillStyle = gr;
     g.beginPath(); g.ellipse(H * .1, -H * .3, H * 1.1, H * .44, -.1, 0, Math.PI * 2); g.fill();
     g.fillStyle = '#A8352C'; g.beginPath(); g.ellipse(0, -3, H * .96, 8, 0, 0, Math.PI); g.fill(); g.beginPath(); g.ellipse(0, -3, H * .96, 3, 0, Math.PI, 0); g.fill();
-    g.fillStyle = '#7A241E'; g.fillRect(H * .12, -H * .76, 4, 8); g.restore(); return; }
+    g.fillStyle = 'rgba(255,220,205,.22)'; g.beginPath(); g.ellipse(-H * .3, -H * .46, H * .46, H * .12, -.22, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(90,20,15,.2)'; g.beginPath(); g.ellipse(H * .1, -H * .1, H * 1.02, H * .13, -.06, 0, Math.PI); g.fill(); // 着せかえ 99：フェルトのやわらかいつやと、ふちの上のかげ
+    g.fillStyle = '#7A241E'; g.beginPath(); g.ellipse(H * .14, -H * .7, 2.6, 4.6, .2, 0, Math.PI * 2); g.fill(); g.restore(); return; }
   if (kind === 'straw') { g.save(); g.scale(w, w); // the crown fits over the head, the wide brim at the brow
     g.fillStyle = '#E8D28A'; g.strokeStyle = '#C9B06A'; g.lineWidth = 2; g.beginPath(); g.ellipse(0, -2, H * 1.5, H * .27, 0, Math.PI, Math.PI * 2); g.fill(); g.stroke();
     g.fillStyle = '#EFDB98'; g.beginPath(); g.roundRect ? g.roundRect(-H * .78, -H * .78, H * 1.56, H * .78, [H * .42, H * .42, 4, 4]) : g.rect(-H * .78, -H * .78, H * 1.56, H * .78); g.fill(); g.stroke();
@@ -159,25 +160,38 @@ function hat(g, kind, w, H) { // H = half the width of the head where the brim s
     g.strokeStyle = 'rgba(140,60,10,.35)'; g.lineWidth = 2; for (const x of [-12, 12]) { g.beginPath(); g.moveTo(x, -36); g.quadraticCurveTo(x * 1.3, -18, x, 0); g.stroke(); }
     g.fillStyle = 'rgba(255,255,255,.25)'; g.beginPath(); g.ellipse(-10, -28, 7, 4, -.4, 0, Math.PI * 2); g.fill();
     g.fillStyle = '#6B4E2A'; g.beginPath(); g.moveTo(-3, -36); g.quadraticCurveTo(-2, -48, 6, -50); g.lineTo(5, -45); g.quadraticCurveTo(2, -44, 3, -36); g.closePath(); g.fill();
-    g.fillStyle = '#5F9E5A'; g.beginPath(); g.ellipse(14, -42, 10, 5, -.5, 0, Math.PI * 2); g.fill(); g.restore(); return; }
+    g.fillStyle = '#5F9E5A'; g.beginPath(); g.ellipse(14, -42, 10, 5, -.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = 'rgba(40,90,45,.6)'; g.lineWidth = 1; g.lineCap = 'round'; g.beginPath(); g.moveTo(6, -38); g.lineTo(22, -46); g.stroke();
+    g.strokeStyle = '#4F8E4A'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(-2, -40); g.bezierCurveTo(-12, -46, -16, -36, -10, -36); g.bezierCurveTo(-6, -36, -8, -41, -11, -40); g.stroke(); g.restore(); return; } // 着せかえ 100：葉のすじと、くるんと巻いたつる
   if (kind === 'antler') { g.save(); g.scale(w, w); // a soft reindeer-antler headband with a little bell
     g.strokeStyle = '#7A4E2C'; g.lineWidth = 6; g.lineCap = 'round'; g.beginPath(); g.moveTo(-44, 2); g.quadraticCurveTo(0, -16, 44, 2); g.stroke();
-    for (const sd of [-1, 1]) { g.save(); g.scale(sd, 1); g.strokeStyle = '#B07A45'; g.lineWidth = 8; g.beginPath(); g.moveTo(24, -6); g.quadraticCurveTo(34, -36, 26, -60); g.moveTo(30, -30); g.quadraticCurveTo(46, -38, 50, -52); g.moveTo(28, -46); g.quadraticCurveTo(16, -54, 14, -64); g.stroke(); g.restore(); }
-    g.fillStyle = '#E0A93A'; g.beginPath(); g.arc(0, -4, 7, 0, Math.PI * 2); g.fill(); g.fillStyle = '#C8463C'; g.beginPath(); g.ellipse(-9, -6, 6, 3, -.4, 0, Math.PI * 2); g.ellipse(9, -6, 6, 3, .4, 0, Math.PI * 2); g.fill(); g.restore(); return; }
+    /* 着せかえ 87〜89：トナカイの角。立ち耳の子（ジル）は耳の外側から生える（耳と重なってごちゃごちゃだった）／角に丸みの明るいすじ／鈴に切れ目とつや */
+    { const o = HAT_OUT ? 14 : 0, tip = HAT_OUT ? 8 : 0; const path = () => { g.beginPath(); g.moveTo(24 + o, -6 + o * .25); g.quadraticCurveTo(34 + o + tip, -36, 26 + o + tip * 1.6, -60 + o * .4); g.moveTo(30 + o + tip * .6, -30); g.quadraticCurveTo(46 + o + tip, -38, 50 + o + tip, -52 + o * .3); if (!HAT_OUT) { g.moveTo(28, -46); g.quadraticCurveTo(16, -54, 14, -64); } };
+      for (const sd of [-1, 1]) { g.save(); g.scale(sd, 1); g.strokeStyle = '#8E5E32'; g.lineWidth = 9; path(); g.stroke(); g.strokeStyle = '#B07A45'; g.lineWidth = 6.5; path(); g.stroke(); g.strokeStyle = 'rgba(240,205,160,.55)'; g.lineWidth = 1.8; g.translate(-1.4, -.6); path(); g.stroke(); g.restore(); } }
+    g.fillStyle = '#4F8E4A'; g.beginPath(); g.ellipse(-9, -6, 7, 3.4, -.4, 0, Math.PI * 2); g.ellipse(9, -6, 7, 3.4, .4, 0, Math.PI * 2); g.fill();
+    { const bg = g.createRadialGradient(-2, -6.5, .5, 0, -4, 7.5); bg.addColorStop(0, '#FFF3B0'); bg.addColorStop(.6, '#E9B43C'); bg.addColorStop(1, '#B98522'); g.fillStyle = bg; g.beginPath(); g.arc(0, -4, 7.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#8A6417'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(-5, -2.5); g.lineTo(5, -2.5); g.moveTo(0, -2.5); g.lineTo(0, 2.6); g.stroke(); } g.restore(); return; }
   if (kind === 'kagami') { g.save(); g.scale(w, w); // a tiny kagami-mochi (two rice cakes and a bitter orange) on a paper base
-    g.fillStyle = '#FBF6EE'; g.strokeStyle = '#C8463C'; g.lineWidth = 2; g.beginPath(); g.moveTo(-34, 0); g.lineTo(34, 0); g.lineTo(28, -8); g.lineTo(-28, -8); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = '#FBF6EE'; g.strokeStyle = '#C8463C'; g.lineWidth = 2; g.lineJoin = 'round'; g.beginPath(); g.moveTo(-34, 0); g.lineTo(34, 0); g.lineTo(28, -8); g.lineTo(-28, -8); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = 'rgba(120,90,60,.14)'; g.beginPath(); g.ellipse(0, -8, 27, 3.4, 0, 0, Math.PI); g.fill(); g.fillStyle = '#C8463C'; g.beginPath(); g.moveTo(-10, 0); g.lineTo(0, -6); g.lineTo(10, 0); g.closePath(); g.fill(); // 着せかえ 98：紙の台にもちのかげと、赤い三角の折り
     for (const [y, rx, ry] of [[-18, 30, 12], [-36, 23, 10]]) { const gr = g.createRadialGradient(-8, y - 4, 2, 0, y, rx); gr.addColorStop(0, '#FFFFFF'); gr.addColorStop(1, '#E8E1D2'); g.fillStyle = gr; g.beginPath(); g.ellipse(0, y, rx, ry, 0, 0, Math.PI * 2); g.fill(); }
-    g.fillStyle = '#F09A2A'; g.beginPath(); g.arc(0, -52, 11, 0, Math.PI * 2); g.fill(); g.fillStyle = '#5F9E5A'; g.beginPath(); g.ellipse(8, -62, 8, 4, -.5, 0, Math.PI * 2); g.fill(); g.restore(); return; }
+    { const og = g.createRadialGradient(-4, -56, 1, 0, -52, 11.5); og.addColorStop(0, '#FFC76A'); og.addColorStop(.6, '#F09A2A'); og.addColorStop(1, '#C87416'); g.fillStyle = og; g.beginPath(); g.arc(0, -52, 11, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(255,255,255,.5)'; g.beginPath(); g.ellipse(-4.4, -56.4, 2.6, 1.6, -.6, 0, Math.PI * 2); g.fill(); g.fillStyle = '#7A5A1E'; g.beginPath(); g.arc(1, -62, 1.3, 0, Math.PI * 2); g.fill(); } // 97：だいだいに濃淡・つや・へた
+    g.fillStyle = '#5F9E5A'; g.beginPath(); g.ellipse(8, -62, 8, 4, -.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = 'rgba(40,90,45,.6)'; g.lineWidth = 1; g.beginPath(); g.moveTo(2, -60); g.lineTo(14, -64); g.stroke(); g.restore(); return; }
   if (kind === 'sakura') { g.save(); g.scale(w, w); g.translate(24, -6); // a cherry-blossom hair clip
     for (const [x, y, s] of [[0, 0, 1], [-18, 6, .7], [14, 10, .6]]) { g.save(); g.translate(x, y); g.scale(s, s); /* 着せかえ 84〜86：桜の髪かざり。花びらを先の割れた形に／根もとを濃く／しべ */
       for (let i = 0; i < 5; i++) { g.rotate(Math.PI * 2 / 5); const pg = g.createLinearGradient(0, 0, 0, -20); pg.addColorStop(0, '#EE9DB3'); pg.addColorStop(.5, '#F7C6D3'); pg.addColorStop(1, '#FDE6EC'); g.fillStyle = pg;
         g.beginPath(); g.moveTo(0, -1); g.bezierCurveTo(-9, -6, -9, -17, -3, -20); g.lineTo(0, -16.5); g.lineTo(3, -20); g.bezierCurveTo(9, -17, 9, -6, 0, -1); g.closePath(); g.fill(); }
       g.strokeStyle = '#D9668A'; g.lineWidth = .9; g.fillStyle = '#F6D36B'; for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2 + .3; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * 6, Math.sin(a) * 6); g.stroke(); g.beginPath(); g.arc(Math.cos(a) * 6, Math.sin(a) * 6, 1.1, 0, Math.PI * 2); g.fill(); }
       g.fillStyle = '#E8879E'; g.beginPath(); g.arc(0, 0, 2.4, 0, Math.PI * 2); g.fill(); g.restore(); } g.restore(); return; }
-  if (kind === 'heartband') { g.save(); g.scale(w, w); g.strokeStyle = '#C8463C'; g.lineWidth = 5; g.beginPath(); g.moveTo(-42, 2); g.quadraticCurveTo(0, -14, 42, 2); g.stroke();
-    for (const sd of [-1, 1]) { g.save(); g.translate(sd * 22, -34); g.strokeStyle = '#9E2B3A'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 26); g.lineTo(0, 8); g.stroke(); g.fillStyle = '#E8465E'; g.beginPath(); g.moveTo(0, 6); g.bezierCurveTo(-14, -6, -6, -18, 0, -9); g.bezierCurveTo(6, -18, 14, -6, 0, 6); g.fill(); g.restore(); } g.restore(); return; }
-  if (kind === 'starband') { g.save(); g.scale(w, w); g.strokeStyle = '#355F86'; g.lineWidth = 8; g.lineCap = 'round'; g.beginPath(); g.moveTo(-46, 2); g.quadraticCurveTo(0, -12, 46, 2); g.stroke();
-    g.fillStyle = '#F2C230'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 6 : 14; g.lineTo(Math.cos(a) * r, -10 + Math.sin(a) * r); } g.closePath(); g.fill(); g.restore(); return; }
+  if (kind === 'heartband') { g.save(); g.scale(w, w); /* 着せかえ 90〜93：ハートのカチューシャ。ジルは耳の外側に／ハートに濃淡とつや／ばねを渦巻きに／帯につや */
+    g.lineCap = 'round'; g.strokeStyle = '#C8463C'; g.lineWidth = 5; g.beginPath(); g.moveTo(-42, 2); g.quadraticCurveTo(0, -14, 42, 2); g.stroke(); g.strokeStyle = 'rgba(255,255,255,.3)'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(-34, -3); g.quadraticCurveTo(0, -15, 34, -3); g.stroke();
+    for (const sd of [-1, 1]) { g.save(); g.translate(sd * (HAT_OUT ? 40 : 22), HAT_OUT ? -24 : -34); g.rotate(sd * (HAT_OUT ? .3 : 0)); g.strokeStyle = '#9E2B3A'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(0, 26); for (let k = 0; k < 6; k++) g.quadraticCurveTo((k % 2 ? -1 : 1) * 4, 24.5 - k * 3, 0, 23 - k * 3); g.stroke();
+      const hg = g.createRadialGradient(-3, -9, 1, 0, -5, 13); hg.addColorStop(0, '#FF8C9C'); hg.addColorStop(.6, '#E8465E'); hg.addColorStop(1, '#B82B44'); g.fillStyle = hg; g.beginPath(); g.moveTo(0, 6); g.bezierCurveTo(-14, -6, -6, -18, 0, -9); g.bezierCurveTo(6, -18, 14, -6, 0, 6); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.ellipse(-4.2, -9, 2.2, 1.4, -.6, 0, Math.PI * 2); g.fill(); g.restore(); } g.restore(); return; }
+  if (kind === 'starband') { g.save(); g.scale(w, w); /* 着せかえ 94〜96：星のカチューシャ。星に濃淡とふち／帯につや／小さなきらめき */
+    g.strokeStyle = '#355F86'; g.lineWidth = 8; g.lineCap = 'round'; g.beginPath(); g.moveTo(-46, 2); g.quadraticCurveTo(0, -12, 46, 2); g.stroke(); g.strokeStyle = 'rgba(170,205,240,.5)'; g.lineWidth = 1.8; g.beginPath(); g.moveTo(-38, -3); g.quadraticCurveTo(0, -14.5, 38, -3); g.stroke();
+    { const sg = g.createLinearGradient(-10, -24, 10, 4); sg.addColorStop(0, '#FFF0A0'); sg.addColorStop(.5, '#F2C230'); sg.addColorStop(1, '#D49A1E'); g.fillStyle = sg; } g.strokeStyle = '#B98522'; g.lineWidth = 1.4; g.lineJoin = 'round';
+    g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 6.5 : 15; g.lineTo(Math.cos(a) * r, -10 + Math.sin(a) * r); } g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.moveTo(0, -24); g.lineTo(-3.4, -14.5); g.lineTo(0, -10); g.closePath(); g.fill();
+    g.fillStyle = '#FFF6C8'; for (const [x, y, r] of [[-24, -14, 2.2], [25, -15, 1.8], [-33, -6, 1.4]]) { g.beginPath(); g.moveTo(x, y - r * 2); g.quadraticCurveTo(x, y, x + r * 2, y); g.quadraticCurveTo(x, y, x, y + r * 2); g.quadraticCurveTo(x, y, x - r * 2, y); g.quadraticCurveTo(x, y, x, y - r * 2); g.fill(); } g.restore(); return; }
   if (kind === 'helmet') { g.save(); g.scale(w, w); // a site hard hat: the shell covers the head down to the brow, a short visor in front
     const gr = g.createLinearGradient(-H, -H, H * .6, 0); gr.addColorStop(0, '#FBD957'); gr.addColorStop(1, '#E6B21F'); g.fillStyle = gr;
     g.beginPath(); g.ellipse(0, -3, H * 1.06, H * .86, 0, Math.PI, 0); g.fill();
@@ -188,6 +202,7 @@ function hat(g, kind, w, H) { // H = half the width of the head where the brim s
     g.fillStyle = '#C48E12'; g.beginPath(); g.ellipse(0, 1, H * .62, 6, 0, 0, Math.PI); g.fill(); g.restore(); return; }
 }
 // put a hat on a head: x,y = the top of the head as before, hw = half the head's width at the brow, sink = how far the brow is below x,y
+let HAT_OUT = 0; // 立ち耳の子（ジル）がカチューシャをつける時：かざりを耳の外側へ
 const HAT_COVER = { helmet: 1, beret: 1, straw: 1, santa: 1, witch: 1, pumpkin: 1 }, HAT_PERCH = { crown: 1, kagami: 1 };
 /* 2026-11-15 オーナー：「帽子をただ載せただけのように見える」。かぶっている感じを出す 3 つ：
    ①ふちの下に、頭と耳にだけ落ちる柔らかい影（絵の外には落とさない） ②ふちの下から毛が少しのぞく ③帽子ごとに少しだけかたむける。who＝だれの頭か（毛の色に使う） */
@@ -460,7 +475,7 @@ function jillHead(g, mood) { // アニメの座標（頭の中心は 188,210）
    頭の上に帽子を置くと耳が隠れ、穴をあけると耳が帽子から突き出す。そこで、小さめの帽子を頭の横（向かって右）にかたむけてかぶる。両耳はそのまま見える。
    side＝1 前から・-1 後ろから（反対側に見える）。単位は顔の大きさ（帽子の後ろの耳は先に描いてある） */
 const JILL_HAT = { beret: [36, -36, 34, .5], helmet: [34, -36, 35, .42], straw: [34, -38, 31, .4], santa: [32, -38, 32, .45], witch: [30, -42, 30, .4], pumpkin: [38, -32, 27, .48], crown: [28, -46, 25, .3], kagami: [26, -48, 23, .24], antler: [0, -40, 40, 0], heartband: [0, -40, 40, 0], laurel: [0, -42, 40, 0] }; // カチューシャ・月桂冠は頭の上を左右に通るので、まん中に水平 // 王冠・鏡もちも横に（まん中にのせると耳が隠れた）
-function jillHat(g, hk, side, sway, up) { const f = JILL_HAT[hk] || [32, -42, 28, .4]; wearHat(g, hk, side * f[0], f[1] - (up || 0), .9, f[2], 8, 'jill', side * f[3] + (sway || 0)); }
+function jillHat(g, hk, side, sway, up) { const f = JILL_HAT[hk] || [32, -42, 28, .4]; HAT_OUT = 1; try { wearHat(g, hk, side * f[0], f[1] - (up || 0), .9, f[2], 8, 'jill', side * f[3] + (sway || 0)); } finally { HAT_OUT = 0; } }
 function faceJill(g, cx, cy, sc, mood) { g.save(); g.translate(cx, cy); g.scale(sc * RK.jil, sc * RK.jil); g.translate(-188, -210); jillHead(g, mood); g.restore(); }
 function pomEar(g, x, y, r, rot, back) { g.save(); g.translate(x, y); g.rotate(rot); g.beginPath(); g.ellipse(0, 0, r, r * 1.05, 0, 0, Math.PI * 2); g.fillStyle = '#8E786C'; g.fill(); g.beginPath(); g.ellipse(0, r * .12, r * .72, r * .78, 0, 0, Math.PI * 2); g.fillStyle = back ? '#A8928A' : '#E9A9A2'; g.fill();
   g.strokeStyle = 'rgba(70,55,50,.55)'; g.lineWidth = 1.5; g.beginPath(); g.arc(0, 0, r * .98, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); g.restore(); }
