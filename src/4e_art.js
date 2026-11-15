@@ -129,6 +129,9 @@ function paintCone(g, W, H) {
   const gr = g.createLinearGradient(W * .2, 0, W * .8, 0); gr.addColorStop(0, '#C9541C'); gr.addColorStop(.38, '#FF9A4A'); gr.addColorStop(1, '#B4461A');
   g.fillStyle = gr; g.beginPath(); g.moveTo(W * .44, H * .04); g.lineTo(W * .56, H * .04); g.lineTo(W * .82, H * .89); g.lineTo(W * .18, H * .89); g.closePath(); g.fill();
   g.save(); g.clip(); const wg = g.createLinearGradient(W * .2, 0, W * .8, 0); wg.addColorStop(0, '#C9CDD0'); wg.addColorStop(.38, '#FFFFFF'); wg.addColorStop(1, '#AEB3B7'); g.fillStyle = wg; g.fillRect(0, H * .3, W, H * .12); g.fillRect(0, H * .58, W, H * .1); g.restore();
+  /* 見た目 103〜105：コーン。先の丸いキャップ／台のふちの光／よごれのかすれ */
+  g.fillStyle = '#FFB070'; g.beginPath(); g.ellipse(W / 2, H * .04, W * .06, H * .012, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(255,255,255,.18)'; rrect(g, W * .08, H * .885, W * .84, H * .02, 2); g.fill();
+  g.fillStyle = 'rgba(60,40,25,.14)'; for (const [x, y, w, h] of [[.3, .8, .16, .05], [.52, .5, .1, .04], [.42, .22, .06, .05]]) { g.beginPath(); g.ellipse(W * x, H * y, W * w, H * h, .3, 0, Math.PI * 2); g.fill(); }
 }
 function paintBarrier(g, W, H) { /* 見た目 28〜32：工事のさく。板のふちと厚み／しまのつや消しの濃淡／脚を丸いパイプに／おもりの台／ランプにガラスのつやと台 */
   g.fillStyle = 'rgba(0,0,0,.3)'; g.beginPath(); g.ellipse(W / 2, H - 4, W * .48, 6, 0, 0, Math.PI * 2); g.fill();
@@ -145,6 +148,11 @@ function paintBench(g, W, H) {
   for (let k = 0; k < 3; k++) { const y = H * (.38 + k * .1); g.fillStyle = vgrad(g, y, y + H * .07, [[0, '#C8945F'], [1, '#8C6038']]); rrect(g, W * .02, y, W * .96, H * .07, 3); g.fill(); }
   for (let k = 0; k < 2; k++) { const y = H * (.04 + k * .14); g.fillStyle = vgrad(g, y, y + H * .09, [[0, '#C8945F'], [1, '#8C6038']]); rrect(g, W * .04, y, W * .92, H * .09, 3); g.fill(); }
   g.fillStyle = '#3E4650'; g.fillRect(W * .1, H * .02, W * .04, H * .4); g.fillRect(W * .86, H * .02, W * .04, H * .4);
+  /* 見た目 90〜93：ベンチ。板の木目／ボルト／鉄のひじかけ／脚の足 */
+  g.strokeStyle = 'rgba(70,40,15,.25)'; g.lineWidth = 1; for (const y of [.085, .225, .415, .515, .615]) { g.beginPath(); g.moveTo(W * .06, H * y); g.quadraticCurveTo(W * .5, H * (y + .012), W * .94, H * y); g.stroke(); }
+  g.fillStyle = '#C9CDD2'; for (const x of [.12, .88]) for (const y of [.085, .225, .415, .515, .615]) { g.beginPath(); g.arc(W * x, H * y, 2, 0, Math.PI * 2); g.fill(); }
+  g.strokeStyle = '#2E353D'; g.lineWidth = W * .022; g.lineCap = 'round'; for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(W * (.5 + sd * .47), H * .5); g.quadraticCurveTo(W * (.5 + sd * .5), H * .28, W * (.5 + sd * .43), H * .27); g.stroke(); }
+  g.fillStyle = '#2E353D'; for (const x of [.06, .84]) { rrect(g, W * x, H * .94, W * .1, H * .05, 2); g.fill(); }
 }
 function paintCardboard(g, W, H) {
   g.fillStyle = 'rgba(0,0,0,.3)'; g.beginPath(); g.ellipse(W / 2, H - 4, W * .5, 7, 0, 0, Math.PI * 2); g.fill();
@@ -271,11 +279,14 @@ function paintStools(g, W, H) { /* 見た目 6〜9：丸いす。座面のふく
     g.strokeStyle = 'rgba(110,25,20,.5)'; g.lineWidth = 1.5; g.beginPath(); g.ellipse(cx, H * .135, W * .2, H * .09, 0, 0, Math.PI * 2); g.stroke();
     g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.ellipse(cx - W * .07, H * .095, W * .08, H * .028, -.2, 0, Math.PI * 2); g.fill(); }
 }
-function paintUmbrellas(g, W, H) {
+function paintUmbrellas(g, W, H) { /* 見た目 86〜89：かさ立て。かさを、たたんだ布のふくらみとベルトのある形に／木の J の持ち手／かさ立てに横の濃淡とふち／水受け */
   SH(g, W, H); const cs = ['#C8463C', '#F2C230', '#3B2A20', '#355F86'];
-  cs.forEach((c, k) => { const x = W * (.24 + k * .17), top = H * (.04 + (k % 2) * .08); g.strokeStyle = shadeHex(c, .8); g.lineWidth = W * .07; g.lineCap = 'round'; g.beginPath(); g.moveTo(x, H * .55); g.lineTo(x + (k - 1.5) * 4, top + H * .06); g.stroke();
-    g.strokeStyle = '#3B2A20'; g.lineWidth = 3; g.beginPath(); g.arc(x + (k - 1.5) * 4 + 6, top + H * .06, 7, Math.PI, 0, true); g.stroke(); });
-  g.fillStyle = vgrad(g, H * .5, H, [[0, '#6A8FB5'], [1, '#3E5F80']]); rrect(g, W * .12, H * .5, W * .76, H * .48, 10); g.fill(); g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(W * .16, H * .54, W * .1, H * .4);
+  cs.forEach((c, k) => { const x = W * (.24 + k * .17), top = H * (.06 + (k % 2) * .08), lean = (k - 1.5) * 4; g.save(); g.translate(x, H * .56); g.rotate(-lean * .012);
+    g.fillStyle = vgrad(g, -H * .46, 0, [[0, shadeHex(c, 1.15)], [1, shadeHex(c, .7)]]); g.beginPath(); g.moveTo(-W * .012, top - H * .5); g.lineTo(W * .012, top - H * .5); g.quadraticCurveTo(W * .055, -H * .2, W * .03, 0); g.lineTo(-W * .03, 0); g.quadraticCurveTo(-W * .055, -H * .2, -W * .012, top - H * .5); g.fill();
+    g.strokeStyle = shadeHex(c, .55); g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, top - H * .48); g.lineTo(0, 0); g.stroke(); g.fillStyle = shadeHex(c, .5); g.fillRect(-W * .04, -H * .22, W * .08, H * .018);
+    g.strokeStyle = '#7A4E2C'; g.lineWidth = 3.4; g.lineCap = 'round'; g.beginPath(); g.moveTo(0, top - H * .5); g.lineTo(0, top - H * .56); g.arc(7, top - H * .56, 7, Math.PI, 0); g.stroke(); g.restore(); });
+  { const bg = g.createLinearGradient(W * .12, 0, W * .88, 0); bg.addColorStop(0, '#4A6C8E'); bg.addColorStop(.3, '#7FA4C8'); bg.addColorStop(1, '#3A5876'); g.fillStyle = bg; } rrect(g, W * .12, H * .5, W * .76, H * .47, 10); g.fill();
+  g.fillStyle = '#35506B'; rrect(g, W * .1, H * .49, W * .8, H * .04, 5); g.fill(); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(W * .12, H * .495, W * .76, 2); g.fillStyle = '#2B3F54'; rrect(g, W * .08, H * .94, W * .84, H * .045, 4); g.fill();
 }
 function paintCopier(g, W, H) {
   SH(g, W, H); g.fillStyle = vgrad(g, H * .2, H, [[0, '#E9ECEF'], [1, '#B9C0C7']]); rrect(g, W * .03, H * .14, W * .94, H * .84, 8); g.fill();
@@ -287,11 +298,17 @@ function paintMug(g, W, H) {
   g.fillStyle = vgrad(g, 0, H, [[0, '#FFFFFF'], [1, '#D9D2C6']]); rrect(g, W * .06, H * .04, W * .74, H * .94, [6, 6, 22, 22]); g.fill();
   g.fillStyle = '#4E77A0'; g.fillRect(W * .06, H * .36, W * .74, H * .12); g.fillStyle = '#6B4631'; g.beginPath(); g.ellipse(W * .43, H * .06, W * .34, H * .04, 0, 0, Math.PI * 2); g.fill();
   g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = 3; g.beginPath(); g.moveTo(W * .3, H * .02); g.quadraticCurveTo(W * .25, -H * .1, W * .35, -H * .2); g.stroke();
+  /* 見た目 100〜102：マグカップ。横の丸みの濃淡／口のふちの厚み／帯のつや */
+  { const mg = g.createLinearGradient(W * .06, 0, W * .8, 0); mg.addColorStop(0, 'rgba(120,100,80,.2)'); mg.addColorStop(.25, 'rgba(255,255,255,.3)'); mg.addColorStop(.6, 'rgba(255,255,255,0)'); mg.addColorStop(1, 'rgba(120,100,80,.26)'); g.fillStyle = mg; rrect(g, W * .06, H * .04, W * .74, H * .94, [6, 6, 22, 22]); g.fill(); }
+  g.strokeStyle = '#FFFFFF'; g.lineWidth = 3; g.beginPath(); g.ellipse(W * .43, H * .06, W * .355, H * .045, 0, 0, Math.PI * 2); g.stroke(); g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(W * .16, H * .37, W * .1, H * .1);
 }
 function paintToys(g, W, H) {
   SH(g, W, H); const blk = (x, y, s, c) => { g.fillStyle = vgrad(g, y, y + s, [[0, shadeHex(c, 1.15)], [1, shadeHex(c, .75)]]); rrect(g, x, y, s, s, 6); g.fill(); };
   blk(W * .02, H * .52, W * .42, '#E86A75'); blk(W * .5, H * .52, W * .42, '#4E77A0'); blk(W * .26, H * .1, W * .42, '#F2C230');
   g.fillStyle = '#FBF6EE'; g.font = `900 ${Math.round(W * .26)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('A', W * .23, H * .74); g.fillText('B', W * .71, H * .74); g.fillText('C', W * .47, H * .32);
+  /* 見た目 98〜99：つみ木。上と左のふちに光・下と右にかげ（面取り）／文字のまわりのくぼみの輪 */
+  for (const [x, y] of [[W * .02, H * .52], [W * .5, H * .52], [W * .26, H * .1]]) { const sz = W * .42; g.fillStyle = 'rgba(255,255,255,.28)'; g.fillRect(x + 5, y + 2, sz - 10, 3); g.fillRect(x + 2, y + 5, 3, sz - 10); g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(x + 5, y + sz - 5, sz - 10, 3); g.fillRect(x + sz - 5, y + 5, 3, sz - 10);
+    g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 2; rrect(g, x + sz * .13, y + sz * .13, sz * .74, sz * .74, 5); g.stroke(); }
 }
 function paintCushions(g, W, H) { // two zabuton cushions stacked: plump, with the centre tuft and corner tassels
   g.fillStyle = 'rgba(40,30,20,.28)'; g.beginPath(); g.ellipse(W / 2, H - 6, W * .47, 7, 0, 0, Math.PI * 2); g.fill();
@@ -314,7 +331,12 @@ function paintClock(g, W, H) {
   SH(g, W, H); g.fillStyle = '#C9962F'; for (const x of [.22, .78]) { g.beginPath(); g.arc(W * x, H * .14, W * .14, Math.PI, 0); g.fill(); }
   g.strokeStyle = '#3B2A20'; g.lineWidth = 5; g.beginPath(); g.moveTo(W * .2, H * .98); g.lineTo(W * .3, H * .82); g.moveTo(W * .8, H * .98); g.lineTo(W * .7, H * .82); g.stroke();
   g.fillStyle = vgrad(g, H * .14, H * .9, [[0, '#E86A5F'], [1, '#A8352C']]); g.beginPath(); g.arc(W / 2, H * .52, W * .42, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#FBF6EE'; g.beginPath(); g.arc(W / 2, H * .52, W * .32, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#2B2B2B'; g.lineWidth = 4; g.beginPath(); g.moveTo(W / 2, H * .52); g.lineTo(W / 2, H * .3); g.moveTo(W / 2, H * .52); g.lineTo(W * .66, H * .58); g.stroke();
+  g.fillStyle = '#FBF6EE'; g.beginPath(); g.arc(W / 2, H * .52, W * .32, 0, Math.PI * 2); g.fill(); /* 見た目 94〜97：目ざまし時計。文字盤の目もり／ベルのつやと、まん中のハンマー／針の中心のとめ具／ガラスのうつりこみ */
+  g.fillStyle = '#3B2A20'; for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, r0 = W * (i % 3 ? .285 : .265), r1 = W * .305; g.save(); g.translate(W / 2, H * .52); g.rotate(a); g.fillRect(-(i % 3 ? 1 : 2), -r1, i % 3 ? 2 : 4, r1 - r0); g.restore(); }
+  g.strokeStyle = '#2B2B2B'; g.lineCap = 'round'; g.lineWidth = 5; g.beginPath(); g.moveTo(W / 2, H * .52); g.lineTo(W * .66, H * .58); g.stroke(); g.lineWidth = 3.4; g.beginPath(); g.moveTo(W / 2, H * .52); g.lineTo(W / 2, H * .29); g.stroke(); g.strokeStyle = '#C8463C'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(W / 2, H * .52); g.lineTo(W * .36, H * .66); g.stroke();
+  g.fillStyle = '#C9962F'; g.beginPath(); g.arc(W / 2, H * .52, W * .03, 0, Math.PI * 2); g.fill();
+  g.fillStyle = 'rgba(255,255,255,.4)'; for (const x of [.17, .73]) { g.beginPath(); g.ellipse(W * x, H * .08, W * .05, H * .02, -.4, 0, Math.PI * 2); g.fill(); } g.fillStyle = '#8A6A1E'; g.fillRect(W * .485, H * .02, W * .03, H * .1); g.beginPath(); g.arc(W / 2, H * .025, W * .035, 0, Math.PI * 2); g.fill();
+  g.fillStyle = 'rgba(255,255,255,.28)'; g.beginPath(); g.ellipse(W * .38, H * .38, W * .12, H * .05, -.7, 0, Math.PI * 2); g.fill();
 }
 function paintBinoculars(g, W, H) { /* 見た目 10〜13：展望台の望遠鏡。箱に黒丸 2 つ → 丸い鏡筒とレンズのガラス／コイン投入口／支柱のくびれ／台座のボルト */
   SH(g, W, H); g.fillStyle = vgrad(g, H * .4, H, [[0, '#6A7682'], [1, '#2F3B47']]); g.beginPath(); g.moveTo(W * .4, H * .38); g.lineTo(W * .6, H * .38); g.lineTo(W * .57, H * .86); g.lineTo(W * .43, H * .86); g.closePath(); g.fill();
@@ -326,10 +348,14 @@ function paintBinoculars(g, W, H) { /* 見た目 10〜13：展望台の望遠鏡
     g.fillStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.ellipse(cx - r * .32, cy - r * .36, r * .2, r * .12, -.6, 0, Math.PI * 2); g.fill(); }
   g.fillStyle = '#2B343D'; rrect(g, W * .455, H * .12, W * .09, H * .18, 3); g.fill(); g.fillStyle = '#C9D2DA'; g.fillRect(W * .485, H * .15, W * .03, H * .07);
 }
-function paintGacha(g, W, H) {
-  SH(g, W, H); for (const [x, c] of [[.01, '#E86A75'], [.51, '#4E77A0']]) { g.fillStyle = vgrad(g, H * .5, H, [[0, shadeHex(c, 1.1)], [1, shadeHex(c, .7)]]); rrect(g, W * x, H * .52, W * .48, H * .46, 6); g.fill();
-    g.fillStyle = 'rgba(220,240,250,.85)'; rrect(g, W * (x + .02), H * .04, W * .44, H * .48, 6); g.fill(); const r = rnd(x * 10 + 2); for (let k = 0; k < 9; k++) { g.fillStyle = ['#F2C230', '#E86A75', '#7FD06A', '#C792EA', '#FBF6EE'][(r() * 5) | 0]; g.beginPath(); g.arc(W * (x + .08 + r() * .32), H * (.2 + r() * .28), W * .05, 0, Math.PI * 2); g.fill(); }
-    g.fillStyle = '#C9CDD2'; g.beginPath(); g.arc(W * (x + .24), H * .7, W * .07, 0, Math.PI * 2); g.fill(); }
+function paintGacha(g, W, H) { /* 見た目 73〜77：カプセルの機械。カプセルを 2 色のたまに／ガラスのうつりこみとふち／ハンドルを回すつまみに／取り出し口／値札の丸 */
+  SH(g, W, H); for (const [x, c] of [[.01, '#E86A75'], [.51, '#4E77A0']]) { const x0 = W * x; g.fillStyle = vgrad(g, H * .5, H, [[0, shadeHex(c, 1.14)], [1, shadeHex(c, .68)]]); rrect(g, x0, H * .5, W * .48, H * .48, 7); g.fill();
+    g.fillStyle = shadeHex(c, .8); rrect(g, x0, H * .02, W * .48, H * .5, 7); g.fill(); g.fillStyle = 'rgba(226,242,250,.95)'; rrect(g, x0 + W * .025, H * .045, W * .43, H * .45, 5); g.fill();
+    const r = rnd(x * 10 + 2); for (let k = 0; k < 11; k++) { const cx = x0 + W * (.08 + r() * .32), cy = H * (.2 + r() * .26), rr = W * .052, col = ['#F2C230', '#E86A75', '#7FD06A', '#C792EA', '#5FA8E0'][(r() * 5) | 0];
+      g.fillStyle = '#FBF6EE'; g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.fill(); g.fillStyle = col; g.beginPath(); g.arc(cx, cy, rr, Math.PI, 0); g.fill(); g.strokeStyle = 'rgba(0,0,0,.14)'; g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.stroke(); g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.arc(cx - rr * .35, cy - rr * .4, rr * .2, 0, Math.PI * 2); g.fill(); }
+    g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.moveTo(x0 + W * .04, H * .06); g.lineTo(x0 + W * .15, H * .06); g.lineTo(x0 + W * .07, H * .48); g.lineTo(x0 + W * .04, H * .48); g.closePath(); g.fill();
+    { const cx = x0 + W * .17, cy = H * .68, rr = W * .075; const kg = g.createRadialGradient(cx - rr * .3, cy - rr * .3, 1, cx, cy, rr); kg.addColorStop(0, '#FFFFFF'); kg.addColorStop(1, '#9AA4AD'); g.fillStyle = kg; g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.fill(); g.fillStyle = '#6E7B88'; rrect(g, cx - rr * .9, cy - rr * .2, rr * 1.8, rr * .4, 3); g.fill(); }
+    g.fillStyle = 'rgba(20,20,26,.7)'; rrect(g, x0 + W * .28, H * .78, W * .15, H * .14, 5); g.fill(); g.fillStyle = '#FBF6EE'; g.beginPath(); g.arc(x0 + W * .36, H * .63, W * .04, 0, Math.PI * 2); g.fill(); g.fillStyle = shadeHex(c, .7); g.beginPath(); g.arc(x0 + W * .36, H * .63, W * .022, 0, Math.PI * 2); g.fill(); }
 }
 function paintTripod(g, W, H) { /* 見た目 37〜40：三脚のカメラ。脚を 2 段のパイプに／カメラにレンズのガラス・グリップ・シャッター／カメラバッグにふたとベルト／雲台 */
   SH(g, W, H); g.fillStyle = vgrad(g, H * .56, H, [[0, '#55636F'], [1, '#2B3640']]); rrect(g, W * .22, H * .6, W * .56, H * .38, 9); g.fill(); g.fillStyle = vgrad(g, H * .56, H * .7, [[0, '#63717D'], [1, '#3C4854']]); rrect(g, W * .2, H * .57, W * .6, H * .12, 8); g.fill();
@@ -549,13 +575,22 @@ function paintBookcart(g, W, H) {
   const r = rnd(12); let x = W * .07; while (x < W * .92) { const w = W * (.03 + r() * .04); g.fillStyle = ['#C8463C', '#355F86', '#E9E2D5', '#8A5530', '#5F9E5A', '#C9962F'][(r() * 6) | 0]; g.fillRect(x, H * (.12 + r() * .06), w - 1, H * .3); x += w; }
   g.fillStyle = '#FBF6EE'; rrect(g, W * .3, H * .5, W * .4, H * .16, 3); g.fill(); g.fillStyle = '#3B2A20'; g.font = `900 ${Math.round(H * .1)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('均一', W / 2, H * .58);
 }
-function paintFishbox(g, W, H) {
-  SH(g, W, H); g.fillStyle = vgrad(g, H * .4, H, [[0, '#A06A3E'], [1, '#6E4426']]); g.fillRect(W * .04, H * .45, W * .92, H * .53);
-  for (const x of [.06, .52]) { g.fillStyle = '#F7F9FA'; rrect(g, W * x, H * .2, W * .42, H * .28, 4); g.fill(); g.fillStyle = '#C8D9E6'; g.fillRect(W * (x + .02), H * .22, W * .38, H * .08);
-    for (let k = 0; k < 3; k++) { g.fillStyle = x < .3 ? '#9FB4C6' : '#E9A07A'; g.beginPath(); g.ellipse(W * (x + .1 + k * .11), H * .3, W * .05, H * .03, .3, 0, Math.PI * 2); g.fill(); } }
+function paintFishbox(g, W, H) { /* 見た目 78〜81：魚の箱。魚を、尾と目のある形に／氷のつぶ／発泡スチロールの箱のふちと厚み／木の台の板目 */
+  SH(g, W, H); g.fillStyle = vgrad(g, H * .4, H, [[0, '#A06A3E'], [1, '#6E4426']]); g.fillRect(W * .04, H * .45, W * .92, H * .53); g.strokeStyle = 'rgba(50,28,12,.35)'; g.lineWidth = 1.5; for (const y of [.6, .76, .9]) { g.beginPath(); g.moveTo(W * .04, H * y); g.lineTo(W * .96, H * y); g.stroke(); } g.fillStyle = 'rgba(255,255,255,.14)'; g.fillRect(W * .04, H * .45, W * .92, H * .03);
+  for (const x of [.06, .52]) { const x0 = W * x; g.fillStyle = '#DCE3E8'; rrect(g, x0, H * .2, W * .42, H * .3, 5); g.fill(); g.fillStyle = '#F7F9FA'; rrect(g, x0, H * .18, W * .42, H * .27, 5); g.fill(); g.fillStyle = vgrad(g, H * .2, H * .42, [[0, '#D5E6F2'], [1, '#B4CDDF']]); rrect(g, x0 + W * .02, H * .205, W * .38, H * .21, 3); g.fill();
+    const r = rnd(x * 7 + 3); g.fillStyle = 'rgba(255,255,255,.8)'; for (let k = 0; k < 16; k++) g.fillRect(x0 + W * (.03 + r() * .35), H * (.215 + r() * .18), 3, 3);
+    for (let k = 0; k < 3; k++) { const cx = x0 + W * (.1 + k * .11), cy = H * (.3 + (k % 2) * .03), col = x < .3 ? ['#8FA9BE', '#5F7C94'] : ['#EFA583', '#C96F4A']; g.save(); g.translate(cx, cy); g.rotate(-.25);
+      g.fillStyle = col[1]; g.beginPath(); g.moveTo(W * .045, 0); g.lineTo(W * .075, -H * .03); g.lineTo(W * .075, H * .03); g.closePath(); g.fill(); const fg = g.createLinearGradient(0, -H * .03, 0, H * .03); fg.addColorStop(0, col[1]); fg.addColorStop(.5, col[0]); fg.addColorStop(1, '#F3F1EC'); g.fillStyle = fg; g.beginPath(); g.ellipse(0, 0, W * .055, H * .03, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#FBF6EE'; g.beginPath(); g.arc(-W * .035, -H * .006, 2.2, 0, Math.PI * 2); g.fill(); g.fillStyle = '#1C1C1E'; g.beginPath(); g.arc(-W * .035, -H * .006, 1.1, 0, Math.PI * 2); g.fill(); g.restore(); } }
 }
-function paintCooler(g, W, H) { SH(g, W, H); g.fillStyle = vgrad(g, H * .3, H, [[0, '#F7F9FA'], [1, '#C9D2DA']]); rrect(g, W * .14, H * .32, W * .72, H * .66, 6); g.fill();
-  g.fillStyle = 'rgba(150,200,240,.8)'; rrect(g, W * .2, H * .0, W * .6, H * .34, [18, 18, 4, 4]); g.fill(); g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(W * .28, H * .04, W * .08, H * .26); g.fillStyle = '#4E77A0'; g.fillRect(W * .4, H * .5, W * .2, H * .06); }
+function paintCooler(g, W, H) { /* 見た目 82〜85：ウォーターサーバー。水のボトルに水面とあわ／出口のコック 2 つ（赤・青）／受け皿／本体の横の濃淡 */
+  SH(g, W, H); { const bg = g.createLinearGradient(W * .14, 0, W * .86, 0); bg.addColorStop(0, '#D4DCE3'); bg.addColorStop(.3, '#FFFFFF'); bg.addColorStop(1, '#BFC9D2'); g.fillStyle = bg; } rrect(g, W * .14, H * .32, W * .72, H * .66, 7); g.fill();
+  g.fillStyle = 'rgba(150,200,240,.75)'; rrect(g, W * .2, H * .0, W * .6, H * .34, [20, 20, 4, 4]); g.fill(); g.fillStyle = 'rgba(90,160,220,.45)'; rrect(g, W * .2, H * .08, W * .6, H * .26, [4, 4, 4, 4]); g.fill(); g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(W * .2, H * .078, W * .6, 2);
+  g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(W * .27, H * .03, W * .07, H * .28); for (const [x, y, r] of [[.52, .22, 3], [.6, .15, 2], [.47, .12, 2]]) { g.beginPath(); g.arc(W * x, H * y, r, 0, Math.PI * 2); g.fill(); }
+  g.fillStyle = '#E7ECF0'; rrect(g, W * .2, H * .44, W * .6, H * .2, 5); g.fill(); g.fillStyle = 'rgba(0,0,0,.1)'; g.fillRect(W * .2, H * .44, W * .6, 3);
+  for (const [x, c] of [[.38, '#C8463C'], [.62, '#4E77A0']]) { g.fillStyle = '#8A9098'; g.fillRect(W * x - 3, H * .5, 6, H * .06); g.fillStyle = c; rrect(g, W * x - 9, H * .47, 18, H * .04, 3); g.fill(); }
+  g.fillStyle = '#9AA4AD'; rrect(g, W * .26, H * .62, W * .48, H * .025, 2); g.fill(); g.fillStyle = 'rgba(0,0,0,.08)'; g.fillRect(W * .14, H * .7, W * .72, 2);
+}
 function paintDesk(g, W, H) {
   SH(g, W, H, .22); g.fillStyle = '#9AA9B6'; g.fillRect(W * .06, H * .5, W * .05, H * .48); g.fillRect(W * .89, H * .5, W * .05, H * .48);
   g.fillStyle = vgrad(g, H * .44, H * .52, [[0, '#F3EFE8'], [1, '#C9C3B8']]); g.fillRect(W * .02, H * .44, W * .96, H * .08); g.fillStyle = '#B9C0C7'; g.fillRect(W * .56, H * .52, W * .32, H * .4);
