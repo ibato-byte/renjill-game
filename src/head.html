@@ -498,4 +498,32 @@ button[disabled]{cursor:default}
 /* 設定「画面の揺れ・演出をひかえめに」と、端末の「視差効果を減らす」：画面の飾りの動きも止める */
 html.calm *,html.calm *::before,html.calm *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 html.calm .howanim .ha-cap span:first-child{opacity:1}
+
+/* ---- ホーム画面の作り直し（2026-11-15。オーナー：「ホームの映像だけでも楽しめるデザインに」）----
+   たて長の画面：部屋と 3 人を画面の上半分にそのまま見せ、メニューは下からのぞく「すりガラスの札」にする（前は札が 3 人を隠していた）。下へなぞると全部のメニューが出る */
+@media (max-aspect-ratio:4/5){
+  #sTitle{padding-left:0;padding-right:0;padding-bottom:0;scroll-snap-type:none}
+  #sTitle .logo{margin-top:0;margin-bottom:0;padding-top:max(1vh,8px)}
+  #sTitle .logo h1{font-size:clamp(30px,min(10.5vw,7vh),64px)}
+  #sTitle .logo .ja{margin-top:6px}
+  #sTitle .card{margin-top:clamp(150px,calc(58vh - 215px),330px);width:100%;max-width:none;border-radius:26px 26px 0 0;padding:20px 16px calc(18px + env(safe-area-inset-bottom,0px));position:relative;
+    background:linear-gradient(180deg,rgba(251,246,238,.86),rgba(251,246,238,.97) 120px);-webkit-backdrop-filter:blur(14px) saturate(1.15);backdrop-filter:blur(14px) saturate(1.15);
+    box-shadow:0 -10px 30px rgba(59,42,32,.22),inset 0 1px 0 rgba(255,255,255,.8)}
+  #sTitle .card::before{content:"";position:absolute;left:50%;top:8px;width:44px;height:5px;margin-left:-22px;border-radius:3px;background:rgba(59,42,32,.22)}
+  #sTitle .chars .char canvas{max-width:min(100%,76px,9vh)}
+  #sTitle .small-print{background:rgba(251,246,238,.97);width:100%;margin:0;padding:6px 16px;box-sizing:border-box}
+  #sTitle .small-print.fol{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+}
+#sTitle{isolation:isolate} /* 中の重なり順を、ほかの画面（設定・言語えらび）の上に出さない（2026-11-15：言語えらびが押せなくなった。qa/langbtn.js が見つけた） */
+/* 題名の上に、うすい影のグラデーション（部屋が明るくても題名が読める）。たて長だけ */
+@media (max-aspect-ratio:4/5){ #sTitle::before{content:"";position:absolute;left:0;right:0;top:0;height:230px;pointer-events:none;background:linear-gradient(180deg,rgba(43,29,18,.42),rgba(43,29,18,.16) 60%,rgba(43,29,18,0));z-index:0} #sTitle>*:not(.langtop){position:relative;z-index:1} #sTitle .langtop{z-index:3} #sTitle .card{z-index:2} }
+/* 横長の画面（PC・タブレット横）：メニューの札は右に寄せ、部屋と 3 人を左に大きく見せる（前は札が画面のまん中で 3 人を隠していた） */
+@media (min-aspect-ratio:5/4) and (min-width:900px){
+  #sTitle{align-items:flex-start;padding-left:max(4vw,24px);overflow:hidden}
+  #sTitle .logo{margin:0 0 12px;padding-top:max(2vh,10px);text-align:left}
+  #sTitle .logo h1{font-size:clamp(44px,8.5vh,84px)}
+  #sTitle .card{position:absolute;right:max(3.5vw,22px);top:50%;transform:translateY(-52%);max-height:calc(100% - 70px);overflow-y:auto;width:min(400px,36vw);background:rgba(251,246,238,.93);-webkit-backdrop-filter:blur(14px) saturate(1.15);backdrop-filter:blur(14px) saturate(1.15);box-shadow:0 14px 40px rgba(59,42,32,.28),inset 0 1px 0 rgba(255,255,255,.8)}
+  #sTitle .small-print{position:absolute;left:max(4vw,24px);bottom:34px;text-align:left;margin:0}
+  #sTitle .small-print.fol{bottom:12px}
+}
 </style>

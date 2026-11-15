@@ -86,6 +86,7 @@ function buildTitleRoom(seg) {
   dec('tansuW', 1, -1.2, 1.5, 0, 1.65); // the chest of drawers, painted flat against the wall so its lines stay true
   seg.spr.push({ lat: -4.0, s: .5, y: 0, w: .9, h: 1.9, img: artKey('andon', '0'), pn: 1, keep: 1, gnd: .3 });
 }
+let TITLE_PITCH = .2, TITLE_WIDE = -.9;
 function titleFrame(dt) {
   const seg = G.segs[0], me = G.char, other = me === 'ren' ? 'jill' : 'ren', third = me === 'pom' ? 'jill' : 'pom';
   const P = G.player, F = G.follow;
@@ -99,8 +100,11 @@ function titleFrame(dt) {
   const pR = me === 'pom' ? segPos(seg, 2.6, -1.85) : segPos(seg, 3.2, me === 'ren' ? -.75 : .75), pJ = me === 'pom' ? segPos(seg, 3.2, -.75) : segPos(seg, 3.5, me === 'ren' ? .8 : -.8); // with Pom picked, the rookie bounces in front, the boss beside him
   [P.wx, P.wz] = pR; P.wy = pR[2] + (me === 'pom' ? Math.abs(Math.sin(G.t * 5)) * .07 : Math.abs(Math.sin(P.ph)) * .05); [F.wx, F.wz] = pJ; F.wy = pJ[2] + (me === 'ren' ? Math.abs(Math.sin(G.t * 6)) * .03 * ((G.t % 7) > 5.6) : 0);
   P.air = F.air = P.slide = F.slide = false; P.tilt = F.tilt = 0; P.fly = F.fly = 0;
-  const cp = segPos(seg, 6.6 - Math.sin(G.t * .11) * .2, Math.sin(G.t * .23) * .3);
-  CAM.x = cp[0]; CAM.z = cp[1]; CAM.y = 1.1 + cp[2] + Math.sin(G.t * .7) * .015; CAM.yaw = Math.PI + Math.sin(G.t * .17) * .02; CAM.pitch = .06;
+  /* たて長の画面（スマホ）：3 人が画面の上半分のまん中に全員おさまるよう、カメラを引いて 3 人のまん中に寄せる（2026-11-15 ホーム画面の作り直し：前は 3 人が見切れ、しかもメニューの札の後ろに隠れていた） */
+  const tall = W < H * .8, mid = me === 'pom' ? -.6 : me === 'ren' ? .55 : -.55;
+  const wide = W > H * 1.25 && W >= 900; // 横長：札が右にあるので、3 人が左のまん中に来るようカメラを右へ
+  const cp = segPos(seg, (tall ? 7.9 : wide ? 6.9 : 6.6) - Math.sin(G.t * .11) * .2, (tall ? mid : wide ? TITLE_WIDE : 0) + Math.sin(G.t * .23) * (tall ? .18 : .3));
+  CAM.x = cp[0]; CAM.z = cp[1]; CAM.y = (tall ? 1.02 : 1.1) + cp[2] + Math.sin(G.t * .7) * .015; CAM.yaw = Math.PI + Math.sin(G.t * .17) * .02; CAM.pitch = tall ? TITLE_PITCH : .06;
   camPrep(); P.depth = me === 'pom' ? 4.8 : 4.2; F.depth = me === 'pom' ? 4.2 : 3.9;
   // once you have met Pom, the rookie peeks out on the title screen too, bouncing with excitement
   const M = G.pom; M.title = !!SV.pomMet; M.show = M.title;
