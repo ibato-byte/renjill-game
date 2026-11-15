@@ -93,11 +93,13 @@ function fitTry(row) { const c = CLOSET.find(x => x.id === row.dataset.try); if 
 const CLOSET_ICON = {};
 function closetIcon(c) { // a small picture of the item
   if (CLOSET_ICON[c.id]) return CLOSET_ICON[c.id];
-  const cv = mk(64), g = cv.getContext('2d') || noCtx(); g.translate(32, 40);
+  const cv = mk(128), g = cv.getContext('2d') || noCtx(); g.scale(2, 2); // 2 倍の細かさで描く（小さな絵がぼやけていた）
+  { const sh = g.createRadialGradient(32, 56, 1, 32, 56, 20); sh.addColorStop(0, 'rgba(59,42,32,.2)'); sh.addColorStop(1, 'rgba(59,42,32,0)'); g.save(); g.translate(32, 56); g.scale(1, .28); g.translate(-32, -56); g.fillStyle = sh; g.beginPath(); g.arc(32, 56, 20, 0, 7); g.fill(); g.restore(); } // 品物の下に、うすい影
+  g.translate(32, 40);
   if (c.slot === 'tie') { const keep = WEAR.ren.tie; WEAR.ren.tie = c.v; g.scale(.7, .7); g.translate(0, -36); tie(g, 0, 0, 60, 0); WEAR.ren.tie = keep; }
   else if (c.slot === 'frame') { const keep = WEAR.jill.frame; WEAR.jill.frame = c.v; g.scale(.9, .9); glasses(g, -14, 14, -6, 12); WEAR.jill.frame = keep; }
   else if (c.slot === 'band') { const keep = WEAR.pom.band; WEAR.pom.band = c.v; g.scale(.55, .55); g.translate(0, -10); headband(g, 0, 0, 48, 0); WEAR.pom.band = keep; }
-  else if (c.slot === 'suit') { g.scale(.26, .26); g.translate(0, -20); if (c.v === 'bee') { beeWings(g, 0, -10, .9, -.1); suitOver(g, 'bee', 0, 10, 92, 66); antennae(g, 0, -56, 1.1); } else if (c.v === 'zebra') { suitOver(g, 'zebra', 0, 10, 92, 66); zebraMane(g, 0, -84, 40, 1.2); } else suitOver(g, c.v, 0, 10, 92, 66); }
+  else if (c.slot === 'suit') { g.scale(.26, .26); g.translate(0, -20); fur(g, 0, 10, 92, 66, 0, '#E3C29C', '#C7A077'); /* 着ぐるみは体の形に色をのせる描き方なので、先に体を描く（描かないと絵が出ない） */ if (c.v === 'bee') { beeWings(g, 0, -10, .9, -.1); suitOver(g, 'bee', 0, 10, 92, 66); antennae(g, 0, -56, 1.1); } else if (c.v === 'zebra') { suitOver(g, 'zebra', 0, 10, 92, 66); zebraMane(g, 0, -84, 40, 1.2); } else suitOver(g, c.v, 0, 10, 92, 66); }
   else { g.scale(.42, .42); g.translate(0, 20); hat(g, c.v, 1); }
   try { CLOSET_ICON[c.id] = cv.toDataURL(); } catch (e) { CLOSET_ICON[c.id] = ''; } return CLOSET_ICON[c.id];
 }
