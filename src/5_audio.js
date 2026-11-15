@@ -248,3 +248,6 @@ function buzz(ms) { const v = OPT().vib; if (!v) return; if (v === 'low') ms = A
 // 画面にふれたら音を起こす：はじめての1回で音の用意をし、止められていた音（電話・画面ロック・ほかのアプリから戻った後）も再開する。題名画面なら静かな曲を流す
 function audioWake() { try { if (!AU.ctx) audioInit(); else if (AU.ctx.state !== 'running') AU.ctx.resume(); if (typeof G !== 'undefined' && G.mode === 'title' && AU.ctx) setTimeout(() => { try { titleMusic(); } catch (e) { } }, 60); } catch (e) { } }
 addEventListener('pointerdown', audioWake, true); addEventListener('keydown', audioWake, true);
+// 2026-11-15 オーナー：「はじめて開いた時も題名の曲を」。スマホ・ブラウザの決まりで、画面に一度もふれていないうちは音を出せない（どのサイトも同じ）。
+// そこで、最初のどのふれ方（指を離した時・クリック）でも、すぐ曲が始まるようにする（iPhone は pointerdown だけでは音が許されないことがある）
+for (const ev of ['touchend', 'click']) addEventListener(ev, audioWake, true);
