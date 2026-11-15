@@ -732,6 +732,21 @@
       "has": "kind: 'suit', tie: '#B8473C', item: 'case'"
     },
     {
+      "name": "公園・水辺に線路の橋を出さない",
+      "file": "src/3_world.js",
+      "has": "function noRail(th)"
+    },
+    {
+      "name": "高架の電車は高架の範囲だけ描く",
+      "file": "src/4_render.js",
+      "has": "function moverBoxes(m)"
+    },
+    {
+      "name": "電車の場所の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'trainplace'"
+    },
+    {
       "name": "壁の向こうが見えない試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'wallsee'"

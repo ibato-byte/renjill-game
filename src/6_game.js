@@ -596,7 +596,7 @@ function update(dt) {
   // events inside a stretch
   if (seg.goldRoad && !seg.goldTold && G.s > seg.goldRoad - 34) { seg.goldTold = 1; banner('GOLDEN ROAD!', tr('金のチモシーの道！', 'A road of golden hay!'), 'good'); }
   for (const a of G.announce) if (!a.done && G.s > a.s) { a.done = 1; const st = LANG === 'ja' || LANG === 'zh' ? a.st : stEn(a.st); banner('NEXT: ' + stEn(a.st).toUpperCase(), LANG === 'en' ? '' : t('nextStation', st), 'room'); tone(659, .14, 'bell', .06); tone(523, .2, 'bell', .06, AU.ctx && AU.ctx.currentTime + .14); }
-  if (seg.movers) for (const m of seg.movers) { if (m.cross) { m.dl = (m.dl == null ? -20 : m.dl) - m.v * dt * .6; if (m.dl > 90) m.dl = -40; continue; } m.ds += m.v * dt; if (m.ds < -60) m.ds = seg.len + 30; }
+  if (seg.movers) for (const m of seg.movers) { if (m.cross) { m.dl = (m.dl == null ? -20 : m.dl) - m.v * dt * .6; if (m.dl > 90) m.dl = -40; continue; } m.ds += m.v * dt; if (m.r1 != null) { if (m.ds < m.r0 - 42) m.ds = m.r1 + 6; } else if (m.ds < -60) m.ds = seg.len + 30; }
   if (seg.th.rumble) { G.rumbleT -= dt; if (G.rumbleT <= 0) { G.rumbleT = rand(5, 8); G.shake = 1; SFX.rumble(); } }
   if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 1.6);
   if (G.photoT > 0) { G.photoT -= dt; if (G.photoT <= 0 && seg.th.stamp) { react('sparkle', 1); G.capture = { tid: seg.tid, t: .35 }; } }
