@@ -727,6 +727,11 @@
       "has": "n: 'picksteady'"
     },
     {
+      "name": "歩行者は作り込んだ 8 人・4 コマで歩く",
+      "file": "src/4e_art.js",
+      "has": "kind: 'suit', tie: '#B8473C', item: 'case'"
+    },
+    {
       "name": "帽子が自然に見える試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'wearfit'"

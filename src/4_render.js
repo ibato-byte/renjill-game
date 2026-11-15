@@ -405,7 +405,7 @@ function drawLine(sg, l) {
 function drawSpr(s, sg, d) {
   const p = segPos(sg, s.s, s.lat), sp = spriteAt(p[0], s.y + p[2], p[1]); if (!sp) return;
   const nm = s.pn && LT.night > .35 && SPR[s.img + 'N'] ? s.img + 'N' : LT.night > .35 && (s.img === 'canopy_illum' || (s.nv && SPR[s.img + 'N'])) ? (s.img === 'canopy_illum' ? 'canopy_illumN' : s.img + 'N') : s.img === 'canopy_illum' ? 'canopy_green' : s.img;
-  const nm2 = s.walk ? s.imgs[((G.t * 5 + s.ph) | 0) % 2] : nm;
+  const nm2 = s.walk ? s.imgs[((G.t * 6.5 + s.ph) | 0) % s.imgs.length] : nm;
   let img = SPR[nm2] || (SPR_PEND[nm2] && d < 45 ? sprPaint(nm2) : null); if (!img || !img.width) return;
   if (!s.glow && s.img !== 'glow' && nm === s.img) img = litSprite(img, LT.amb); // trees and signs darken with the evening light
   const w = s.w * sp.k, h = s.h * sp.k;

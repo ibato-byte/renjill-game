@@ -452,8 +452,8 @@ function buildWalkers(seg) {
   for (let i = 0; i < n; i++) {
     const sd = Math.random() < .5 ? -1 : 1, end = sd < 0 ? lEnd : rEnd; if (end - s0 < 12) continue;
     const dir = Math.random() < .5 ? 1 : -1, k = (Math.random() * PEOPLE.length) | 0, back = dir > 0 ? 1 : 0;
-    const imgs = [0, 1].map(f => artKey('walker', k + '.' + f + '.' + back));
-    const w = { lat: sd * rand(3.35, 4.1), s: rand(s0 + 3, end - 3), y: 0, w: .75, h: 1.68, img: imgs[0], imgs, walk: 1, ph: Math.random() * 10, vs: dir * rand(.9, 1.5), a0: s0 + 2, a1: end - 2, gnd: .3, keep: 1 };
+    const imgs = [0, 1, 2, 3].map(f => artKey('walker', k + '.' + f + '.' + back));
+    const w = { lat: sd * rand(3.35, 4.1), s: rand(s0 + 3, end - 3), y: 0, w: .8, h: 1.8, img: imgs[0], imgs, walk: 1, ph: Math.random() * 10, vs: dir * rand(.9, 1.5), a0: s0 + 2, a1: end - 2, gnd: .3, keep: 1 };
     seg.spr.push(w); seg.walkers.push(w);
   }
 }
