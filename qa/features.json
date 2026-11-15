@@ -722,6 +722,31 @@
       "has": "n: 'buntint'"
     },
     {
+      "name": "選んだときにチカチカしない試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'picksteady'"
+    },
+    {
+      "name": "アニメと同じ絵かの試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'animelook'"
+    },
+    {
+      "name": "キャラクターはアニメと同じ形（レンの頭）",
+      "file": "src/2b_bunny.js",
+      "has": "M180 105 C 252 105 292 150 292 202"
+    },
+    {
+      "name": "キャラクターはアニメと同じ形（ジルの頭）",
+      "file": "src/2b_bunny.js",
+      "has": "M188 130 C 248 130 284 166 284 210"
+    },
+    {
+      "name": "キャラクターはアニメと同じ形（ポムの頭）",
+      "file": "src/2b_bunny.js",
+      "has": "function pomHead("
+    },
+    {
       "name": "紹介動画を 1 コマずつ撮る道具",
       "file": "qa/promo_frames.js",
       "has": "p.clock.pauseAt"

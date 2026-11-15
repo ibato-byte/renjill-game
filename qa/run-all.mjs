@@ -89,6 +89,8 @@ const T = [
   { n: 'iosfill', why: 'iPhone のホーム画面アプリで下に暗い帯が残らない手当てが、ほかの環境をこわさない（2026-11-15）', ok: has('IOSFILL OK'), timeout: 120 },
   { n: 'lightfx', why: '夕方の光のすじ（昼・夜・軽いモードでは出ない）・やわらかい光（軽いモードでは働かない）（2026-11-15）', ok: has('LIGHTFX OK'), timeout: 120 },
   { n: 'buntint', why: '夕方の光でキャラクターが急に赤くならない・色の変化がなめらか（2026-11-15：18:00 の外で赤くなった）', ok: has('BUNTINT OK'), timeout: 120 },
+  { n: 'animelook', why: 'キャラクターがアニメ（SNS の動画）と同じ絵のまま：色・形のもとの数字、前向きの絵の色、体の向き、帽子（2026-11-15：耳・口元・色が少しずつ違っていた）', ok: has('ANIMELOOK OK'), timeout: 120 },
+  { n: 'picksteady', why: 'キャラクターを選んだとき、絵がはねたり切りかわったりしない（2026-11-15：オーナー「チカチカするやつ、いらない」）', ok: has('PICKSTEADY OK'), timeout: 120 },
   { n: 'paperedge', why: '書類の山が画面の右の端まで届いている（2026-11-15 オーナー：スマホで右下にすき間）', ok: has('PAPEREDGE OK'), timeout: 180 },
   { n: 'titlemusic', why: 'はじめて開いて 1 回ふれたら、題名の曲が流れる（スマホのタップ・クリック・キー）（2026-11-15 オーナー）', ok: has('TITLEMUSIC OK'), timeout: 120 },
   { n: 'audiotest', why: '音の仕組みが壊れていない（題名の曲・場所ごとの曲と調・メニューで音がこもる・効果音で曲が下がる・終わりの音・音量の上限）（2026-11-15）', ok: has('AUDIO OK'), timeout: 120 },

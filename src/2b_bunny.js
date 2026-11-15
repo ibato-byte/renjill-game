@@ -6,8 +6,8 @@ const BS = 300;            // sprite canvas width; ground line at y = 282 (below
 const BTOP = 64;           // headroom above the 300px box so tall hats (wizard, Santa, antlers) are never cut off
 const GROUND_Y = 282;
 const PAL = {
-  ren:  { a: '#DDB68C', b: '#BE9369', c: '#9C7652', ear: ['#B48D67', '#8E6B4C'], cream: '#F5EBDD' },
-  jill: { a: '#E3C29C', b: '#C9A176', c: '#A88259', ear: ['#D4AE84', '#AE885F'], cream: '#F7EEE2' },
+  ren:  { a: '#DDB68C', b: '#C7A077', c: '#9C7652', ear: ['#C4A381', '#8E7057'], cream: '#F3E7D6' },
+  jill: { a: '#E2BB8D', b: '#CFA174', c: '#A3754C', ear: ['#C79A6C', '#B38657'], cream: '#F6EBDC' },
   // Pom: a kinkuma (golden) Syrian hamster: pale cream fur, a warmer apricot back, rounded grey-brown ears with pink insides, pink paws
   pom:  { a: '#F3E3CA', b: '#DCC29E', back: '#EBCDA2', ear: ['#9A8478', '#EBAAA4'], cream: '#FAF1E4' },
 };
@@ -200,28 +200,34 @@ function eyes(g, who, x1, x2, y, r, mood) {
     for (const x of [x1, x2]) { g.fillStyle = who === 'ren' ? '#3E2216' : '#07090C'; g.beginPath(); g.ellipse(x, y + r * .25, r * .95, r * .7, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = who === 'ren' ? '#E9CAA2' : who === 'pom' ? '#E8C79A' : '#EBCDA8'; g.beginPath(); g.ellipse(x, y - r * .35, r * 1.1, r * .62, 0, 0, Math.PI); g.fill(); g.strokeStyle = '#3A2216'; g.lineWidth = r * .18; g.lineCap = 'round'; g.beginPath(); g.arc(x, y - r * .35, r * .95, Math.PI * .08, Math.PI * .92); g.stroke(); g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(x - r * .25, y + r * .1, r * .14, 0, Math.PI * 2); g.fill(); }
     return;
   }
-  if (mood === 'happy' || mood === 'blink') {
-    g.strokeStyle = '#3A2216'; g.lineWidth = r * .5; g.lineCap = 'round';
-    for (const x of [x1, x2]) { g.beginPath(); if (mood === 'happy') g.arc(x, y + r * .4, r * .85, Math.PI * 1.15, Math.PI * 1.85); else { g.moveTo(x - r, y + 1); g.quadraticCurveTo(x, y + r * .5, x + r, y + 1); } g.stroke(); }
+  if (mood === 'happy' || mood === 'blink') { // アニメと同じ弧（にっこり＝上にふくらむ／まばたき＝下にゆるく）
+    const k = who === 'ren' ? [1.08, .15, -1.31, .35, 1, .08, .54, .31] : who === 'pom' ? [.95, .32, -.95, .42, .95, .1, .5, .34] : [.94, .17, -1.06, .28, .89, .06, .44, .25];
+    g.strokeStyle = who === 'ren' ? '#3A2216' : who === 'pom' ? '#0B0D10' : '#1C1919'; g.lineCap = 'round';
+    for (const x of [x1, x2]) { g.beginPath(); if (mood === 'happy') { g.lineWidth = r * k[3]; g.moveTo(x - r * k[0], y + r * k[1]); g.quadraticCurveTo(x, y + r * k[2], x + r * k[0], y + r * k[1]); } else { g.lineWidth = r * k[7]; g.moveTo(x - r * k[4], y + r * k[5]); g.quadraticCurveTo(x, y + r * k[6], x + r * k[4], y + r * k[5]); } g.stroke(); }
     return;
   }
   const ren = who === 'ren';
   for (const [x, i] of [[x1, 0], [x2, 1]]) {
     if (mood === 'wink' && i === 1) { g.strokeStyle = '#3A2216'; g.lineWidth = r * .5; g.lineCap = 'round'; g.beginPath(); g.arc(x, y + r * .4, r * .8, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); continue; }
-    if (!ren) { // Jill: big glossy black button eyes, a large soft highlight up and to the left, a pin of light low right, a faint sheen along the bottom
-      const gr = g.createRadialGradient(x + r * .25, y + r * .35, r * .05, x, y, r * 1.02);
-      gr.addColorStop(0, '#1A2029'); gr.addColorStop(.55, '#07090C'); gr.addColorStop(1, '#000000');
-      g.beginPath(); g.ellipse(x, y, r, r * 1.02, 0, 0, Math.PI * 2); g.fillStyle = gr; g.fill();
-      g.strokeStyle = 'rgba(150,165,180,.5)'; g.lineWidth = r * .07; g.lineCap = 'round'; g.beginPath(); g.arc(x, y + r * .05, r * .78, Math.PI * .28, Math.PI * .72); g.stroke(); // the sheen
-      g.save(); g.translate(x + r * .28, y - r * .3); g.rotate(-.35); g.fillStyle = '#FFFFFF'; g.beginPath(); g.ellipse(0, 0, r * .34, r * .28, 0, 0, Math.PI * 2); g.fill(); g.restore();
-      g.fillStyle = 'rgba(255,255,255,.8)'; g.beginPath(); g.arc(x - r * .35, y + r * .38, r * .12, 0, Math.PI * 2); g.fill();
+    if (who === 'pom') { // ポム：まっ黒のつぶらな目に、白い光がふたつ（アニメと同じ）
+      blob(g, x, y, r * .92, r * 1.05, 0, '#0B0D10'); blob(g, x + r * .32, y - r * .42, r * .32, r * .3, 0, '#FFFFFF'); blob(g, x - r * .26, y + r * .42, r * .14, r * .12, 0, 'rgba(255,255,255,.7)');
       if (mood === 'sparkle') { g.fillStyle = '#FFFFFF'; star(g, x + r * .15, y + r * .1, r * .4); }
       continue;
     }
-    const gr = g.createRadialGradient(x, y + r * .3, r * .1, x, y, r * 1.05);
-    gr.addColorStop(0, '#6A3E26'); gr.addColorStop(.6, '#3E2216'); gr.addColorStop(1, '#1E0F08');
-    g.beginPath(); g.ellipse(x, y, r, r * .95, 0, 0, Math.PI * 2); g.fillStyle = gr; g.fill();
-    blob(g, x + r * .32, y - r * .36, r * .34, r * .3, 0, '#FFFFFF'); blob(g, x - r * .3, y + r * .38, r * .12, r * .1, 0, 'rgba(255,255,255,.7)');
+    if (!ren) { // ジル：大きな黒い目（上が少し青みがかる）、右上に白い光、下にうすい照り返し（アニメと同じ）
+      const gr = g.createRadialGradient(x - r * .16, y - r * .26, 0, x - r * .16, y - r * .26, r * 1.36);
+      gr.addColorStop(0, '#46525E'); gr.addColorStop(.45, '#1C1919'); gr.addColorStop(1, '#050404');
+      g.beginPath(); g.ellipse(x, y, r, r * 1.083, 0, 0, Math.PI * 2); g.fillStyle = gr; g.fill();
+      g.strokeStyle = 'rgba(169,189,204,.25)'; g.lineWidth = r * .11; g.lineCap = 'round'; g.beginPath(); g.moveTo(x - r * .5, y + r * .5); g.quadraticCurveTo(x, y + r * .78, x + r * .5, y + r * .5); g.stroke();
+      blob(g, x + r * .33, y - r * .44, r * .29, r * .233, 0, 'rgba(255,255,255,.92)');
+      if (mood === 'sparkle') { g.fillStyle = '#FFFFFF'; star(g, x + r * .15, y + r * .1, r * .4); }
+      continue;
+    }
+    const gr = g.createRadialGradient(x - r * .16, y - r * .27, 0, x - r * .16, y - r * .27, r * 1.38);
+    gr.addColorStop(0, '#6B4631'); gr.addColorStop(.45, '#3A2216'); gr.addColorStop(1, '#0F0704');
+    g.beginPath(); g.ellipse(x, y, r, r * 1.115, 0, 0, Math.PI * 2); g.fillStyle = gr; g.fill();
+    blob(g, x + r * .35, y - r * .42, r * .31, r * .25, 0, 'rgba(255,255,255,.9)');
+    g.save(); g.globalAlpha = .6; g.strokeStyle = '#5E4535'; g.lineWidth = r * .12; g.lineCap = 'round'; g.beginPath(); g.moveTo(x - r, y - r * .23); g.quadraticCurveTo(x, y - r * 1.31, x + r, y - r * .23); g.stroke(); g.restore(); // 上まぶたの線
     if (mood === 'sparkle') { g.fillStyle = '#FFFFFF'; star(g, x + r * .15, y + r * .1, r * .4); }
   }
 }
@@ -295,41 +301,81 @@ function mouth(g, x, y, w, open) {
   g.stroke();
 }
 // ---- face (front, used for menus and for the look-back) ----
-function faceRen(g, cx, cy, sc, mood, mug) {
-  const P = PAL.ren; g.save(); g.translate(cx, cy); g.scale(sc, sc);
-  // ears first (behind the head), hanging from the top corners
-  fur(g, -70, 18, 36, 84, .12, '#B8916B', '#86644A', { vert: 1 }); fur(g, 70, 18, 36, 84, -.12, '#B8916B', '#86644A', { vert: 1 });
-  fur(g, 0, -2, 60, 66, 0, '#E9CAA2', '#C49C70', { rr: .62 });
-  { const gl = g.createRadialGradient(0, 12, 4, 0, 12, 52); gl.addColorStop(0, 'rgba(255,244,228,.3)'); gl.addColorStop(1, 'rgba(255,244,228,0)'); g.fillStyle = gl; g.beginPath(); g.ellipse(0, 12, 52, 56, 0, 0, Math.PI * 2); g.fill(); }
-  // ear roots over the top corners
-  g.strokeStyle = 'rgba(120,84,56,.55)'; g.lineWidth = 2.2; g.lineCap = 'round';
-  g.beginPath(); g.moveTo(-62, -56); g.quadraticCurveTo(-46, -70, -28, -62); g.moveTo(28, -62); g.quadraticCurveTo(46, -70, 62, -56); g.moveTo(-26, -66); g.quadraticCurveTo(0, -72, 26, -66); g.stroke();
-  { const cr = g.createRadialGradient(0, -48, 2, 0, -44, 34); cr.addColorStop(0, 'rgba(246,226,196,.75)'); cr.addColorStop(1, 'rgba(246,226,196,0)'); g.fillStyle = cr; g.beginPath(); g.ellipse(0, -44, 36, 22, 0, 0, Math.PI * 2); g.fill(); } // the paler crown on top of his head
-  eyes(g, 'ren', -25, 25, -3, 10.5, mood);
-  if (mood !== 'open' && mood !== 'sick' && mood !== 'worry') { blob(g, -40, 18, 12, 7, 0, 'rgba(236,140,140,.38)'); blob(g, 40, 18, 12, 7, 0, 'rgba(236,140,140,.38)'); }
-  muzzle(g, 0, 29, 26);
-  g.beginPath(); g.moveTo(-7, 18); g.quadraticCurveTo(0, 16, 7, 18); g.lineTo(0, 25); g.closePath(); g.fillStyle = '#E0959A'; g.fill();
-  mouth(g, 0, 33, 7, mood === 'sick' ? 'wavy' : mood === 'worry' ? 'o' : mood === 'sparkle' || mood === 'cheer' ? 1 : mood === 'yawn' ? 'o' : mood === 'open' || mood === 'blink' ? 'w' : 'smile');
-  whiskers(g, 0, 28, 20, 62); moodFx(g, mood, -48, 58);
-  { const hk = mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 0, -62, 1, 58, 22); else if (WEAR.ren.suit === 'bee') antennae(g, 0, -60, 1); }
+/* 2026-11-15：アニメ（SNS の動画）と同じ絵にする。形・位置・色は、アニメを描いている renjill-auto の rig/rig.js（レン・ジル）と rig/ep/pom_debut.js（ポム）の
+   数字をそのまま使う（前は似せて描き直していたので、耳・口元・色が少しずつ違っていた）。アニメの絵を変えたら、ここの数字も合わせる（qa/animelook.js が見張る）。 */
+const RC = { ren: { fur1: '#DDB68C', fur2: '#C7A077', fur3: '#9C7652', head1: '#E3C29C', head2: '#CDA67C', head3: '#A88259', ear1: '#C4A381', ear2: '#AE8D6D', ear3: '#8E7057', cream: '#F3E7D6', nose: '#C88D85', mouth: '#7A5A48', blush: '#EFA09A' },
+  jil: { fur1: '#E2BB8D', fur2: '#CFA174', fur3: '#A3754C', head1: '#E9C79F', head2: '#D3A777', head3: '#B08155', ear1: '#C79A6C', ear2: '#B38657', earIn1: '#E9C3B2', earIn2: '#DDA898', cream: '#F6EBDC', nose: '#D98F8E', mouth: '#A86E68', blush: '#EFA09A', theme: '#355F86' },
+  pom: { a: '#F3E3CA', b: '#DCC29E', deep: '#C9A57A', cream: '#FAF1E4', earO: '#8E786C', earI: '#E9A9A2', nose: '#E58F98', pink: '#F2B8B0' } };
+const RK = { ren: .536, jil: .646, pom: .97 }; // アニメの座標 → 今までの顔の大きさ（帽子などの位置はこの大きさで決めてある）
+function rgB(g, b, cx, cy, r, st) { const R = r * Math.sqrt((b[2] * b[2] + b[3] * b[3]) / 2), x = b[0] + cx * b[2], y = b[1] + cy * b[3]; const gr = g.createRadialGradient(x, y, 0, x, y, R); for (const q of st) gr.addColorStop(q[0], q[1]); return gr; }
+function lgB(g, b, x2, y2, st) { const gr = g.createLinearGradient(b[0], b[1], b[0] + x2 * b[2], b[1] + y2 * b[3]); for (const q of st) gr.addColorStop(q[0], q[1]); return gr; }
+// 毛のある面：d はパスの文字列か [cx, cy, rx, ry]。ふちは細かい毛でぼかし、中にうすい毛並みを入れる
+function furP(g, d, b, fill, edge, o) {
+  o = o || {}; let p;
+  if (typeof d === 'string') p = new Path2D(d); else { p = new Path2D(); p.ellipse(d[0], d[1], d[2], d[3], 0, 0, Math.PI * 2); b = [d[0] - d[2], d[1] - d[3], d[2] * 2, d[3] * 2]; }
+  if (typeof fill === 'function') fill = fill(b);
+  g.save(); if (o.a != null) g.globalAlpha *= o.a;
+  g.save(); g.strokeStyle = edge; g.lineCap = 'round'; g.globalAlpha *= .5; g.lineWidth = 3.2; g.setLineDash([1.3, 2.3]); g.stroke(p); g.lineDashOffset = 1.7; g.lineWidth = 5; g.globalAlpha *= .45; g.stroke(p); g.restore();
+  g.fillStyle = fill; g.fill(p);
+  if (!o.plain) { g.save(); g.clip(p); const n = Math.min(700, Math.round(b[2] * b[3] / 26)); g.lineCap = 'round'; g.lineWidth = 1.1;
+    for (let i = 0; i < n; i++) { const x = b[0] + srand() * b[2], y = b[1] + srand() * b[3], L = 3 + srand() * 6, dx = ((x - b[0]) / b[2] - .5) * 3 + (srand() - .5) * 2; g.strokeStyle = srand() < .5 ? 'rgba(255,248,236,.07)' : 'rgba(82,56,36,.05)'; g.beginPath(); g.moveTo(x, y); g.lineTo(x + dx, y + L); g.stroke(); }
+    g.restore(); }
   g.restore();
 }
-function faceJill(g, cx, cy, sc, mood) {
-  const P = PAL.jill; g.save(); g.translate(cx, cy); g.scale(sc, sc);
-  const ears = () => { for (const sd of [-1, 1]) { g.save(); g.translate(sd * 24, -40); g.rotate(sd * .2); fur(g, 0, -22, 16, 30, 0, '#D9B48B', '#B48D64', { vert: 1 }); blob(g, 0, -20, 8, 21, 0, '#EBB1A8'); g.restore(); } };
-  ears();
-  fur(g, 0, 0, 62, 52, 0, '#EBCDA8', P.b);
-  { const gl = g.createRadialGradient(0, 10, 4, 0, 10, 42); gl.addColorStop(0, 'rgba(255,244,228,.26)'); gl.addColorStop(1, 'rgba(255,244,228,0)'); g.fillStyle = gl; g.beginPath(); g.ellipse(0, 10, 44, 38, 0, 0, Math.PI * 2); g.fill(); }
-  eyes(g, 'jill', -23, 23, -4, 11, mood);
-  glasses(g, -23, 23, -4, 16.5);
-  if (mood !== 'open' && mood !== 'sick' && mood !== 'worry') { blob(g, -42, 16, 9, 5, 0, 'rgba(236,140,140,.36)'); blob(g, 42, 16, 9, 5, 0, 'rgba(236,140,140,.36)'); }
-  muzzle(g, 0, 25, 19);
-  g.beginPath(); g.moveTo(-5, 15); g.quadraticCurveTo(0, 13.5, 5, 15); g.lineTo(0, 21); g.closePath(); g.fillStyle = '#E0959A'; g.fill();
-  mouth(g, 0, 29, 5.5, mood === 'sick' ? 'wavy' : mood === 'worry' ? 'o' : mood === 'sparkle' || mood === 'cheer' ? 1 : mood === 'yawn' ? 'o' : mood === 'open' || mood === 'blink' ? 'w' : 'smile');
-  whiskers(g, 0, 22, 15, 54); moodFx(g, mood, -40, 56);
-  if (WEAR.jill.hat) { wearHat(g, WEAR.jill.hat, 0, -48, .9, 50, 18); if (hatCovers(WEAR.jill.hat)) { earHoles(g, 0, -36, 24, .2); ears(); } } else if (WEAR.jill.suit === 'zebra') zebraMane(g, 0, -60, 22, .8);
+function soft(g, cx, cy, rx, ry, col, a, sd) { const k = 1 + (sd || 5) * 1.6 / Math.min(rx, ry); g.save(); g.translate(cx, cy); g.scale(rx * k, ry * k); const c = hexRgb(col), q = t => `rgba(${c[0]},${c[1]},${c[2]},${t})`, gr = g.createRadialGradient(0, 0, 0, 0, 0, 1); gr.addColorStop(0, q(a)); gr.addColorStop(1 / k * .72, q(a * .82)); gr.addColorStop(1, q(0)); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 1, 0, Math.PI * 2); g.fill(); g.restore(); }
+function sPath(g, d, col, w, a) { g.save(); g.globalAlpha *= a == null ? 1 : a; g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.lineJoin = 'round'; g.stroke(new Path2D(d)); g.restore(); }
+function fPath(g, d, col, a) { g.save(); g.globalAlpha *= a == null ? 1 : a; g.fillStyle = col; g.fill(new Path2D(d)); g.restore(); }
+function rigMouth(g, x, y, mood, col, w) { // y＝鼻の下の線の先（アニメの 243）。w＝ω の片側の幅
+  const k = mood === 'sick' ? 'wavy' : mood === 'worry' || mood === 'yawn' ? 'o' : mood === 'sparkle' || mood === 'cheer' ? 'open' : mood === 'open' || mood === 'blink' || mood === 'sleepy' ? 'w' : 'smile';
+  if (k === 'w') sPath(g, `M${x} ${y - 7} V${y} M${x} ${y} Q${x - w * .5} ${y + w * .5} ${x - w} ${y + w * .33} M${x} ${y} Q${x + w * .5} ${y + w * .5} ${x + w} ${y + w * .33}`, col, 1.8);
+  else if (k === 'smile') sPath(g, `M${x - w * 1.17} ${y - 3} Q${x} ${y + w * 1.1} ${x + w * 1.17} ${y - 3}`, col, 2.4);
+  else if (k === 'open') { const d = `M${x - 10} ${y - 3} Q${x} ${y + 15} ${x + 10} ${y - 3} Z`; fPath(g, d, '#C9605F'); sPath(g, d, col, 2); }
+  else if (k === 'wavy') sPath(g, `M${x - 14} ${y + 1} q5 -5 10 0 q5 5 10 0 q5 -5 8 0`, col, 2.2);
+  else { const e = mood === 'yawn' ? 1.5 : 1; g.save(); g.beginPath(); g.ellipse(x, y + 3 * e, 5 * e, 6 * e, 0, 0, Math.PI * 2); g.fillStyle = '#C9605F'; g.fill(); g.strokeStyle = col; g.lineWidth = 1.8; g.stroke(); g.restore(); }
+}
+const REN_EARL = 'M134 112 C 100 102 56 126 40 180 C 26 230 28 286 52 306 C 74 324 106 306 112 272 C 118 238 110 204 106 172 C 102 146 114 124 134 112 Z', REN_EARR = 'M226 112 C 260 102 304 126 320 180 C 334 230 332 286 308 306 C 286 324 254 306 248 272 C 242 238 250 204 254 172 C 258 146 246 124 226 112 Z';
+function renHead(g, mood, mug) { // アニメの座標（頭の中心は 180,200 あたり）
+  const c = RC.ren, hb = [68, 105, 224, 187];
+  furP(g, 'M180 105 C 252 105 292 150 292 202 C 292 258 246 292 180 292 C 114 292 68 258 68 202 C 68 150 108 105 180 105 Z', hb, rgB(g, hb, .5, .42, .62, [[0, c.head1], [.65, c.head2], [1, c.head3]]), c.head3);
+  soft(g, 180, 250, 70, 34, '#E9D3B6', .75, 7); soft(g, 180, 108, 46, 13, '#E3C7A3', .7, 3);
+  sPath(g, 'M138 122 C 152 112 168 110 180 112 C 192 110 208 112 222 122', '#A98863', 3, .55);
+  soft(g, 150, 196, 20, 18, '#EAD7BE', .8, 3); soft(g, 210, 196, 20, 18, '#EAD7BE', .8, 3);
+  for (const [d, b, tx, fold] of [[REN_EARL, [28, 104, 108, 214], 66, 'M112 122 C 122 112 136 110 150 118'], [REN_EARR, [226, 104, 108, 214], 294, 'M248 122 C 238 112 224 110 210 118']]) {
+    furP(g, d, b, lgB(g, b, .2, 1, [[0, c.ear1], [.6, c.ear2], [1, c.ear3]]), c.ear3); soft(g, tx, 296, 24, 12, c.ear3, .22, 3); sPath(g, fold, c.ear3, 4, .5); }
+  for (const e of [[168, 242, 17, 13], [192, 242, 17, 13], [180, 259, 13, 8]]) furP(g, e, null, c.cream, '#E6D7C1', { plain: 1 });
+  eyes(g, 'ren', 150, 210, 195, 13, mood);
+  fPath(g, 'M173 229 Q180 225 187 229 Q184 235 180 236 Q176 235 173 229 Z', c.nose);
+  rigMouth(g, 180, 243, mood, c.mouth, 12);
+  if (mood !== 'open' && mood !== 'sick' && mood !== 'worry' && mood !== 'blink') { blob(g, 124, 228, 15, 9, 0, c.blush, .42); blob(g, 236, 228, 15, 9, 0, c.blush, .42); }
+  sPath(g, 'M158 240 Q122 230 92 229 M158 246 Q124 247 96 254 M202 240 Q238 230 268 229 M202 246 Q236 247 264 254', '#FBF6EE', 1.2, .85);
+  g.save(); g.translate(180, 200); g.scale(1 / RK.ren, 1 / RK.ren); moodFx(g, mood, -44, 58);
+  { const hk = mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 0, -45, 1, 58, 22); else if (WEAR.ren.suit === 'bee') antennae(g, 0, -45, 1); }
   g.restore();
 }
+function faceRen(g, cx, cy, sc, mood, mug) { g.save(); g.translate(cx, cy); g.scale(sc * RK.ren, sc * RK.ren); g.translate(-180, -200); renHead(g, mood, mug); g.restore(); }
+function jillEars(g) { const c = RC.jil; for (const [x, y, rot] of [[164, 118, -12], [212, 116, 13]]) { g.save(); g.translate(x, 150); g.rotate(rot * Math.PI / 180); g.translate(-x, -150); const b = [x - 22, y - 36, 44, 72]; furP(g, [x, y, 22, 36], null, lgB(g, b, 0, 1, [[0, c.ear1], [1, c.ear2]]), c.ear2); g.fillStyle = lgB(g, [x - 11, y - 23, 22, 52], 0, 1, [[0, c.earIn1], [1, c.earIn2]]); g.beginPath(); g.ellipse(x, y + 3, 11, 26, 0, 0, Math.PI * 2); g.fill(); g.restore(); } }
+function jillHead(g, mood) { // アニメの座標（頭の中心は 188,210）
+  const c = RC.jil, hb = [92, 130, 192, 160];
+  jillEars(g);
+  furP(g, 'M188 130 C 248 130 284 166 284 210 C 284 260 240 290 188 290 C 136 290 92 260 92 210 C 92 166 128 130 188 130 Z', hb, rgB(g, hb, .5, .42, .62, [[0, c.head1], [.65, c.head2], [1, c.head3]]), c.head3);
+  soft(g, 188, 252, 66, 30, '#EED9BE', .75, 7); soft(g, 148, 200, 27, 25, '#F0DDC4', .9, 3); soft(g, 228, 200, 27, 25, '#F0DDC4', .9, 3);
+  for (const e of [[178, 242, 16, 12.5], [198, 242, 16, 12.5], [188, 258, 12, 7]]) furP(g, e, null, c.cream, '#E9DAC5', { plain: 1 });
+  eyes(g, 'jill', 148, 228, 201, 18, mood);
+  fPath(g, 'M181 229 Q188 225 195 229 Q192 235 188 236 Q184 235 181 229 Z', c.nose);
+  rigMouth(g, 188, 243, mood, c.mouth, 10);
+  if (mood !== 'open' && mood !== 'sick' && mood !== 'worry' && mood !== 'blink') { blob(g, 118, 232, 14, 8, 0, c.blush, .42); blob(g, 258, 232, 14, 8, 0, c.blush, .42); }
+  sPath(g, 'M166 240 Q130 230 98 226 M166 246 Q132 248 102 256 M210 240 Q246 230 278 226 M210 246 Q244 248 274 256', '#FBF6EE', 1.2, .9);
+  { const ring = FRAME_COL[WEAR.jill.frame] || FRAME_COL.brown; g.save(); g.strokeStyle = WEAR.jill.frame && WEAR.jill.frame !== 'brown' ? ring : '#9A7F5A'; g.lineWidth = 2.2; g.lineCap = 'round';
+    g.beginPath(); g.arc(148, 201, 26, 0, Math.PI * 2); g.stroke(); g.beginPath(); g.arc(228, 201, 26, 0, Math.PI * 2); g.stroke(); g.stroke(new Path2D('M174 197 Q188 190 202 197 M122 197 L106 192 M254 197 L270 192')); g.restore();
+    sPath(g, 'M136 186 l7 -7', '#FFFFFF', 2, .6); }
+  g.save(); g.translate(188, 210); g.scale(1 / RK.jil, 1 / RK.jil); moodFx(g, mood, -40, 56);
+  const hk = WEAR.jill.hat;
+  if (hk) wearHat(g, hk, 0, -48, .9, 50, 18); else if (WEAR.jill.suit === 'zebra') zebraMane(g, 0, -60, 22, .8);
+  if (hk && hatCovers(hk)) earHoles(g, 0, -36, 16, .2);
+  g.restore();
+  if (hk && hatCovers(hk)) jillEars(g); // かぶる帽子は耳を穴から出す
+}
+function faceJill(g, cx, cy, sc, mood) { g.save(); g.translate(cx, cy); g.scale(sc * RK.jil, sc * RK.jil); g.translate(-188, -210); jillHead(g, mood); g.restore(); }
 function pomEar(g, x, y, r, rot, back) { g.save(); g.translate(x, y); g.rotate(rot); g.beginPath(); g.ellipse(0, 0, r, r * 1.05, 0, 0, Math.PI * 2); g.fillStyle = '#8E786C'; g.fill(); g.beginPath(); g.ellipse(0, r * .12, r * .72, r * .78, 0, 0, Math.PI * 2); g.fillStyle = back ? '#A8928A' : '#E9A9A2'; g.fill();
   g.strokeStyle = 'rgba(70,55,50,.55)'; g.lineWidth = 1.5; g.beginPath(); g.arc(0, 0, r * .98, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); g.restore(); }
 function headband(g, x, y, w, back, ph) { // Pom's red sweatband; from behind the knot and its two tails flutter
@@ -339,33 +385,42 @@ function headband(g, x, y, w, back, ph) { // Pom's red sweatband; from behind th
     for (const k of [0, 1]) { g.beginPath(); g.moveTo(x + 8, y); const ex = x + 40 + k * 6, ey = y + 8 + k * 14 + Math.sin(t * 2 + k) * 5; g.quadraticCurveTo(x + 24, y - 4 + k * 8 + Math.sin(t * 2 + k + 1) * 4, ex, ey); g.lineTo(ex - 2, ey + 7); g.quadraticCurveTo(x + 22, y + 4 + k * 8, x + 8, y + 6); g.closePath(); g.fill(); } }
   g.restore();
 }
-function facePom(g, cx, cy, sc, mood) {
-  const P = PAL.pom; g.save(); g.translate(cx, cy); g.scale(sc, sc);
-  pomEar(g, -40, -44, 17, -.35); pomEar(g, 40, -44, 17, .35);
-  fur(g, 0, 0, 62, 54, 0, P.a, P.b); // the round head, wider at the cheeks
-  const ck = mood === 'puff' ? 1.55 : 1; fur(g, -34 * (ck > 1 ? 1.15 : 1), 18, 26 * ck, 22 * ck, 0, P.cream, '#E9DCCB', { sparse: 1, rim: 2 }); fur(g, 34 * (ck > 1 ? 1.15 : 1), 18, 26 * ck, 22 * ck, 0, P.cream, '#E9DCCB', { sparse: 1, rim: 2 }); // cheek pouches (stuffed full when puffed)
-  { const gl = g.createRadialGradient(0, -20, 4, 0, -20, 46); gl.addColorStop(0, 'rgba(226,190,140,.45)'); gl.addColorStop(1, 'rgba(226,190,140,0)'); g.fillStyle = gl; g.beginPath(); g.ellipse(0, -22, 46, 30, 0, 0, Math.PI * 2); g.fill(); } // warmer apricot on top of the head
-  eyes(g, 'jill', -22, 22, -4, 9.5, mood === 'puff' ? 'happy' : mood);
-  if (mood !== 'open' && mood !== 'sick' && mood !== 'worry') { blob(g, -36, 14, 9, 5, 0, 'rgba(236,140,140,.4)'); blob(g, 36, 14, 9, 5, 0, 'rgba(236,140,140,.4)'); }
-  g.beginPath(); g.ellipse(0, 12, 6.5, 4.8, 0, 0, Math.PI * 2); g.fillStyle = '#E58F98'; g.fill(); // pink nose
-  g.strokeStyle = '#9A5A50'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 16); g.lineTo(0, 20); g.stroke();
-  mouth(g, 0, 21, 6, mood === 'sick' ? 'wavy' : mood === 'worry' ? 'o' : mood === 'sparkle' || mood === 'cheer' ? 1 : mood === 'yawn' ? 'o' : mood === 'open' || mood === 'blink' ? 'w' : 'smile');
-  whiskers(g, 0, 16, 14, 46);
-  headband(g, 0, -34, 52, 0);
-  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 0, -50, .95, 42, 12); // his round ears stay tucked under the brim, the outer halves peeking out else if (WEAR.pom.suit === 'bee') antennae(g, 0, -52, .9);
-  moodFx(g, mood, -40, 54);
-  g.restore();
+function pomHead(g, mood) { // アニメの座標（足もとが 0,0・頭の中心は 0,-128）
+  const c = RC.pom, hy = -128, ck = mood === 'puff' ? 1 : 0, hb = [-64, hy - 55, 128, 110];
+  for (const sd of [-1, 1]) { g.save(); g.translate(sd * 42, hy - 44); g.rotate(sd * 22 * Math.PI / 180); furP(g, [0, 0, 17, 18], null, c.earO, '#7A665C', { plain: 1 }); blob(g, 0, 2, 12, 13, 0, c.earI); g.restore(); }
+  furP(g, [0, hy, 64, 55], null, b => rgB(g, b, .5, .4, .65, [[0, '#F7E9D3'], [.6, c.a], [1, c.b]]), c.b);
+  soft(g, 0, hy - 24, 44, 26, '#E2BE8C', .4, 4);
+  const cr = 1 + 1.45 * ck;
+  for (const sd of [-1, 1]) furP(g, [sd * (34 + 24 * ck), hy + 18 + 8 * ck, 26 * cr, 22 * (1 + 1.1 * ck)], null, b => rgB(g, b, .45, .4, .6, [[0, '#FFFFFF'], [.62, c.cream], [.9, '#EBDCC6'], [1, '#D9C4A4']]), '#DCC9AB', { plain: 1 });
+  if (mood !== 'open' && mood !== 'blink' && mood !== 'sick' && mood !== 'worry') for (const sd of [-1, 1]) blob(g, sd * (36 + 18 * ck), hy + 16, 9 + 6 * ck, 5 + 3 * ck, 0, '#EC8C8C', .45);
+  eyes(g, 'pom', -22 - 2 * ck, 22 + 2 * ck, hy - 6, 9.5, mood === 'puff' ? 'happy' : mood);
+  blob(g, 0, hy + 14, 6.5, 4.8, 0, c.nose);
+  { const m = mood === 'sick' ? 'wavy' : mood === 'worry' || mood === 'yawn' ? 'o' : mood === 'sparkle' || mood === 'cheer' ? 'open' : 'w';
+    if (m === 'w') sPath(g, `M0 ${hy + 24} V${hy + 28} M0 ${hy + 28} q-4 4 -8 2 M0 ${hy + 28} q4 4 8 2`, '#9A5A50', 2); else rigMouth(g, 0, hy + 27, mood, '#9A5A50', 8); }
+  sPath(g, `M-14 ${hy + 18} L-${54 + 20 * ck} ${hy + 10} M-14 ${hy + 22} L-${52 + 20 * ck} ${hy + 26} M14 ${hy + 18} L${54 + 20 * ck} ${hy + 10} M14 ${hy + 22} L${52 + 20 * ck} ${hy + 26}`, '#FFFFFF', 1.3, .85);
+  { const bc = BAND_COL[WEAR.pom.band] || BAND_COL.red; // はちまき（結び目は向かって右）
+    sPath(g, `M-54 ${hy - 24} Q0 ${hy - 44} 54 ${hy - 24}`, bc[0], 10); sPath(g, `M-44 ${hy - 28} Q0 ${hy - 45} 44 ${hy - 28}`, '#FFFFFF', 2, .4);
+    fPath(g, `M50 ${hy - 26} q16 2 22 12 l-6 4 q-6 -8 -16 -10 Z M50 ${hy - 26} q18 -6 26 0 l-4 6 q-8 -4 -20 0 Z`, bc[0]); }
+  g.save(); g.translate(0, hy); g.scale(1 / RK.pom, 1 / RK.pom);
+  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 0, -50, .95, 42, 12); else if (WEAR.pom.suit === 'bee') antennae(g, 0, -52, .9);
+  moodFx(g, mood, -40, 54); g.restore();
 }
+function facePom(g, cx, cy, sc, mood) { g.save(); g.translate(cx, cy); g.scale(sc * RK.pom, sc * RK.pom); g.translate(0, 128); pomHead(g, mood); g.restore(); }
 function drawPom(g, p) {
   const P = PAL.pom, sx = p.slide ? 1.2 : 1 + (1 - p.sq) * .6, sy = p.slide ? .66 : p.sq;
   const by = GROUND_Y - 70 * sy - p.lift, brx = 84 * sx, bry = 72 * sy;
-  if (p.view === 'front') {
-    fur(g, 150, by + 6, brx, bry, 0, P.a, P.b);
-    if (WEAR.pom.suit) suitOver(g, WEAR.pom.suit, 150, by + 6, brx, bry); else fur(g, 150, by + 22, brx * .6, bry * .62, 0, P.cream, '#E7D9C4', { sparse: 1, rim: 3 });
-    for (const sd of [-1, 1]) { blob(g, 150 + sd * 22, by + 26, 10, 8, 0, '#F2B8B0'); blob(g, 150 + sd * 36, GROUND_Y - 6, 15, 8, 0, '#F2B8B0'); } // little pink hands and feet
-    // a green "new hire" leaf badge
-    g.save(); g.translate(150, by + 46); g.beginPath(); g.moveTo(0, 12); g.lineTo(-9, 0); g.lineTo(-9, -10); g.lineTo(0, -4); g.closePath(); g.fillStyle = '#F2C230'; g.fill(); g.beginPath(); g.moveTo(0, 12); g.lineTo(9, 0); g.lineTo(9, -10); g.lineTo(0, -4); g.closePath(); g.fillStyle = '#3FA34D'; g.fill(); g.restore();
-    facePom(g, 150, by - 52, .95, p.mood); return;
+  if (p.view === 'front') { // アニメと同じ形（pom_debut.js の pomShape）
+    const c = RC.pom, S = 1; g.save(); g.translate(150, GROUND_Y - p.lift); g.scale(S, S * sy);
+    blob(g, -30, -5, 17, 8, 0, c.pink); blob(g, 30, -5, 17, 8, 0, c.pink);
+    if (WEAR.pom.suit === 'bee') beeWings(g, 0, -78, 1, -.15);
+    furP(g, [0, -60, 76, 62], null, b => rgB(g, b, .4, .3, .8, [[0, c.a], [.6, c.b], [1, c.deep]]), c.deep);
+    if (WEAR.pom.suit) suitOver(g, WEAR.pom.suit, 0, -60, 76, 62); else furP(g, [0, -46, 48, 40], null, c.cream, '#E9DCC8', { plain: 1, a: .95 });
+    g.save(); g.translate(-30, -40); g.scale(.9, .9); g.lineJoin = 'round'; g.lineWidth = 1; // 若葉の社員バッジ
+    g.beginPath(); g.moveTo(0, 12); g.lineTo(-9, 0); g.lineTo(-9, -11); g.lineTo(0, -4); g.closePath(); g.fillStyle = '#F2C230'; g.fill(); g.strokeStyle = '#B8901C'; g.stroke();
+    g.beginPath(); g.moveTo(0, 12); g.lineTo(9, 0); g.lineTo(9, -11); g.lineTo(0, -4); g.closePath(); g.fillStyle = '#3FA34D'; g.fill(); g.strokeStyle = '#2C7A37'; g.stroke(); g.restore();
+    pomHead(g, p.mood);
+    { const up = p.mood === 'cheer' ? 12 : 0; blob(g, -26, -96 - up, 11, 9, 0, c.pink); blob(g, 26, -96 - up, 11, 9, 0, c.pink); } // 手はほっぺの下（アニメの立ち絵と同じ）。ばんざいで少し上がる
+    g.restore(); return;
   }
   // back / look: one round pear-shaped body (hamsters have no neck), pink soles, a stub of a tail
   const fy = GROUND_Y - 6 - Math.max(0, p.feet) * 7, fo = Math.max(0, -p.feet) * 8;
@@ -391,16 +446,27 @@ function drawBody(g, who, p) {
   const sx = p.slide ? 1.18 : 1 + (1 - p.sq) * .6, sy = p.slide ? .7 : p.sq;
   const by = GROUND_Y - (ren ? 62 : 50) * sy - p.lift;
   const brx = (ren ? 96 : 74) * sx, bry = (ren ? 64 : 52) * sy;
-  if (p.view === 'front') {
-    // body + chest + front paws
-    const suit = WEAR[who].suit;
-    if (suit === 'bee') beeWings(g, 150, by - bry * .2, 1.05, -.15);
-    fur(g, 150, by, brx, bry, 0, P.a, P.b);
-    if (suit) suitOver(g, suit, 150, by, brx, bry); else fur(g, 150, by + 6, brx * .55, bry * .78, 0, P.cream, '#E7D9C4', { sparse: 1, rim: 3 });
-    blob(g, 122, GROUND_Y - 6, 16, 9, 0, P.cream); blob(g, 178, GROUND_Y - 6, 16, 9, 0, P.cream);
-    if (ren) { faceRen(g, 150, by - 88, 1, p.mood, p.mug); tie(g, 150, by - 26, 66, 0); }
-    else { lanyard(g, 150, by - 24); faceJill(g, 150, by - 70, 1, p.mood); }
-    return;
+  if (p.view === 'front') { // アニメと同じ形（rig.js の buildRen / buildJil の「すわる」）。レンは体が向かって左、ジルは右
+    const suit = WEAR[who].suit, S = .72; g.save(); g.translate(150, GROUND_Y - p.lift); g.scale(ren ? -S : S, S * sy);
+    if (ren) { const c = RC.ren; g.translate(-211, -402);
+      if (suit === 'bee') beeWings(g, 240, 280, 1.4, -.15);
+      furP(g, [240, 304, 148, 90], null, b => rgB(g, b, .35, .3, .8, [[0, c.fur1], [.55, c.fur2], [1, c.fur3]]), c.fur3);
+      furP(g, [338, 386, 56, 15], null, '#D6BB98', '#BFA27E', { plain: 1 });
+      if (suit) suitOver(g, suit, 240, 304, 148, 90); else { g.save(); g.beginPath(); g.ellipse(240, 304, 148, 90, 0, 0, Math.PI * 2); g.clip(); soft(g, 176, 323, 80, 68, c.cream, 1, 9); g.restore(); } // 胸のクリーム色は体の外にはみ出さない
+      furP(g, [150, 390, 24, 13], null, '#F0E3D1', '#DCCBB3', { plain: 1 }); furP(g, [204, 392, 24, 13], null, '#F0E3D1', '#DCCBB3', { plain: 1 });
+      { const T = TIE_COL[WEAR.ren.tie] || TIE_COL.gold, blade = 'M177 293 L187 293 L193 334 L182 345 L171 334 Z'; g.save(); g.translate(182, 286); g.rotate(10 * Math.PI / 180); g.translate(-182, -286);
+        fPath(g, 'M175 282 L189 282 L187 293 L177 293 Z', T[0]); fPath(g, blade, T[0]); g.save(); g.clip(new Path2D(blade)); tiePattern(g, WEAR.ren.tie, 170, 293, 24, 54); g.restore(); sPath(g, 'M182 296 L182 340', T[1], 2, .6); g.restore(); }
+      renHead(g, p.mood, p.mug);
+    } else { const c = RC.jil; g.translate(-217, -402);
+      if (suit === 'bee') beeWings(g, 222, 300, 1.25, -.15);
+      furP(g, [222, 322, 112, 74], null, b => rgB(g, b, .35, .3, .8, [[0, c.fur1], [.55, c.fur2], [1, c.fur3]]), c.fur3);
+      furP(g, [300, 388, 42, 12], null, '#DABE9C', '#C2A480', { plain: 1 });
+      if (suit) suitOver(g, suit, 222, 322, 112, 74); else { g.save(); g.beginPath(); g.ellipse(222, 322, 112, 74, 0, 0, Math.PI * 2); g.clip(); soft(g, 184, 334, 60, 54, c.cream, 1, 8); g.restore(); }
+      furP(g, [164, 390, 19, 11], null, '#F3E8DA', '#DFD0BB', { plain: 1 }); furP(g, [206, 391, 19, 11], null, '#F3E8DA', '#DFD0BB', { plain: 1 });
+      sPath(g, 'M166 284 L188 316 L210 284', c.theme, 3); rr(g, 177, 314, 22, 28, 3, '#FFFFFF', c.theme, 1.8); rr(g, 181, 318, 14, 9, 1, c.head2); sPath(g, 'M181 332 H195 M181 337 H191', '#9AA9B6', 1.8);
+      jillHead(g, p.mood);
+    }
+    g.restore(); return;
   }
   // back / look views: soles of the hind feet, rump, tail
   const fy = GROUND_Y - 8 - Math.max(0, p.feet) * 8, fo = Math.max(0, -p.feet) * 10;
@@ -415,26 +481,26 @@ function drawBody(g, who, p) {
   if (suit === 'bee') beeWings(g, 150, by - bry * .2, 1, p.slide ? .25 : Math.sin((p.tiePh || 0) * 4) * .12);
   const hy = by - bry - (ren ? 18 : 22) + (p.slide ? 22 : 0);
   if (p.view === 'look') { // head turned toward the camera
-    if (ren) { faceRen(g, 150 + 10, hy - 10, .86, p.mood, p.mug); }
-    else { faceJill(g, 150 + 8, hy - 4, .9, p.mood); }
+    if (ren) { faceRen(g, 150 + 10, hy - 2, 1.12, p.mood, p.mug); }
+    else { faceJill(g, 150 + 8, hy + 2, 1.04, p.mood); }
     if (p.mood === 'cheer') { const px = 150 + (ren ? 76 : 60), py = hy + (ren ? 10 : 6); fur(g, px, py + 26, ren ? 13 : 10, ren ? 22 : 17, -.5, P.a, P.b); blob(g, px + 6, py + 4, ren ? 15 : 12, ren ? 11 : 9, -.3, P.cream); } // a paw thrown up in the air
     return;
   }
   if (ren) {
-    fur(g, 150, hy, 56, 56, 0, '#DDB98D', P.b, { rr: .62 });
+    fur(g, 150, hy, 58, 54, 0, RC.ren.head1, RC.ren.head2, { rr: .7 });
     g.strokeStyle = 'rgba(120,84,56,.5)'; g.lineWidth = 2.2; g.lineCap = 'round'; g.beginPath(); g.moveTo(122, hy - 52); g.quadraticCurveTo(150, hy - 60, 178, hy - 52); g.stroke();
     const e = p.ear;
     for (const sd of [-1, 1]) { const ex = 150 + sd * (66 + e * 12), ey = hy + 26 - e * 18, rot = sd * (.12 + e * .5);
-      fur(g, ex, ey, 32, 72, rot, '#B08A66', '#7E5E42', { vert: 1 }); }
+      fur(g, ex, ey, 30, 66, rot, RC.ren.ear1, RC.ren.ear3, { vert: 1 }); }
     if (p.tie != null) { // the tie comes out from under his chin and streams back over his shoulder in the wind
       windTie(g, 152, hy + 50, p);
       fur(g, 150, hy + 44, 30, 13, 0, '#D6AE82', '#BE9369', { sparse: 1, rim: 1 }); // the chin/neck fur tucks the root in
     }
     { const hk = p.mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 150, hy - 50, 1, 54, 18); else if (WEAR.ren.suit === 'bee') antennae(g, 150, hy - 50, 1); }
   } else {
-    const ears = () => { for (const sd of [-1, 1]) { g.save(); g.translate(150 + sd * 24, hy - 32); g.rotate(sd * (.2 + p.ear * .4)); fur(g, 0, -22, 16, 30, 0, '#D3AE84', '#AE885F', { vert: 1 }); g.restore(); } };
+    const ears = () => { for (const sd of [-1, 1]) { g.save(); g.translate(150 + sd * 24, hy - 32); g.rotate(sd * (.2 + p.ear * .4)); fur(g, 0, -20, 15, 27, 0, RC.jil.ear1, RC.jil.ear2, { vert: 1 }); g.restore(); } };
     ears();
-    fur(g, 150, hy, 52, 46, 0, '#E5C59F', P.b);
+    fur(g, 150, hy, 54, 45, 0, RC.jil.head1, RC.jil.head2);
     g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(112, hy + 34); g.quadraticCurveTo(150, hy + 50, 188, hy + 34); g.stroke();
     if (WEAR.jill.suit === 'zebra') zebraMane(g, 150, hy - 44, 52, 1);
     if (WEAR.jill.hat) { wearHat(g, WEAR.jill.hat, 150, hy - 40, .9, 43, 14); if (hatCovers(WEAR.jill.hat)) { earHoles(g, 150, hy - 30, 24, .2 + p.ear * .4); ears(); } }
@@ -496,10 +562,8 @@ function bunHiFree() { for (const w in BUN_HI) { for (const e of BUN_HI[w]) { tr
 function charCardFit() { const dpr = Math.min(3, window.devicePixelRatio || 1); for (const id of ['cvRen', 'cvJill', 'cvPom']) { const c = document.getElementById(id); if (!c) continue; const cw = c.clientWidth || 110, n = Math.max(160, Math.min(450, Math.round(cw * dpr))); if (Math.abs(c.width - n) > 8 || c.height !== c.width) { c.width = n; c.height = n; } } }
 function drawCharCard(cv, who, t) {
   const g = cv.getContext('2d') || noCtx(); g.clearRect(0, 0, cv.width, cv.height);
-  /* 選んだ子は、0.6 秒うれしそうにはねる（選んだ手ごたえ。「動きをひかえめ」でははねない） */
-  const pk = G.cardPick && G.cardPick.who === who ? (performance.now() - G.cardPick.at) / 1000 : 9, picked = pk < .6;
-  const mood = picked ? 'happy' : (t % 3.4) < .14 ? 'blink' : ((t % 9) > 7.4 ? 'happy' : 'open');
-  const hop = picked && !OPT().calm ? Math.abs(Math.sin(pk / .6 * Math.PI * 2)) * (1 - pk / .6) * cv.height * .07 : 0;
+  /* 選んだときに、はねたり顔が切りかわったりしない（2026-11-15：オーナー「チカチカするやつ、いらない」。選んだ印は、わくの色で足りる） */
+  const mood = (t % 3.4) < .14 ? 'blink' : ((t % 9) > 7.4 ? 'happy' : 'open'), hop = 0;
   const base = bunFrame(who, 'front_' + mood, SV.mugOn);
   const s = cv.width / BS * 1.05 * (who === 'pom' ? 1.25 : 1), bob = Math.sin(t * 2.2) * 2;
   const img = s > 1.15 ? bunHi(who, mood, base, Math.min(2, s)) : base; /* 大きく映すときは、その大きさで描いた絵を使う（小さい絵を引きのばすと、ぼやける） */

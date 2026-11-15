@@ -345,9 +345,9 @@ $('#shFb').onclick = e => { SFX.ui(); e.preventDefault(); shareFacebook(); };
 for (const [id, ch] of [['shX', 'x'], ['shLine', 'line'], ['shTh', 'th']]) $('#' + id).onclick = () => { SFX.ui(); copyText(SHARE.caption(ch)); }; // the link itself opens X / LINE with the text filled in; the text is also copied, just in case
 $('#resNameOk').onclick = () => { $('#resNameToggle').hidden = true; const v = cleanName($('#resNameIn').value); if (!v) return; if (nameBad(v)) { $('#resNameIn').value = ''; $('#resNameIn').placeholder = t('nameNG'); return; } SFX.ui(); setNick(v); SV.nickAsked = 1; save(); $('#resRank .rk-name').hidden = true; rankAfterRun(G.score); };
 $('#resNameIn').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('#resNameOk').click(); } };
-$('#pickRen').onclick = () => { G.char = 'ren'; SV.char = 'ren'; G.cardPick = { who: 'ren', at: performance.now() }; save(); refreshTitle(); audioInit(); SFX.ui(); };
-$('#pickJill').onclick = () => { G.char = 'jill'; SV.char = 'jill'; G.cardPick = { who: 'jill', at: performance.now() }; save(); refreshTitle(); audioInit(); SFX.ui(); };
-$('#pickPom').onclick = () => { audioInit(); if (!SV.pomMet) return; G.char = 'pom'; SV.char = 'pom'; G.cardPick = { who: 'pom', at: performance.now() }; save(); refreshTitle(); SFX.ui(); };
+$('#pickRen').onclick = () => { G.char = 'ren'; SV.char = 'ren'; save(); refreshTitle(); audioInit(); SFX.ui(); };
+$('#pickJill').onclick = () => { G.char = 'jill'; SV.char = 'jill'; save(); refreshTitle(); audioInit(); SFX.ui(); };
+$('#pickPom').onclick = () => { audioInit(); if (!SV.pomMet) return; G.char = 'pom'; SV.char = 'pom'; save(); refreshTitle(); SFX.ui(); };
 $('#btnMissions').onclick = openMissions; $('#btnShop').onclick = openShop; $('#btnZukan').onclick = openZukan; $('#btnHow').onclick = openHow; $('#btnStamps').onclick = openStamps;
 $('#btnSet').onclick = openSettings;
 $('#btnRank').onclick = () => openRanking('month'); $('#btnRank2').onclick = () => { hideAll(); show('sTitle'); setupTitle(); refreshTitle(); openRanking('month'); };
