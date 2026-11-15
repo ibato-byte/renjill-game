@@ -452,14 +452,19 @@ function react(mood, both) {
 
 /* ---------- first-run tutorial ----------
    Three teaching obstacles in the first room; time slows near each one until the right swipe is made. */
-const TUT = [{ s: 46, need: 'side', ob: 'box', lane: 1, en: '← SWIPE →', ja: { ja: '左右にスワイプしてよける', en: 'Swipe left or right to dodge' } },
+const TUT = KB_PC ? [{ s: 46, need: 'side', ob: 'box', lane: 1, en: '← DODGE →', ja: { ja: '← → キーでよける', en: 'Press ← or → to dodge' } }, // PC: the arrow keys (2026-11-16)
+  { s: 70, need: 'up', ob: 'futon', en: '↑ JUMP', ja: { ja: '↑ キーでジャンプ', en: 'Press ↑ to jump' } },
+  { s: 94, need: 'down', ob: 'noren', en: '↓ SLIDE', ja: { ja: '↓ キーでスライディング', en: 'Press ↓ to slide' } }]
+  : [{ s: 46, need: 'side', ob: 'box', lane: 1, en: '← SWIPE →', ja: { ja: '左右にスワイプしてよける', en: 'Swipe left or right to dodge' } },
   { s: 70, need: 'up', ob: 'futon', en: '↑ JUMP', ja: { ja: '上にスワイプしてジャンプ', en: 'Swipe up to jump' } },
   { s: 94, need: 'down', ob: 'noren', en: '↓ SLIDE', ja: { ja: '下にスワイプしてスライディング', en: 'Swipe down to slide' } }];
 function setupTutorial(seg) {
   seg.obs = seg.obs.filter(o => o.s0 > 112); seg.items = seg.items.filter(it => it.s > 112);
   for (const st of TUT) { makeObs(seg, st.ob, st.s, st.lane ?? null); for (let q = st.s - 14; q < st.s - 3; q += 1.7) addItem(seg, 'hay', q, 1, .45); }
   const R = seg.turn > 0; // last lesson: the corner at the end of the room
-  const turnStep = { s: seg.len, need: 'turn', en: R ? 'TURN →' : '← TURN', ja: { ja: R ? '曲がり角！ 今、右にスワイプして曲がる' : '曲がり角！ 今、左にスワイプして曲がる', en: R ? 'Corner! Swipe right now to turn' : 'Corner! Swipe left now to turn' },
+  const turnStep = KB_PC ? { s: seg.len, need: 'turn', en: R ? 'TURN →' : '← TURN', ja: { ja: R ? '曲がり角！ 今、→ キーで曲がる' : '曲がり角！ 今、← キーで曲がる', en: R ? 'Corner! Press → now to turn' : 'Corner! Press ← now to turn' },
+    pre: { ja: R ? 'この先は右に曲がる。矢印が出たら → キー' : 'この先は左に曲がる。矢印が出たら ← キー', en: R ? 'The path turns right ahead. Press → when the arrow appears' : 'The path turns left ahead. Press ← when the arrow appears' } }
+    : { s: seg.len, need: 'turn', en: R ? 'TURN →' : '← TURN', ja: { ja: R ? '曲がり角！ 今、右にスワイプして曲がる' : '曲がり角！ 今、左にスワイプして曲がる', en: R ? 'Corner! Swipe right now to turn' : 'Corner! Swipe left now to turn' },
     pre: { ja: R ? 'この先は右に曲がる。矢印が出たら右へスワイプ' : 'この先は左に曲がる。矢印が出たら左へスワイプ', en: R ? 'The path turns right ahead. Swipe right when the arrow appears' : 'The path turns left ahead. Swipe left when the arrow appears' } };
   G.tut = TUT.concat([turnStep]).map(x => Object.assign({ done: 0 }, x)); G.tutSeg = seg;
 }

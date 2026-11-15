@@ -282,6 +282,13 @@ const STR = {
   vib: ['振動', 'Vibration'], calm: ['画面の揺れ・演出をひかえめに', 'Reduce screen shake and flashes'], music: ['音楽', 'Music'], sfx: ['効果音', 'Sound effects'], on: ['オン', 'On'], off: ['オフ', 'Off'], lvLow: ['小さめ', 'Low'], vibLow: ['弱め', 'Light'],
   resetTut: ['チュートリアルをもう一度', 'Replay the tutorial'], xfer: ['記録のバックアップ（予備）', 'Backup of your progress (spare)'], xferNote: ['ネットにつながらないときなどの予備です。長いコードをメモ帳などに保存しておけば、あとで記録をもどせます。ふだんの引き継ぎは上の「記録の引き継ぎ」が簡単です。（写真アルバムは入りません）', 'A spare for when you are offline: save the long code somewhere and restore it later. For everyday moves, “Move your progress” above is easier. (Photos are not included.)'], xferMake: ['バックアップのコードを作る', 'Make a backup code'], xferCopied: ['コードをコピーしました。メモ帳などに保存しておいてください', 'Code copied. Keep it somewhere safe'], xferPaste: ['ここにバックアップのコードを貼り付け', 'Paste a backup code here'], xferLoad: ['このコードで復元', 'Restore from this code'], xferDone: ['記録をもどしました！', 'Restored!'], xferBad: ['コードが正しくありません。最後まで貼り付けられているか確認してください', 'That code does not look right. Check it was pasted in full'], xferConfirm: ['今の記録はこのコードの記録で上書きされます。もう一度押すと復元します', 'Your current progress will be replaced. Tap again to restore'], xferMine: ['この端末にも記録があります（ベスト {0}点・チモシー {1}本・{2}回プレイ）。続けると、この端末の記録は上の記録に入れかわります', 'This device has progress too (best {0}, hay {1}, {2} runs). It will be replaced by the progress above.'], resetDone: ['次のスタートでチュートリアルが始まります', 'The tutorial will play on your next run'],
 };
+/* PC（マウスとキーボード）では、操作の案内を「スワイプ」ではなく矢印キーで出す（2026-11-16：ゲームサイトから来る人はほぼ PC。1 回で離れる人が 6 割だった） */
+const KB_PC = (() => { try { return matchMedia('(hover:hover) and (pointer:fine)').matches && !matchMedia('(any-pointer:coarse)').matches; } catch (e) { return false; } })();
+if (KB_PC) Object.assign(STR, {
+  hintMove: ['← → キーでレーン移動・↑ でジャンプ・↓ でスライディング', 'Use ← → to change lanes, ↑ to jump, ↓ to slide'],
+  hintTurn: ['矢印が出たら、その向きのキーで曲がる', 'When an arrow appears, press that arrow key to turn'],
+  hintSwipe: ['行きたい方の矢印キー', 'Press the arrow key toward where you want to go'],
+  hintFork: ['分かれ道！ 行きたい方の矢印キー', 'A fork! Press the arrow key toward where you want to go'] });
 const t = (k, ...a) => { const s = STR[k] ? tr(STR[k][0], STR[k][1]) : k; return s.replace(/\{(\d)\}/g, (_, i) => a[i] ?? ''); };
 
 /* ================= world constants ================= */
@@ -450,7 +457,7 @@ const EVENT = EVENT_INFO.id || '';
 const JA_LBL = { 'LUNCH?': 'お昼休み', 'WHICH WAY?': '分かれ道', 'JUMP': 'ジャンプ', 'SLIDE': 'スライディング', 'DODGE': 'よける', 'NEW TITLE!': '称号ゲット！', 'ALMOST!': 'もう少し！', 'DAILY CLEAR!': '今日のチャレンジ達成！', 'GOOD!': 'いいね！', 'FIRST-RUN BONUS!': '初回ボーナス！', 'KEEP GOING!': 'まだまだ！', 'LAST TRAIN': '終電', 'LUCKY!': 'ラッキー！',
   'MISSION CLEAR': 'ミッション達成', 'PHOTO': '記念写真', 'SAVED!': 'セーフ！', 'STAMP!': 'スタンプ！', 'BUMP!': 'ぶつかった！', 'MUNCH MUNCH FEVER!': 'もぐもぐフィーバー！', "IT'S 6 PM! FEVER": '定時！ フィーバー',
   'NEW BEST!': '自己ベスト！', '8:00 AM': '朝 8:00', '9:00 ON TIME!': '9:00 出社！', '← LEFT': '← 左へ', 'RIGHT →': '右へ →', 'FEVER!': 'フィーバー！', 'NICE JUMP!': 'ナイスジャンプ！', 'NICE SLIDE!': 'ナイススライド！',
-  'CLOSE!': 'ギリギリ！', '← SWIPE →': '← スワイプ →', '↑ JUMP': '↑ ジャンプ', '↓ SLIDE': '↓ スライディング', 'TURN →': '右へ曲がる →', '← TURN': '← 左へ曲がる', '450 m!': '地上450m！', '150 m DECK!': '地上150m！',
+  'CLOSE!': 'ギリギリ！', '← SWIPE →': '← スワイプ →', '← DODGE →': '← よける →', '↑ JUMP': '↑ ジャンプ', '↓ SLIDE': '↓ スライディング', 'TURN →': '右へ曲がる →', '← TURN': '← 左へ曲がる', '450 m!': '地上450m！', '150 m DECK!': '地上150m！',
   'GOAL': 'あそびかた', 'CORNERS': '曲がり角', '♥ BUMPS': 'ぶつかったら', 'FEVER': 'もぐもぐフィーバー', 'TAP A FOOD': 'タップすると解説', 'BUNNY FOOD NOTE': 'うさぎごはんメモ', 'NG FOOD': 'あげちゃダメ', 'GO!': 'GO！', 'OOPS.': 'あっ。', 'PAUSE': 'ひと休み',
   'GOOD WORK!': 'おしごと完了！', 'SO CLOSE!': 'おしい！', 'THE PRESIDENT IS WATCHING!': '社長が見てる！', 'PHONE CALL: AN ERRAND!': 'おつかいの電話！', 'PAPERWORK RUSH!': '書類の山！', 'SNACK TIME!': '差し入れタイム！' };
 function lab(en) {
