@@ -757,6 +757,16 @@
       "has": "let HAT_OUT = 0;"
     },
     {
+      "name": "ホーム画面の光の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'homelight'"
+    },
+    {
+      "name": "ホーム画面の朝の光",
+      "file": "src/4_render.js",
+      "has": "function titleLight()"
+    },
+    {
       "name": "壁の向こうが見えない試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'wallsee'"
