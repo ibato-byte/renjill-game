@@ -90,17 +90,28 @@ function paintRider(g, W, H, shirt, pants, helmet, kind) {
   // legs
   g.fillStyle = vgrad(g, H * .55, H * .88, [[0, shadeHex(pants, 1.1)], [1, shadeHex(pants, .7)]]);
   const legB = kind === 'kick' ? H * .82 : H * .87; rrect(g, cx - W * .14, H * .55, W * .11, legB - H * .55, 6); g.fill(); rrect(g, cx + W * .03, H * .55, W * .11, legB - H * .55, 6); g.fill();
-  g.fillStyle = '#2B2B2B'; rrect(g, cx - W * .16, legB - H * .02, W * .14, H * .04, 3); g.fill(); rrect(g, cx + W * .02, legB - H * .02, W * .14, H * .04, 3); g.fill();
+  /* 見た目 130〜137：自転車・キックボードに乗る人。くつに底とつま先の丸み／ひざのしわ／首／えりと前のファスナー／肩のぬい目とわきのかげ／耳と、ヘルメットの下の髪／ヘルメットに通気の穴・あごひも・つや／自転車のどろよけとライトの光 */
+  for (const sd of [-1, 1]) { const fx = cx + sd * W * .085; g.fillStyle = '#F3F1EC'; rrect(g, fx - W * .075, legB + H * .008, W * .15, H * .016, 2); g.fill(); g.fillStyle = vgrad(g, legB - H * .03, legB + H * .01, [[0, '#4A4A50'], [1, '#1C1C1E']]); rrect(g, fx - W * .07, legB - H * .028, W * .14, H * .04, [8, 8, 2, 2]); g.fill(); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(fx - W * .03, legB - H * .02, W * .06, 2);
+    g.strokeStyle = 'rgba(0,0,0,.2)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(fx - W * .045, H * .7); g.quadraticCurveTo(fx, H * .712, fx + W * .045, H * .7); g.stroke(); }
+  if (kind !== 'kick') { g.strokeStyle = '#3A444E'; g.lineWidth = 3; g.beginPath(); g.arc(cx, H * .86, W * .06, Math.PI * 1.15, Math.PI * 1.85); g.stroke(); const lg = g.createRadialGradient(cx, H * .647, 1, cx, H * .647, W * .12); lg.addColorStop(0, 'rgba(255,243,200,.55)'); lg.addColorStop(1, 'rgba(255,243,200,0)'); g.fillStyle = lg; g.fillRect(cx - W * .14, H * .58, W * .28, H * .13); }
+  g.fillStyle = '#E2BFA4'; g.fillRect(cx - W * .035, H * .19, W * .07, H * .04);
   // body and arms reaching the handlebar
   g.fillStyle = vgrad(g, H * .2, H * .6, [[0, shadeHex(shirt, 1.15)], [1, shadeHex(shirt, .75)]]);
   rrect(g, cx - W * .2, H * .2, W * .4, H * .4, [W * .14, W * .14, 8, 8]); g.fill();
   g.strokeStyle = shadeHex(shirt, .85); g.lineWidth = W * .09; g.lineCap = 'round';
   g.beginPath(); g.moveTo(cx - W * .17, H * .27); g.quadraticCurveTo(cx - W * .3, H * .34, cx - W * .26, H * .43); g.moveTo(cx + W * .17, H * .27); g.quadraticCurveTo(cx + W * .3, H * .34, cx + W * .26, H * .43); g.stroke();
   g.fillStyle = '#F1D9C4'; for (const sd of [-1, 1]) { g.beginPath(); g.arc(cx + sd * W * .26, H * .43, W * .045, 0, Math.PI * 2); g.fill(); }
+  g.fillStyle = shadeHex(shirt, 1.3); g.beginPath(); g.moveTo(cx - W * .07, H * .205); g.lineTo(cx, H * .25); g.lineTo(cx + W * .07, H * .205); g.lineTo(cx + W * .05, H * .2); g.lineTo(cx, H * .23); g.lineTo(cx - W * .05, H * .2); g.closePath(); g.fill();
+  g.strokeStyle = shadeHex(shirt, .6); g.lineWidth = 1.4; g.beginPath(); g.moveTo(cx, H * .25); g.lineTo(cx, H * .59); g.stroke(); g.fillStyle = '#C9CDD2'; g.fillRect(cx - 1.5, H * .25, 3, H * .012);
+  g.strokeStyle = 'rgba(0,0,0,.14)'; g.lineWidth = 1.5; for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(cx + sd * W * .13, H * .22); g.quadraticCurveTo(cx + sd * W * .17, H * .3, cx + sd * W * .15, H * .42); g.stroke(); } g.fillStyle = 'rgba(0,0,0,.1)'; g.fillRect(cx - W * .2, H * .52, W * .4, H * .08);
+  g.fillStyle = '#E2BFA4'; for (const sd of [-1, 1]) { g.beginPath(); g.ellipse(cx + sd * W * .1, H * .145, W * .018, H * .02, 0, 0, Math.PI * 2); g.fill(); } g.fillStyle = '#3B2A20'; g.beginPath(); g.ellipse(cx, H * .115, W * .105, H * .05, 0, Math.PI, 0); g.fill();
   // head, hair, helmet
   g.fillStyle = vgrad(g, H * .06, H * .21, [[0, '#F6E2CF'], [1, '#E2BFA4']]); g.beginPath(); g.ellipse(cx, H * .14, W * .1, H * .075, 0, 0, Math.PI * 2); g.fill();
   g.fillStyle = 'rgba(60,40,30,.7)'; g.fillRect(cx - W * .05, H * .135, W * .025, H * .012); g.fillRect(cx + W * .025, H * .135, W * .025, H * .012);
   g.fillStyle = vgrad(g, H * .02, H * .12, [[0, shadeHex(helmet, 1.2)], [1, shadeHex(helmet, .8)]]); g.beginPath(); g.ellipse(cx, H * .1, W * .12, H * .065, 0, Math.PI, 0); g.fill(); g.fillRect(cx - W * .12, H * .095, W * .24, H * .015);
+  g.fillStyle = 'rgba(0,0,0,.3)'; for (const x of [-.055, 0, .055]) { rrect(g, cx + W * x - W * .012, H * .055, W * .024, H * .03, 3); g.fill(); } g.fillStyle = 'rgba(255,255,255,.4)'; g.beginPath(); g.ellipse(cx - W * .06, H * .06, W * .03, H * .01, -.4, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = '#2B2B2B'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(cx - W * .095, H * .11); g.quadraticCurveTo(cx - W * .08, H * .2, cx, H * .212); g.quadraticCurveTo(cx + W * .08, H * .2, cx + W * .095, H * .11); g.stroke();
+  g.strokeStyle = 'rgba(150,90,70,.7)'; g.lineWidth = 1.4; g.lineCap = 'round'; g.beginPath(); g.arc(cx, H * .165, W * .025, .2, Math.PI - .2); g.stroke();
   if (kind === 'kick') kickScooter(g, W, H, cx);
 }
 // a shared electric kick scooter at a slight angle, in front of its rider: fat front wheel, teal stem with a bright
@@ -249,6 +260,10 @@ function paintSandwich(g, W, H, txt) {
   g.fillStyle = '#F6EBDC'; g.beginPath(); g.moveTo(W * .16, H * .08); g.lineTo(W * .84, H * .08); g.lineTo(W * .9, H * .88); g.lineTo(W * .1, H * .88); g.closePath(); g.fill();
   g.fillStyle = '#3B2A20'; g.font = `900 ${Math.round(W * .2)}px ${typeof FAC_FONT !== 'undefined' ? FAC_FONT : 'sans-serif'}`; g.textAlign = 'center'; g.textBaseline = 'middle';
   [...txt].forEach((ch, i, a) => g.fillText(ch, W / 2, H * (.2 + .62 * (i + .5) / a.length)));
+  /* 見た目 138〜140：立て看板。木のわくの面取り／紙にふちの線／上のちょうつがい */
+  g.strokeStyle = 'rgba(255,220,180,.2)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(W * .12, H * .04); g.lineTo(W * .05, H * .94); g.moveTo(W * .88, H * .04); g.lineTo(W * .95, H * .94); g.stroke(); g.strokeStyle = 'rgba(30,15,5,.3)'; g.beginPath(); g.moveTo(W * .145, H * .06); g.lineTo(W * .085, H * .9); g.moveTo(W * .855, H * .06); g.lineTo(W * .915, H * .9); g.stroke();
+  g.strokeStyle = 'rgba(120,85,55,.5)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(W * .2, H * .11); g.lineTo(W * .8, H * .11); g.lineTo(W * .85, H * .85); g.lineTo(W * .15, H * .85); g.closePath(); g.stroke();
+  g.fillStyle = '#C9A86A'; for (const x of [.3, .7]) { rrect(g, W * x - W * .04, 0, W * .08, H * .035, 2); g.fill(); }
 }
 function paintCafe(g, W, H, col) { /* 見た目 115〜118：カフェのテラス席。パラソルのふちのたれ／支柱を金属に・台／テーブルの上にカップ／いすを、背もたれのある形に */
   SH(g, W, H); { const pg = g.createLinearGradient(W * .47, 0, W * .53, 0); pg.addColorStop(0, '#6E747A'); pg.addColorStop(.4, '#D0D5DA'); pg.addColorStop(1, '#6E747A'); g.fillStyle = pg; g.fillRect(W * .485, H * .08, W * .03, H * .58); }
