@@ -23,14 +23,14 @@ const { chromium } = require('playwright'); const path = require('path'); const 
       // 決まった場所の色（アニメの座標 → 絵の中の位置）
       const S = who === 'pom' ? 1 : .72, at = (X, Y) => who === 'ren' ? i.px(150 - (X - 211) * S, 64 + 282 + (Y - 402) * S) : who === 'jill' ? i.px(150 + (X - 217) * S, 64 + 282 + (Y - 402) * S) : i.px(150 + X, 64 + 282 + Y);
       out[who].spots = who === 'ren' ? { ear: at(70, 220), head: at(180, 150), body: at(330, 300), eye: at(150, 199), chest: at(140, 348) } : who === 'jill' ? { head: at(188, 160), body: at(300, 320), eye: at(148, 206), earIn: at(165, 112), chest: at(160, 352) } : { head: at(0, -146), belly: at(10, -40), band: at(0, -162), ear: at(-56, -178), eye: at(-22, -134) };
-      H.ev(`Object.assign(WEAR.${who}, { hat: 'santa' }); buildBunnies('${who}')`); out[who].hatTop = info(H.BUN[who].front_open).y0; H.ev(`Object.assign(WEAR.${who}, { hat: '' }); buildBunnies('${who}')`); }
+      H.ev(`Object.assign(WEAR.${who}, { hat: 'santa' }); buildBunnies('${who}')`); { const hi = info(H.BUN[who].front_open); out[who].hatTop = hi.y0; out[who].hatN = hi.n; } H.ev(`Object.assign(WEAR.${who}, { hat: '' }); buildBunnies('${who}')`); }
     return out; });
   const near = (c, hex, tol) => { const t = [1, 3, 5].map(k => parseInt(hex.slice(k, k + 2), 16)); return c[3] > 200 && Math.max(...t.map((v, k) => Math.abs(v - c[k]))) <= tol; };
   const want = { ren: { ear: ['#B9987A', 40], head: ['#E3C29C', 30], body: ['#C7A077', 40], eye: ['#2A160E', 45], chest: ['#F3E7D6', 30] }, jill: { head: ['#E9C79F', 30], body: ['#CFA174', 40], eye: ['#141414', 45], earIn: ['#E4BAAA', 34], chest: ['#F6EBDC', 30] }, pom: { head: ['#F3E3CA', 36], belly: ['#FAF1E4', 26], band: ['#C8263C', 40], ear: ['#8E786C', 60], eye: ['#0B0D10', 40] } };
   for (const who in want) { const o = r[who]; if (!o || o.n < 3000) { bad.push(`② ${who} の前向きの絵が出ていない`); continue; }
     for (const k in want[who]) if (!near(o.spots[k], want[who][k][0], want[who][k][1])) bad.push(`② ${who} の ${k} の色がアニメとちがう: ${o.spots[k]}（アニメ ${want[who][k][0]}）`);
     if (o.x0 < 2 || o.x1 > 297) bad.push(`③ ${who} が絵のわくからはみ出している（${o.x0}〜${o.x1}）`);
-    if (!(o.hatTop < o.y0 - 8)) bad.push(`④ ${who} に帽子をかぶせても高さが変わらない（帽子が出ていない？ ${o.hatTop} / ${o.y0}）`); }
+    if (!(o.hatTop < o.y0 - 8 || o.hatN > o.n * 1.04)) bad.push(`④ ${who} に帽子をかぶせても絵が変わらない（帽子が出ていない？ ${o.hatTop} / ${o.y0}）`); } // ジルは帽子を頭の横にかぶるので、高さでなく絵の量で見る
   if (r.ren && !(r.ren.low < 150 - 8)) bad.push('③ レンの体が左にない（体の中心 ' + r.ren.low.toFixed(1) + '）'); if (r.jill && !(r.jill.low > 150 + 2)) bad.push('③ ジルの体が右にない（体の中心 ' + r.jill.low.toFixed(1) + '）'); if (r.pom && Math.abs(r.pom.cx - 150) > 5) bad.push('③ ポムが左右対称でない（中心 ' + r.pom.cx.toFixed(1) + '）');
   await b.close(); if (bad.length) { console.log('ANIMELOOK NG\n' + bad.slice(0, 14).join('\n')); process.exit(1); } console.log('ANIMELOOK OK', must.length, 'の数字 ／ 3 キャラ × 色の点');
 })();
