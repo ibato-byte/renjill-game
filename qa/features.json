@@ -767,6 +767,11 @@
       "has": "function titleLight()"
     },
     {
+      "name": "浮かぶ文字が重ならない試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'floattext'"
+    },
+    {
       "name": "壁の向こうが見えない試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'wallsee'"
