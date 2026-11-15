@@ -747,6 +747,16 @@
       "has": "n: 'trainplace'"
     },
     {
+      "name": "食べ物の絵に物ごとの立体感",
+      "file": "src/2_sprites.js",
+      "has": "const ITEM_FORM = {"
+    },
+    {
+      "name": "ジルのカチューシャは耳の外側",
+      "file": "src/2b_bunny.js",
+      "has": "let HAT_OUT = 0;"
+    },
+    {
       "name": "壁の向こうが見えない試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'wallsee'"
