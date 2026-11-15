@@ -742,6 +742,16 @@
       "has": "function wingOn("
     },
     {
+      "name": "ホーム：メニューは下の札（スマホ）・右の札（PC）で、部屋と 3 人が見える",
+      "file": "src/head.html",
+      "has": "#sTitle{isolation:isolate}"
+    },
+    {
+      "name": "ホーム：たて長・横長でカメラを変えて 3 人をおさめる",
+      "file": "src/6_game.js",
+      "has": "const tall = W < H * .8"
+    },
+    {
       "name": "帽子が自然に見える試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'wearfit'"
