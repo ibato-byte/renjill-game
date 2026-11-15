@@ -732,6 +732,16 @@
       "has": "kind: 'suit', tie: '#B8473C', item: 'case'"
     },
     {
+      "name": "壁の向こうが見えない試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'wallsee'"
+    },
+    {
+      "name": "曲がり角の奥の壁を横と上にのばす",
+      "file": "src/4_render.js",
+      "has": "function wingOn("
+    },
+    {
       "name": "帽子が自然に見える試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'wearfit'"
