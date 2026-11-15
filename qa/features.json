@@ -742,6 +742,31 @@
       "has": "function wingOn("
     },
     {
+      "name": "ホーム：メニューは下の札（スマホ）・右の札（PC）で、部屋と 3 人が見える",
+      "file": "src/head.html",
+      "has": "#sTitle{isolation:isolate}"
+    },
+    {
+      "name": "ホーム：たて長・横長でカメラを変えて 3 人をおさめる",
+      "file": "src/6_game.js",
+      "has": "const tall = W < H * .8"
+    },
+    {
+      "name": "試着室（購買部の鏡）",
+      "file": "src/7_ui.js",
+      "has": "function fitTry("
+    },
+    {
+      "name": "試着室の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'fitroom'"
+    },
+    {
+      "name": "着ぐるみは体の形そのものに色をのせる",
+      "file": "src/2b_bunny.js",
+      "has": "g.clip(); g.globalCompositeOperation = 'source-atop';"
+    },
+    {
       "name": "帽子が自然に見える試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'wearfit'"
