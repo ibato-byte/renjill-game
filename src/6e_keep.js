@@ -10,7 +10,7 @@ const KS = {
   mile: ['{0}点 突破！ チモシー＋{1}本', '{0} points! +{1} hay'], best75: ['自己ベストの75%！ あと {0}点', '75% of your best! {0} to go'], best90: ['自己ベストまであと少し！ あと {0}点', 'Almost your best! {0} to go'],
   todayUp: ['今日のベストをこえた！', "Past today's best!"], goalHit: ['今日の目標スコア達成！ チモシー＋{0}本', "Today's score goal done! +{0} hay"], rivalUp: ['{0} さんをぬいた！', 'You passed {0}!'],
   comboB: ['{0}コンボ！ ＋{1}', '{0} combo! +{1}'], paceUp: ['ベストのときより ＋{0}', '+{0} vs your best run'], paceDn: ['ベストのときより −{0}', '−{0} vs your best run'],
-  boostGo: ['スタートブースト！ スコア2倍とマグネット', 'Start boost! x2 score and magnet'],
+
   vsFirst: ['最初の記録！ 次はこの点をこえよう', 'Your first score! Beat it next'], vsUp: ['自己ベストを {0} 更新！', 'New best by {0}!'], vsDown: ['自己ベストの {1}%（あと {0}点）', '{1}% of your best ({0} to go)'], vsDownS: ['自己ベストの {1}%', '{1}% of your best'],
   lastUp: ['前回より ＋{0}', '+{0} vs last run'], lastDn: ['前回より −{0}', '−{0} vs last run'], todayB: ['今日のベスト {0}', "Today's best {0}"], weekB: ['今週のベスト {0}', "This week's best {0}"],
   near: ['おしい！ あと {0}点で自己ベスト。もう1回！', 'So close! {0} more for a new best. One more run!'],
@@ -20,9 +20,9 @@ const KS = {
   tipOffice: ['コツ：9:00までにオフィスに着くと大きなボーナス', 'Tip: reach the office by 9:00 for a big bonus'],
   tipMission: ['コツ：ミッションを3つ達成すると、スコア倍率が上がる', 'Tip: clear all three missions to raise your score multiplier'],
   tipLong: ['コツ：長く走るほど速くなり、1mあたりの点も増える', 'Tip: the longer you run, the faster you go and the more each metre is worth'],
-  medal: ['スコア勲章「{0}」！ チモシー＋{1}本', 'Score medal: {0}! +{1} hay'], medalC: ['スコア勲章「{0}」！ チモシー＋{1}本・お守り＋{2}', 'Score medal: {0}! +{1} hay, +{2} charm'],
+  medal: ['スコア勲章「{0}」 ＋{1}本', 'Score medal: {0} +{1}'], medalC: ['スコア勲章「{0}」 ＋{1}本・お守り＋{2}', 'Score medal: {0} +{1}, +{2} charm'],
   first: ['今日の1回目ボーナス ＋{0}本', 'First run today: +{0} hay'], chain: ['れんぞく{0}回目 ＋{1}本', 'Run {0} in a row: +{1} hay'], weekBeat: ['先週のベストをこえた！ お守り＋1', "Beat last week's best! +1 charm"],
-  goalDone: ['今日の目標スコア達成 ＋{0}本', "Today's score goal: +{0} hay"], dayUp: ['今日のベスト更新！', "New best today!"],
+  goalDone: ['今日の目標スコア達成 ＋{0}本', "Today's goal done +{0}"], dayUp: ['今日のベスト更新！', "New best today!"],
   again: ['れんぞく{0}回目：チモシー＋{1}%', 'Run {0} in a row: +{1}% hay'],
   bdH: ['点数のうちわけ', 'Where the points came from'], bdD: ['走った距離', 'Distance'], bdC: ['チモシー・ごはん', 'Hay & food'], bdB: ['技・ボーナス', 'Tricks & bonuses'],
   histH: ['最近の5回', 'Last 5 runs'], multL: ['スコア倍率 ×{0}　ミッションをあと{1}つ達成で ×{2}', 'Score multiplier x{0} — {1} more mission(s) for x{2}'],
@@ -30,7 +30,7 @@ const KS = {
   tmrw: ['明日も来ると ログインボーナス {0}本（{1}日連続）', 'Come back tomorrow: +{0} hay (day {1} in a row)'],
   rivalNext: ['次の順位：{0} さんまで あと {1}点', 'Next up: {0} — {1} points ahead'], rivalTop: ['今月の1位です！', "You're #1 this month!"],
   tToday: ['今日 {0}', 'Today {0}'], tWeek: ['今週 {0}', 'Week {0}'], tGoal: ['今日の目標 {0}点（+{1}本）', "Today's goal {0} (+{1} hay)"], tGoalOk: ['今日の目標 {0}点 ✓', "Today's goal {0} ✓"],
-  boostOff: ['スタートブースト（チモシー{0}本）', 'Start boost ({0} hay)'], boostOn: ['スタートブースト ON ✓', 'Start boost ON ✓'], boostNo: ['チモシーが足りません（{0}本）', 'Not enough hay ({0})'],
+  
   rec: ['きろく', 'Records'], recH: ['自分の記録', 'Your records'], recTop: ['ベスト10', 'Top 10 runs'], recNone: ['まだ記録がありません。まず1回走ろう！', 'No records yet. Go for a run!'],
   recAvg: ['最近10回の平均', 'Average of last 10'], recChar: ['キャラクターごとのベスト', 'Best by runner'], recMedal: ['スコア勲章', 'Score medals'], recNext: ['次の勲章：{0}点', 'Next medal: {0}'],
   cbest: ['ベスト {0}', 'Best {0}'], back: ['おかえりなさい！ チモシー{0}本とお守りをどうぞ', 'Welcome back! Here are {0} hay and a charm'],
@@ -40,8 +40,8 @@ const kt = (k, ...a) => tr(KS[k][0], KS[k][1]).replace(/\{(\d)\}/g, (_, i) => a[
 const KP_MILE = [10000, 25000, 50000, 100000, 250000, 500000, 1e6, 2.5e6, 5e6, 1e7, 2.5e7, 5e7, 1e8, 2.5e8, 5e8, 1e9];
 const KP_MEDAL = [[10000, '見習いランナー', 'Trainee runner', 50, 0], [30000, '通勤ランナー', 'Commuter', 80, 0], [100000, '快速ランナー', 'Rapid runner', 120, 0], [300000, '特急ランナー', 'Express runner', 160, 0],
   [1e6, '100万点クラブ', 'Million club', 200, 1], [3e6, '東京の風', 'Wind of Tokyo', 250, 0], [1e7, '1000万点クラブ', 'Ten-million club', 300, 1], [3e7, '光のランナー', 'Runner of light', 400, 0], [1e8, '1億点の伝説', 'Hundred-million legend', 500, 2]];
-const KP_COMBO = [30, 60, 100, 150, 200, 300, 500], KP_BOOST = 200, KP_GOAL_HAY = 150, KP_REROLL = 100;
-let KP_CHAIN = 0, KP_BOOST_ON = 0, KP_RIVALS = [], KP_RIVAL_T = 0;
+const KP_COMBO = [30, 60, 100, 150, 200, 300, 500], KP_GOAL_HAY = 150, KP_REROLL = 100;
+let KP_CHAIN = 0, KP_RIVALS = [], KP_RIVAL_T = 0;
 const kpN = v => Number.isFinite(+v) && +v > 0 ? Math.floor(+v) : 0;
 let KP_REF = null, KP_DAY = '';
 function kp() { // the kept numbers, always in shape (an old or damaged save has none or odd ones)
@@ -52,18 +52,17 @@ function kp() { // the kept numbers, always in shape (an old or damaged save has
   const td = todayStr(), wk = weekKey(); if (k.d !== td) { k.d = td; k.db = 0; } if (k.w !== wk) { k.lw = k.w ? kpN(k.wb) : 0; k.w = wk; k.wb = 0; k.lwDone = 0; }
   k.db = kpN(k.db); k.wb = kpN(k.wb); k.lw = kpN(k.lw); k.last = kpN(k.last); KP_REF = k; KP_DAY = td; return k;
 }
-function kpNormal() { return !G.easy && !G.timed && !G.practice; }
+function kpNormal() { return !G.easy && !G.practice; }
 // today's score goal: a little under what you usually reach (60% of your best, in round numbers), so it is in reach every day and grows with you
 function kpGoal() { const b = SV.best || 0; if (b < 2000) return 2000; const g = b * .6, p = Math.pow(10, Math.max(2, Math.floor(Math.log10(g)) - 1)); return Math.round(g / p) * p; }
 function kpGoalDone() { return kp().tg === todayStr(); }
 function kpPre() { KP_CHAIN = G.mode === 'result' ? KP_CHAIN + 1 : 0; } // “one more run” straight from the result keeps the chain going
 function kpStart() {
-  const k = kp(); G.kp = { mile: 0, t75: 0, t90: 0, dayTold: 0, goalTold: 0, comboI: 0, ck: Math.floor(480 / 180), split: {}, rivals: [], tgt: null, boost: 0 };
+  const k = kp(); G.kp = { mile: 0, t75: 0, t90: 0, dayTold: 0, goalTold: 0, comboI: 0, ck: Math.floor(480 / 180), split: {}, rivals: [], tgt: null };
   { const el = document.getElementById('kpGoal'); if (el) el.hidden = true; }
   if (!kpNormal()) { KP_CHAIN = 0; return; }
   G.kp.rivals = KP_RIVALS.filter(r => r.s > 0).sort((a, b) => a.s - b.s).slice(0, 3);
-  if (KP_BOOST_ON && SV.tutDone && SV.bank >= KP_BOOST) { SV.bank -= KP_BOOST; G.pow.x2 = powDur('x2'); G.pow.magnet = powDur('magnet'); G.kp.boost = 1; banner('START BOOST!', kt('boostGo'), 'good'); save(); } // a hay sink that helps a high score
-  KP_BOOST_ON = 0; k.ls = todayStr();
+  k.ls = todayStr(); // スタートブースト（チモシー 200 本でスコア 2 倍とマグネット）はやめた（2026-11-15 オーナーの判断）
 }
 // the next thing to beat, in order of how close it is
 function kpTarget() {
@@ -159,12 +158,24 @@ function kpTitle() {
   let e = $('#tKeep'); if (!e) { e = document.createElement('div'); e.id = 'tKeep'; e.className = 'tkeep'; anchor.before(e); }
   const goal = kpGoal(), done = kpGoalDone(), bits = []; if (k.db > 0) bits.push(kt('tToday', fmt(k.db))); if (k.wb > 0 && k.wb !== k.db) bits.push(kt('tWeek', fmt(k.wb)));
   e.hidden = !SV.tutDone; e.innerHTML = `<p class="${done ? 'ok' : ''}">${esc(done ? kt('tGoalOk', fmt(goal)) : kt('tGoal', fmt(goal), KP_GOAL_HAY))}</p>` + (bits.length ? `<p class="s">${bits.map(esc).join('<i>・</i>')}</p>` : '');
-  let b = $('#btnBoost'); if (!b) { b = document.createElement('button'); b.id = 'btnBoost'; b.className = 'sub small'; b.onclick = () => { SFX.ui(); if (!KP_BOOST_ON && SV.bank < KP_BOOST) { toastTitle(kt('boostNo', KP_BOOST)); return; } KP_BOOST_ON = KP_BOOST_ON ? 0 : 1; kpTitle(); }; const row = document.createElement('div'); row.id = 'tKeepBtns'; e.after(row); row.appendChild(b); }
-  b.hidden = !SV.tutDone || (SV.runs || 0) < 3; b.textContent = KP_BOOST_ON ? kt('boostOn') : kt('boostOff', KP_BOOST); b.setAttribute('aria-pressed', KP_BOOST_ON ? 'true' : 'false');
-  let r = $('#btnRecords'); if (!r) { r = document.createElement('button'); r.id = 'btnRecords'; r.className = 'sub small'; r.onclick = kpRecords; b.after(r); }
+  { const b = $('#btnBoost'); if (b) b.remove(); }
+  let row = $('#tKeepBtns'); if (!row) { row = document.createElement('div'); row.id = 'tKeepBtns'; e.after(row); }
+  let r = $('#btnRecords'); if (!r) { r = document.createElement('button'); r.id = 'btnRecords'; r.className = 'sub small'; r.onclick = kpRecords; row.prepend(r); }
   $('#tKeepBtns').hidden = !SV.tutDone;
   r.hidden = !SV.tutDone; r.textContent = kt('rec');
   for (const [w, id] of [['ren', 'pickRen'], ['jill', 'pickJill'], ['pom', 'pickPom']]) { const card = $('#' + id); if (!card) continue; let s = card.querySelector('.cbest'); if (!s) { s = document.createElement('span'); s.className = 'cbest'; card.appendChild(s); } const v = kpN(k.cb[w]); s.hidden = !v; s.textContent = v ? kt('cbest', fmt(v)) : ''; }
+}
+// 題名の「今日」：目標・チモシー・チャレンジを 1 つの枠に（2026-11-15 文字を減らす：3 行の文 → 数字と棒。元の行は試験と置き場所のために残し、見えなくする）
+function todayGrid() {
+  const card = $('#sTitle .card'), anchor = $('#tKeep'); if (!card || !anchor) return;
+  let e = $('#tToday'); if (!e) { e = document.createElement('div'); e.id = 'tToday'; e.className = 'ttoday'; anchor.before(e); }
+  const on = !!SV.tutDone; e.hidden = !on; card.classList.toggle('tgrid', on); if (!on) return;
+  const k = kp(), goal = kpGoal(), gdone = kpGoalDone(), gk = gdone ? 1 : Math.min(1, kpN(k.db) / Math.max(1, goal));
+  const n = SV.dayHay && SV.dayHay.d === todayStr() ? SV.dayHay.n : 0, hk = Math.min(1, n / DAY_GOAL), hdone = n >= DAY_GOAL, dly = dailyToday(), cdone = SV.dailyDone === dly.key;
+  const cell = (lbl, val, kk, ok) => `<div class="tt-c${ok ? ' ok' : ''}"><small>${esc(lbl)}</small><b>${val}${ok ? ' ✓' : ''}</b><i><u style="width:${(kk * 100).toFixed(0)}%"></u></i></div>`;
+  e.innerHTML = cell(tr('今日の目標', "Today's goal"), fmt(goal), gk, gdone) + cell(tr('今日のチモシー', 'Hay today'), `${fmt(Math.min(n, DAY_GOAL))}<s>/${DAY_GOAL}</s>`, hk, hdone)
+    + `<p class="tt-ch${cdone ? ' ok' : ''}"><span>${esc(L(dly.c.t(dly.n)))}</span><em>${cdone ? '✓' : '+300'}</em></p>`;
+  const row = $('#tKeepBtns'); if (row) for (const id of ['btnPractice', 'btnRev']) { const b = $('#' + id); if (b && b.parentNode !== row) row.appendChild(b); } // 小さなボタンは 1 つの列に（1 行ずつ縦に並べない）
 }
 function kpRecords() {
   SFX.ui(); const k = kp(), nm = { r: tr('レン', 'Ren'), j: tr('ジル', 'Jill'), p: tr('ポム', 'Pom') }, avg = k.h.length ? Math.round(k.h.reduce((a, b) => a + b, 0) / k.h.length) : 0;

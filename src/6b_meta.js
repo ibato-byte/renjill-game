@@ -26,7 +26,6 @@ const ACH = [
   { id: 'airCatch', hay: 150, n: { ja: '空中キャッチ', en: 'Air catch' }, d: { ja: '1回のジャンプでチモシーを5本取る', en: 'Grab 5 hay in a single jump' }, ok: s => (s.airCatch || 0) >= 1 },
   { id: 'slideMaster', hay: 150, n: { ja: 'すべりこみ名人', en: 'Slide master' }, d: { ja: 'スライディングで3つ続けてくぐる', en: 'Slide under 3 in a row' }, ok: s => (s.slideMaster || 0) >= 1 },
   { id: 'corner5', hay: 200, n: { ja: 'コーナーの達人', en: 'Corner ace' }, d: { ja: '1回のランでナイスコーナーを5回', en: '5 nice corners in one run' }, ok: s => (s.niceCorner || 0) >= 5 },
-  { id: 'quick20k', hay: 250, n: { ja: '1分の達人', en: 'One-minute wonder' }, d: { ja: '1分ダッシュで20,000点', en: 'Score 20,000 in the 1-minute dash' }, ok: s => s.timed && s.score >= 20000 },
   { id: 'vegAll', hay: 200, n: { ja: '野菜ソムリエ', en: 'Veggie expert' }, d: { ja: '野菜を図鑑に全部のせる', en: 'Put every vegetable in the food book' }, ok: (s, sv) => VEG.every(k => sv.zukan[k]) },
   { id: 'fruitAll', hay: 200, n: { ja: 'くだもの通', en: 'Fruit fan' }, d: { ja: 'くだものを図鑑に全部のせる', en: 'Put every fruit in the food book' }, ok: (s, sv) => TREATS.every(k => sv.zukan[k]) },
   { id: 'bond5', hay: 300, n: { ja: 'なかよしコンビ', en: 'Best buddies' }, d: { ja: 'レンとジルのなかよし度を Lv.5 に', en: 'Get Ren & Jill to Buddies Lv.5' }, ok: (s, sv) => 1 + Math.floor(Math.sqrt((sv.bond || 0) / 3)) >= 5 },

@@ -9,7 +9,7 @@
 | 毎週月曜（Hub の週次PDCAのあと） | Claude の定期タスク「レンとジル ゲーム改善」 | 下の「週次の改善」を行い、PR を作る。CI が緑ならマージ（＝自動で公開） |
 | 投稿のあと 12:40・19:40 | GitHub Actions の feed-sync（AIなし・無料・数十秒） | feed.json の「新作」（latest）を、公式サイトと同じ renjill-media/episodes.json の一番新しい公開済みの回に合わせ、変わったときだけ公開する（tools/feed_sync.py。renjill-auto が投稿のたびに episodes.json を書く） |
 | ゲームを更新したとき | Claude の定期タスク「レンとジル ゲーム改善」 | feed.json に `news`（`{ja,en,zh,ko}` の短い一文。例：新しいエリア・季節の企画）を書く。公式サイト https://renjill.coana.co.jp/ のゲーム欄に NEWS として自動で出る。feed.json は CORS（`Access-Control-Allow-Origin: *`、app/_headers）付きで公開している |
-| 毎週 | renjill-auto（週次PDCA） | ゲームの「あいことば」を1つ投稿のキャプションに入れる。ゲームのプレイ動画（qa/promo_record.js で作る）を週1本、トライアルリールで出す |
+| 毎週 | renjill-auto（週次PDCA） | ゲームの「あいことば」を1つ投稿のキャプションに入れる。ゲームのプレイ動画（qa/promo_record.js で作る。公式サイトにも出る紹介動画 app/promo/ は qa/promo_frames.js → tools/make_promo.py で作る）を週1本、トライアルリールで出す |
 
 ## 週次の改善（Claude の定期タスク。1回で最大3件、各30分の目安）
 1. 数字を見る：kpi.json（遊んだ人・今月遊んだ人）、renjill-auto の content/metrics.csv（再生・シェア・保存・フォロワー）、qa-report（失敗の傾向）。先週の改善の効果を docs/KAIZEN.md に書く（悪くなったら元に戻す）。

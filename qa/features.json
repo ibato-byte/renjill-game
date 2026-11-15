@@ -77,11 +77,6 @@
       "has": "SPEED UP"
     },
     {
-      "name": "1分ダッシュ",
-      "file": "src/6_game.js",
-      "has": "G.timed"
-    },
-    {
       "name": "スーパージャンプの空の牧草",
       "file": "src/6_game.js",
       "has": "function skyHay("
@@ -705,6 +700,31 @@
       "name": "光の試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'lightfx'"
+    },
+    {
+      "name": "キャラクターの夕方の色は細かいきざみ（急に赤くならない）",
+      "file": "src/4b_patterns.js",
+      "has": "const st = full ? 16 : 4"
+    },
+    {
+      "name": "書類の山を右の端まで描く",
+      "file": "src/4_render.js",
+      "has": "const xx = Math.min(x, W)"
+    },
+    {
+      "name": "書類の山の端の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'paperedge'"
+    },
+    {
+      "name": "夕方の色の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'buntint'"
+    },
+    {
+      "name": "紹介動画を 1 コマずつ撮る道具",
+      "file": "qa/promo_frames.js",
+      "has": "p.clock.pauseAt"
     },
     {
       "name": "題名：朝・道中・夜の説明は、はじめの 3 回だけ",

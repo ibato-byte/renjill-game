@@ -183,7 +183,7 @@ const STR = {
   igShared: ['シェアしました', 'Shared'], fbShared: ['シェアしました（文章もコピー済み。投稿欄に貼り付けられます）', 'Shared. Your result text is copied too, so you can paste it into the post'],
   fbCopied: ['結果の文章をコピーしました。Facebookの投稿欄に貼り付けてください。', 'Your result text is copied. Paste it into your Facebook post.'], fbOpen: ['Facebookでシェア', 'Share on Facebook'], igOpen: ['Instagramを開く', 'Open Instagram'],
   shareMore: ['その他', 'More'],
-  codeH: ['SNSのあいことば', 'Secret word from our posts'], codeNote: ['Instagram・Facebook・X の投稿で発表する「あいことば」を入れると、チモシーや帽子がもらえます', 'Enter the secret word from our Instagram, Facebook or X posts to get hay or a hat'],
+  codeH: ['SNSのあいことば', 'Secret word from our posts'], codeNote: ['公式SNSの投稿で発表する「あいことば」を入れると、チモシーや帽子がもらえます', 'Enter the secret word from our posts to get hay or a hat'],
   codePh: ['あいことば', 'Secret word'], codeOk: ['受け取る', 'Redeem'], codeBad: ['あいことばが違うか、期限が過ぎています', 'That word is wrong or has expired'], codeUsed: ['このあいことばは受け取り済みです', 'You already used this word'],
   codeGot: ['受け取りました！ チモシー{0}本', 'Got it! {0} hay'], codeOff: ['あいことばの確認には、インターネットの接続が必要です', 'Checking the word needs an internet connection'],
   feedNew: ['SNSの新作', 'New on our SNS'],
@@ -278,7 +278,7 @@ const STR = {
   richHay: ['こっちはチモシー多め！', 'More hay this way!'],
   calH: ['出社カレンダー', 'Days at work'], calN: ['この4週間で {0} 日', '{0} days in the last 4 weeks'],
   cpBtn: ['▶ つづきから走る（{0}日目・{1}点）', '▶ Continue your run (Day {0} · {1} pts)'], cpBack: ['途中から再開しました', 'Picked up where you left off'],
-  quick: ['⏱ 1分ダッシュ', '⏱ 1-minute dash'], quickHud: ['のこり {0} 秒', '{0}s left'], quickBest: ['1分ダッシュの自己ベスト：{0}', '1-minute best: {0}'], easyRes: ['のんびりモード（ランキング・自己ベストには入りません）', 'Relaxed mode (not counted for the ranking or your best)'], bond: ['なかよし', 'Buddies'], bondUp: ['レンとジルのなかよし度が上がった！ Lv.{0}', 'Ren & Jill are better buddies! Lv.{0}'], bondLbl: ['なかよし Lv.{0}', 'Buddies Lv.{0}'],
+  easyRes: ['のんびりモード（ランキング・自己ベストには入りません）', 'Relaxed mode (not counted for the ranking or your best)'], bond: ['なかよし', 'Buddies'], bondUp: ['レンとジルのなかよし度が上がった！ Lv.{0}', 'Ren & Jill are better buddies! Lv.{0}'], bondLbl: ['なかよし Lv.{0}', 'Buddies Lv.{0}'],
   vib: ['振動', 'Vibration'], calm: ['画面の揺れ・演出をひかえめに', 'Reduce screen shake and flashes'], music: ['音楽', 'Music'], sfx: ['効果音', 'Sound effects'], on: ['オン', 'On'], off: ['オフ', 'Off'], lvLow: ['小さめ', 'Low'], vibLow: ['弱め', 'Light'],
   resetTut: ['チュートリアルをもう一度', 'Replay the tutorial'], xfer: ['記録のバックアップ（予備）', 'Backup of your progress (spare)'], xferNote: ['ネットにつながらないときなどの予備です。長いコードをメモ帳などに保存しておけば、あとで記録をもどせます。ふだんの引き継ぎは上の「記録の引き継ぎ」が簡単です。（写真アルバムは入りません）', 'A spare for when you are offline: save the long code somewhere and restore it later. For everyday moves, “Move your progress” above is easier. (Photos are not included.)'], xferMake: ['バックアップのコードを作る', 'Make a backup code'], xferCopied: ['コードをコピーしました。メモ帳などに保存しておいてください', 'Code copied. Keep it somewhere safe'], xferPaste: ['ここにバックアップのコードを貼り付け', 'Paste a backup code here'], xferLoad: ['このコードで復元', 'Restore from this code'], xferDone: ['記録をもどしました！', 'Restored!'], xferBad: ['コードが正しくありません。最後まで貼り付けられているか確認してください', 'That code does not look right. Check it was pasted in full'], xferConfirm: ['今の記録はこのコードの記録で上書きされます。もう一度押すと復元します', 'Your current progress will be replaced. Tap again to restore'], xferMine: ['この端末にも記録があります（ベスト {0}点・チモシー {1}本・{2}回プレイ）。続けると、この端末の記録は上の記録に入れかわります', 'This device has progress too (best {0}, hay {1}, {2} runs). It will be replaced by the progress above.'], resetDone: ['次のスタートでチュートリアルが始まります', 'The tutorial will play on your next run'],
 };
