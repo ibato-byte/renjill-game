@@ -22,9 +22,18 @@ function suitOver(g, kind, cx, cy, rx, ry) {
   g.save(); g.beginPath(); g.ellipse(cx, cy, ex, ey, 0, 0, Math.PI * 2); g.clip(); g.globalCompositeOperation = 'source-atop';
   if (kind === 'royal') { // the Legendary bunny's gold-and-cream ceremonial coat: soft gold cloth, a red sash, small gold buttons
     const gr = g.createLinearGradient(cx - rx, cy - ry, cx + rx, cy + ry); gr.addColorStop(0, '#F6DC86'); gr.addColorStop(.5, '#E2B341'); gr.addColorStop(1, '#C8902A'); g.fillStyle = gr; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
-    g.strokeStyle = 'rgba(255,248,215,.35)'; g.lineWidth = 2; for (let k = -4; k <= 4; k++) { g.beginPath(); g.moveTo(cx + k * rx * .3 - rx * .3, cy - ry); g.lineTo(cx + k * rx * .3 + rx * .3, cy + ry); g.stroke(); }
-    g.fillStyle = '#C8263C'; g.beginPath(); g.moveTo(cx - rx, cy - ry * .55); g.lineTo(cx - rx * .7, cy - ry * .8); g.lineTo(cx + rx, cy + ry * .55); g.lineTo(cx + rx * .7, cy + ry * .85); g.closePath(); g.fill();
-    g.fillStyle = '#FFF2C2'; for (const k of [-.35, .05, .45]) { g.beginPath(); g.arc(cx - rx * .02, cy + k * ry, rx * .05, 0, Math.PI * 2); g.fill(); }
+    /* 2026-11-16 着せかえ 46〜51：金の礼服を作り込む。織りもようは体の丸みにそう曲線／たすきに金のふちと布のつや／ボタンは金具らしく／すそに金の房 */
+    g.strokeStyle = 'rgba(255,248,215,.3)'; g.lineWidth = 1.6; for (let k = -5; k <= 5; k++) { const x = cx + k * rx * .3; g.beginPath(); g.moveTo(x - rx * .3, cy - ey); g.quadraticCurveTo(x + rx * .1 * (k < 0 ? -1 : 1), cy, x + rx * .3, cy + ey); g.stroke(); }
+    g.fillStyle = 'rgba(255,250,225,.5)'; for (let k = -5; k <= 4; k++) for (let m = -3; m <= 3; m++) { const x = cx + (k + .5) * rx * .3 + m * rx * .1, y = cy + m * ry * .3; g.beginPath(); g.moveTo(x, y - 2.4); g.lineTo(x + 1.6, y); g.lineTo(x, y + 2.4); g.lineTo(x - 1.6, y); g.closePath(); g.fill(); } // 小さなひし形の織りもよう
+    { const sa = [cx - ex, cy - ry * .55], sb = [cx - rx * .7, cy - ry * .86], sc = [cx + ex, cy + ry * .5], sd = [cx + rx * .7, cy + ry * .9];
+      const sg2 = g.createLinearGradient(sb[0], sb[1], sa[0] + rx * .3, sa[1] + ry * .5); sg2.addColorStop(0, '#E0445A'); sg2.addColorStop(.5, '#C8263C'); sg2.addColorStop(1, '#9E1B2E');
+      g.fillStyle = sg2; g.beginPath(); g.moveTo(sa[0], sa[1]); g.lineTo(sb[0], sb[1]); g.lineTo(sc[0], sc[1]); g.lineTo(sd[0], sd[1]); g.closePath(); g.fill();
+      g.strokeStyle = '#F3D98A'; g.lineWidth = 2; g.beginPath(); g.moveTo(sb[0], sb[1] + 2.5); g.lineTo(sc[0], sc[1] + 2.5); g.moveTo(sa[0], sa[1] - 2.5); g.lineTo(sd[0], sd[1] - 2.5); g.stroke(); // たすきの金のふち
+      g.strokeStyle = 'rgba(255,255,255,.22)'; g.lineWidth = 3; g.beginPath(); g.moveTo((sa[0] + sb[0]) / 2, (sa[1] + sb[1]) / 2 - 3); g.lineTo((sc[0] + sd[0]) / 2, (sc[1] + sd[1]) / 2 - 3); g.stroke(); } // 布のつや
+    for (const k of [-.35, .05, .45]) { const bx = cx - rx * .02, by = cy + k * ry, br = rx * .055; g.fillStyle = 'rgba(90,55,10,.35)'; g.beginPath(); g.arc(bx + .6, by + 1.2, br, 0, Math.PI * 2); g.fill();
+      const bg = g.createRadialGradient(bx - br * .3, by - br * .4, br * .1, bx, by, br); bg.addColorStop(0, '#FFFBE0'); bg.addColorStop(.6, '#F3D46E'); bg.addColorStop(1, '#B98522'); g.fillStyle = bg; g.beginPath(); g.arc(bx, by, br, 0, Math.PI * 2); g.fill(); }
+    { const hy = cy + ry * .8; g.fillStyle = '#B98522'; g.beginPath(); g.moveTo(cx - ex, hy); g.quadraticCurveTo(cx, hy + ry * .18, cx + ex, hy); g.lineTo(cx + ex, hy + 3); g.quadraticCurveTo(cx, hy + ry * .18 + 3, cx - ex, hy + 3); g.closePath(); g.fill();
+      g.strokeStyle = '#F6E3A0'; g.lineWidth = 1.5; g.lineCap = 'round'; for (let i = 0; i <= 30; i++) { const u = i / 30, x = cx - ex + u * ex * 2, y = hy + ry * .18 * (1 - (2 * u - 1) * (2 * u - 1)) + 3; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (srand() - .5), y + 5 + srand() * 2); g.stroke(); } } // すその金の房
   } else if (kind === 'bee') {
     { const gy = g.createLinearGradient(0, cy - ry, 0, cy + ry); gy.addColorStop(0, '#FFD95A'); gy.addColorStop(.6, '#F4C433'); gy.addColorStop(1, '#D9A21B'); g.fillStyle = gy; g.fillRect(cx - ex, cy - ey, ex * 2, ey * 2); }
     const h = ry * .27; // しまは体の丸みにそって下にふくらむ。ふちは毛羽立たせる（ぬいぐるみの生地）
@@ -32,12 +41,13 @@ function suitOver(g, kind, cx, cy, rx, ry) {
       g.strokeStyle = '#332A25'; g.lineWidth = 1.2; g.lineCap = 'round'; for (let i = 0; i <= 26; i++) { const u = i / 26, x = cx - ex + u * ex * 2, yy = y + bow * (1 - (2 * u - 1) * (2 * u - 1)); g.beginPath(); g.moveTo(x, yy + 1); g.lineTo(x + (srand() - .5) * 2, yy - 2 - srand() * 2.5); g.moveTo(x, yy + h - 1); g.lineTo(x + (srand() - .5) * 2, yy + h + 2 + srand() * 2.5); g.stroke(); }
       g.fillStyle = 'rgba(255,255,255,.07)'; g.beginPath(); g.moveTo(cx - ex, y + h * .15); g.quadraticCurveTo(cx, y + bow + h * .15, cx + ex, y + h * .15); g.lineTo(cx + ex, y + h * .4); g.quadraticCurveTo(cx, y + bow + h * .4, cx - ex, y + h * .4); g.closePath(); g.fill(); }
   } else if (kind === 'zebra') {
-    g.fillStyle = '#F7F4EE'; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
+    { const zg = g.createLinearGradient(0, cy - ey, 0, cy + ey); zg.addColorStop(0, '#FFFFFF'); zg.addColorStop(.65, '#F4EFE6'); zg.addColorStop(1, '#DDD3C4'); g.fillStyle = zg; g.fillRect(cx - ex, cy - ey, ex * 2, ey * 2); } // 着せかえ 52：白は上から下へ生成りに（べた塗りをやめる）
     g.fillStyle = '#272321';
     for (let k = 0; k < 6; k++) for (const sd of [-1, 1]) { // tapered stripes reaching in from both sides, like a real coat
       const y = cy - ry * .95 + k * ry * .36 + (sd > 0 ? ry * .1 : 0), w = ry * (.15 + (k % 2) * .04), reach = rx * (.55 + ((k * 7) % 3) * .12);
       g.beginPath(); g.moveTo(cx + sd * rx, y - w); g.quadraticCurveTo(cx + sd * (rx - reach * .5), y - w * .6 + ry * .06, cx + sd * (rx - reach), y + ry * .1);
-      g.quadraticCurveTo(cx + sd * (rx - reach * .5), y + w * .9 + ry * .06, cx + sd * rx, y + w); g.closePath(); g.fill(); }
+      g.quadraticCurveTo(cx + sd * (rx - reach * .5), y + w * .9 + ry * .06, cx + sd * ex, y + w); g.lineTo(cx + sd * ex, y - w); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(39,35,33,.7)'; g.lineWidth = .8; g.lineCap = 'round'; for (let i = 0; i <= 18; i++) { const u = i / 18, x = cx + sd * (rx - reach * u * .92), yt = y - w * (1 - u * .9) + ry * .08 * u, yb = y + w * (1 - u * .9) + ry * .08 * u; g.beginPath(); g.moveTo(x, yt + 1); g.lineTo(x + (srand() - .5) * 1.5, yt - .6 - srand() * 1.4); g.moveTo(x, yb - 1); g.lineTo(x + (srand() - .5) * 1.5, yb + .6 + srand() * 1.4); g.stroke(); } } // 着せかえ 53：しまのふちを毛羽立たせる（蜂と同じ生地感）・54：しまを体のふちまで
     g.fillRect(cx - rx * .05, cy - ry, rx * .1, ry * .3); // the stripe down the spine
   }
   const sh = g.createRadialGradient(cx - rx * .3, cy - ry * .45, rx * .1, cx, cy, rx * 1.05); sh.addColorStop(0, 'rgba(255,255,255,.28)'); sh.addColorStop(.6, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(40,25,15,.28)');
@@ -48,16 +58,20 @@ function suitOver(g, kind, cx, cy, rx, ry) {
 function beeWings(g, cx, cy, s, flap) {
   for (const sd of [-1, 1]) { g.save(); g.translate(cx + sd * 22 * s, cy); g.rotate(sd * (1.0 + flap)); 
     for (const [w, h, y, a] of [[34, 62, -58, 0], [22, 38, -26, .55]]) { g.save(); g.rotate(sd * a); g.beginPath(); g.ellipse(0, y * s, w * s, h * s, 0, 0, Math.PI * 2);
-      g.fillStyle = 'rgba(232,244,255,.78)'; g.fill(); g.strokeStyle = 'rgba(120,150,180,.85)'; g.lineWidth = 2; g.stroke();
-      g.strokeStyle = 'rgba(140,170,200,.55)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, (y + h * .8) * s); g.lineTo(0, (y - h * .7) * s); g.moveTo(0, y * s); g.lineTo(sd * w * .6 * s, (y - h * .4) * s); g.stroke();
+      { const wg = g.createLinearGradient(0, (y + h) * s, 0, (y - h) * s); wg.addColorStop(0, 'rgba(255,255,255,.5)'); wg.addColorStop(.45, 'rgba(226,241,255,.8)'); wg.addColorStop(.8, 'rgba(214,232,252,.82)'); wg.addColorStop(1, 'rgba(246,226,244,.8)'); g.fillStyle = wg; } // 着せかえ 55：羽は根もとが透けて、先にむかって色づく（べた塗りをやめる）
+      g.fill(); g.strokeStyle = 'rgba(120,150,180,.7)'; g.lineWidth = 1.5; g.stroke(); // 56：ふちの線を細く・うすく
+      g.strokeStyle = 'rgba(140,170,200,.5)'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, (y + h * .8) * s); g.quadraticCurveTo(sd * w * .12 * s, y * s, 0, (y - h * .75) * s);
+      for (const [a0, b0, k] of [[.45, -.2, .7], [.1, -.5, .62], [-.25, -.72, .4]]) { g.moveTo(0, (y + h * a0) * s); g.quadraticCurveTo(sd * w * k * .5 * s, (y + h * (a0 + b0) / 2 - h * .06) * s, sd * w * k * s, (y + h * b0) * s); g.moveTo(0, (y + h * a0) * s); g.quadraticCurveTo(-sd * w * k * .4 * s, (y + h * (a0 + b0) / 2) * s, -sd * w * k * .8 * s, (y + h * b0) * s); } g.stroke(); // 57：羽のすじを、枝分かれする曲線に
       g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.ellipse(-w * .3 * s, (y - h * .35) * s, w * .18 * s, h * .22 * s, -.3, 0, Math.PI * 2); g.fill(); g.restore(); }
     g.restore(); }
 }
 function antennae(g, x, y, s) {
   g.strokeStyle = '#2E2622'; g.lineWidth = 3.2 * s; g.lineCap = 'round';
   for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(x + sd * 14 * s, y); g.quadraticCurveTo(x + sd * 18 * s, y - 30 * s, x + sd * 32 * s, y - 40 * s); g.stroke();
-    g.fillStyle = '#2E2622'; g.beginPath(); g.arc(x + sd * 33 * s, y - 42 * s, 7 * s, 0, Math.PI * 2); g.fill(); g.fillStyle = '#F4C433'; g.beginPath(); g.arc(x + sd * 33 * s, y - 42 * s, 3.6 * s, 0, Math.PI * 2); g.fill(); }
+    { const bx = x + sd * 33 * s, by = y - 42 * s, br = 7.5 * s; const bg = g.createRadialGradient(bx - br * .35, by - br * .4, br * .1, bx, by, br); bg.addColorStop(0, '#FFF3B0'); bg.addColorStop(.55, '#F4C433'); bg.addColorStop(1, '#C48A14'); g.fillStyle = bg; g.beginPath(); g.arc(bx, by, br, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#2E2622'; g.lineWidth = 1.6 * s; g.stroke();
+      g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.ellipse(bx - br * .35, by - br * .4, br * .22, br * .15, -.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#2E2622'; g.lineWidth = 3.2 * s; } } // 着せかえ 58：触角の先を、つやのある黄色い玉に
   g.strokeStyle = '#2E2622'; g.lineWidth = 5 * s; g.beginPath(); g.moveTo(x - 20 * s, y + 4 * s); g.quadraticCurveTo(x, y - 6 * s, x + 20 * s, y + 4 * s); g.stroke(); // the headband
+  g.strokeStyle = 'rgba(255,255,255,.3)'; g.lineWidth = 1.4 * s; g.beginPath(); g.moveTo(x - 15 * s, y + .5 * s); g.quadraticCurveTo(x, y - 7.5 * s, x + 15 * s, y + .5 * s); g.stroke(); // 59：カチューシャにつや
 }
 function zebraMane(g, x, y, len, s) { // a short upright mane, black and white
   for (let k = 0; k < 7; k++) { const t = k / 6, yy = y + t * len; g.fillStyle = k % 2 ? '#F7F4EE' : '#272321'; g.beginPath(); g.ellipse(x, yy, 7 * s, 9 * s, 0, 0, Math.PI * 2); g.fill(); }
