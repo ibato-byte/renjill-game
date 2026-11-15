@@ -727,6 +727,46 @@
       "has": "n: 'picksteady'"
     },
     {
+      "name": "歩行者は作り込んだ 8 人・4 コマで歩く",
+      "file": "src/4e_art.js",
+      "has": "kind: 'suit', tie: '#B8473C', item: 'case'"
+    },
+    {
+      "name": "壁の向こうが見えない試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'wallsee'"
+    },
+    {
+      "name": "曲がり角の奥の壁を横と上にのばす",
+      "file": "src/4_render.js",
+      "has": "function wingOn("
+    },
+    {
+      "name": "帽子が自然に見える試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'wearfit'"
+    },
+    {
+      "name": "帽子のふちの影・毛・かたむき",
+      "file": "src/2b_bunny.js",
+      "has": "function hatTufts("
+    },
+    {
+      "name": "ジルの帽子は頭の横に（耳が見える）",
+      "file": "src/2b_bunny.js",
+      "has": "function jillHat("
+    },
+    {
+      "name": "ランキングの顔が真ん中の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'rankicon'"
+    },
+    {
+      "name": "タイトルで 3 人みんな前を向く試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'titlefront'"
+    },
+    {
       "name": "紙飛行機で仲間が消えない試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'planekeep'"
@@ -740,6 +780,16 @@
       "name": "1 人の絵の失敗でほかの人が消えない",
       "file": "src/4_render.js",
       "has": "while (CTXD > d0) ctx.restore();"
+    },
+    {
+      "name": "後ろ姿もアニメの頭と耳の形（レン）",
+      "file": "src/2b_bunny.js",
+      "has": "function renBack("
+    },
+    {
+      "name": "後ろ姿もアニメの頭と耳の形（ジル）",
+      "file": "src/2b_bunny.js",
+      "has": "jillEars(g, p.ear * 26, 1)"
     },
     {
       "name": "アニメと同じ絵かの試験",

@@ -161,6 +161,13 @@ function buildRoom(seg, s0, lEnd, rEnd) {
   wallRun(-1, s0, lEnd); wallRun(1, s0, rEnd);
   const e = L + HW;
   seg.walls.push({ v: quad(seg, [[e, -HW, 0], [e, HW, 0], [e, HW, H], [e, -HW, H]]), c: wc, n: [-seg.f[0], -seg.f[1]], sh: 1, glass: glass ? 1 : 0, pat: th.wpat || null });
+  /* 曲がり角・分かれ道の「奥の壁」を横に長くのばす（2026-11-15 の報告：「壁が透けて、次の次のステージが見える」）。
+     建物の中から外の道へ曲がる所で、つきあたりの壁の左右から、先の道とその先の町がななめに見えていた（壁が無いので、透けて見える）。
+     のばした壁は、中にいる間と曲がり始めだけ描く（wing。描くかどうかは 4_render.js の wingOn）。先が同じ建物の中なら、その部屋の壁があるので描かない */
+  seg.walls.push({ v: quad(seg, [[e, -HW, H], [e, HW, H], [e, HW, 16], [e, -HW, 16]]), c: wc, n: [-seg.f[0], -seg.f[1]], sh: .86, cap: 1 }); // つきあたりの壁の上（先の天井が高い・先が外のとき、壁の上から先の町が見えた）
+  for (const sd of [-1, 1]) if (seg.turn === sd || seg.fork) { const a0 = sd * HW, a1 = sd * (HW + 46), lo = Math.min(a0, a1), hi = Math.max(a0, a1);
+    seg.walls.push({ v: quad(seg, [[e, lo, 0], [e, hi, 0], [e, hi, 16], [e, lo, 16]]), c: wc, n: [-seg.f[0], -seg.f[1]], sh: .9, wing: 1 });
+    seg.walls.push({ v: quad(seg, [[e, lo, 0], [e, hi, 0], [e, hi, .5], [e, lo, .5]]), c: bc, n: [-seg.f[0], -seg.f[1]], sh: .8, wing: 1 }); }
   if (seg.first) { const b0 = s0; seg.walls.push({ v: quad(seg, [[b0, HW, 0], [b0, -HW, 0], [b0, -HW, H], [b0, HW, H]]), c: wc, n: [seg.f[0], seg.f[1]], sh: .95, glass: glass ? 1 : 0, pat: th.wpat || null }); // the room's back wall (seen on the title screen)
     if (!glass) { const bw = (th.backW || 2.2) / 2; seg.decos.push({ v: quad(seg, [[b0 + .03, bw, .2], [b0 + .03, -bw, .2], [b0 + .03, -bw, 2.5], [b0 + .03, bw, 2.5]]), n: [seg.f[0], seg.f[1]], pat: (th.wdeco || ['window'])[0], v2: 1, seg, w: bw * 2 }); } }
   // ceiling
@@ -169,6 +176,7 @@ function buildRoom(seg, s0, lEnd, rEnd) {
     const b = Math.min(a + 3, seg.fE);
     seg.walls.push({ v: quad(seg, [[a, HW, H], [b, HW, H], [b, -HW, H], [a, -HW, H]]), c: cc, n3: [0, -1, 0], sh: .82, pat: 'ceil', cp: th.cpat, light: th.light, ti: i, glass: glass ? 1 : 0, ceil: 1, train: th.kind === 'train' ? 1 : 0 });
   }
+  if (!seg.fork) seg.walls.push({ v: quad(seg, [[L - HW, HW, H], [e, HW, H], [e, -HW, H], [L - HW, -HW, H]]), c: cc, n3: [0, -1, 0], sh: .82, cap: 1 }); // 曲がり角の上の天井（先が外のとき、ここに天井が無くて外が見えた）
   // lintels above the openings
   for (const sd of [-1, 1]) if (seg.turn === sd || seg.fork) addWallQuad(seg, sd, L - HW, L + HW, H - .5, H, bc, { sh: .8 });
   // wall decorations
@@ -452,8 +460,8 @@ function buildWalkers(seg) {
   for (let i = 0; i < n; i++) {
     const sd = Math.random() < .5 ? -1 : 1, end = sd < 0 ? lEnd : rEnd; if (end - s0 < 12) continue;
     const dir = Math.random() < .5 ? 1 : -1, k = (Math.random() * PEOPLE.length) | 0, back = dir > 0 ? 1 : 0;
-    const imgs = [0, 1].map(f => artKey('walker', k + '.' + f + '.' + back));
-    const w = { lat: sd * rand(3.35, 4.1), s: rand(s0 + 3, end - 3), y: 0, w: .75, h: 1.68, img: imgs[0], imgs, walk: 1, ph: Math.random() * 10, vs: dir * rand(.9, 1.5), a0: s0 + 2, a1: end - 2, gnd: .3, keep: 1 };
+    const imgs = [0, 1, 2, 3].map(f => artKey('walker', k + '.' + f + '.' + back));
+    const w = { lat: sd * rand(3.35, 4.1), s: rand(s0 + 3, end - 3), y: 0, w: .8, h: 1.8, img: imgs[0], imgs, walk: 1, ph: Math.random() * 10, vs: dir * rand(.9, 1.5), a0: s0 + 2, a1: end - 2, gnd: .3, keep: 1 };
     seg.spr.push(w); seg.walkers.push(w);
   }
 }

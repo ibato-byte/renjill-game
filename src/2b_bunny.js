@@ -135,9 +135,27 @@ function hat(g, kind, w, H) { // H = half the width of the head where the brim s
 }
 // put a hat on a head: x,y = the top of the head as before, hw = half the head's width at the brow, sink = how far the brow is below x,y
 const HAT_COVER = { helmet: 1, beret: 1, straw: 1, santa: 1, witch: 1, pumpkin: 1 }, HAT_PERCH = { crown: 1, kagami: 1 };
-function wearHat(g, kind, x, y, w, hw, sink) {
-  const dy = HAT_COVER[kind] ? sink : HAT_PERCH[kind] ? sink * .4 : 0;
-  g.save(); g.translate(x, y + dy); hat(g, kind, w, hw / w); g.restore();
+/* 2026-11-15 オーナー：「帽子をただ載せただけのように見える」。かぶっている感じを出す 3 つ：
+   ①ふちの下に、頭と耳にだけ落ちる柔らかい影（絵の外には落とさない） ②ふちの下から毛が少しのぞく ③帽子ごとに少しだけかたむける。who＝だれの頭か（毛の色に使う） */
+const HAT_TILT = { helmet: .05, straw: -.06, santa: -.07, witch: .07, pumpkin: .06, crown: -.06, kagami: .03 };
+const HAT_TUFT = { helmet: [.92, 4], beret: [.84, 7], pumpkin: [.84, 2] }; // 毛がのぞく幅（ふちの半分の幅に対して）と、ふちの下の高さ。サンタ・魔女・麦わらは、ふちが太いので出さない（線がふちの上に出た）
+const HAT_SINK = { witch: .45, santa: .8, straw: .9 }; // ふちの太い帽子は浅くかぶる（魔女の帽子のふちがレンの目にかかった）
+function hatTufts(g, hw, who, y0) {
+  const c = who === 'pom' ? [RC.pom.a, RC.pom.b] : who === 'jill' ? [RC.jil.head1, RC.jil.head2] : [RC.ren.head1, RC.ren.head2];
+  g.save(); g.lineCap = 'round';
+  for (let i = 0; i < 7; i++) { const u = (i + .5) / 7 * 2 - 1, x = u * hw, y = y0 + (1 - Math.abs(u)) * 1.2, L = 3 + (i % 3) * 1.4;
+    g.strokeStyle = i % 2 ? c[0] : c[1]; g.lineWidth = 2.6 - (i % 2) * .6; g.beginPath(); g.moveTo(x - u * 1.5, y - 2); g.quadraticCurveTo(x + u * 2, y + L * .55, x + u * 3.5 + (i % 2 ? 1.2 : -1.2), y + L); g.stroke(); }
+  g.restore();
+}
+function wearHat(g, kind, x, y, w, hw, sink, who, rot) {
+  const dy = HAT_COVER[kind] ? sink * (HAT_SINK[kind] || 1) : HAT_PERCH[kind] ? sink * .4 : 0, onSprite = who && !(g.canvas && g.canvas.id === 'cv');
+  g.save(); g.translate(x, y + dy);
+  if (onSprite && (HAT_COVER[kind] || HAT_PERCH[kind])) { g.save(); g.globalCompositeOperation = 'source-atop'; // 影は、もう描いてある頭・耳の上にだけ
+    if (HAT_COVER[kind]) soft(g, 0, hw * .14, hw * 1.1, hw * .36, '#3B2416', .3, 6); else soft(g, 0, 1, hw * .6, hw * .12, '#3B2416', .24, 3); g.restore(); }
+  g.rotate((HAT_TILT[kind] || 0) + (rot || 0));
+  hat(g, kind, w, hw / w);
+  if (onSprite && HAT_TUFT[kind] && !rot) hatTufts(g, hw * HAT_TUFT[kind][0], who, HAT_TUFT[kind][1] * w);
+  g.restore();
 }
 function earHoles(g, x, y, dx, rot) { g.save(); g.fillStyle = 'rgba(60,30,20,.28)'; for (const sd of [-1, 1]) { g.beginPath(); g.ellipse(x + sd * (dx + 4), y, 15, 7, sd * rot, 0, Math.PI * 2); g.fill(); } g.restore(); }
 const hatCovers = k => !!HAT_COVER[k]; // big enough to hide where the ears grow, so the ears are drawn again on top
@@ -349,11 +367,20 @@ function renHead(g, mood, mug) { // アニメの座標（頭の中心は 180,200
   if (mood !== 'open' && mood !== 'sick' && mood !== 'worry' && mood !== 'blink') { blob(g, 124, 228, 15, 9, 0, c.blush, .42); blob(g, 236, 228, 15, 9, 0, c.blush, .42); }
   sPath(g, 'M158 240 Q122 230 92 229 M158 246 Q124 247 96 254 M202 240 Q238 230 268 229 M202 246 Q236 247 264 254', '#FBF6EE', 1.2, .85);
   g.save(); g.translate(180, 200); g.scale(1 / RK.ren, 1 / RK.ren); moodFx(g, mood, -44, 58);
-  { const hk = mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 0, -45, 1, 58, 22); else if (WEAR.ren.suit === 'bee') antennae(g, 0, -45, 1); }
+  { const hk = mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 0, -45, 1, 58, 22, 'ren'); else if (WEAR.ren.suit === 'bee') antennae(g, 0, -45, 1); }
+  g.restore();
+}
+function renBack(g, cx, cy, sc, e) { // 後ろから見た頭：アニメの頭と耳の形のまま。e＝耳のゆれ（走る・跳ぶ）
+  const c = RC.ren, hb = [68, 105, 224, 187]; g.save(); g.translate(cx, cy); g.scale(sc * RK.ren, sc * RK.ren); g.translate(-180, -200);
+  furP(g, 'M180 105 C 252 105 292 150 292 202 C 292 258 246 292 180 292 C 114 292 68 258 68 202 C 68 150 108 105 180 105 Z', hb, rgB(g, hb, .5, .42, .62, [[0, c.head1], [.65, c.head2], [1, c.head3]]), c.head3);
+  soft(g, 180, 108, 46, 13, '#E3C7A3', .7, 3); sPath(g, 'M138 122 C 152 112 168 110 180 112 C 192 110 208 112 222 122', '#A98863', 3, .55);
+  for (const [d, b, px, sd, tx, fold] of [[REN_EARL, [28, 104, 108, 214], 130, -1, 66, 'M112 122 C 122 112 136 110 150 118'], [REN_EARR, [226, 104, 108, 214], 230, 1, 294, 'M248 122 C 238 112 224 110 210 118']]) {
+    g.save(); g.translate(px, 120); g.rotate(sd * (e || 0) * 30 * Math.PI / 180); g.translate(-px, -120);
+    furP(g, d, b, lgB(g, b, .2, 1, [[0, c.ear1], [.6, c.ear2], [1, c.ear3]]), c.ear3); soft(g, tx, 296, 24, 12, c.ear3, .22, 3); sPath(g, fold, c.ear3, 4, .5); g.restore(); }
   g.restore();
 }
 function faceRen(g, cx, cy, sc, mood, mug) { g.save(); g.translate(cx, cy); g.scale(sc * RK.ren, sc * RK.ren); g.translate(-180, -200); renHead(g, mood, mug); g.restore(); }
-function jillEars(g) { const c = RC.jil; for (const [x, y, rot] of [[164, 118, -12], [212, 116, 13]]) { g.save(); g.translate(x, 150); g.rotate(rot * Math.PI / 180); g.translate(-x, -150); const b = [x - 22, y - 36, 44, 72]; furP(g, [x, y, 22, 36], null, lgB(g, b, 0, 1, [[0, c.ear1], [1, c.ear2]]), c.ear2); g.fillStyle = lgB(g, [x - 11, y - 23, 22, 52], 0, 1, [[0, c.earIn1], [1, c.earIn2]]); g.beginPath(); g.ellipse(x, y + 3, 11, 26, 0, 0, Math.PI * 2); g.fill(); g.restore(); } }
+function jillEars(g, sway, back) { const c = RC.jil; for (const [x, y, rot, sd] of [[164, 118, -12, -1], [212, 116, 13, 1]]) { g.save(); g.translate(x, 150); g.rotate((rot + sd * (sway || 0)) * Math.PI / 180); g.translate(-x, -150); const b = [x - 22, y - 36, 44, 72]; furP(g, [x, y, 22, 36], null, lgB(g, b, 0, 1, [[0, c.ear1], [1, c.ear2]]), c.ear2); if (!back) { g.fillStyle = lgB(g, [x - 11, y - 23, 22, 52], 0, 1, [[0, c.earIn1], [1, c.earIn2]]); g.beginPath(); g.ellipse(x, y + 3, 11, 26, 0, 0, Math.PI * 2); g.fill(); } g.restore(); } }
 function jillHead(g, mood) { // アニメの座標（頭の中心は 188,210）
   const c = RC.jil, hb = [92, 130, 192, 160];
   jillEars(g);
@@ -370,11 +397,15 @@ function jillHead(g, mood) { // アニメの座標（頭の中心は 188,210）
     sPath(g, 'M136 186 l7 -7', '#FFFFFF', 2, .6); }
   g.save(); g.translate(188, 210); g.scale(1 / RK.jil, 1 / RK.jil); moodFx(g, mood, -40, 56);
   const hk = WEAR.jill.hat;
-  if (hk) wearHat(g, hk, 0, -48, .9, 50, 18); else if (WEAR.jill.suit === 'zebra') zebraMane(g, 0, -60, 22, .8);
-  if (hk && hatCovers(hk)) earHoles(g, 0, -36, 16, .2);
+  if (hk) jillHat(g, hk, 1); else if (WEAR.jill.suit === 'zebra') zebraMane(g, 0, -60, 22, .8);
   g.restore();
-  if (hk && hatCovers(hk)) jillEars(g); // かぶる帽子は耳を穴から出す
+  // 耳は帽子の後ろから立つ（前は帽子に穴をあけて耳を突き出していた。2026-11-15 オーナー：「耳が突き出してしまうのはおかしい」）
 }
+/* ジルの帽子（2026-11-15 オーナー：「ベレー帽で耳が突き出すのはおかしい・ベレー帽に見えない」）：ジルの耳は頭のまん中近くに立っているので、
+   頭の上に帽子を置くと耳が隠れ、穴をあけると耳が帽子から突き出す。そこで、小さめの帽子を頭の横（向かって右）にかたむけてかぶる。両耳はそのまま見える。
+   side＝1 前から・-1 後ろから（反対側に見える）。単位は顔の大きさ（帽子の後ろの耳は先に描いてある） */
+const JILL_HAT = { beret: [36, -36, 34, .5], helmet: [34, -36, 35, .42], straw: [34, -38, 31, .4], santa: [32, -38, 32, .45], witch: [30, -42, 30, .4], pumpkin: [38, -32, 27, .48], crown: [28, -46, 25, .3], kagami: [26, -48, 23, .24], antler: [0, -40, 40, 0], heartband: [0, -40, 40, 0], laurel: [0, -42, 40, 0] }; // カチューシャ・月桂冠は頭の上を左右に通るので、まん中に水平 // 王冠・鏡もちも横に（まん中にのせると耳が隠れた）
+function jillHat(g, hk, side) { const f = JILL_HAT[hk] || [32, -42, 28, .4]; wearHat(g, hk, side * f[0], f[1], .9, f[2], 8, 'jill', side * f[3]); }
 function faceJill(g, cx, cy, sc, mood) { g.save(); g.translate(cx, cy); g.scale(sc * RK.jil, sc * RK.jil); g.translate(-188, -210); jillHead(g, mood); g.restore(); }
 function pomEar(g, x, y, r, rot, back) { g.save(); g.translate(x, y); g.rotate(rot); g.beginPath(); g.ellipse(0, 0, r, r * 1.05, 0, 0, Math.PI * 2); g.fillStyle = '#8E786C'; g.fill(); g.beginPath(); g.ellipse(0, r * .12, r * .72, r * .78, 0, 0, Math.PI * 2); g.fillStyle = back ? '#A8928A' : '#E9A9A2'; g.fill();
   g.strokeStyle = 'rgba(70,55,50,.55)'; g.lineWidth = 1.5; g.beginPath(); g.arc(0, 0, r * .98, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); g.restore(); }
@@ -402,7 +433,7 @@ function pomHead(g, mood) { // アニメの座標（足もとが 0,0・頭の中
     sPath(g, `M-54 ${hy - 24} Q0 ${hy - 44} 54 ${hy - 24}`, bc[0], 10); sPath(g, `M-44 ${hy - 28} Q0 ${hy - 45} 44 ${hy - 28}`, '#FFFFFF', 2, .4);
     fPath(g, `M50 ${hy - 26} q16 2 22 12 l-6 4 q-6 -8 -16 -10 Z M50 ${hy - 26} q18 -6 26 0 l-4 6 q-8 -4 -20 0 Z`, bc[0]); }
   g.save(); g.translate(0, hy); g.scale(1 / RK.pom, 1 / RK.pom);
-  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 0, -50, .95, 42, 12); else if (WEAR.pom.suit === 'bee') antennae(g, 0, -52, .9);
+  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 0, -50, .95, 42, 12, 'pom'); else if (WEAR.pom.suit === 'bee') antennae(g, 0, -52, .9);
   moodFx(g, mood, -40, 54); g.restore();
 }
 function facePom(g, cx, cy, sc, mood) { g.save(); g.translate(cx, cy); g.scale(sc * RK.pom, sc * RK.pom); g.translate(0, 128); pomHead(g, mood); g.restore(); }
@@ -434,7 +465,7 @@ function drawPom(g, p) {
   if (p.view === 'look') { facePom(g, 156, hy - 24, .98, p.mood); if (p.mood === 'cheer') { fur(g, 150 + 56, hy + 10, 9, 16, -.6, P.a, P.b); blob(g, 150 + 64, hy - 6, 10, 8, -.3, '#F2B8B0'); } return; }
   pomEar(g, 150 - 40, hy - 26, 16 + p.ear * 2, -.3 - p.ear * .3, 1); pomEar(g, 150 + 40, hy - 26, 16 + p.ear * 2, .3 + p.ear * .3, 1);
   headband(g, 150, hy - 4, 58, 1, p.tiePh);
-  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 150, hy - 22, 1, 48, 12); else if (WEAR.pom.suit === 'bee') antennae(g, 150, hy - 24, 1);
+  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 150, hy - 30, 1, 46, 12, 'pom'); else if (WEAR.pom.suit === 'bee') antennae(g, 150, hy - 24, 1);
 }
 function mugHat(g, y) { g.save(); g.translate(0, y); rr(g, -22, -38, 44, 38, 6, '#FBF6EE', '#9AA9B6', 3); g.beginPath(); g.ellipse(27, -19, 9, 12, 0, 0, Math.PI * 2); g.strokeStyle = '#9AA9B6'; g.lineWidth = 5; g.stroke(); rr(g, -22, -30, 44, 7, 0, '#4E77A0'); g.restore(); }
 
@@ -487,23 +518,20 @@ function drawBody(g, who, p) {
     return;
   }
   if (ren) {
-    fur(g, 150, hy, 58, 54, 0, RC.ren.head1, RC.ren.head2, { rr: .7 });
-    g.strokeStyle = 'rgba(120,84,56,.5)'; g.lineWidth = 2.2; g.lineCap = 'round'; g.beginPath(); g.moveTo(122, hy - 52); g.quadraticCurveTo(150, hy - 60, 178, hy - 52); g.stroke();
-    const e = p.ear;
-    for (const sd of [-1, 1]) { const ex = 150 + sd * (66 + e * 12), ey = hy + 26 - e * 18, rot = sd * (.12 + e * .5);
-      fur(g, ex, ey, 30, 66, rot, RC.ren.ear1, RC.ren.ear3, { vert: 1 }); }
+    renBack(g, 150, hy - 2, 1.12, p.ear); // 後ろ姿も、アニメの頭と耳の形（顔だけ無い）
     if (p.tie != null) { // the tie comes out from under his chin and streams back over his shoulder in the wind
       windTie(g, 152, hy + 50, p);
       fur(g, 150, hy + 44, 30, 13, 0, '#D6AE82', '#BE9369', { sparse: 1, rim: 1 }); // the chin/neck fur tucks the root in
     }
-    { const hk = p.mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 150, hy - 50, 1, 54, 18); else if (WEAR.ren.suit === 'bee') antennae(g, 150, hy - 50, 1); }
+    { const hk = p.mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 150, hy - 2 - 45 * 1.12, 1.12, 58 * 1.12, 22 * 1.12, 'ren'); else if (WEAR.ren.suit === 'bee') antennae(g, 150, hy - 52, 1); } // 前向きと同じ大きさ・位置
   } else {
-    const ears = () => { for (const sd of [-1, 1]) { g.save(); g.translate(150 + sd * 24, hy - 32); g.rotate(sd * (.2 + p.ear * .4)); fur(g, 0, -20, 15, 27, 0, RC.jil.ear1, RC.jil.ear2, { vert: 1 }); g.restore(); } };
+    const jb = fn => { g.save(); g.translate(150, hy); g.scale(RK.jil, RK.jil); g.translate(-188, -210); fn(); g.restore(); }; // アニメの座標で描く
+    const ears = () => jb(() => jillEars(g, p.ear * 26, 1));
     ears();
-    fur(g, 150, hy, 54, 45, 0, RC.jil.head1, RC.jil.head2);
-    g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(112, hy + 34); g.quadraticCurveTo(150, hy + 50, 188, hy + 34); g.stroke();
-    if (WEAR.jill.suit === 'zebra') zebraMane(g, 150, hy - 44, 52, 1);
-    if (WEAR.jill.hat) { wearHat(g, WEAR.jill.hat, 150, hy - 40, .9, 43, 14); if (hatCovers(WEAR.jill.hat)) { earHoles(g, 150, hy - 30, 24, .2 + p.ear * .4); ears(); } }
+    jb(() => { const c = RC.jil, hb = [92, 130, 192, 160]; furP(g, 'M188 130 C 248 130 284 166 284 210 C 284 260 240 290 188 290 C 136 290 92 260 92 210 C 92 166 128 130 188 130 Z', hb, rgB(g, hb, .5, .42, .62, [[0, c.head1], [.65, c.head2], [1, c.head3]]), c.head3); soft(g, 188, 150, 50, 16, '#EED9BE', .35, 5); });
+    g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(106, hy + 40); g.quadraticCurveTo(150, hy + 62, 194, hy + 40); g.stroke();
+    if (WEAR.jill.suit === 'zebra') zebraMane(g, 150, hy - 50, 52, 1);
+    if (WEAR.jill.hat) { g.save(); g.translate(150, hy); jillHat(g, WEAR.jill.hat, -1); g.restore(); } // 後ろから見ると、帽子は反対側
   }
 }
 function lanyard(g, x, y) { g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.lineWidth = 4; g.beginPath(); g.moveTo(x - 34, y - 16); g.lineTo(x - 3, y + 22); g.moveTo(x + 34, y - 16); g.lineTo(x + 3, y + 22); g.stroke(); rr(g, x - 13, y + 20, 26, 34, 4, '#FBF6EE', '#355F86', 3); rr(g, x - 8, y + 25, 16, 10, 2, '#C9A176'); rr(g, x - 8, y + 39, 16, 2.5, 1, '#9AA9B6'); rr(g, x - 3, y + 44, 11, 2.5, 1, '#9AA9B6'); }
