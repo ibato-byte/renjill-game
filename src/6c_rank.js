@@ -70,7 +70,10 @@ function rankList(el, rows, field, nameOf) {
   });
 }
 const RANK_ICON = {};
-function iconCrop(g, fr, who) { if (who === 'pom') g.drawImage(fr, 62, 48 + BTOP, 176, 176, 0, 0, 64, 64); else if (who === 'jill') g.drawImage(fr, 62, 42 + BTOP, 176, 176, 0, 0, 64, 64); else g.drawImage(fr, 40, 10 + BTOP, 220, 220, 0, 0, 64, 64); } // jill is smaller: a tighter frame so both faces read the same size
+/* ランキングの丸い顔：顔の真ん中で切り抜く（2026-11-15 の報告：アニメと同じ絵にしたら、レンは体が左・ジルは体が右に伸びるので、絵の真ん中で切ると顔が片寄った）。
+   数字は、前向きの絵（src/2b_bunny.js）の頭の中心と大きさ：アニメの座標 → 絵の中の位置（レン：頭 180,200・幅 112、ジル：188,210・96、ポム：0,-128・64） */
+const ICON_FACE = { ren: [172, 140, 210], jill: [129, 128, 178], pom: [150, 143, 160] };
+function iconCrop(g, fr, who) { const [cx, cy, sz] = ICON_FACE[who] || ICON_FACE.ren; g.drawImage(fr, cx - sz / 2, cy - sz / 2 + BTOP, sz, sz, 0, 0, 64, 64); }
 /* each player's own bunny on the board: the outfit is kept as a short code (ren: tie.hat.suit.mug / jill: frame.hat.suit) and only known items are drawn */
 const WEAR_SLOTS = { ren: ['tie', 'hat', 'suit'], jill: ['frame', 'hat', 'suit'], pom: ['band', 'hat', 'suit'] };
 function wearCode(who) { const w = (SV.wear || {})[who] || {}; return WEAR_SLOTS[who].map(k => w[k] || '').join('.') + (who === 'ren' ? '.' + (SV.mugOn ? 1 : 0) : ''); }

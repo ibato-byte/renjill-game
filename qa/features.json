@@ -727,6 +727,11 @@
       "has": "n: 'picksteady'"
     },
     {
+      "name": "タイトルで 3 人みんな前を向く試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'titlefront'"
+    },
+    {
       "name": "紙飛行機で仲間が消えない試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'planekeep'"
