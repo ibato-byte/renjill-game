@@ -352,8 +352,17 @@ function renHead(g, mood, mug) { // アニメの座標（頭の中心は 180,200
   { const hk = mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 0, -45, 1, 58, 22); else if (WEAR.ren.suit === 'bee') antennae(g, 0, -45, 1); }
   g.restore();
 }
+function renBack(g, cx, cy, sc, e) { // 後ろから見た頭：アニメの頭と耳の形のまま。e＝耳のゆれ（走る・跳ぶ）
+  const c = RC.ren, hb = [68, 105, 224, 187]; g.save(); g.translate(cx, cy); g.scale(sc * RK.ren, sc * RK.ren); g.translate(-180, -200);
+  furP(g, 'M180 105 C 252 105 292 150 292 202 C 292 258 246 292 180 292 C 114 292 68 258 68 202 C 68 150 108 105 180 105 Z', hb, rgB(g, hb, .5, .42, .62, [[0, c.head1], [.65, c.head2], [1, c.head3]]), c.head3);
+  soft(g, 180, 108, 46, 13, '#E3C7A3', .7, 3); sPath(g, 'M138 122 C 152 112 168 110 180 112 C 192 110 208 112 222 122', '#A98863', 3, .55);
+  for (const [d, b, px, sd, tx, fold] of [[REN_EARL, [28, 104, 108, 214], 130, -1, 66, 'M112 122 C 122 112 136 110 150 118'], [REN_EARR, [226, 104, 108, 214], 230, 1, 294, 'M248 122 C 238 112 224 110 210 118']]) {
+    g.save(); g.translate(px, 120); g.rotate(sd * (e || 0) * 30 * Math.PI / 180); g.translate(-px, -120);
+    furP(g, d, b, lgB(g, b, .2, 1, [[0, c.ear1], [.6, c.ear2], [1, c.ear3]]), c.ear3); soft(g, tx, 296, 24, 12, c.ear3, .22, 3); sPath(g, fold, c.ear3, 4, .5); g.restore(); }
+  g.restore();
+}
 function faceRen(g, cx, cy, sc, mood, mug) { g.save(); g.translate(cx, cy); g.scale(sc * RK.ren, sc * RK.ren); g.translate(-180, -200); renHead(g, mood, mug); g.restore(); }
-function jillEars(g) { const c = RC.jil; for (const [x, y, rot] of [[164, 118, -12], [212, 116, 13]]) { g.save(); g.translate(x, 150); g.rotate(rot * Math.PI / 180); g.translate(-x, -150); const b = [x - 22, y - 36, 44, 72]; furP(g, [x, y, 22, 36], null, lgB(g, b, 0, 1, [[0, c.ear1], [1, c.ear2]]), c.ear2); g.fillStyle = lgB(g, [x - 11, y - 23, 22, 52], 0, 1, [[0, c.earIn1], [1, c.earIn2]]); g.beginPath(); g.ellipse(x, y + 3, 11, 26, 0, 0, Math.PI * 2); g.fill(); g.restore(); } }
+function jillEars(g, sway, back) { const c = RC.jil; for (const [x, y, rot, sd] of [[164, 118, -12, -1], [212, 116, 13, 1]]) { g.save(); g.translate(x, 150); g.rotate((rot + sd * (sway || 0)) * Math.PI / 180); g.translate(-x, -150); const b = [x - 22, y - 36, 44, 72]; furP(g, [x, y, 22, 36], null, lgB(g, b, 0, 1, [[0, c.ear1], [1, c.ear2]]), c.ear2); if (!back) { g.fillStyle = lgB(g, [x - 11, y - 23, 22, 52], 0, 1, [[0, c.earIn1], [1, c.earIn2]]); g.beginPath(); g.ellipse(x, y + 3, 11, 26, 0, 0, Math.PI * 2); g.fill(); } g.restore(); } }
 function jillHead(g, mood) { // アニメの座標（頭の中心は 188,210）
   const c = RC.jil, hb = [92, 130, 192, 160];
   jillEars(g);
@@ -487,23 +496,20 @@ function drawBody(g, who, p) {
     return;
   }
   if (ren) {
-    fur(g, 150, hy, 58, 54, 0, RC.ren.head1, RC.ren.head2, { rr: .7 });
-    g.strokeStyle = 'rgba(120,84,56,.5)'; g.lineWidth = 2.2; g.lineCap = 'round'; g.beginPath(); g.moveTo(122, hy - 52); g.quadraticCurveTo(150, hy - 60, 178, hy - 52); g.stroke();
-    const e = p.ear;
-    for (const sd of [-1, 1]) { const ex = 150 + sd * (66 + e * 12), ey = hy + 26 - e * 18, rot = sd * (.12 + e * .5);
-      fur(g, ex, ey, 30, 66, rot, RC.ren.ear1, RC.ren.ear3, { vert: 1 }); }
+    renBack(g, 150, hy - 2, 1.12, p.ear); // 後ろ姿も、アニメの頭と耳の形（顔だけ無い）
     if (p.tie != null) { // the tie comes out from under his chin and streams back over his shoulder in the wind
       windTie(g, 152, hy + 50, p);
       fur(g, 150, hy + 44, 30, 13, 0, '#D6AE82', '#BE9369', { sparse: 1, rim: 1 }); // the chin/neck fur tucks the root in
     }
-    { const hk = p.mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 150, hy - 50, 1, 54, 18); else if (WEAR.ren.suit === 'bee') antennae(g, 150, hy - 50, 1); }
+    { const hk = p.mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 150, hy - 56, 1, 62, 18); else if (WEAR.ren.suit === 'bee') antennae(g, 150, hy - 56, 1); }
   } else {
-    const ears = () => { for (const sd of [-1, 1]) { g.save(); g.translate(150 + sd * 24, hy - 32); g.rotate(sd * (.2 + p.ear * .4)); fur(g, 0, -20, 15, 27, 0, RC.jil.ear1, RC.jil.ear2, { vert: 1 }); g.restore(); } };
+    const jb = fn => { g.save(); g.translate(150, hy); g.scale(RK.jil, RK.jil); g.translate(-188, -210); fn(); g.restore(); }; // アニメの座標で描く
+    const ears = () => jb(() => jillEars(g, p.ear * 26, 1));
     ears();
-    fur(g, 150, hy, 54, 45, 0, RC.jil.head1, RC.jil.head2);
-    g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(112, hy + 34); g.quadraticCurveTo(150, hy + 50, 188, hy + 34); g.stroke();
-    if (WEAR.jill.suit === 'zebra') zebraMane(g, 150, hy - 44, 52, 1);
-    if (WEAR.jill.hat) { wearHat(g, WEAR.jill.hat, 150, hy - 40, .9, 43, 14); if (hatCovers(WEAR.jill.hat)) { earHoles(g, 150, hy - 30, 24, .2 + p.ear * .4); ears(); } }
+    jb(() => { const c = RC.jil, hb = [92, 130, 192, 160]; furP(g, 'M188 130 C 248 130 284 166 284 210 C 284 260 240 290 188 290 C 136 290 92 260 92 210 C 92 166 128 130 188 130 Z', hb, rgB(g, hb, .5, .42, .62, [[0, c.head1], [.65, c.head2], [1, c.head3]]), c.head3); soft(g, 188, 150, 50, 16, '#EED9BE', .35, 5); });
+    g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(106, hy + 40); g.quadraticCurveTo(150, hy + 62, 194, hy + 40); g.stroke();
+    if (WEAR.jill.suit === 'zebra') zebraMane(g, 150, hy - 50, 52, 1);
+    if (WEAR.jill.hat) { wearHat(g, WEAR.jill.hat, 150, hy - 46, .9, 50, 16); if (hatCovers(WEAR.jill.hat)) { earHoles(g, 150, hy - 36, 16, .2 + p.ear * .4); ears(); } }
   }
 }
 function lanyard(g, x, y) { g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.lineWidth = 4; g.beginPath(); g.moveTo(x - 34, y - 16); g.lineTo(x - 3, y + 22); g.moveTo(x + 34, y - 16); g.lineTo(x + 3, y + 22); g.stroke(); rr(g, x - 13, y + 20, 26, 34, 4, '#FBF6EE', '#355F86', 3); rr(g, x - 8, y + 25, 16, 10, 2, '#C9A176'); rr(g, x - 8, y + 39, 16, 2.5, 1, '#9AA9B6'); rr(g, x - 3, y + 44, 11, 2.5, 1, '#9AA9B6'); }
