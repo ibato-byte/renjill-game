@@ -881,4 +881,8 @@ function paintPlaneBack(g, W, H) { // a paper plane seen from behind: the two wi
   g.beginPath(); g.moveTo(cx - W * .07, y + H * .08); g.lineTo(cx + W * .07, y + H * .08); g.lineTo(cx, y + H * .5); g.closePath(); g.fillStyle = '#C9D4DE'; g.fill(); g.strokeStyle = '#3B2A20'; g.lineWidth = 4; g.stroke(); // the keel
   g.strokeStyle = 'rgba(80,100,120,.4)'; g.lineWidth = 2; g.beginPath(); g.moveTo(cx, y + H * .08); g.lineTo(cx, y + H * .46); g.stroke();
 }
-SPR.planeBack = artCanvas('planeBack', 400, 160, paintPlaneBack);
+/* 乗っている紙飛行機の絵。使うたびに取り出す（2026-11-15 の報告：スマホで、紙飛行機に乗ると仲間と紙飛行機が消えた。
+   絵の置き場がいっぱいになると古い絵から捨てる仕組みで、最初に作ったこの絵がまっ先に捨てられ、捨てた絵を描こうとして失敗 → その後に描く仲間まで出なかった）。
+   捨てられていたら、その場で描き直す。SPR.planeBack と書いても同じ物が返る */
+function planePic() { let c = ART_C.get('planeBack'); if (c && c.width) return c; if (c) ART_C.delete('planeBack'); const soft = ART_SOFT; ART_SOFT = 0; try { c = artCanvas('planeBack', 400, 160, paintPlaneBack); } finally { ART_SOFT = soft; } return c && c.width ? c : null; }
+Object.defineProperty(SPR, 'planeBack', { get: planePic, enumerable: false, configurable: true });

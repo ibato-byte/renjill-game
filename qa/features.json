@@ -727,6 +727,21 @@
       "has": "n: 'picksteady'"
     },
     {
+      "name": "紙飛行機で仲間が消えない試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'planekeep'"
+    },
+    {
+      "name": "紙飛行機の絵は捨てられても描き直す",
+      "file": "src/4e_art.js",
+      "has": "function planePic()"
+    },
+    {
+      "name": "1 人の絵の失敗でほかの人が消えない",
+      "file": "src/4_render.js",
+      "has": "while (CTXD > d0) ctx.restore();"
+    },
+    {
       "name": "アニメと同じ絵かの試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'animelook'"
