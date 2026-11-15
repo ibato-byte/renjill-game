@@ -151,7 +151,7 @@ function wearHat(g, kind, x, y, w, hw, sink, who, rot) {
   const dy = HAT_COVER[kind] ? sink * (HAT_SINK[kind] || 1) : HAT_PERCH[kind] ? sink * .4 : 0, onSprite = who && !(g.canvas && g.canvas.id === 'cv');
   g.save(); g.translate(x, y + dy);
   if (onSprite && (HAT_COVER[kind] || HAT_PERCH[kind])) { g.save(); g.globalCompositeOperation = 'source-atop'; // 影は、もう描いてある頭・耳の上にだけ
-    if (HAT_COVER[kind]) soft(g, 0, hw * .14, hw * 1.1, hw * .36, '#3B2416', .3, 6); else soft(g, 0, 1, hw * .6, hw * .12, '#3B2416', .24, 3); g.restore(); }
+    if (HAT_COVER[kind]) soft(g, 0, hw * .03, hw * .98, hw * .1, '#6B4A32', .16, 2.5); else soft(g, 0, 1, hw * .55, hw * .07, '#6B4A32', .12, 2); g.restore(); } // 影はふちのすぐ下だけ・うすい茶色（2026-11-16 オーナー：「帽子をかぶった時の目の影が怖くて可愛くない」。前は目の上まで濃い影が落ちていた）
   g.rotate((HAT_TILT[kind] || 0) + (rot || 0));
   hat(g, kind, w, hw / w);
   if (onSprite && HAT_TUFT[kind] && !rot) hatTufts(g, hw * HAT_TUFT[kind][0], who, HAT_TUFT[kind][1] * w);
