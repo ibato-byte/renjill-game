@@ -22,9 +22,18 @@ function suitOver(g, kind, cx, cy, rx, ry) {
   g.save(); g.beginPath(); g.ellipse(cx, cy, ex, ey, 0, 0, Math.PI * 2); g.clip(); g.globalCompositeOperation = 'source-atop';
   if (kind === 'royal') { // the Legendary bunny's gold-and-cream ceremonial coat: soft gold cloth, a red sash, small gold buttons
     const gr = g.createLinearGradient(cx - rx, cy - ry, cx + rx, cy + ry); gr.addColorStop(0, '#F6DC86'); gr.addColorStop(.5, '#E2B341'); gr.addColorStop(1, '#C8902A'); g.fillStyle = gr; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
-    g.strokeStyle = 'rgba(255,248,215,.35)'; g.lineWidth = 2; for (let k = -4; k <= 4; k++) { g.beginPath(); g.moveTo(cx + k * rx * .3 - rx * .3, cy - ry); g.lineTo(cx + k * rx * .3 + rx * .3, cy + ry); g.stroke(); }
-    g.fillStyle = '#C8263C'; g.beginPath(); g.moveTo(cx - rx, cy - ry * .55); g.lineTo(cx - rx * .7, cy - ry * .8); g.lineTo(cx + rx, cy + ry * .55); g.lineTo(cx + rx * .7, cy + ry * .85); g.closePath(); g.fill();
-    g.fillStyle = '#FFF2C2'; for (const k of [-.35, .05, .45]) { g.beginPath(); g.arc(cx - rx * .02, cy + k * ry, rx * .05, 0, Math.PI * 2); g.fill(); }
+    /* 2026-11-16 着せかえ 46〜51：金の礼服を作り込む。織りもようは体の丸みにそう曲線／たすきに金のふちと布のつや／ボタンは金具らしく／すそに金の房 */
+    g.strokeStyle = 'rgba(255,248,215,.3)'; g.lineWidth = 1.6; for (let k = -5; k <= 5; k++) { const x = cx + k * rx * .3; g.beginPath(); g.moveTo(x - rx * .3, cy - ey); g.quadraticCurveTo(x + rx * .1 * (k < 0 ? -1 : 1), cy, x + rx * .3, cy + ey); g.stroke(); }
+    g.fillStyle = 'rgba(255,250,225,.5)'; for (let k = -5; k <= 4; k++) for (let m = -3; m <= 3; m++) { const x = cx + (k + .5) * rx * .3 + m * rx * .1, y = cy + m * ry * .3; g.beginPath(); g.moveTo(x, y - 2.4); g.lineTo(x + 1.6, y); g.lineTo(x, y + 2.4); g.lineTo(x - 1.6, y); g.closePath(); g.fill(); } // 小さなひし形の織りもよう
+    { const sa = [cx - ex, cy - ry * .55], sb = [cx - rx * .7, cy - ry * .86], sc = [cx + ex, cy + ry * .5], sd = [cx + rx * .7, cy + ry * .9];
+      const sg2 = g.createLinearGradient(sb[0], sb[1], sa[0] + rx * .3, sa[1] + ry * .5); sg2.addColorStop(0, '#E0445A'); sg2.addColorStop(.5, '#C8263C'); sg2.addColorStop(1, '#9E1B2E');
+      g.fillStyle = sg2; g.beginPath(); g.moveTo(sa[0], sa[1]); g.lineTo(sb[0], sb[1]); g.lineTo(sc[0], sc[1]); g.lineTo(sd[0], sd[1]); g.closePath(); g.fill();
+      g.strokeStyle = '#F3D98A'; g.lineWidth = 2; g.beginPath(); g.moveTo(sb[0], sb[1] + 2.5); g.lineTo(sc[0], sc[1] + 2.5); g.moveTo(sa[0], sa[1] - 2.5); g.lineTo(sd[0], sd[1] - 2.5); g.stroke(); // たすきの金のふち
+      g.strokeStyle = 'rgba(255,255,255,.22)'; g.lineWidth = 3; g.beginPath(); g.moveTo((sa[0] + sb[0]) / 2, (sa[1] + sb[1]) / 2 - 3); g.lineTo((sc[0] + sd[0]) / 2, (sc[1] + sd[1]) / 2 - 3); g.stroke(); } // 布のつや
+    for (const k of [-.35, .05, .45]) { const bx = cx - rx * .02, by = cy + k * ry, br = rx * .055; g.fillStyle = 'rgba(90,55,10,.35)'; g.beginPath(); g.arc(bx + .6, by + 1.2, br, 0, Math.PI * 2); g.fill();
+      const bg = g.createRadialGradient(bx - br * .3, by - br * .4, br * .1, bx, by, br); bg.addColorStop(0, '#FFFBE0'); bg.addColorStop(.6, '#F3D46E'); bg.addColorStop(1, '#B98522'); g.fillStyle = bg; g.beginPath(); g.arc(bx, by, br, 0, Math.PI * 2); g.fill(); }
+    { const hy = cy + ry * .8; g.fillStyle = '#B98522'; g.beginPath(); g.moveTo(cx - ex, hy); g.quadraticCurveTo(cx, hy + ry * .18, cx + ex, hy); g.lineTo(cx + ex, hy + 3); g.quadraticCurveTo(cx, hy + ry * .18 + 3, cx - ex, hy + 3); g.closePath(); g.fill();
+      g.strokeStyle = '#F6E3A0'; g.lineWidth = 1.5; g.lineCap = 'round'; for (let i = 0; i <= 30; i++) { const u = i / 30, x = cx - ex + u * ex * 2, y = hy + ry * .18 * (1 - (2 * u - 1) * (2 * u - 1)) + 3; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (srand() - .5), y + 5 + srand() * 2); g.stroke(); } } // すその金の房
   } else if (kind === 'bee') {
     { const gy = g.createLinearGradient(0, cy - ry, 0, cy + ry); gy.addColorStop(0, '#FFD95A'); gy.addColorStop(.6, '#F4C433'); gy.addColorStop(1, '#D9A21B'); g.fillStyle = gy; g.fillRect(cx - ex, cy - ey, ex * 2, ey * 2); }
     const h = ry * .27; // しまは体の丸みにそって下にふくらむ。ふちは毛羽立たせる（ぬいぐるみの生地）
@@ -32,12 +41,13 @@ function suitOver(g, kind, cx, cy, rx, ry) {
       g.strokeStyle = '#332A25'; g.lineWidth = 1.2; g.lineCap = 'round'; for (let i = 0; i <= 26; i++) { const u = i / 26, x = cx - ex + u * ex * 2, yy = y + bow * (1 - (2 * u - 1) * (2 * u - 1)); g.beginPath(); g.moveTo(x, yy + 1); g.lineTo(x + (srand() - .5) * 2, yy - 2 - srand() * 2.5); g.moveTo(x, yy + h - 1); g.lineTo(x + (srand() - .5) * 2, yy + h + 2 + srand() * 2.5); g.stroke(); }
       g.fillStyle = 'rgba(255,255,255,.07)'; g.beginPath(); g.moveTo(cx - ex, y + h * .15); g.quadraticCurveTo(cx, y + bow + h * .15, cx + ex, y + h * .15); g.lineTo(cx + ex, y + h * .4); g.quadraticCurveTo(cx, y + bow + h * .4, cx - ex, y + h * .4); g.closePath(); g.fill(); }
   } else if (kind === 'zebra') {
-    g.fillStyle = '#F7F4EE'; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
+    { const zg = g.createLinearGradient(0, cy - ey, 0, cy + ey); zg.addColorStop(0, '#FFFFFF'); zg.addColorStop(.65, '#F4EFE6'); zg.addColorStop(1, '#DDD3C4'); g.fillStyle = zg; g.fillRect(cx - ex, cy - ey, ex * 2, ey * 2); } // 着せかえ 52：白は上から下へ生成りに（べた塗りをやめる）
     g.fillStyle = '#272321';
     for (let k = 0; k < 6; k++) for (const sd of [-1, 1]) { // tapered stripes reaching in from both sides, like a real coat
       const y = cy - ry * .95 + k * ry * .36 + (sd > 0 ? ry * .1 : 0), w = ry * (.15 + (k % 2) * .04), reach = rx * (.55 + ((k * 7) % 3) * .12);
       g.beginPath(); g.moveTo(cx + sd * rx, y - w); g.quadraticCurveTo(cx + sd * (rx - reach * .5), y - w * .6 + ry * .06, cx + sd * (rx - reach), y + ry * .1);
-      g.quadraticCurveTo(cx + sd * (rx - reach * .5), y + w * .9 + ry * .06, cx + sd * rx, y + w); g.closePath(); g.fill(); }
+      g.quadraticCurveTo(cx + sd * (rx - reach * .5), y + w * .9 + ry * .06, cx + sd * ex, y + w); g.lineTo(cx + sd * ex, y - w); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(39,35,33,.7)'; g.lineWidth = .8; g.lineCap = 'round'; for (let i = 0; i <= 18; i++) { const u = i / 18, x = cx + sd * (rx - reach * u * .92), yt = y - w * (1 - u * .9) + ry * .08 * u, yb = y + w * (1 - u * .9) + ry * .08 * u; g.beginPath(); g.moveTo(x, yt + 1); g.lineTo(x + (srand() - .5) * 1.5, yt - .6 - srand() * 1.4); g.moveTo(x, yb - 1); g.lineTo(x + (srand() - .5) * 1.5, yb + .6 + srand() * 1.4); g.stroke(); } } // 着せかえ 53：しまのふちを毛羽立たせる（蜂と同じ生地感）・54：しまを体のふちまで
     g.fillRect(cx - rx * .05, cy - ry, rx * .1, ry * .3); // the stripe down the spine
   }
   const sh = g.createRadialGradient(cx - rx * .3, cy - ry * .45, rx * .1, cx, cy, rx * 1.05); sh.addColorStop(0, 'rgba(255,255,255,.28)'); sh.addColorStop(.6, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(40,25,15,.28)');
@@ -48,16 +58,20 @@ function suitOver(g, kind, cx, cy, rx, ry) {
 function beeWings(g, cx, cy, s, flap) {
   for (const sd of [-1, 1]) { g.save(); g.translate(cx + sd * 22 * s, cy); g.rotate(sd * (1.0 + flap)); 
     for (const [w, h, y, a] of [[34, 62, -58, 0], [22, 38, -26, .55]]) { g.save(); g.rotate(sd * a); g.beginPath(); g.ellipse(0, y * s, w * s, h * s, 0, 0, Math.PI * 2);
-      g.fillStyle = 'rgba(232,244,255,.78)'; g.fill(); g.strokeStyle = 'rgba(120,150,180,.85)'; g.lineWidth = 2; g.stroke();
-      g.strokeStyle = 'rgba(140,170,200,.55)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, (y + h * .8) * s); g.lineTo(0, (y - h * .7) * s); g.moveTo(0, y * s); g.lineTo(sd * w * .6 * s, (y - h * .4) * s); g.stroke();
+      { const wg = g.createLinearGradient(0, (y + h) * s, 0, (y - h) * s); wg.addColorStop(0, 'rgba(255,255,255,.5)'); wg.addColorStop(.45, 'rgba(226,241,255,.8)'); wg.addColorStop(.8, 'rgba(214,232,252,.82)'); wg.addColorStop(1, 'rgba(246,226,244,.8)'); g.fillStyle = wg; } // 着せかえ 55：羽は根もとが透けて、先にむかって色づく（べた塗りをやめる）
+      g.fill(); g.strokeStyle = 'rgba(120,150,180,.7)'; g.lineWidth = 1.5; g.stroke(); // 56：ふちの線を細く・うすく
+      g.strokeStyle = 'rgba(140,170,200,.5)'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, (y + h * .8) * s); g.quadraticCurveTo(sd * w * .12 * s, y * s, 0, (y - h * .75) * s);
+      for (const [a0, b0, k] of [[.45, -.2, .7], [.1, -.5, .62], [-.25, -.72, .4]]) { g.moveTo(0, (y + h * a0) * s); g.quadraticCurveTo(sd * w * k * .5 * s, (y + h * (a0 + b0) / 2 - h * .06) * s, sd * w * k * s, (y + h * b0) * s); g.moveTo(0, (y + h * a0) * s); g.quadraticCurveTo(-sd * w * k * .4 * s, (y + h * (a0 + b0) / 2) * s, -sd * w * k * .8 * s, (y + h * b0) * s); } g.stroke(); // 57：羽のすじを、枝分かれする曲線に
       g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.ellipse(-w * .3 * s, (y - h * .35) * s, w * .18 * s, h * .22 * s, -.3, 0, Math.PI * 2); g.fill(); g.restore(); }
     g.restore(); }
 }
 function antennae(g, x, y, s) {
   g.strokeStyle = '#2E2622'; g.lineWidth = 3.2 * s; g.lineCap = 'round';
   for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(x + sd * 14 * s, y); g.quadraticCurveTo(x + sd * 18 * s, y - 30 * s, x + sd * 32 * s, y - 40 * s); g.stroke();
-    g.fillStyle = '#2E2622'; g.beginPath(); g.arc(x + sd * 33 * s, y - 42 * s, 7 * s, 0, Math.PI * 2); g.fill(); g.fillStyle = '#F4C433'; g.beginPath(); g.arc(x + sd * 33 * s, y - 42 * s, 3.6 * s, 0, Math.PI * 2); g.fill(); }
+    { const bx = x + sd * 33 * s, by = y - 42 * s, br = 7.5 * s; const bg = g.createRadialGradient(bx - br * .35, by - br * .4, br * .1, bx, by, br); bg.addColorStop(0, '#FFF3B0'); bg.addColorStop(.55, '#F4C433'); bg.addColorStop(1, '#C48A14'); g.fillStyle = bg; g.beginPath(); g.arc(bx, by, br, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#2E2622'; g.lineWidth = 1.6 * s; g.stroke();
+      g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.ellipse(bx - br * .35, by - br * .4, br * .22, br * .15, -.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#2E2622'; g.lineWidth = 3.2 * s; } } // 着せかえ 58：触角の先を、つやのある黄色い玉に
   g.strokeStyle = '#2E2622'; g.lineWidth = 5 * s; g.beginPath(); g.moveTo(x - 20 * s, y + 4 * s); g.quadraticCurveTo(x, y - 6 * s, x + 20 * s, y + 4 * s); g.stroke(); // the headband
+  g.strokeStyle = 'rgba(255,255,255,.3)'; g.lineWidth = 1.4 * s; g.beginPath(); g.moveTo(x - 15 * s, y + .5 * s); g.quadraticCurveTo(x, y - 7.5 * s, x + 15 * s, y + .5 * s); g.stroke(); // 59：カチューシャにつや
 }
 function zebraMane(g, x, y, len, s) { // a short upright mane, black and white
   for (let k = 0; k < 7; k++) { const t = k / 6, yy = y + t * len; g.fillStyle = k % 2 ? '#F7F4EE' : '#272321'; g.beginPath(); g.ellipse(x, yy, 7 * s, 9 * s, 0, 0, Math.PI * 2); g.fill(); }
@@ -90,44 +104,94 @@ function hat(g, kind, w, H) { // H = half the width of the head where the brim s
     const gr = g.createRadialGradient(-H * .2, -H * .5, 2, 0, -H * .3, H * 1.1); gr.addColorStop(0, '#DA5A4E'); gr.addColorStop(1, '#B63A30'); g.fillStyle = gr;
     g.beginPath(); g.ellipse(H * .1, -H * .3, H * 1.1, H * .44, -.1, 0, Math.PI * 2); g.fill();
     g.fillStyle = '#A8352C'; g.beginPath(); g.ellipse(0, -3, H * .96, 8, 0, 0, Math.PI); g.fill(); g.beginPath(); g.ellipse(0, -3, H * .96, 3, 0, Math.PI, 0); g.fill();
-    g.fillStyle = '#7A241E'; g.fillRect(H * .12, -H * .76, 4, 8); g.restore(); return; }
+    g.fillStyle = 'rgba(255,220,205,.22)'; g.beginPath(); g.ellipse(-H * .3, -H * .46, H * .46, H * .12, -.22, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(90,20,15,.2)'; g.beginPath(); g.ellipse(H * .1, -H * .1, H * 1.02, H * .13, -.06, 0, Math.PI); g.fill(); // 着せかえ 99：フェルトのやわらかいつやと、ふちの上のかげ
+    g.fillStyle = '#7A241E'; g.beginPath(); g.ellipse(H * .14, -H * .7, 2.6, 4.6, .2, 0, Math.PI * 2); g.fill(); g.restore(); return; }
   if (kind === 'straw') { g.save(); g.scale(w, w); // the crown fits over the head, the wide brim at the brow
     g.fillStyle = '#E8D28A'; g.strokeStyle = '#C9B06A'; g.lineWidth = 2; g.beginPath(); g.ellipse(0, -2, H * 1.5, H * .27, 0, Math.PI, Math.PI * 2); g.fill(); g.stroke();
     g.fillStyle = '#EFDB98'; g.beginPath(); g.roundRect ? g.roundRect(-H * .78, -H * .78, H * 1.56, H * .78, [H * .42, H * .42, 4, 4]) : g.rect(-H * .78, -H * .78, H * 1.56, H * .78); g.fill(); g.stroke();
-    g.fillStyle = '#2F4F7F'; g.fillRect(-H * .78, -H * .3, H * 1.56, H * .17);
-    g.fillStyle = '#E8D28A'; g.beginPath(); g.ellipse(0, -2, H * 1.5, H * .27, 0, 0, Math.PI); g.fill(); g.stroke(); g.restore(); return; }
-  if (kind === 'santa') { g.save(); g.scale(w * H / 44, w * H / 44); g.fillStyle = '#C8463C'; g.beginPath(); g.moveTo(-40, 0); g.quadraticCurveTo(-30, -50, 10, -62); g.quadraticCurveTo(40, -70, 52, -50); g.quadraticCurveTo(30, -52, 20, -30); g.quadraticCurveTo(30, -10, 40, 0); g.closePath(); g.fill();
-    g.fillStyle = '#FBF6EE'; g.beginPath(); g.ellipse(0, 0, 46, 10, 0, 0, Math.PI * 2); g.fill(); g.beginPath(); g.arc(54, -50, 9, 0, Math.PI * 2); g.fill(); g.restore(); return; }
-  if (kind === 'crown') { g.save(); g.scale(w, w); g.fillStyle = '#F2C230'; g.strokeStyle = '#B08A3E'; g.lineWidth = 2; g.beginPath(); g.moveTo(-34, 0); g.lineTo(-38, -34); g.lineTo(-20, -16); g.lineTo(0, -40); g.lineTo(20, -16); g.lineTo(38, -34); g.lineTo(34, 0); g.closePath(); g.fill(); g.stroke();
-    for (const [x, c] of [[-20, '#C8463C'], [0, '#4E77A0'], [20, '#5F9E5A']]) { g.fillStyle = c; g.beginPath(); g.arc(x, -8, 4, 0, Math.PI * 2); g.fill(); } g.restore(); return; }
-  if (kind === 'ribbon') { g.save(); g.scale(w, w); g.translate(26, -8); g.fillStyle = '#E86A75'; g.beginPath(); g.ellipse(-14, 0, 14, 9, -.4, 0, Math.PI * 2); g.ellipse(14, 0, 14, 9, .4, 0, Math.PI * 2); g.fill(); g.fillStyle = '#C8463C'; g.beginPath(); g.arc(0, 0, 5, 0, Math.PI * 2); g.fill(); g.restore(); return; }
+    /* 着せかえ 71〜75：麦わら帽子。編み目／山の丸みのかげ／リボンに濃淡と結び目／つばに編みの輪／つばの手前を明るく */
+    g.save(); g.beginPath(); g.roundRect ? g.roundRect(-H * .78, -H * .78, H * 1.56, H * .78, [H * .42, H * .42, 4, 4]) : g.rect(-H * .78, -H * .78, H * 1.56, H * .78); g.clip();
+    g.strokeStyle = 'rgba(160,125,50,.28)'; g.lineWidth = 1; for (let k = 1; k < 7; k++) { const y = -H * .78 + k * H * .11; g.beginPath(); g.moveTo(-H * .8, y); g.quadraticCurveTo(0, y + H * .07, H * .8, y); g.stroke(); }
+    for (let k = -7; k <= 7; k++) { g.beginPath(); g.moveTo(k * H * .11, -H * .78); g.lineTo(k * H * .12, 0); g.stroke(); }
+    { const cg = g.createLinearGradient(-H * .78, 0, H * .78, 0); cg.addColorStop(0, 'rgba(140,100,30,.22)'); cg.addColorStop(.3, 'rgba(255,255,255,.14)'); cg.addColorStop(.7, 'rgba(255,255,255,0)'); cg.addColorStop(1, 'rgba(140,100,30,.26)'); g.fillStyle = cg; g.fillRect(-H * .8, -H * .8, H * 1.6, H * .8); } g.restore();
+    { const rg = g.createLinearGradient(0, -H * .3, 0, -H * .13); rg.addColorStop(0, '#3D62A0'); rg.addColorStop(1, '#263F68'); g.fillStyle = rg; g.fillRect(-H * .78, -H * .3, H * 1.56, H * .17);
+      g.fillStyle = '#263F68'; g.beginPath(); g.moveTo(H * .5, -H * .215); g.lineTo(H * .72, -H * .36); g.lineTo(H * .74, -H * .08); g.closePath(); g.fill(); g.beginPath(); g.moveTo(H * .5, -H * .215); g.lineTo(H * .3, -H * .34); g.lineTo(H * .3, -H * .1); g.closePath(); g.fill(); g.fillStyle = '#3D62A0'; g.beginPath(); g.arc(H * .5, -H * .215, H * .05, 0, Math.PI * 2); g.fill(); }
+    { const bg = g.createLinearGradient(0, -2, 0, H * .27); bg.addColorStop(0, '#E2C97C'); bg.addColorStop(1, '#F3E2A6'); g.fillStyle = bg; } g.strokeStyle = '#C9B06A'; g.lineWidth = 2; g.beginPath(); g.ellipse(0, -2, H * 1.5, H * .27, 0, 0, Math.PI); g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(160,125,50,.3)'; g.lineWidth = 1; for (const k of [.72, .86]) { g.beginPath(); g.ellipse(0, -2, H * 1.5 * k, H * .27 * k, 0, .08, Math.PI - .08); g.stroke(); } g.restore(); return; }
+  if (kind === 'santa') { g.save(); g.scale(w * H / 44, w * H / 44); /* 着せかえ 60〜64：サンタ帽。赤に濃淡／折れ目のかげ／白いふちをふわふわの毛に／ぼんぼりも毛玉に／ふちの下にうすいかげ */
+    { const sg = g.createLinearGradient(-36, -10, 44, -62); sg.addColorStop(0, '#B9382F'); sg.addColorStop(.45, '#D4523F'); sg.addColorStop(1, '#C24236'); g.fillStyle = sg; }
+    g.beginPath(); g.moveTo(-40, 0); g.quadraticCurveTo(-30, -50, 10, -62); g.quadraticCurveTo(40, -70, 52, -50); g.quadraticCurveTo(30, -52, 20, -30); g.quadraticCurveTo(30, -10, 40, 0); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(110,25,20,.3)'; g.lineWidth = 2.4; g.lineCap = 'round'; g.beginPath(); g.moveTo(20, -30); g.quadraticCurveTo(10, -44, 16, -58); g.moveTo(22, -24); g.quadraticCurveTo(6, -30, -4, -22); g.stroke();
+    g.strokeStyle = 'rgba(255,225,205,.3)'; g.lineWidth = 3; g.beginPath(); g.moveTo(-28, -22); g.quadraticCurveTo(-18, -46, 6, -56); g.stroke();
+    const fluff = (x, y, rx, ry, n) => { const fg = g.createRadialGradient(x - rx * .25, y - ry * .6, 1, x, y, rx * 1.1); fg.addColorStop(0, '#FFFFFF'); fg.addColorStop(.7, '#FBF6EE'); fg.addColorStop(1, '#E9E0D0'); g.fillStyle = fg;
+      g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); g.fill(); const br = Math.max(2.4, ry * .42); for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; g.beginPath(); g.arc(x + Math.cos(a) * rx * .97, y + Math.sin(a) * ry * .9, br * (.85 + (i % 3) * .12), 0, Math.PI * 2); g.fill(); } // もこもこのふち（丸い毛玉をならべる）
+      g.strokeStyle = 'rgba(190,175,150,.28)'; g.lineWidth = 1; g.lineCap = 'round'; for (let i = 0; i < n * .6; i++) { const a = srand() * Math.PI * 2, r = srand() * .75, px = x + Math.cos(a) * rx * r, py = y + Math.sin(a) * ry * r; g.beginPath(); g.arc(px, py, 2.2, .3, 2.2); g.stroke(); } };
+    g.fillStyle = 'rgba(90,20,15,.22)'; g.beginPath(); g.ellipse(0, -7, 42, 7, 0, 0, Math.PI * 2); g.fill();
+    fluff(0, 0, 44, 8.5, 30); fluff(54, -50, 8, 8, 9); g.restore(); return; }
+  if (kind === 'crown') { g.save(); g.scale(w, w); /* 着せかえ 65〜70：王冠。奥のふち（内側）で立体に／金に濃淡／下の帯／先の玉／宝石にふちとつや／ななめのつや */
+    g.fillStyle = '#9C7420'; g.beginPath(); g.moveTo(-32, -4); g.lineTo(-30, -26); g.lineTo(-12, -12); g.lineTo(0, -30); g.lineTo(12, -12); g.lineTo(30, -26); g.lineTo(32, -4); g.closePath(); g.fill();
+    { const cg = g.createLinearGradient(-36, -40, 36, 0); cg.addColorStop(0, '#FFE98A'); cg.addColorStop(.45, '#F2C230'); cg.addColorStop(1, '#C8902A'); g.fillStyle = cg; } g.strokeStyle = '#A57C24'; g.lineWidth = 2; g.lineJoin = 'round';
+    g.beginPath(); g.moveTo(-34, 0); g.lineTo(-38, -34); g.lineTo(-20, -16); g.lineTo(0, -40); g.lineTo(20, -16); g.lineTo(38, -34); g.lineTo(34, 0); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = '#D9A52E'; g.beginPath(); g.moveTo(-34.5, 0); g.lineTo(-35.2, -6); g.quadraticCurveTo(0, -2, 35.2, -6); g.lineTo(34.5, 0); g.closePath(); g.fill(); g.strokeStyle = 'rgba(255,245,190,.7)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(-34, -6.5); g.quadraticCurveTo(0, -2.5, 34, -6.5); g.stroke();
+    for (const [x, y] of [[-38, -34], [0, -40], [38, -34]]) { const bg = g.createRadialGradient(x - 1.2, y - 1.6, .5, x, y, 4.2); bg.addColorStop(0, '#FFF8D0'); bg.addColorStop(1, '#D9A52E'); g.fillStyle = bg; g.beginPath(); g.arc(x, y, 4.2, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#A57C24'; g.lineWidth = 1; g.stroke(); }
+    for (const [x, c, d] of [[-20, '#D8504A', '#8E2420'], [0, '#5A8FCB', '#2C4F7C'], [20, '#63B36A', '#2F6B36']]) { g.fillStyle = '#A57C24'; g.beginPath(); g.arc(x, -12, 5.4, 0, Math.PI * 2); g.fill(); const jg = g.createRadialGradient(x - 1.4, -13.6, .5, x, -12, 4.4); jg.addColorStop(0, '#FFFFFF'); jg.addColorStop(.3, c); jg.addColorStop(1, d); g.fillStyle = jg; g.beginPath(); g.arc(x, -12, 4.2, 0, Math.PI * 2); g.fill(); }
+    g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.moveTo(-30, -3); g.lineTo(-33, -24); g.lineTo(-27, -19); g.lineTo(-25, -3); g.closePath(); g.fill(); g.restore(); return; }
+  if (kind === 'ribbon') { g.save(); g.scale(w, w); g.translate(26, -8); /* 着せかえ 80〜83：リボン。だ円 2 つをやめて、結び目からふくらむ形に／たれ／ひだのかげ／つや */
+    g.fillStyle = '#D9596A'; for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(sd * 2, 3); g.quadraticCurveTo(sd * 8, 12, sd * 12, 22); g.lineTo(sd * 4, 20); g.quadraticCurveTo(sd * 3, 10, 0, 4); g.closePath(); g.fill(); }
+    for (const sd of [-1, 1]) { const rg = g.createLinearGradient(0, -10, sd * 26, 8); rg.addColorStop(0, '#D9596A'); rg.addColorStop(.5, '#F08A93'); rg.addColorStop(1, '#E06A78'); g.fillStyle = rg;
+      g.beginPath(); g.moveTo(0, -2); g.bezierCurveTo(sd * 8, -16, sd * 26, -16, sd * 27, -4); g.bezierCurveTo(sd * 28, 8, sd * 12, 12, 0, 3); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(150,40,55,.4)'; g.lineWidth = 1.3; g.lineCap = 'round'; g.beginPath(); g.moveTo(sd * 4, -1); g.quadraticCurveTo(sd * 12, -6, sd * 20, -6); g.moveTo(sd * 4, 2); g.quadraticCurveTo(sd * 12, 5, sd * 19, 4); g.stroke();
+      g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.ellipse(sd * 15, -9, 6, 2.2, sd * -.25, 0, Math.PI * 2); g.fill(); }
+    { const kg = g.createRadialGradient(-1.5, -2, .5, 0, 0, 6); kg.addColorStop(0, '#F08A93'); kg.addColorStop(1, '#C0394C'); g.fillStyle = kg; g.beginPath(); g.ellipse(0, .5, 5, 6, 0, 0, Math.PI * 2); g.fill(); } g.restore(); return; }
   if (kind === 'witch') { g.save(); g.scale(w * H / 48, w * H / 48); // a soft, slightly bent wizard hat with a gold band and a little star
     g.fillStyle = '#3B3350'; g.beginPath(); g.ellipse(0, 0, 58, 13, 0, 0, Math.PI * 2); g.fill();
     const gr = g.createLinearGradient(-30, 0, 30, -80); gr.addColorStop(0, '#2E2842'); gr.addColorStop(1, '#5A4E7E'); g.fillStyle = gr;
     g.beginPath(); g.moveTo(-32, -4); g.quadraticCurveTo(-14, -44, 4, -78); g.quadraticCurveTo(16, -92, 40, -84); g.quadraticCurveTo(22, -78, 18, -60); g.quadraticCurveTo(26, -30, 32, -4); g.closePath(); g.fill();
     g.fillStyle = '#E0A93A'; g.beginPath(); g.moveTo(-31, -8); g.quadraticCurveTo(0, -16, 31, -8); g.lineTo(30, -18); g.quadraticCurveTo(0, -26, -28, -18); g.closePath(); g.fill();
     g.fillStyle = '#F6D36B'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 4 : 9; g.lineTo(-6 + Math.cos(a) * r, -44 + Math.sin(a) * r); } g.closePath(); g.fill();
+    /* 着せかえ 76〜79：魔法使いの帽子。帯に金のバックル／折れ目のかげ／つばのふちに光／帯に濃淡 */
+    g.fillStyle = 'rgba(120,80,10,.25)'; g.beginPath(); g.moveTo(-31, -8); g.quadraticCurveTo(0, -16, 31, -8); g.lineTo(30.6, -11); g.quadraticCurveTo(0, -19, -30.4, -11); g.closePath(); g.fill();
+    g.strokeStyle = '#FFE9A6'; g.lineWidth = 2.4; g.lineJoin = 'round'; g.strokeRect(-7, -22.5, 13, 10); g.strokeStyle = '#B98522'; g.lineWidth = 1; g.strokeRect(-8.4, -23.9, 15.8, 12.8);
+    g.strokeStyle = 'rgba(20,14,36,.35)'; g.lineWidth = 2.2; g.lineCap = 'round'; g.beginPath(); g.moveTo(18, -60); g.quadraticCurveTo(8, -66, 2, -62); g.moveTo(20, -50); g.quadraticCurveTo(12, -52, 8, -46); g.stroke();
+    g.strokeStyle = 'rgba(190,175,235,.4)'; g.lineWidth = 1.6; g.beginPath(); g.ellipse(0, 0, 56, 11.4, 0, Math.PI * .08, Math.PI * .92); g.stroke();
     g.restore(); return; }
   if (kind === 'pumpkin') { g.save(); g.scale(w * H / 36, w * H / 36); // a little pumpkin worn like a cap, with a leaf
     for (const [x, rx, c] of [[-20, 18, '#D9661C'], [20, 18, '#D9661C'], [-8, 18, '#EE8526'], [8, 18, '#EE8526'], [0, 15, '#F59A3A']]) { g.fillStyle = c; g.beginPath(); g.ellipse(x, -18, rx, 20, 0, 0, Math.PI * 2); g.fill(); }
     g.strokeStyle = 'rgba(140,60,10,.35)'; g.lineWidth = 2; for (const x of [-12, 12]) { g.beginPath(); g.moveTo(x, -36); g.quadraticCurveTo(x * 1.3, -18, x, 0); g.stroke(); }
     g.fillStyle = 'rgba(255,255,255,.25)'; g.beginPath(); g.ellipse(-10, -28, 7, 4, -.4, 0, Math.PI * 2); g.fill();
     g.fillStyle = '#6B4E2A'; g.beginPath(); g.moveTo(-3, -36); g.quadraticCurveTo(-2, -48, 6, -50); g.lineTo(5, -45); g.quadraticCurveTo(2, -44, 3, -36); g.closePath(); g.fill();
-    g.fillStyle = '#5F9E5A'; g.beginPath(); g.ellipse(14, -42, 10, 5, -.5, 0, Math.PI * 2); g.fill(); g.restore(); return; }
+    g.fillStyle = '#5F9E5A'; g.beginPath(); g.ellipse(14, -42, 10, 5, -.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = 'rgba(40,90,45,.6)'; g.lineWidth = 1; g.lineCap = 'round'; g.beginPath(); g.moveTo(6, -38); g.lineTo(22, -46); g.stroke();
+    g.strokeStyle = '#4F8E4A'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(-2, -40); g.bezierCurveTo(-12, -46, -16, -36, -10, -36); g.bezierCurveTo(-6, -36, -8, -41, -11, -40); g.stroke(); g.restore(); return; } // 着せかえ 100：葉のすじと、くるんと巻いたつる
   if (kind === 'antler') { g.save(); g.scale(w, w); // a soft reindeer-antler headband with a little bell
     g.strokeStyle = '#7A4E2C'; g.lineWidth = 6; g.lineCap = 'round'; g.beginPath(); g.moveTo(-44, 2); g.quadraticCurveTo(0, -16, 44, 2); g.stroke();
-    for (const sd of [-1, 1]) { g.save(); g.scale(sd, 1); g.strokeStyle = '#B07A45'; g.lineWidth = 8; g.beginPath(); g.moveTo(24, -6); g.quadraticCurveTo(34, -36, 26, -60); g.moveTo(30, -30); g.quadraticCurveTo(46, -38, 50, -52); g.moveTo(28, -46); g.quadraticCurveTo(16, -54, 14, -64); g.stroke(); g.restore(); }
-    g.fillStyle = '#E0A93A'; g.beginPath(); g.arc(0, -4, 7, 0, Math.PI * 2); g.fill(); g.fillStyle = '#C8463C'; g.beginPath(); g.ellipse(-9, -6, 6, 3, -.4, 0, Math.PI * 2); g.ellipse(9, -6, 6, 3, .4, 0, Math.PI * 2); g.fill(); g.restore(); return; }
+    /* 着せかえ 87〜89：トナカイの角。立ち耳の子（ジル）は耳の外側から生える（耳と重なってごちゃごちゃだった）／角に丸みの明るいすじ／鈴に切れ目とつや */
+    { const o = HAT_OUT ? 14 : 0, tip = HAT_OUT ? 8 : 0; const path = () => { g.beginPath(); g.moveTo(24 + o, -6 + o * .25); g.quadraticCurveTo(34 + o + tip, -36, 26 + o + tip * 1.6, -60 + o * .4); g.moveTo(30 + o + tip * .6, -30); g.quadraticCurveTo(46 + o + tip, -38, 50 + o + tip, -52 + o * .3); if (!HAT_OUT) { g.moveTo(28, -46); g.quadraticCurveTo(16, -54, 14, -64); } };
+      for (const sd of [-1, 1]) { g.save(); g.scale(sd, 1); g.strokeStyle = '#8E5E32'; g.lineWidth = 9; path(); g.stroke(); g.strokeStyle = '#B07A45'; g.lineWidth = 6.5; path(); g.stroke(); g.strokeStyle = 'rgba(240,205,160,.55)'; g.lineWidth = 1.8; g.translate(-1.4, -.6); path(); g.stroke(); g.restore(); } }
+    g.fillStyle = '#4F8E4A'; g.beginPath(); g.ellipse(-9, -6, 7, 3.4, -.4, 0, Math.PI * 2); g.ellipse(9, -6, 7, 3.4, .4, 0, Math.PI * 2); g.fill();
+    { const bg = g.createRadialGradient(-2, -6.5, .5, 0, -4, 7.5); bg.addColorStop(0, '#FFF3B0'); bg.addColorStop(.6, '#E9B43C'); bg.addColorStop(1, '#B98522'); g.fillStyle = bg; g.beginPath(); g.arc(0, -4, 7.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#8A6417'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(-5, -2.5); g.lineTo(5, -2.5); g.moveTo(0, -2.5); g.lineTo(0, 2.6); g.stroke(); } g.restore(); return; }
   if (kind === 'kagami') { g.save(); g.scale(w, w); // a tiny kagami-mochi (two rice cakes and a bitter orange) on a paper base
-    g.fillStyle = '#FBF6EE'; g.strokeStyle = '#C8463C'; g.lineWidth = 2; g.beginPath(); g.moveTo(-34, 0); g.lineTo(34, 0); g.lineTo(28, -8); g.lineTo(-28, -8); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = '#FBF6EE'; g.strokeStyle = '#C8463C'; g.lineWidth = 2; g.lineJoin = 'round'; g.beginPath(); g.moveTo(-34, 0); g.lineTo(34, 0); g.lineTo(28, -8); g.lineTo(-28, -8); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = 'rgba(120,90,60,.14)'; g.beginPath(); g.ellipse(0, -8, 27, 3.4, 0, 0, Math.PI); g.fill(); g.fillStyle = '#C8463C'; g.beginPath(); g.moveTo(-10, 0); g.lineTo(0, -6); g.lineTo(10, 0); g.closePath(); g.fill(); // 着せかえ 98：紙の台にもちのかげと、赤い三角の折り
     for (const [y, rx, ry] of [[-18, 30, 12], [-36, 23, 10]]) { const gr = g.createRadialGradient(-8, y - 4, 2, 0, y, rx); gr.addColorStop(0, '#FFFFFF'); gr.addColorStop(1, '#E8E1D2'); g.fillStyle = gr; g.beginPath(); g.ellipse(0, y, rx, ry, 0, 0, Math.PI * 2); g.fill(); }
-    g.fillStyle = '#F09A2A'; g.beginPath(); g.arc(0, -52, 11, 0, Math.PI * 2); g.fill(); g.fillStyle = '#5F9E5A'; g.beginPath(); g.ellipse(8, -62, 8, 4, -.5, 0, Math.PI * 2); g.fill(); g.restore(); return; }
+    { const og = g.createRadialGradient(-4, -56, 1, 0, -52, 11.5); og.addColorStop(0, '#FFC76A'); og.addColorStop(.6, '#F09A2A'); og.addColorStop(1, '#C87416'); g.fillStyle = og; g.beginPath(); g.arc(0, -52, 11, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(255,255,255,.5)'; g.beginPath(); g.ellipse(-4.4, -56.4, 2.6, 1.6, -.6, 0, Math.PI * 2); g.fill(); g.fillStyle = '#7A5A1E'; g.beginPath(); g.arc(1, -62, 1.3, 0, Math.PI * 2); g.fill(); } // 97：だいだいに濃淡・つや・へた
+    g.fillStyle = '#5F9E5A'; g.beginPath(); g.ellipse(8, -62, 8, 4, -.5, 0, Math.PI * 2); g.fill(); g.strokeStyle = 'rgba(40,90,45,.6)'; g.lineWidth = 1; g.beginPath(); g.moveTo(2, -60); g.lineTo(14, -64); g.stroke(); g.restore(); return; }
   if (kind === 'sakura') { g.save(); g.scale(w, w); g.translate(24, -6); // a cherry-blossom hair clip
-    for (const [x, y, s] of [[0, 0, 1], [-18, 6, .7], [14, 10, .6]]) { g.save(); g.translate(x, y); g.scale(s, s); for (let i = 0; i < 5; i++) { g.rotate(Math.PI * 2 / 5); g.fillStyle = '#F7C6D3'; g.beginPath(); g.ellipse(0, -10, 7, 10, 0, 0, Math.PI * 2); g.fill(); } g.fillStyle = '#E8879E'; g.beginPath(); g.arc(0, 0, 4, 0, Math.PI * 2); g.fill(); g.restore(); } g.restore(); return; }
-  if (kind === 'heartband') { g.save(); g.scale(w, w); g.strokeStyle = '#C8463C'; g.lineWidth = 5; g.beginPath(); g.moveTo(-42, 2); g.quadraticCurveTo(0, -14, 42, 2); g.stroke();
-    for (const sd of [-1, 1]) { g.save(); g.translate(sd * 22, -34); g.strokeStyle = '#9E2B3A'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 26); g.lineTo(0, 8); g.stroke(); g.fillStyle = '#E8465E'; g.beginPath(); g.moveTo(0, 6); g.bezierCurveTo(-14, -6, -6, -18, 0, -9); g.bezierCurveTo(6, -18, 14, -6, 0, 6); g.fill(); g.restore(); } g.restore(); return; }
-  if (kind === 'starband') { g.save(); g.scale(w, w); g.strokeStyle = '#355F86'; g.lineWidth = 8; g.lineCap = 'round'; g.beginPath(); g.moveTo(-46, 2); g.quadraticCurveTo(0, -12, 46, 2); g.stroke();
-    g.fillStyle = '#F2C230'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 6 : 14; g.lineTo(Math.cos(a) * r, -10 + Math.sin(a) * r); } g.closePath(); g.fill(); g.restore(); return; }
+    for (const [x, y, s] of [[0, 0, 1], [-18, 6, .7], [14, 10, .6]]) { g.save(); g.translate(x, y); g.scale(s, s); /* 着せかえ 84〜86：桜の髪かざり。花びらを先の割れた形に／根もとを濃く／しべ */
+      for (let i = 0; i < 5; i++) { g.rotate(Math.PI * 2 / 5); const pg = g.createLinearGradient(0, 0, 0, -20); pg.addColorStop(0, '#EE9DB3'); pg.addColorStop(.5, '#F7C6D3'); pg.addColorStop(1, '#FDE6EC'); g.fillStyle = pg;
+        g.beginPath(); g.moveTo(0, -1); g.bezierCurveTo(-9, -6, -9, -17, -3, -20); g.lineTo(0, -16.5); g.lineTo(3, -20); g.bezierCurveTo(9, -17, 9, -6, 0, -1); g.closePath(); g.fill(); }
+      g.strokeStyle = '#D9668A'; g.lineWidth = .9; g.fillStyle = '#F6D36B'; for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2 + .3; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * 6, Math.sin(a) * 6); g.stroke(); g.beginPath(); g.arc(Math.cos(a) * 6, Math.sin(a) * 6, 1.1, 0, Math.PI * 2); g.fill(); }
+      g.fillStyle = '#E8879E'; g.beginPath(); g.arc(0, 0, 2.4, 0, Math.PI * 2); g.fill(); g.restore(); } g.restore(); return; }
+  if (kind === 'heartband') { g.save(); g.scale(w, w); /* 着せかえ 90〜93：ハートのカチューシャ。ジルは耳の外側に／ハートに濃淡とつや／ばねを渦巻きに／帯につや */
+    g.lineCap = 'round'; g.strokeStyle = '#C8463C'; g.lineWidth = 5; g.beginPath(); g.moveTo(-42, 2); g.quadraticCurveTo(0, -14, 42, 2); g.stroke(); g.strokeStyle = 'rgba(255,255,255,.3)'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(-34, -3); g.quadraticCurveTo(0, -15, 34, -3); g.stroke();
+    for (const sd of [-1, 1]) { g.save(); g.translate(sd * (HAT_OUT ? 40 : 22), HAT_OUT ? -24 : -34); g.rotate(sd * (HAT_OUT ? .3 : 0)); g.strokeStyle = '#9E2B3A'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(0, 26); for (let k = 0; k < 6; k++) g.quadraticCurveTo((k % 2 ? -1 : 1) * 4, 24.5 - k * 3, 0, 23 - k * 3); g.stroke();
+      const hg = g.createRadialGradient(-3, -9, 1, 0, -5, 13); hg.addColorStop(0, '#FF8C9C'); hg.addColorStop(.6, '#E8465E'); hg.addColorStop(1, '#B82B44'); g.fillStyle = hg; g.beginPath(); g.moveTo(0, 6); g.bezierCurveTo(-14, -6, -6, -18, 0, -9); g.bezierCurveTo(6, -18, 14, -6, 0, 6); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.ellipse(-4.2, -9, 2.2, 1.4, -.6, 0, Math.PI * 2); g.fill(); g.restore(); } g.restore(); return; }
+  if (kind === 'starband') { g.save(); g.scale(w, w); /* 着せかえ 94〜96：星のカチューシャ。星に濃淡とふち／帯につや／小さなきらめき */
+    g.strokeStyle = '#355F86'; g.lineWidth = 8; g.lineCap = 'round'; g.beginPath(); g.moveTo(-46, 2); g.quadraticCurveTo(0, -12, 46, 2); g.stroke(); g.strokeStyle = 'rgba(170,205,240,.5)'; g.lineWidth = 1.8; g.beginPath(); g.moveTo(-38, -3); g.quadraticCurveTo(0, -14.5, 38, -3); g.stroke();
+    { const sg = g.createLinearGradient(-10, -24, 10, 4); sg.addColorStop(0, '#FFF0A0'); sg.addColorStop(.5, '#F2C230'); sg.addColorStop(1, '#D49A1E'); g.fillStyle = sg; } g.strokeStyle = '#B98522'; g.lineWidth = 1.4; g.lineJoin = 'round';
+    g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 6.5 : 15; g.lineTo(Math.cos(a) * r, -10 + Math.sin(a) * r); } g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.moveTo(0, -24); g.lineTo(-3.4, -14.5); g.lineTo(0, -10); g.closePath(); g.fill();
+    g.fillStyle = '#FFF6C8'; for (const [x, y, r] of [[-24, -14, 2.2], [25, -15, 1.8], [-33, -6, 1.4]]) { g.beginPath(); g.moveTo(x, y - r * 2); g.quadraticCurveTo(x, y, x + r * 2, y); g.quadraticCurveTo(x, y, x, y + r * 2); g.quadraticCurveTo(x, y, x - r * 2, y); g.quadraticCurveTo(x, y, x, y - r * 2); g.fill(); } g.restore(); return; }
   if (kind === 'helmet') { g.save(); g.scale(w, w); // a site hard hat: the shell covers the head down to the brow, a short visor in front
     const gr = g.createLinearGradient(-H, -H, H * .6, 0); gr.addColorStop(0, '#FBD957'); gr.addColorStop(1, '#E6B21F'); g.fillStyle = gr;
     g.beginPath(); g.ellipse(0, -3, H * 1.06, H * .86, 0, Math.PI, 0); g.fill();
@@ -138,6 +202,7 @@ function hat(g, kind, w, H) { // H = half the width of the head where the brim s
     g.fillStyle = '#C48E12'; g.beginPath(); g.ellipse(0, 1, H * .62, 6, 0, 0, Math.PI); g.fill(); g.restore(); return; }
 }
 // put a hat on a head: x,y = the top of the head as before, hw = half the head's width at the brow, sink = how far the brow is below x,y
+let HAT_OUT = 0; // 立ち耳の子（ジル）がカチューシャをつける時：かざりを耳の外側へ
 const HAT_COVER = { helmet: 1, beret: 1, straw: 1, santa: 1, witch: 1, pumpkin: 1 }, HAT_PERCH = { crown: 1, kagami: 1 };
 /* 2026-11-15 オーナー：「帽子をただ載せただけのように見える」。かぶっている感じを出す 3 つ：
    ①ふちの下に、頭と耳にだけ落ちる柔らかい影（絵の外には落とさない） ②ふちの下から毛が少しのぞく ③帽子ごとに少しだけかたむける。who＝だれの頭か（毛の色に使う） */
@@ -158,7 +223,7 @@ function wearHat(g, kind, x, y, w, hw, sink, who, rot) {
     if (HAT_COVER[kind]) soft(g, 0, hw * .03, hw * .98, hw * .1, '#6B4A32', .16, 2.5); else soft(g, 0, 1, hw * .55, hw * .07, '#6B4A32', .12, 2); g.restore(); } // 影はふちのすぐ下だけ・うすい茶色（2026-11-16 オーナー：「帽子をかぶった時の目の影が怖くて可愛くない」。前は目の上まで濃い影が落ちていた）
   g.rotate((HAT_TILT[kind] || 0) + (rot || 0));
   hat(g, kind, w, hw / w);
-  if (onSprite && HAT_TUFT[kind] && !rot) hatTufts(g, hw * HAT_TUFT[kind][0], who, HAT_TUFT[kind][1] * w);
+  if (onSprite && HAT_TUFT[kind] && Math.abs(rot || 0) < .22) hatTufts(g, hw * HAT_TUFT[kind][0], who, HAT_TUFT[kind][1] * w);
   g.restore();
 }
 function earHoles(g, x, y, dx, rot) { g.save(); g.fillStyle = 'rgba(60,30,20,.28)'; for (const sd of [-1, 1]) { g.beginPath(); g.ellipse(x + sd * (dx + 4), y, 15, 7, sd * rot, 0, Math.PI * 2); g.fill(); } g.restore(); }
@@ -265,6 +330,7 @@ function tie(g, x, y, len, flap) {
   g.beginPath(); g.moveTo(-8, 0); g.lineTo(8, 0); g.lineTo(5, 11); g.lineTo(-5, 11); g.closePath(); g.fillStyle = T[0]; g.fill(); g.strokeStyle = T[1]; g.lineWidth = 1.5; g.stroke();
   g.beginPath(); g.moveTo(-5, 11); g.lineTo(5, 11); g.lineTo(9, len - 8); g.lineTo(0, len); g.lineTo(-9, len - 8); g.closePath(); g.fillStyle = T[0]; g.fill(); g.stroke();
   tiePattern(g, WEAR.ren.tie, -9, 11, 18, len - 11); g.strokeStyle = T[1]; g.globalAlpha = .6; g.beginPath(); g.moveTo(1, 13); g.lineTo(3, len - 6); g.stroke(); g.globalAlpha = 1;
+  g.fillStyle = 'rgba(255,255,255,.28)'; g.beginPath(); g.ellipse(-2.5, 4, 3, 2, -.3, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(0,0,0,.16)'; g.beginPath(); g.moveTo(-5, 11); g.lineTo(5, 11); g.lineTo(3.5, 15); g.lineTo(-3.5, 15); g.closePath(); g.fill(); // 結び目のつやと、その下のかげ
   g.restore();
 }
 // Ren's tie blown back by the wind: it comes out from under his chin (behind the head) and streams out to the side
@@ -409,7 +475,7 @@ function jillHead(g, mood) { // アニメの座標（頭の中心は 188,210）
    頭の上に帽子を置くと耳が隠れ、穴をあけると耳が帽子から突き出す。そこで、小さめの帽子を頭の横（向かって右）にかたむけてかぶる。両耳はそのまま見える。
    side＝1 前から・-1 後ろから（反対側に見える）。単位は顔の大きさ（帽子の後ろの耳は先に描いてある） */
 const JILL_HAT = { beret: [36, -36, 34, .5], helmet: [34, -36, 35, .42], straw: [34, -38, 31, .4], santa: [32, -38, 32, .45], witch: [30, -42, 30, .4], pumpkin: [38, -32, 27, .48], crown: [28, -46, 25, .3], kagami: [26, -48, 23, .24], antler: [0, -40, 40, 0], heartband: [0, -40, 40, 0], laurel: [0, -42, 40, 0] }; // カチューシャ・月桂冠は頭の上を左右に通るので、まん中に水平 // 王冠・鏡もちも横に（まん中にのせると耳が隠れた）
-function jillHat(g, hk, side) { const f = JILL_HAT[hk] || [32, -42, 28, .4]; wearHat(g, hk, side * f[0], f[1], .9, f[2], 8, 'jill', side * f[3]); }
+function jillHat(g, hk, side, sway, up) { const f = JILL_HAT[hk] || [32, -42, 28, .4]; HAT_OUT = 1; try { wearHat(g, hk, side * f[0], f[1] - (up || 0), .9, f[2], 8, 'jill', side * f[3] + (sway || 0)); } finally { HAT_OUT = 0; } }
 function faceJill(g, cx, cy, sc, mood) { g.save(); g.translate(cx, cy); g.scale(sc * RK.jil, sc * RK.jil); g.translate(-188, -210); jillHead(g, mood); g.restore(); }
 function pomEar(g, x, y, r, rot, back) { g.save(); g.translate(x, y); g.rotate(rot); g.beginPath(); g.ellipse(0, 0, r, r * 1.05, 0, 0, Math.PI * 2); g.fillStyle = '#8E786C'; g.fill(); g.beginPath(); g.ellipse(0, r * .12, r * .72, r * .78, 0, 0, Math.PI * 2); g.fillStyle = back ? '#A8928A' : '#E9A9A2'; g.fill();
   g.strokeStyle = 'rgba(70,55,50,.55)'; g.lineWidth = 1.5; g.beginPath(); g.arc(0, 0, r * .98, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); g.restore(); }
@@ -469,7 +535,7 @@ function drawPom(g, p) {
   if (p.view === 'look') { facePom(g, 156, hy - 24, .98, p.mood); if (p.mood === 'cheer') { fur(g, 150 + 56, hy + 10, 9, 16, -.6, P.a, P.b); blob(g, 150 + 64, hy - 6, 10, 8, -.3, '#F2B8B0'); } return; }
   pomEar(g, 150 - 40, hy - 26, 16 + p.ear * 2, -.3 - p.ear * .3, 1); pomEar(g, 150 + 40, hy - 26, 16 + p.ear * 2, .3 + p.ear * .3, 1);
   headband(g, 150, hy - 4, 58, 1, p.tiePh);
-  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 150, hy - 30, 1, 46, 12, 'pom'); else if (WEAR.pom.suit === 'bee') antennae(g, 150, hy - 24, 1);
+  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 150, hy - 30 - (p.air ? 2 : 0), 1, 46, 12, 'pom', (p.ear || 0) * .16); else if (WEAR.pom.suit === 'bee') antennae(g, 150, hy - 24, 1);
 }
 function mugHat(g, y) { g.save(); g.translate(0, y); rr(g, -22, -38, 44, 38, 6, '#FBF6EE', '#9AA9B6', 3); g.beginPath(); g.ellipse(27, -19, 9, 12, 0, 0, Math.PI * 2); g.strokeStyle = '#9AA9B6'; g.lineWidth = 5; g.stroke(); rr(g, -22, -30, 44, 7, 0, '#4E77A0'); g.restore(); }
 
@@ -529,7 +595,7 @@ function drawBody(g, who, p) {
       windTie(g, 152, hy + 50, p);
       fur(g, 150, hy + 44, 30, 13, 0, '#D6AE82', '#BE9369', { sparse: 1, rim: 1 }); // the chin/neck fur tucks the root in
     }
-    { const hk = p.mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 150, hy - 2 - 45 * 1.12, 1.12, 58 * 1.12, 22 * 1.12, 'ren'); else if (WEAR.ren.suit === 'bee') antennae(g, 150, hy - 52, 1); } // 前向きと同じ大きさ・位置
+    { const hk = p.mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 150, hy - 2 - 45 * 1.12 - (p.air ? 3 : 0), 1.12, 58 * 1.12, 22 * 1.12, 'ren', (p.ear || 0) * .16); /* 走ると少しゆれ、跳ぶと少しうく */ else if (WEAR.ren.suit === 'bee') antennae(g, 150, hy - 52, 1); } // 前向きと同じ大きさ・位置
   } else {
     const jb = fn => { g.save(); g.translate(150, hy); g.scale(RK.jil, RK.jil); g.translate(-188, -210); fn(); g.restore(); }; // アニメの座標で描く
     const ears = () => jb(() => jillEars(g, p.ear * 26, 1));
@@ -537,7 +603,7 @@ function drawBody(g, who, p) {
     jb(() => { const c = RC.jil, hb = [92, 130, 192, 160]; furP(g, 'M188 130 C 248 130 284 166 284 210 C 284 260 240 290 188 290 C 136 290 92 260 92 210 C 92 166 128 130 188 130 Z', hb, rgB(g, hb, .5, .42, .62, [[0, c.head1], [.65, c.head2], [1, c.head3]]), c.head3); soft(g, 188, 150, 50, 16, '#EED9BE', .35, 5); });
     g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(106, hy + 40); g.quadraticCurveTo(150, hy + 62, 194, hy + 40); g.stroke();
     if (WEAR.jill.suit === 'zebra') zebraMane(g, 150, hy - 50, 52, 1);
-    if (WEAR.jill.hat) { g.save(); g.translate(150, hy); jillHat(g, WEAR.jill.hat, -1); g.restore(); } // 後ろから見ると、帽子は反対側
+    if (WEAR.jill.hat) { g.save(); g.translate(150, hy); jillHat(g, WEAR.jill.hat, -1, (p.ear || 0) * .16, p.air ? 2 : 0); g.restore(); } // 後ろから見ると、帽子は反対側
   }
 }
 function lanyard(g, x, y) { g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.lineWidth = 4; g.beginPath(); g.moveTo(x - 34, y - 16); g.lineTo(x - 3, y + 22); g.moveTo(x + 34, y - 16); g.lineTo(x + 3, y + 22); g.stroke(); rr(g, x - 13, y + 20, 26, 34, 4, '#FBF6EE', '#355F86', 3); rr(g, x - 8, y + 25, 16, 10, 2, '#C9A176'); rr(g, x - 8, y + 39, 16, 2.5, 1, '#9AA9B6'); rr(g, x - 3, y + 44, 11, 2.5, 1, '#9AA9B6'); }

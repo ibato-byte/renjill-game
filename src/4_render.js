@@ -239,6 +239,8 @@ function segOrder() { const out = []; for (let i = G.segs.length - 1; i > G.ci; 
 // つきあたりの壁の上（cap）：先が、天井のもっと高い部屋のときも描く
 function capOn(sg) { if (sg !== G.segs[G.ci] || G.mode === 'title') return false; const nx = G.fork && G.fork.length ? G.fork : [G.segs[G.ci + 1]]; return nx.some(n => n && (n.wallH || 0) > (sg.wallH || 0) + .05); }
 // のばした奥の壁（3_world.js の wing）を描くか：その建物の中にいる間と、外へ曲がり始めた一瞬だけ。先が建物の中なら描かない
+// 高架の上の電車は、高架のある範囲（r0〜r1）だけ描く。はみ出た分は切る（2026-11-16：高架の先のとなりの場所＝公園などの空に、電車が浮いて見えていた）
+function moverBoxes(m) { if (m.r1 == null) return m.bx; const out = []; for (const b of m.bx) { const s0 = Math.max(b.s0 + m.ds, m.r0) - m.ds, s1 = Math.min(b.s1 + m.ds, m.r1) - m.ds; if (s1 - s0 > .05) out.push(Object.assign({}, b, { s0, s1 })); } return out; }
 function wingOn(sg) { const inK = k => k === 'room' || k === 'train' || k === 'glass', cur = G.segs[G.ci]; if (G.mode === 'title') return false;
   if (sg === cur) { const nx = G.fork && G.fork.length ? G.fork : [G.segs[G.ci + 1]]; return nx.some(n => n && n.th && !inK(n.th.kind)); }
   return sg === G.segs[G.ci - 1] && G.turnT > .5 && cur && cur.th && !inK(cur.th.kind); }
@@ -369,7 +371,7 @@ function drawObj(e, sg) {
     if (e[1] === 3) { drawObstacle(e[2], sg, e[0]); pm('obs'); }
     else if (e[1] === 6) { const p = e[2]; if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], passFade(e[0]), 0, 0, 0, p.fc); pm('props'); }
     else if (e[1] === 7) { drawSpr(e[2], sg, e[0]); pm('spr'); }
-    else if (e[1] === 8) drawBoxes(e[2].bx, sg, e[0], 1, e[2].cross ? 0 : e[2].ds, e[2].cross ? e[2].dl || 0 : 0, 0);
+    else if (e[1] === 8) drawBoxes(moverBoxes(e[2]), sg, e[0], 1, e[2].cross ? 0 : e[2].ds, e[2].cross ? e[2].dl || 0 : 0, 0);
     else if (e[1] === 4) { drawItem(e[2], sg, e[0]); pm('items'); }
     else if (e[1] === 9) drawBird(e[2], sg, e[0]);
     else if (e[1] === 10) drawPuddle(e[2], sg, e[0] - 4);

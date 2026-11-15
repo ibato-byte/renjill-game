@@ -20,7 +20,7 @@ function terrainFor(seg, prev) {
     else if (r < .48) { d = rand(3.5, 7) * (Math.random() < .5 ? -1 : 1); shape = 'slope'; }
     else if (r < .64) { w2 = rand(1.6, 3); shape = 'rolling'; }
     else if (r < .78) { d = rand(2.5, 4.5) * (Math.random() < .5 ? -1 : 1); hump = rand(2, 3.5); shape = 'crest'; }
-    else if (r < .9 && !th.gate && !th.torii && !th.toriiTunnel && !th.overpass && L > 85) { hump = -rand(3, 4.2); shape = 'underpass'; }
+    else if (r < .9 && !th.gate && !th.torii && !th.toriiTunnel && !th.overpass && !noRail(th) && L > 85) { hump = -rand(3, 4.2); shape = 'underpass'; } /* 2026-11-16 オーナー：「公園で電車が通るのはおかしい」。公園・参道・水辺では、線路の橋（とその上を走る電車）を出さない */
     else shape = 'flat'; }
   if (e0 + d > 10) d = -Math.abs(d); if (e0 + d < -3) d = Math.abs(d) || 3;
   if (shape === 'underpass' && e0 + hump < -6) { hump = 0; shape = 'flat'; }
@@ -32,6 +32,7 @@ const C = hexRgb;
 const TORII_TUNNEL_H = 4.8; // 鳥居のトンネルの高さ（m）。横木の下は 3.7m：縦長のスマホのカメラ（2.75m）より十分に上
 let SEGN = 0;
 
+function noRail(th) { return !!(th.fac && th.fac.style === 'park') || !!th.moat || !!th.boats; } // 電車が通ると変な場所（公園・参道・お堀や池のそば）
 function newSeg(prev, step, opts) {
   opts = opts || {};
   const th = themeFor(step.t, opts.day || 1);
@@ -240,7 +241,7 @@ function buildFacades(seg, sd, s0, end) {
   if (style === 'viaduct') { // elevated railway: arches below, a train going by on top
     for (let a = s0, k = 0; a < end - .01; a += 3, k++) { const b = Math.min(a + 3, end); addWallQuad(seg, sd, a, b, 0, 8, C('#8E8A82'), { pat: 'fac', st: 'viaduct', h: 8, w: b - a, seed: k, k }); }
     seg.movers = seg.movers || [];
-    seg.movers.push({ ds: rand(0, seg.len), v: -16, bx: [{ l0: sd * (HW + .4), l1: sd * (HW + 3.4), s0: 0, s1: 40, y0: 8.3, y1: 11.4, c: '#C9CDD2', cc: C('#C9CDD2') }, { l0: sd * (HW + .38), l1: sd * (HW + .4), s0: 0, s1: 40, y0: 9.0, y1: 9.3, c: '#80C241', cc: C('#80C241') }, { l0: sd * (HW + .36), l1: sd * (HW + .38), s0: 1, s1: 39, y0: 9.6, y1: 10.6, c: '#46525E', cc: C('#46525E'), glow: 2 }] });
+    seg.movers.push({ ds: rand(s0, end - 40), v: -16, r0: s0, r1: end, bx: [{ l0: sd * (HW + .4), l1: sd * (HW + 3.4), s0: 0, s1: 40, y0: 8.3, y1: 11.4, c: '#C9CDD2', cc: C('#C9CDD2') }, { l0: sd * (HW + .38), l1: sd * (HW + .4), s0: 0, s1: 40, y0: 9.0, y1: 9.3, c: '#80C241', cc: C('#80C241') }, { l0: sd * (HW + .36), l1: sd * (HW + .38), s0: 1, s1: 39, y0: 9.6, y1: 10.6, c: '#46525E', cc: C('#46525E'), glow: 2 }] });
     return;
   }
   const pal = style === 'glass' && fac.pal2 ? fac.pal2 : fac.pal;
