@@ -727,6 +727,11 @@
       "has": "n: 'picksteady'"
     },
     {
+      "name": "ランキングの顔が真ん中の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'rankicon'"
+    },
+    {
       "name": "タイトルで 3 人みんな前を向く試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'titlefront'"
