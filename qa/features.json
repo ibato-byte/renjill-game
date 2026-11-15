@@ -752,6 +752,21 @@
       "has": "const tall = W < H * .8"
     },
     {
+      "name": "試着室（購買部の鏡）",
+      "file": "src/7_ui.js",
+      "has": "function fitTry("
+    },
+    {
+      "name": "試着室の試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'fitroom'"
+    },
+    {
+      "name": "着ぐるみは体の形そのものに色をのせる",
+      "file": "src/2b_bunny.js",
+      "has": "g.clip(); g.globalCompositeOperation = 'source-atop';"
+    },
+    {
       "name": "帽子が自然に見える試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'wearfit'"

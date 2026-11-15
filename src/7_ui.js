@@ -64,9 +64,9 @@ function shopHTML() {
   const clover = `<div class="shop-item"><img src="${SPR_URL.clover}" alt=""><p>${t('charmName')}<small>${t('charmNote', SV.clovers)}</small></p><button class="buy" data-buy="clover" ${SV.bank < 500 ? 'disabled' : ''}><img src="${SPR_URL.hay}" alt="">500</button></div>`;
   const mug = `<div class="shop-item"><img src="${SPR_URL.mugIcon}" alt=""><p>${t('mugName')}<small>${t('mugNote')}</small></p>${SV.mug ? `<button class="buy" data-mug="1">${SV.mugOn ? t('unwear') : t('wear')}</button>` : `<button class="buy" data-buy="mug" ${SV.bank < 1500 ? 'disabled' : ''}><img src="${SPR_URL.hay}" alt="">1,500</button>`}</div>`;
   const wear = SV.wear || (SV.wear = { ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' }, pom: { band: 'red', hat: '', suit: '' } }); if (!wear.pom) wear.pom = { band: 'red', hat: '', suit: '' }; SV.closet = SV.closet || {};
-  const closet = ['ren', 'jill'].concat(SV.pomMet ? ['pom'] : []).map(who => `<h3 class="ph" style="font-size:16px;margin:10px 0 4px">${LANG === 'en' ? who.toUpperCase() : tr(({ ren: 'レン', jill: 'ジル', pom: 'ポム' })[who], who)}<small>${esc(t('closet'))}</small></h3>` + closetList(who).map(c => {
+  const closet = ['ren', 'jill'].concat(SV.pomMet ? ['pom'] : []).map(who => `<section class="closet-sec"><h3 class="ph" style="font-size:16px;margin:10px 0 4px">${LANG === 'en' ? who.toUpperCase() : tr(({ ren: 'レン', jill: 'ジル', pom: 'ポム' })[who], who)}<small>${esc(t('closet'))}</small></h3>${fitHTML(who)}` + closetList(who).map(c => {
     const own = SV.closet[c.id], on = own && wear[who][c.slot] === c.v;
-    return `<div class="shop-item"><img src="${closetIcon(c)}" alt=""><p>${esc(L(c))}${on ? `<small>${esc(t('wearing'))}</small>` : ''}</p>${own ? `<button class="buy${on ? '' : ' off'}" data-wear="${c.id}">${on ? t('takeOff') : t('putOn')}</button>` : c.lg != null ? `<button class="buy" disabled>${tr('伝説で解放', 'Legend only')}</button>` : `<button class="buy" data-buy="${c.id}" ${SV.bank < c.cost ? 'disabled' : ''}><img src="${SPR_URL.hay}" alt="">${fmt(c.cost)}</button>`}</div>`; }).join('')).join('');
+    return `<div class="shop-item${TRYON[who][c.slot] === c.v && !on ? ' trying' : ''}" data-try="${c.id}"><img src="${closetIcon(c)}" alt=""><p>${esc(L(c))}${on ? `<small>${esc(t('wearing'))}</small>` : ''}</p>${own ? `<button class="buy${on ? '' : ' off'}" data-wear="${c.id}">${on ? t('takeOff') : t('putOn')}</button>` : c.lg != null ? `<button class="buy" disabled>${tr('伝説で解放', 'Legend only')}</button>` : `<button class="buy" data-buy="${c.id}" ${SV.bank < c.cost ? 'disabled' : ''}><img src="${SPR_URL.hay}" alt="">${fmt(c.cost)}</button>`}</div>`; }).join('') + '</section>').join('');
   const li = legendInfo(), ja = LANG === 'ja', tg = (k, on, ok) => ok ? `<button class="buy${on ? '' : ' off'}" data-lg="${k}">${on ? (tr('オン', 'On')) : (tr('オフ', 'Off'))}</button>` : `<span class="lock">🔒</span>`;
   const legend = `<div class="legendbox"><h3>${tr('伝説のうさぎ特典', 'Legendary bunny perks')}${li ? ` <small>★${li.stars}</small>` : ''}</h3>${li ? '' : `<p class="note">${tr('最高位「伝説のうさぎ」になると手に入ります。その先も★がふえるたびに特典があります。', 'Reach the top rank, Legendary bunny, to unlock these. Every ★ after that brings more.')}</p>`}
     <div class="row3${li ? '' : ' lock'}"><span>${tr('伝説モード（速さ＋15%・スコア×1.5）', 'Legend mode (15% faster, score x1.5)')}</span>${tg('mode', !!SV.lgMode, legendOn('mode'))}</div>
@@ -75,6 +75,21 @@ function shopHTML() {
     <p class="note">${tr('月桂冠と金の礼服は、下の着せ替えにあります（3人とも）。★ごとにチモシー2,000本とお守り。', 'The laurel and the gold coat are in the wardrobe below (all three). Every ★: 2,000 hay and a charm.')}</p></div>`;
   return `<div class="bank"><span>${t('bankHave')}</span><span><img src="${SPR_URL.hay}" alt=""> <b>${fmt(SV.bank)}</b></span></div>${ups}${clover}${mug}${legend}${closet}<p class="note">${t('closetNote')}</p><p class="note">${t('shopNote')}</p>`;
 }
+/* 試着室（2026-11-16。オーナー：「着せかえをしっかり楽しめるように」）：着せかえの列を押すと、買う前でも、鏡の中のキャラクターがその場で着てみせる（前と後ろ）。
+   試着は見た目だけ（保存しない・チモシーは減らない）。もう一度押すと脱ぐ。買う・着るを押したら、試着は消える */
+const TRYON = { ren: {}, jill: {}, pom: {} };
+function fitPics(who) { const keep = Object.assign({}, WEAR[who]), seed = SEED, out = ['', ''];
+  try { Object.assign(WEAR[who], (SV.wear || {})[who] || {}, TRYON[who]); const mug = who === 'ren' && SV.mugOn && !WEAR.ren.hat ? 1 : 0;
+    SEED = 6; out[0] = paint(g => drawBody(g, who, { lift: 0, sq: 1, feet: 0, ear: 0, view: 'front', mood: Object.keys(TRYON[who]).length ? 'happy' : 'open', mug })).toDataURL();
+    SEED = 11; out[1] = paint(g => drawBody(g, who, { lift: 0, sq: 1, feet: 0, ear: 0, tie: 0, tiePh: 0, view: 'back', mug })).toDataURL(); } catch (e) { }
+  finally { for (const k in WEAR[who]) delete WEAR[who][k]; Object.assign(WEAR[who], keep); SEED = seed; }
+  return out; }
+function fitHTML(who) { const [f, b] = fitPics(who); return `<div class="fit" data-fit="${who}" aria-hidden="true"><img class="fit-f" src="${f}" alt=""><img class="fit-b" src="${b}" alt=""></div>`; }
+function fitTry(row) { const c = CLOSET.find(x => x.id === row.dataset.try); if (!c) return; const on = TRYON[c.who][c.slot] === c.v; if (on) delete TRYON[c.who][c.slot]; else TRYON[c.who][c.slot] = c.v;
+  const sec = row.closest('.closet-sec'); if (!sec) return; const [f, b] = fitPics(c.who), fi = sec.querySelector('.fit-f'), bi = sec.querySelector('.fit-b'); if (fi) fi.src = f; if (bi) bi.src = b;
+  const mir = sec.querySelector('.fit'); if (mir) { mir.classList.remove('pop'); void mir.offsetWidth; mir.classList.add('pop'); }
+  for (const r of sec.querySelectorAll('[data-try]')) { const k = CLOSET.find(x => x.id === r.dataset.try); r.classList.toggle('trying', !!k && TRYON[k.who][k.slot] === k.v && ((SV.wear || {})[k.who] || {})[k.slot] !== k.v); }
+  SFX.ui(); }
 const CLOSET_ICON = {};
 function closetIcon(c) { // a small picture of the item
   if (CLOSET_ICON[c.id]) return CLOSET_ICON[c.id];
@@ -363,7 +378,8 @@ $('#sPanel').addEventListener('click', e => {
     const c = CLOSET.find(x => x.id === k); if (c && c.lg == null && !c.ev && !SV.closet[c.id] && SV.bank >= c.cost) { SV.bank -= c.cost; SV.closet[c.id] = 1; SV.wear[c.who][c.slot] = c.v; if (c.slot === 'hat' && c.who === 'ren') SV.mugOn = false; applyWear(); } save(); SFX.power(); $('#pBody').innerHTML = shopHTML(); }
   { const lgb = e.target.closest('[data-lg]'); if (lgb) { const k = lgb.dataset.lg; if (k === 'mode' && legendOn('mode')) SV.lgMode = SV.lgMode ? 0 : 1; if (k === 'aura' && legendOn('aura')) SV.lgAura = SV.lgAura === 0 ? 1 : 0; save(); SFX.ui(); $('#pBody').innerHTML = shopHTML(); } }
   if (mg) { SV.mugOn = !SV.mugOn; if (SV.mugOn) { SV.wear.ren.hat = ''; applyWear(); } save(); SFX.ui(); $('#pBody').innerHTML = shopHTML(); }
-  const wr = e.target.closest('[data-wear]'); if (wr) { const c = CLOSET.find(x => x.id === wr.dataset.wear); if (c && SV.closet[c.id]) { const cur = SV.wear[c.who][c.slot]; SV.wear[c.who][c.slot] = cur === c.v ? (SLOT_DEF[c.slot] || '') : c.v; if (c.slot === 'hat' && c.who === 'ren' && SV.wear.ren.hat) SV.mugOn = false; save(); applyWear(); SFX.ui(); $('#pBody').innerHTML = shopHTML(); } }
+  { const ty = e.target.closest('[data-try]'); if (ty && !e.target.closest('button')) { fitTry(ty); return; } }
+  const wr = e.target.closest('[data-wear]'); if (wr) { const c = CLOSET.find(x => x.id === wr.dataset.wear); if (c) delete TRYON[c.who][c.slot]; if (c && SV.closet[c.id]) { const cur = SV.wear[c.who][c.slot]; SV.wear[c.who][c.slot] = cur === c.v ? (SLOT_DEF[c.slot] || '') : c.v; if (c.slot === 'hat' && c.who === 'ren' && SV.wear.ren.hat) SV.mugOn = false; save(); applyWear(); SFX.ui(); $('#pBody').innerHTML = shopHTML(); } }
   if (z) { SFX.ui(); $('#pBody').innerHTML = zukanHTML(z.dataset.z); }
   if (sst) { SFX.ui(); $('#pBody').innerHTML = stampsHTML(sst.dataset.s); }
   { const lp = e.target.closest('[data-langpick]'); if (lp && LANGS.includes(lp.dataset.langpick)) { LANG = lp.dataset.langpick; SV.lang = LANG; save(); refreshTitle(); SFX.ui(); closePanel(); return; } }

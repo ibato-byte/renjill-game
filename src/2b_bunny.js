@@ -16,17 +16,21 @@ const WEAR = { ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', 
 const BAND_COL = { red: ['#C8263C', 'rgba(255,255,255,.45)'], blue: ['#2F6DB5', 'rgba(255,255,255,.45)'], green: ['#3E9A4E', 'rgba(255,255,255,.45)'], pink: ['#E77FA3', 'rgba(255,255,255,.5)'], gold: ['#D9A21B', 'rgba(255,248,200,.8)'] };
 /* ---- costumes from the shop: a striped onesie over the body, plus a little extra (wings, antennae, mane, tail) ---- */
 function suitOver(g, kind, cx, cy, rx, ry) {
-  const ex = rx * .94, ey = ry * .94;
-  g.save(); g.beginPath(); g.ellipse(cx, cy, ex, ey, 0, 0, Math.PI * 2); g.clip();
+  /* 2026-11-16 オーナー：「蜂のコスプレが輪郭に合ってなくて、ちゃんと着てるように見えない」。前は体より少し小さいだ円を上に貼っていたので、
+     まわりから体の毛がはみ出して、シールのように見えた。いまは体の形そのもの（毛のふちまで）に色をのせる＝着ぐるみを着た形。ふちは毛のまま、やわらかい */
+  const ex = rx * 1.06, ey = ry * 1.06;
+  g.save(); g.beginPath(); g.ellipse(cx, cy, ex, ey, 0, 0, Math.PI * 2); g.clip(); g.globalCompositeOperation = 'source-atop';
   if (kind === 'royal') { // the Legendary bunny's gold-and-cream ceremonial coat: soft gold cloth, a red sash, small gold buttons
     const gr = g.createLinearGradient(cx - rx, cy - ry, cx + rx, cy + ry); gr.addColorStop(0, '#F6DC86'); gr.addColorStop(.5, '#E2B341'); gr.addColorStop(1, '#C8902A'); g.fillStyle = gr; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
     g.strokeStyle = 'rgba(255,248,215,.35)'; g.lineWidth = 2; for (let k = -4; k <= 4; k++) { g.beginPath(); g.moveTo(cx + k * rx * .3 - rx * .3, cy - ry); g.lineTo(cx + k * rx * .3 + rx * .3, cy + ry); g.stroke(); }
     g.fillStyle = '#C8263C'; g.beginPath(); g.moveTo(cx - rx, cy - ry * .55); g.lineTo(cx - rx * .7, cy - ry * .8); g.lineTo(cx + rx, cy + ry * .55); g.lineTo(cx + rx * .7, cy + ry * .85); g.closePath(); g.fill();
     g.fillStyle = '#FFF2C2'; for (const k of [-.35, .05, .45]) { g.beginPath(); g.arc(cx - rx * .02, cy + k * ry, rx * .05, 0, Math.PI * 2); g.fill(); }
   } else if (kind === 'bee') {
-    g.fillStyle = '#F4C433'; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
-    g.fillStyle = '#2E2622'; const h = ry * .26;
-    for (const k of [-1.15, -.45, .25, .95]) { const y = cy + k * ry; g.beginPath(); g.moveTo(cx - rx, y); g.quadraticCurveTo(cx, y + ry * .16, cx + rx, y); g.lineTo(cx + rx, y + h); g.quadraticCurveTo(cx, y + h + ry * .16, cx - rx, y + h); g.closePath(); g.fill(); }
+    { const gy = g.createLinearGradient(0, cy - ry, 0, cy + ry); gy.addColorStop(0, '#FFD95A'); gy.addColorStop(.6, '#F4C433'); gy.addColorStop(1, '#D9A21B'); g.fillStyle = gy; g.fillRect(cx - ex, cy - ey, ex * 2, ey * 2); }
+    const h = ry * .27; // しまは体の丸みにそって下にふくらむ。ふちは毛羽立たせる（ぬいぐるみの生地）
+    for (const k of [-1.12, -.42, .28, .98]) { const y = cy + k * ry, bow = ry * .2; g.fillStyle = '#332A25'; g.beginPath(); g.moveTo(cx - ex, y); g.quadraticCurveTo(cx, y + bow, cx + ex, y); g.lineTo(cx + ex, y + h); g.quadraticCurveTo(cx, y + h + bow, cx - ex, y + h); g.closePath(); g.fill();
+      g.strokeStyle = '#332A25'; g.lineWidth = 1.2; g.lineCap = 'round'; for (let i = 0; i <= 26; i++) { const u = i / 26, x = cx - ex + u * ex * 2, yy = y + bow * (1 - (2 * u - 1) * (2 * u - 1)); g.beginPath(); g.moveTo(x, yy + 1); g.lineTo(x + (srand() - .5) * 2, yy - 2 - srand() * 2.5); g.moveTo(x, yy + h - 1); g.lineTo(x + (srand() - .5) * 2, yy + h + 2 + srand() * 2.5); g.stroke(); }
+      g.fillStyle = 'rgba(255,255,255,.07)'; g.beginPath(); g.moveTo(cx - ex, y + h * .15); g.quadraticCurveTo(cx, y + bow + h * .15, cx + ex, y + h * .15); g.lineTo(cx + ex, y + h * .4); g.quadraticCurveTo(cx, y + bow + h * .4, cx - ex, y + h * .4); g.closePath(); g.fill(); }
   } else if (kind === 'zebra') {
     g.fillStyle = '#F7F4EE'; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
     g.fillStyle = '#272321';
@@ -37,9 +41,9 @@ function suitOver(g, kind, cx, cy, rx, ry) {
     g.fillRect(cx - rx * .05, cy - ry, rx * .1, ry * .3); // the stripe down the spine
   }
   const sh = g.createRadialGradient(cx - rx * .3, cy - ry * .45, rx * .1, cx, cy, rx * 1.05); sh.addColorStop(0, 'rgba(255,255,255,.28)'); sh.addColorStop(.6, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(40,25,15,.28)');
-  g.fillStyle = sh; g.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
+  g.fillStyle = sh; g.fillRect(cx - ex, cy - ey, ex * 2, ey * 2);
+  { g.lineCap = 'round'; g.lineWidth = 1; const n = Math.round(rx * ry / 22); for (let i = 0; i < n; i++) { const x = cx + (srand() * 2 - 1) * ex, y = cy + (srand() * 2 - 1) * ey; g.strokeStyle = srand() < .5 ? 'rgba(255,255,255,.1)' : 'rgba(40,25,15,.07)'; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (srand() - .5) * 2, y + 3 + srand() * 4); g.stroke(); } } // 生地の毛並み
   g.restore();
-  g.strokeStyle = 'rgba(60,40,25,.28)'; g.lineWidth = 2; g.beginPath(); g.ellipse(cx, cy, ex, ey, 0, 0, Math.PI * 2); g.stroke();
 }
 function beeWings(g, cx, cy, s, flap) {
   for (const sd of [-1, 1]) { g.save(); g.translate(cx + sd * 22 * s, cy); g.rotate(sd * (1.0 + flap)); 
@@ -482,8 +486,9 @@ function drawBody(g, who, p) {
     if (ren) { const c = RC.ren; g.translate(-211, -402);
       if (suit === 'bee') beeWings(g, 240, 280, 1.4, -.15);
       furP(g, [240, 304, 148, 90], null, b => rgB(g, b, .35, .3, .8, [[0, c.fur1], [.55, c.fur2], [1, c.fur3]]), c.fur3);
+      if (suit) suitOver(g, suit, 240, 304, 148, 90);
       furP(g, [338, 386, 56, 15], null, '#D6BB98', '#BFA27E', { plain: 1 });
-      if (suit) suitOver(g, suit, 240, 304, 148, 90); else { g.save(); g.beginPath(); g.ellipse(240, 304, 148, 90, 0, 0, Math.PI * 2); g.clip(); soft(g, 176, 323, 80, 68, c.cream, 1, 9); g.restore(); } // 胸のクリーム色は体の外にはみ出さない
+      if (suit) { } else { g.save(); g.beginPath(); g.ellipse(240, 304, 148, 90, 0, 0, Math.PI * 2); g.clip(); soft(g, 176, 323, 80, 68, c.cream, 1, 9); g.restore(); } // 胸のクリーム色は体の外にはみ出さない
       furP(g, [150, 390, 24, 13], null, '#F0E3D1', '#DCCBB3', { plain: 1 }); furP(g, [204, 392, 24, 13], null, '#F0E3D1', '#DCCBB3', { plain: 1 });
       { const T = TIE_COL[WEAR.ren.tie] || TIE_COL.gold, blade = 'M177 293 L187 293 L193 334 L182 345 L171 334 Z'; g.save(); g.translate(182, 286); g.rotate(10 * Math.PI / 180); g.translate(-182, -286);
         fPath(g, 'M175 282 L189 282 L187 293 L177 293 Z', T[0]); fPath(g, blade, T[0]); g.save(); g.clip(new Path2D(blade)); tiePattern(g, WEAR.ren.tie, 170, 293, 24, 54); g.restore(); sPath(g, 'M182 296 L182 340', T[1], 2, .6); g.restore(); }
@@ -491,8 +496,9 @@ function drawBody(g, who, p) {
     } else { const c = RC.jil; g.translate(-217, -402);
       if (suit === 'bee') beeWings(g, 222, 300, 1.25, -.15);
       furP(g, [222, 322, 112, 74], null, b => rgB(g, b, .35, .3, .8, [[0, c.fur1], [.55, c.fur2], [1, c.fur3]]), c.fur3);
+      if (suit) suitOver(g, suit, 222, 322, 112, 74);
       furP(g, [300, 388, 42, 12], null, '#DABE9C', '#C2A480', { plain: 1 });
-      if (suit) suitOver(g, suit, 222, 322, 112, 74); else { g.save(); g.beginPath(); g.ellipse(222, 322, 112, 74, 0, 0, Math.PI * 2); g.clip(); soft(g, 184, 334, 60, 54, c.cream, 1, 8); g.restore(); }
+      if (suit) { } else { g.save(); g.beginPath(); g.ellipse(222, 322, 112, 74, 0, 0, Math.PI * 2); g.clip(); soft(g, 184, 334, 60, 54, c.cream, 1, 8); g.restore(); }
       furP(g, [164, 390, 19, 11], null, '#F3E8DA', '#DFD0BB', { plain: 1 }); furP(g, [206, 391, 19, 11], null, '#F3E8DA', '#DFD0BB', { plain: 1 });
       sPath(g, 'M166 284 L188 316 L210 284', c.theme, 3); rr(g, 177, 314, 22, 28, 3, '#FFFFFF', c.theme, 1.8); rr(g, 181, 318, 14, 9, 1, c.head2); sPath(g, 'M181 332 H195 M181 337 H191', '#9AA9B6', 1.8);
       jillHead(g, p.mood);
