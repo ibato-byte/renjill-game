@@ -522,7 +522,7 @@ const LIT_PHONE = navigator.maxTouchPoints >= 1 && Math.min(screen.width, screen
 function litEvict() { while (LIT_LIST.length && LIT_PX > LIT_MAXPX) { const e = LIT_LIST.shift(); LIT_PX -= e.px; const m = LIT_CACHE.get(e.img); if (m) { if (m[e.k] === e.c) delete m[e.k]; if (m.last === e.c) m.last = null; } try { e.c.width = e.c.height = 0; } catch (x) { } } }
 function litSprite(img, amb, force, full) {
   if (!img || !img.width) return img; // a picture already freed: nothing to shade
-  const q = amb.map(x => Math.round(Math.min(1, x) * 4) / 4); if (q[0] >= 1 && q[1] >= 1 && q[2] >= .95) return img; // coarse steps: few shades per picture
+  const st = full ? 16 : 4, q = amb.map(x => Math.round(Math.min(1, x) * st) / st); if (q[0] >= 1 && q[1] >= 1 && q[2] >= .95) return img; // coarse steps: few shades per picture. The runners (full) take fine steps: with 1/4 steps a mild evening light [.90,.87,.87] rounded to [1,.75,.75] and the bunnies turned red at 18:00 (2026-11-15)
   let m = LIT_CACHE.get(img); if (!m) { m = {}; LIT_CACHE.set(img, m); }
   const k = q.join(','); if (m[k]) return m[k];
   if (!force && !texOK() && m.last) return m.last; TEXN++; // over this frame's budget: the previous shade for one more frame

@@ -1,17 +1,12 @@
-// 2026-11-08 の遊び方：のんびりモード（速くならない・障害物少なめ・自己ベストとランキングに入らない）／1分ダッシュ（60秒で終わる・専用の自己ベスト・復活なし）／なかよし度
+// 2026-11-08 の遊び方：のんびりモード（速くならない・障害物少なめ・自己ベストとランキングに入らない）／（1分ダッシュは 2026-11-15 にやめた。以前の説明：60秒で終わる・専用の自己ベスト・復活なし）／なかよし度
 const { chromium } = require('playwright'); const path = require('path');
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined }); const errs = []; const ok = {};
   const p = await b.newPage({ viewport: { width: 390, height: 844 } }); p.on('pageerror', e => errs.push(e.message)); await p.route('**/fonts.googleapis.com/**', r => r.abort());
   await p.addInitScript(() => { localStorage.setItem('renjill-hay-dash-v1', JSON.stringify({ tutDone: 1, nickAsked: 1, runs: 9, best: 5000, clovers: 9, bank: 99999 })); });
   await p.goto('file://' + path.resolve(__dirname, '../dist') + '/test.html'); await p.waitForTimeout(800);
-  ok.quickBtn = await p.evaluate(() => { const q = document.querySelector('#btnQuick'); return !!q && !q.hidden && q.getBoundingClientRect().height >= 32; });
-  // 1-minute dash
-  await p.click('#btnQuick'); await p.waitForTimeout(500);
-  ok.timedOn = await p.evaluate(() => window.__hayDash.G.timed === 60 && /\d/.test(document.querySelector('#hChal').textContent));
-  await p.evaluate(() => { const G = window.__hayDash.G; G.invT = 99; G.score = 7777; G.t = 59.6; });
-  await p.waitForTimeout(1200);
-  ok.timedEnd = await p.evaluate(() => { const D = window.__hayDash; return D.G.mode === 'result' && D.SV.bestT >= 7777 && D.SV.best === 5000 && D.G.cause === 'time'; });
+  // 1分ダッシュ・スタートブーストはやめた（2026-11-15 オーナーの判断）：入口が無いこと
+  ok.noQuick = await p.evaluate(() => !document.querySelector('#btnQuick') && !document.querySelector('#btnBoost') && !/1分ダッシュ|スタートブースト|1-minute|Start boost/.test(document.querySelector('#sTitle').innerText));
   // relaxed
   await p.evaluate(() => { const D = window.__hayDash; D.SV.opt = Object.assign({}, D.SV.opt, { easy: true }); D.ev('hideAll(); startRun()'); });
   await p.waitForTimeout(400);

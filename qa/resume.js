@@ -3,7 +3,7 @@
 //  ② 再開したあと、次の道に進める（道すじが切れない）・エラーなし
 //  ③ ぶつかって終わった走りは、読み込み直しても「つづきから」が出ない
 //  ④ 新しくスタートしたら、前のつづきは消える
-//  ⑤ 練習・1分ダッシュでは書かない
+//  ⑤ 練習・逆走では書かない（1分ダッシュは 2026-11-15 にやめた）
 //  ⑥ 1 回の走りで 3 回まで・12 時間たったら出ない
 //  ⑦ データ引き継ぎの保存データ（SV）には入らない
 const { chromium } = require('playwright'); const path = require('path');
@@ -41,10 +41,10 @@ const URL = 'file://' + path.resolve(__dirname, '../dist') + '/test.html', KEY =
   await p.evaluate(() => { const G = window.__hayDash.G; G.invT = 0; window.__die('hit'); }); await p.waitForTimeout(300); /* 走っている最中に読み込み直すと、その走りが書かれる（正しい動き）ので、先に終わらせる */
   await mk(3, 0); await p.reload(); await p.waitForTimeout(1000); if (await vis()) bad.push('⑥ 3 回使ったのに、まだ出る');
   await mk(0, 13 * 3600e3); await p.reload(); await p.waitForTimeout(1000); if (await vis()) bad.push('⑥ 12 時間たったのに、まだ出る');
-  // ⑤ 練習・1分ダッシュでは書かない
+  // ⑤ 練習・逆走では書かない
   await p.evaluate(k => localStorage.removeItem(k), KEY); await p.reload(); await p.waitForTimeout(900);
-  await p.evaluate(() => { const G = window.__hayDash.G; G.quickNext = 1; }); await p.click('#btnStart'); await p.waitForTimeout(900); await ev('cpSave()'); await p.waitForTimeout(2300);
-  if (await p.evaluate(k => !!localStorage.getItem(k), KEY)) bad.push('⑤ 1分ダッシュで書かれた');
+  await p.evaluate(() => { const G = window.__hayDash.G; G.revNext = 1; }); await p.click('#btnStart'); await p.waitForTimeout(900); await ev('cpSave()'); await p.waitForTimeout(2300);
+  if (await p.evaluate(k => !!localStorage.getItem(k), KEY)) bad.push('⑤ 逆走で書かれた');
   await p.reload(); await p.waitForTimeout(900); await p.evaluate(() => { const G = window.__hayDash.G; G.practiceNext = 'shibuya'; }); await p.click('#btnStart'); await p.waitForTimeout(900); await ev('cpSave()'); await p.waitForTimeout(2300);
   if (await p.evaluate(k => !!localStorage.getItem(k), KEY)) bad.push('⑤ 練習で書かれた');
   // ⑦ 保存データには入らない

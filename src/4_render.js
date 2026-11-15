@@ -586,7 +586,7 @@ function drawFX() {
     const h = H * .2 * near;
     if (paper.length < 46) paper.push({ x: Math.random() * W, y: H + 20, vx: rand(-40, 40), vy: rand(-260, -120), r: rand(0, 6), vr: rand(-4, 4), w: rand(20, 38) });
     ctx.fillStyle = '#FFFFFF'; ctx.strokeStyle = 'rgba(59,42,32,.25)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(0, H); for (let x = 0; x <= W; x += 24) ctx.lineTo(x, H - h + Math.sin(x * .05 + G.t * 9) * 10 * near); ctx.lineTo(W, H); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, H); for (let x = 0; ; x += 24) { const xx = Math.min(x, W); ctx.lineTo(xx, H - h + Math.sin(xx * .05 + G.t * 9) * 10 * near); if (xx >= W) break; } ctx.lineTo(W, H); ctx.closePath(); ctx.fill(); ctx.stroke(); // 右の端まで山の高さで描く（2026-11-15 オーナー：スマホで右下にすき間。24 きざみの最後の点が画面の幅に届かず、そこから右下の角へ斜めに切れていた。幅 430 で 22px、402 で 18px、375 で 15px）
     ctx.strokeStyle = 'rgba(59,42,32,.18)'; ctx.beginPath(); for (let k = 1; k < 4; k++) { const yy = H - h * (k / 4); ctx.moveTo(0, yy); ctx.lineTo(W, yy + Math.sin(G.t * 5 + k) * 4); } ctx.stroke();
     for (const p of paper) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 260 * dt; p.r += p.vr * dt;
       if (p.y > H + 40) { p.y = H - rand(0, h * .5); p.x = Math.random() * W; p.vy = rand(-330, -160) * near; }

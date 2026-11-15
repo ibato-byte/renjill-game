@@ -17,14 +17,14 @@ const { chromium } = require('playwright'); const path = require('path');
   // ---- A：記録のある人（ベスト 30,000・所持 950本）----
   let p = await open({ best: 30000, bank: 950, mlevel: 2, kp: { d: day(0), db: 12000, w: 'old', wb: 20000, h: [8000, 22000, 15000, 30000], last: 30000, cb: { ren: 30000, jill: 22000 }, top: [[30000, 'r', day(1), 'lobby']], sp: { 3: 3000 }, ls: day(0) } });
   const title = await p.evaluate(() => document.querySelector('#sTitle').innerText);
-  ok(/今日の目標 18,000/.test(title), '題名：今日の目標（ベストの6割）'); ok(/今日 12,000/.test(title), '題名：今日のベスト'); ok(/ベスト 30,000/.test(await txt(p, '#pickRen .cbest')) && /22,000/.test(await txt(p, '#pickJill .cbest')), '題名：キャラクターごとのベスト');
+  ok(/今日の目標\s*18,000/.test(title), '題名：今日の目標（ベストの6割）'); ok(await p.evaluate(() => { const u = document.querySelector('#tToday .tt-c u'); return !!u && Math.abs(parseFloat(u.style.width) - 67) <= 1; }), '題名：今日のベスト（目標の棒が 12,000/18,000＝67%）'); // 2026-11-15：題名の「今日」を 1 つの枠にした（文 → 数字と棒） ok(/ベスト 30,000/.test(await txt(p, '#pickRen .cbest')) && /22,000/.test(await txt(p, '#pickJill .cbest')), '題名：キャラクターごとのベスト');
   await p.click('#btnRecords'); await p.waitForTimeout(250); { const r = await txt(p, '#pBody'); ok(/30,000/.test(r) && /見習いランナー/.test(r) && /最近10回の平均/.test(r), 'きろくの画面'); } await p.click('#pClose');
   await p.click('#btnMissions'); await p.waitForTimeout(250); { const before = await ev(p, 'JSON.stringify(SV.missions.slots.map(s => s.id))'), bank = await ev(p, 'SV.bank'); await p.click('[data-reroll]'); await p.waitForTimeout(250);
     const after = await ev(p, 'JSON.stringify(SV.missions.slots.map(s => s.id))'); ok(before !== after && (await ev(p, 'SV.bank')) === bank - 100 && (await ev(p, 'SV.missions.slots.length')) === 3, 'ミッションの入れかえ（100本）'); } await p.click('#pClose');
   await ev(p, "KP_RIVALS = [{ s: 5200, n: 'ミミ' }, { s: 90000, n: 'ロロ' }]; KP_RIVALS.test = 1");
-  await p.click('#btnBoost'); ok((await p.getAttribute('#btnBoost', 'aria-pressed')) === 'true', 'スタートブーストの切りかえ');
-  await p.click('#btnStart'); await p.waitForTimeout(1200); await banners(p);
-  ok((await ev(p, 'SV.bank')) === 650 && (await ev(p, 'G.pow.x2 > 0 && G.pow.magnet > 0')), 'スタートブースト：200本でスコア2倍とマグネット');
+  ok(!(await p.evaluate(() => document.querySelector('#btnBoost') || document.querySelector('#btnQuick'))), 'スタートブースト・1分ダッシュのボタンは無い（2026-11-15 にやめた）');
+  const bank0 = await ev(p, 'SV.bank'); await p.click('#btnStart'); await p.waitForTimeout(1200); await banners(p);
+  ok((await ev(p, 'SV.bank')) === bank0 && (await ev(p, '!(G.pow.x2 > 0) && !(G.pow.magnet > 0)')), 'スタートでチモシーは減らない・はじめから強化は付かない（スタートブーストはやめた）');
   await p.evaluate(() => { const G = window.__hayDash.G; G.invT = 999; G.score = 4000; }); await p.waitForTimeout(500);
   ok(/ミミ\s5,200/.test(await txt(p, '#kpNext')), 'つぎの目標：すぐ上の相手 → ' + await txt(p, '#kpNext'));
   await p.evaluate(() => { window.__hayDash.G.score = 5300; }); await p.waitForTimeout(2600);
@@ -49,10 +49,10 @@ const { chromium } = require('playwright'); const path = require('path');
   await p.click('#btnMenu'); await p.waitForTimeout(500); ok(/今日の目標 .* ✓/.test(await txt(p, '#tKeep')), '題名：今日の目標スコア ✓');
   await p.context().close();
 
-  // ---- B：やさしいモード・1分ダッシュでは出さない（記録にも入れない）----
-  p = await open({ best: 30000, bank: 500 }); await ev(p, 'G.quickNext = 1; hideAll(); startRun()'); await p.waitForTimeout(900); await p.evaluate(() => { const G = window.__hayDash.G; G.invT = 99; G.score = 12000; }); await p.waitForTimeout(500);
-  ok(await p.evaluate(() => document.querySelector('#kpGoal').hidden), '1分ダッシュ：つぎの目標を出さない'); await p.evaluate(() => { window.__hayDash.G.invT = 0; window.__die('time'); }); await p.waitForTimeout(2500);
-  ok(await p.evaluate(() => document.querySelector('#resKeep').hidden) && !(await ev(p, '(SV.kp && SV.kp.h || []).length')), '1分ダッシュ：記録に入れない'); await p.context().close();
+  // ---- B：のんびり（やさしい）モードでは出さない（記録にも入れない）。2026-11-15：1分ダッシュをやめたので、同じ決まりの「のんびり」で確かめる ----
+  p = await open({ best: 30000, bank: 500, opt: { easy: true } }); await ev(p, 'hideAll(); startRun()'); await p.waitForTimeout(900); await p.evaluate(() => { const G = window.__hayDash.G; G.invT = 99; G.score = 12000; }); await p.waitForTimeout(500);
+  ok(await p.evaluate(() => document.querySelector('#kpGoal').hidden), 'のんびり：つぎの目標を出さない'); await p.evaluate(() => { window.__hayDash.G.invT = 0; window.__die('time'); }); await p.waitForTimeout(2500);
+  ok(await p.evaluate(() => document.querySelector('#resKeep').hidden) && !(await ev(p, '(SV.kp && SV.kp.h || []).length')), 'のんびり：記録に入れない'); await p.context().close();
 
   // ---- C：3日ぶり → おかえりボーナス。古いセーブ（kp なし）・こわれた kp でも動く ----
   p = await open({ best: 5000, bank: 100, clovers: 1, daily: day(4), streak: 3, kp: 'x' }); await p.waitForTimeout(1500);
@@ -60,7 +60,7 @@ const { chromium } = require('playwright'); const path = require('path');
   p = await open({ best: 0, runs: 0, tutDone: 0, kp: { h: 'a', top: [1, [NaN]], cb: 3, md: -4, db: 'z' } }); ok(await p.evaluate(() => document.querySelector('#tKeep').hidden), 'はじめての人には出さない（チュートリアルの前）'); ok((await ev(p, 'SV.bank')) < 300, 'はじめての人におかえりボーナスを出さない'); await p.context().close();
 
   // ---- D：英語 ----
-  p = await open({ best: 30000, bank: 950, kp: { last: 9000 } }, 'en'); ok(/Today's goal 18,000/.test(await txt(p, '#tKeep')) && /Start boost/.test(await txt(p, '#btnBoost')) && (await txt(p, '#btnRecords')) === 'Records', '英語の題名');
+  p = await open({ best: 30000, bank: 950, kp: { last: 9000 } }, 'en'); ok(/Today's goal 18,000/.test(await txt(p, '#tKeep')) && (await txt(p, '#btnRecords')) === 'Records', '英語の題名');
   await p.click('#btnStart'); await p.waitForTimeout(900); await p.evaluate(() => { const G = window.__hayDash.G; G.invT = 99; G.score = 9500; }); await p.waitForTimeout(400); ok(/Next\s10,000/.test(await txt(p, '#kpNext')), '英語：つぎの目標'); await finish(p);
   { const all = await p.evaluate(() => document.querySelector('#resKeep').textContent + document.querySelector('#resKeepMore').textContent + document.querySelector('#btnAgain').textContent); ok(/of your best/.test(all) && /Tip:/.test(all) && /Where the points came from/.test(all) && /in a row/.test(all) && !/[ぁ-んァ-ヶ]/.test(all), '英語の結果（日本語がまざらない）'); }
   await p.context().close();

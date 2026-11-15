@@ -114,7 +114,7 @@ function startRun() { G.drawRetry = 0; cpClear(); G.resumeN = 0; G.cpT = 0; try 
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
     fork: null, forkRest: null, rush: 0, chimed: 0, soonTold: 0, gaugeTold: 0, gainT: 0, feverMax: 6, hitStop: 0, jumpBuf: 0, tut: null, tutDid: '', fovK: 0, look: 0, lookCD: 4, photoT: 0, capture: null, rumbleT: 8, shake: 0, announce: [] });
-  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.gig = null; G.gigNext = 24; G.gigLast = ''; G.bumpN = 0; G.prints = []; G.chalWon = 0; G.spTier = 0; G.slowT = 0; G.easy = !!OPT().easy; G.timed = G.quickNext ? 60 : 0; G.quickNext = 0; if (G.easy) banner('RELAXED', t('easyY'), 'room'); G.stats.timed = G.timed ? 1 : 0; if (G.timed) banner('1 MINUTE', t('quick'), 'good');
+  G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.gig = null; G.gigNext = 24; G.gigLast = ''; G.bumpN = 0; G.prints = []; G.chalWon = 0; G.spTier = 0; G.slowT = 0; G.easy = !!OPT().easy;  if (G.easy) banner('RELAXED', t('easyY'), 'room');
   G.legend = !!(SV.lgMode && legendOn('mode') && SV.tutDone); G.aura = !!(SV.lgAura !== 0 && legendOn('aura')); // the Legendary bunny's own run: faster, x1.5 score / a golden sparkle trail
   if (G.legend) banner('LEGEND MODE', tr('伝説モード：速さ＋15%・スコア×1.5', 'Legend mode: 15% faster, score x1.5'), 'good');
   G.stats = { hay: 0, dist: 0, jumps: 0, slides: 0, treats: 0, veg: 0, powers: 0, turns: 0, score: 0, fevers: 0, clean: 0, cleanCur: 0, office: 0, chime: 0, looks: 0, flights: 0, bads: [], foods: {}, spots: [], stampsNew: [] };
@@ -126,7 +126,7 @@ function startRun() { G.drawRetry = 0; cpClear(); G.resumeN = 0; G.cpT = 0; try 
   G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.bumps = 0; G.lastHit = null; G.bestPic = 0; G.newTitles = []; G.chalFlag = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
   resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
-  G.rev = !!(G.revNext && SV.tutDone && !G.practiceNext && !G.timed); G.revNext = 0; // 逆走デー（B-37）：夕方 6 時に会社を出て、帰り道を走って家（寝室）まで。そのまま次の日の朝へ
+  G.rev = !!(G.revNext && SV.tutDone && !G.practiceNext); G.revNext = 0; // 逆走デー（B-37）：夕方 6 時に会社を出て、帰り道を走って家（寝室）まで。そのまま次の日の朝へ
   if (G.rev) { const k = G.plan.findIndex(x => x.eve); G.plan = G.plan.slice(Math.max(0, k)).concat([{ t: 'genkan', d: 4, home: 1 }, { t: 'bedroom', d: 6, home: 1 }]); G.planClock = 1080; G.clock = 1080; G.chaseT = 0; G.chaseIntro = 0; G.chaseVis = 0; banner('REVERSE DAY', t('revGo'), 'good'); }
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
   G.segDue = 0; const step = G.plan.shift(); const s0 = newSeg(null, step, { t0: G.rev ? 1080 : 480, day: 1, len: SV.tutDone ? 0 : 140 }); G.planClock = s0.t1; G.segs = [s0]; G.ci = 0; G.tutEnd = 0;
@@ -196,14 +196,14 @@ function freeRevive() { return SV.runs <= 3 && G.reviveN === 0 && G.cause !== 'q
 function canRevive() { if (G.cause === 'time') return false; if (freeRevive()) return true; const c = reviveCost(); return SV.clovers >= c.clover || SV.bank + Math.floor(G.hay) >= c.hay || (typeof PORTAL !== 'undefined' && PORTAL.adOK()); } // (inside a game portal: or a rewarded ad)
 /* 2026-11-15（オーナー：通信が悪くなった時などに強制終了になっても、途中から再開できるように）
    走っている間、2 秒ごとに「いまの走り」の要点を端末に書いておく（CP_KEY）。アプリが急に閉じた・読み込み直しになった時は、題名画面に「つづきから走る」が出る。
-   ・ふつうの走りだけ（練習・1分ダッシュ・逆走・はじめての練習は対象外）
+   ・ふつうの走りだけ（練習・逆走・はじめての練習は対象外）
    ・走り終わった（ぶつかった・やめた）ら消す。新しく走り始めても消す。データを消す時も消す
    ・1 回の走りで CP_MAX 回まで。CP_AGE（12 時間）たったら出ない
    ・保存データ（SV）とは別の場所なので、データ引き継ぎ（RJ1.）には入らない
    ・道すじ：いまの場所から、同じ日の残りの予定（もう作ってあった先の道＋予定）を続ける。次の日からは新しく決める */
 const CP_KEY = 'renjill-hay-dash-run', CP_MAX = 3, CP_AGE = 12 * 3600e3;
 const CP_NUM = ['t', 'speed', 'dist', 'distEst', 'speedEst', 'score', 'hay', 'shield', 'feverG', 'clock', 'day', 'reviveN', 'bestTold', 'niceN', 'niceT', 'bumped', 'rush', 'chimed', 'soonTold', 'gaugeTold', 'feverMax', 'gigNext', 'bumpN', 'chalWon', 'spTier', 'epGigDone', 'revDone', 'lastTrainDone', 'matsuriTold'];
-function cpOK() { return G.mode === 'play' && !!SV.tutDone && !G.practice && !G.timed && !G.rev && !G.tut; }
+function cpOK() { return G.mode === 'play' && !!SV.tutDone && !G.practice && !G.rev && !G.tut; }
 function cpSave() { try { if (!cpOK()) return false; const seg = curSeg(); if (!seg || !seg.tid || !THEMES[seg.tid]) return false;
   const same = G.segs.slice(G.ci + 1).filter(s => s.day === seg.day && s.step && !s.step.fork).map(s => s.step);
   const o = { v: 1, at: Date.now(), char: G.char, easy: G.easy ? 1 : 0, tid: seg.tid, t1: seg.t1, n: G.resumeN || 0, g: {}, stats: G.stats, plan: same.concat(G.planDay === seg.day ? G.plan : []) };
@@ -215,7 +215,7 @@ function cpLoad() { try { const o = JSON.parse(localStorage.getItem(CP_KEY) || '
   if (!['ren', 'jill', 'pom'].includes(o.char) || (o.char === 'pom' && !SV.pomMet)) return null; return o; } catch (e) { return null; } }
 function cpTick(now) { if (now < (G.cpT || 0)) return; G.cpT = now + 2000; cpSave(); }
 function resumeRun() { const o = cpLoad(); if (!o) { cpClear(); return false; }
-  G.char = o.char; G.quickNext = 0; G.practiceNext = ''; G.revNext = 0; hideAll(); startRun(); // まず新しい走りとして用意し、その上に、書いておいた要点を戻す
+  G.char = o.char; G.practiceNext = ''; G.revNext = 0; hideAll(); startRun(); // まず新しい走りとして用意し、その上に、書いておいた要点を戻す
   try { for (const k of CP_NUM) if (typeof o.g[k] === 'number' && Number.isFinite(o.g[k])) G[k] = o.g[k]; if (o.stats && typeof o.stats === 'object') Object.assign(G.stats, o.stats);
     G.easy = !!o.easy; G.resumeN = (o.n | 0) + 1; SV.runs = Math.max(0, (SV.runs | 0) - 1); /* 同じ走りの続きなので、走った回数は増やさない */
     const d0 = Math.max(6, Math.min(60, (+o.t1 || 0) - G.clock || 20)), s0 = newSeg(null, { t: o.tid, d: d0 }, { t0: G.clock, day: G.day }); G.segs = [s0]; G.ci = 0; G.s = 0; G.lane = 1; G.prevLane = 1; G.lat = 0; G.fork = null; G.forkRest = null;
@@ -502,7 +502,6 @@ function update(dt) {
   if (G.hitStop > 0) { G.hitStop -= dt; G.shake = Math.max(0, G.shake - dt); placeCamera(0); return; }
   const seg = curSeg(), P = G.player;
   dt *= tutorialScale(seg, dt);
-  if (G.timed && G.t >= G.timed) { G.cause = 'time'; G.mode = 'dead'; SFX.mission(); endRun(); return; } // the 1-minute dash ends on the clock (2026-11-08)
 
   // speed rises gently and levels off (it used to reach 24 m/s mid-run, which got too hard)
   const base = Math.min(G.easy ? 12.6 : MAXSPD, (SV.tutDone ? 12.4 : 11) + G.dist * .0024 + (G.day - 1) * .7);
@@ -852,7 +851,7 @@ function fitScore() {
 function comboPop() { const e = el('combo'); if (!e || G.combo < 5) return; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } // the combo count bounces on every pickup
 function hud() {
   lastTrainTick(); bossHud(); layoutHud();
-  gigHud(); chalTick(); setText('hChal', G.timed ? t('quickHud', Math.max(0, Math.ceil(G.timed - G.t))) : CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
+  gigHud(); chalTick(); setText('hChal', CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
   setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay))); { const hn = Math.floor(G.hay); if (hn !== HUDC.hayN) { const up = hn > (HUDC.hayN || 0); HUDC.hayN = hn; const e = el('hHay'); if (up && e && !OPT().calm) { e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } } } // the hay count hops a little when it goes up (2026-11-08)
   setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
   setText('hClock', clockStr(G.clock)); setText('hDay', t('dayN', G.day));
@@ -964,7 +963,6 @@ function takePhoto(tid) {
 const CAPS = {
   obstacle: { ren: ['EYES FRONT, BOSS.', '課長、前です'], jill: ['NOBODY’S PERFECT.', 'ジルにも、たまには'], pom: ['ROOKIE MISTAKE!', '新人、まだまだっす'] },
   papers: { ren: ['BURIED IN PAPERS.', '書類に埋もれた'], jill: ['BURIED IN PAPERS.', '書類に埋もれた'], pom: ['BURIED IN PAPERS.', '書類に埋もれた'] },
-  time: { ren: ['TIME! NICE RUN.', '1分、おつかれさま！'], jill: ['TIME! NICE RUN.', '1分、おつかれさまでした'], pom: ['TIME! NICE RUN.', '1分、走りきったっす！'] },
   wall: { ren: ['THAT’S A WALL.', 'そっちは壁です'], jill: ['THAT’S A WALL.', 'そっちは壁です'], pom: ['THAT’S A WALL.', 'そっちは壁です'] },
   quit: { ren: ['LEFT EARLY.', '早退しました'], jill: ['LEFT EARLY.', '早退しました'], pom: ['LEFT EARLY.', '早退しました'] },
   rescue: { ren: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'], jill: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'], pom: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'] }, // 画面が動かなくなって安全網で終わったとき（自分でやめたのではない）
@@ -988,8 +986,8 @@ function endRun() {
   for (const sl of SV.missions.slots) { const m = MT.find(x => x.id === sl.id); if (m && m.scope === 'run') sl.prog = Math.max(sl.prog, m.stat === 'score' ? G.score : m.stat === 'dist' ? G.dist : (st[m.stat] || 0)); }
   checkAch(false); dailyCheck(false);
   let weekMsg = ''; if (!G.easy) { try { weekMsg = weekAdd(st); } catch (e) { reportErr(e); } } // this week's goal (2026-11-08)
-  const bk = G.timed ? 'bestT' : 'best', prevBest = G.easy ? 0 : (SV[bk] || 0), newBest = !G.easy && G.score > (SV[bk] || 0); if (newBest) { SV[bk] = Math.floor(G.score); if (G.bestPic && SV.bestPics && SV.bestPics[0]) SV.bestPics[0].s = Math.floor(G.score); }
-  if (!G.easy && !G.timed) SV.bestClock = Math.max(SV.bestClock || 480, G.clock + (G.day - 1) * 1440); SV.bestDay = Math.max(SV.bestDay || 1, G.day);
+  const bk = 'best', prevBest = G.easy ? 0 : (SV[bk] || 0), newBest = !G.easy && G.score > (SV[bk] || 0); if (newBest) { SV[bk] = Math.floor(G.score); if (G.bestPic && SV.bestPics && SV.bestPics[0]) SV.bestPics[0].s = Math.floor(G.score); }
+  if (!G.easy) SV.bestClock = Math.max(SV.bestClock || 480, G.clock + (G.day - 1) * 1440); SV.bestDay = Math.max(SV.bestDay || 1, G.day);
   let lvlMsg = '';
   if (SV.missions.slots.every(sl => sl.done)) { SV.mlevel++; const rw = 150 * SV.mlevel; SV.bank += rw; lvlMsg = t('lvlUp', SV.mlevel, rw); newMissions(); }
   { const pm = careerCheck(); if (pm) { lvlMsg = pm + (lvlMsg ? '　' + lvlMsg : ''); $('#resPromo').textContent = pm; $('#resPromo').hidden = false; } else $('#resPromo').hidden = true; }
@@ -1005,7 +1003,7 @@ function endRun() {
   SV.last = { score: Math.floor(G.score), place: { ja: curSeg().th.ja, en: curSeg().th.en } }; // the place in every language (shown in whatever language the title is in later)
   save(); $('#resClock').textContent = (G.day > 1 ? t('dayN', G.day) + ' ' : '') + clockStr(G.clock); $('#resHay').textContent = fmt(gained);
   const vsBest = prevBest > 0 ? (newBest ? t('bestUp', fmt(Math.floor(G.score) - prevBest)) : t('bestShort', fmt(prevBest - Math.floor(G.score)))) : '';
-  $('#resNote').textContent = (CHAL ? (G.chalWon ? t('chalDone', fmt(CHAL.s)) : t('chalLeft', fmt(Math.ceil(CHAL.s - G.score) + 1))) : '') + (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '') + (dayGoalMsg ? '　' + dayGoalMsg : '') + (weekMsg ? '　' + weekMsg : '') + (bondMsg ? '　' + bondMsg : '') + (G.easy ? '　' + t('easyRes') : '') + (G.timed ? '　' + t('quickBest', fmt(SV.bestT || 0)) : '');
+  $('#resNote').textContent = (CHAL ? (G.chalWon ? t('chalDone', fmt(CHAL.s)) : t('chalLeft', fmt(Math.ceil(CHAL.s - G.score) + 1))) : '') + (bonus ? t('bonusRen', bonus) : '') + (lvlMsg || t('ranM', fmt(G.dist))) + (vsBest ? '　' + vsBest : '') + (dayGoalMsg ? '　' + dayGoalMsg : '') + (weekMsg ? '　' + weekMsg : '') + (bondMsg ? '　' + bondMsg : '') + (G.easy ? '　' + t('easyRes') : '');
   $('#resSpots').innerHTML = st.spots.length ? st.spots.map(tid => `<span class="spot${st.stampsNew.includes(tid) ? ' new' : ''}"><img src="${stampURL(tid)}" alt="">${esc(L(THEMES[tid].stamp))}</span>`).join('') : '';
   $('#resMissions').innerHTML = missionHTML();
   const seen = st.bads.length ? st.bads[st.bads.length - 1] : pick(Object.keys(st.foods).length ? Object.keys(st.foods) : ['hay']);
@@ -1129,6 +1127,7 @@ function buildShareCard(cap, place, gained) {
   { const capTxt = LANG === 'en' ? (cap[0].length > 18 ? 'GAME OVER' : cap[0]) : tr(cap[1], cap[0]); g.save(); g.translate(860, 940); g.rotate(-.12); g.fillStyle = '#C8463C'; g.textAlign = 'center'; fitFont(g, capTxt, 360, 44, '400 {}px "Dela Gothic One",sans-serif'); g.fillText(capTxt, 0, 0); g.restore(); } // long captions shrink instead of running off the card
   let x = 64; for (const tid of G.stats.spots.slice(0, 7)) { g.drawImage(stampSprite(tid, 1), x, 790, 120, 120); x += 110; }
   try { $('#shareImg').src = c.toDataURL('image/png'); } catch (e) { }
+  { const sb = document.querySelector('#sResult .sharebar'); if (sb) { const cp = SHARE.phone() && SHARE.canSheet(); sb.classList.toggle('compact', cp); } }
   { const L2 = shareLinks(); $('#shX').href = L2.x; $('#shLine').href = L2.line; $('#shTh').href = L2.th; $('#shFb').href = L2.fb; $('#igNote').textContent = ''; $('#tCopy').textContent = SHARE.phone() && SHARE.canSheet() ? t('shareMore') : t('copy'); }
   G.shareCanvas = c;
   { // a tall 9:16 version for Instagram Stories: the square card on a warm backdrop, the title above, the hashtag below
