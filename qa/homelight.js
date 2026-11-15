@@ -6,7 +6,7 @@
 //  (4) 明かりは選んだ子に当たる：明かりを入れると、ほかの 2 人のいる所は暗くなり（5% 以上）、選んだ子の所はそれほど暗くならない（ほかの子より 4% 以上明るい側に残る）
 const { chromium } = require('playwright'); const path = require('path');
 (async () => { const bad = []; const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined });
-  for (const [w, h] of [[390, 844], [1280, 800]]) for (const ch of ['ren', 'jill', 'pom']) {
+  for (const [w, h] of [[390, 844], [1280, 800], [2240, 1082]]) for (const ch of ['ren', 'jill', 'pom']) {
     const p = await b.newPage({ viewport: { width: w, height: h } }); p.on('pageerror', e => bad.push('エラー: ' + e.message)); await p.route('**/fonts.googleapis.com/**', r => r.abort());
     await p.addInitScript(c => localStorage.setItem('renjill-hay-dash-v1', JSON.stringify({ tutDone: 1, nickAsked: 1, runs: 9, lang: 'ja', pomMet: 3, char: c })), ch);
     await p.goto('file://' + path.resolve(__dirname, '../dist') + '/test.html'); await p.waitForTimeout(2200);
@@ -23,8 +23,9 @@ const { chromium } = require('playwright'); const path = require('path');
     const mid = w > h * 1.25 ? null : r.W / 2; // 横長は右に札があるので、まん中の決まりはたて長だけ
     if (mid != null && Math.abs(r.P.x - mid) > r.W * .08) bad.push(tag + '選んだ子がまん中にいない（x=' + r.P.x.toFixed(0) + '）');
     for (const [nm, q] of [['2 人目', r.F], ['3 人目', r.M]]) if (q && !(r.P.k > q.k * 1.1)) bad.push(tag + '選んだ子がいちばん手前ではない（' + nm + '）');
+    for (const [nm, q] of [['2 人目', r.F], ['3 人目', r.M]]) if (q && Math.abs(q.x - r.P.x) < r.P.k * .95) bad.push(tag + nm + 'が選んだ子に重なっている（横の間 ' + Math.abs(q.x - r.P.x).toFixed(0) + '・目安 ' + (r.P.k * .95).toFixed(0) + '）');
     const kP = r.on[0] / r.off[0]; for (const [nm, i] of [['2 人目', 1], ['3 人目', 2]]) { if (r.on[i] == null) continue; const k = r.on[i] / r.off[i];
       if (!(k < .95)) bad.push(tag + nm + 'が暗くならない（' + (k * 100).toFixed(0) + '%）'); if (!(kP > k + .04)) bad.push(tag + '明かりが選んだ子に当たっていない（選んだ子 ' + (kP * 100).toFixed(0) + '%・' + nm + ' ' + (k * 100).toFixed(0) + '%）'); }
     if (w === 390 && ch === 'ren') { await p.click('#btnStart'); await p.waitForTimeout(900); const n2 = await p.evaluate(() => window.__tl); await p.waitForTimeout(900); const n3 = await p.evaluate(() => window.__tl); if (n3 !== n2) bad.push('走っている間も光を描いている（' + (n3 - n2) + ' 回）'); }
     await p.close(); }
-  await b.close(); if (bad.length) { console.log('HOMELIGHT NG\n' + bad.join('\n')); process.exit(1); } console.log('HOMELIGHT OK 2 画面 × 3 人'); })();
+  await b.close(); if (bad.length) { console.log('HOMELIGHT NG\n' + bad.join('\n')); process.exit(1); } console.log('HOMELIGHT OK 3 画面 × 3 人'); })();
