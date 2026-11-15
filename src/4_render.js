@@ -250,7 +250,7 @@ let BUBS = [], BUBT = 0; // このコマに出したふきだし（重なり回�
 function titleLight() {
   const calm = !!OPT().calm, t = calm ? 0 : G.t, m = Math.min(W, H), top = H * (W < H * .8 ? .56 : .92); // たて長の画面は、下の札にかかる前で光を消す
   ctx.save(); ctx.globalCompositeOperation = 'screen';
-  { const gl = ctx.createRadialGradient(W * .08, H * .04, m * .05, W * .08, H * .04, m * 1.05); gl.addColorStop(0, 'rgba(255,238,196,.34)'); gl.addColorStop(.5, 'rgba(255,232,184,.1)'); gl.addColorStop(1, 'rgba(255,232,184,0)'); ctx.fillStyle = gl; ctx.fillRect(0, 0, W, top); }
+  { const gl = ctx.createRadialGradient(W * .08, H * .04, m * .05, W * .08, H * .04, m * 1.05); gl.addColorStop(0, 'rgba(255,238,196,.3)'); gl.addColorStop(.4, 'rgba(255,232,184,.07)'); gl.addColorStop(1, 'rgba(255,232,184,0)'); ctx.fillStyle = gl; ctx.fillRect(0, 0, W, top); }
   for (let k = 0; k < 3; k++) { const x0 = W * (-.1 + k * .2), wd = m * (.09 + k * .025), a = (.11 + .035 * Math.sin(t * .35 + k * 2.1)) * (k === 1 ? 1.15 : 1), dx = top * .62;
     const lg = ctx.createLinearGradient(0, 0, 0, top); lg.addColorStop(0, `rgba(255,240,205,${a})`); lg.addColorStop(.7, `rgba(255,240,205,${a * .45})`); lg.addColorStop(1, 'rgba(255,240,205,0)'); ctx.fillStyle = lg;
     ctx.beginPath(); ctx.moveTo(x0, 0); ctx.lineTo(x0 + wd, 0); ctx.lineTo(x0 + wd * 1.9 + dx, top); ctx.lineTo(x0 + dx, top); ctx.closePath(); ctx.fill(); }
@@ -258,7 +258,10 @@ function titleLight() {
       const x = W * (-.05 + u * .75) + ph * top * .5 + Math.sin(t * .5 + i) * m * .012, y = ph * top * .92, tw = .5 + .5 * Math.sin(t * (1.1 + (i % 4) * .3) + i * 1.7), al = tw * .55 * Math.sin(ph * Math.PI);
       if (al < .03) continue; const r = m * (.0028 + (i % 3) * .0012); const dg = ctx.createRadialGradient(x, y, 0, x, y, r * 3); dg.addColorStop(0, `rgba(255,248,225,${al})`); dg.addColorStop(1, 'rgba(255,248,225,0)'); ctx.fillStyle = dg; ctx.fillRect(x - r * 3, y - r * 3, r * 6, r * 6); }
   ctx.restore();
-  { const vg = ctx.createRadialGradient(W / 2, H * .42, m * .42, W / 2, H * .42, Math.hypot(W, H) * .62); vg.addColorStop(0, 'rgba(40,26,14,0)'); vg.addColorStop(1, 'rgba(40,26,14,.24)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H); }
+  /* 選んだ子だけに明かり：足もとに光のたまり、まわり（ほかの 2 人）は少し暗く。だれを選んでいるかが、絵だけで分かるように（2026-11-16） */
+  const sp = spriteAt(G.player.wx, G.player.wy, G.player.wz), cx = sp ? sp.sx : W / 2, fy = sp ? sp.sy : H * .5, k = sp ? sp.k : m * .2, cy = fy - k * .55;
+  { ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.translate(cx, fy); ctx.scale(1, .3); const pg = ctx.createRadialGradient(0, 0, 0, 0, 0, k * 1.5); pg.addColorStop(0, 'rgba(255,236,180,.72)'); pg.addColorStop(.6, 'rgba(255,236,180,.24)'); pg.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(0, 0, k * 1.5, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+  { ctx.save(); ctx.translate(cx, cy); ctx.scale(.6, 1); const vg = ctx.createRadialGradient(0, 0, k * .8, 0, 0, k * 2.3); vg.addColorStop(0, 'rgba(34,22,12,0)'); vg.addColorStop(.5, 'rgba(34,22,12,.36)'); vg.addColorStop(1, 'rgba(34,22,12,.48)'); ctx.fillStyle = vg; ctx.fillRect(-(W + H) * 3, -(W + H) * 3, (W + H) * 6, (W + H) * 6); ctx.restore(); } // 横に早く暗くなるだ円（となりの子は、すぐ横にいても暗くなる。qa/homelight.js が 2 画面 × 3 人で確かめる）
 }
 function render() {
   const seg = G.segs[G.ci] || G.segs[0]; if (!seg) return;

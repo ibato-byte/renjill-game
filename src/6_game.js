@@ -87,6 +87,7 @@ function buildTitleRoom(seg) {
   seg.spr.push({ lat: -4.0, s: .5, y: 0, w: .9, h: 1.9, img: artKey('andon', '0'), pn: 1, keep: 1, gnd: .3 });
 }
 let TITLE_PITCH = .2, TITLE_WIDE = -.9;
+let TITLE_FRONT = 3.7, TITLE_BACK = 2.7; // ホーム画面：選んだ子の位置（手前）と、ほかの 2 人の位置（奥）
 function titleFrame(dt) {
   const seg = G.segs[0], me = G.char, other = me === 'ren' ? 'jill' : 'ren', third = me === 'pom' ? 'jill' : 'pom';
   const P = G.player, F = G.follow;
@@ -97,18 +98,22 @@ function titleFrame(dt) {
   const jillMood = ((G.t + 1.7) % 4.6) < .14 ? 'blink' : (G.t % 7) > 5.6 ? 'happy' : 'open';
   const pomMood = (G.t % 5) < .16 ? 'blink' : (G.t % 11) > 9.5 ? 'puff' : 'open';
   if (me === 'ren') { P.mood = renMood; F.mood = jillMood; } else if (me === 'jill') { P.mood = jillMood; F.mood = renMood; } else { P.mood = pomMood; F.mood = renMood; }
-  const pR = me === 'pom' ? segPos(seg, 2.6, -1.85) : segPos(seg, 3.2, me === 'ren' ? -.75 : .75), pJ = me === 'pom' ? segPos(seg, 3.2, -.75) : segPos(seg, 3.5, me === 'ren' ? .8 : -.8); // with Pom picked, the rookie bounces in front, the boss beside him
+  /* 2026-11-16 オーナー：「ポムを選んだ時にジルにもスポットが当たる。どのキャラを選んでいるのか直感的に分かりづらい」。
+     前は、選んだ子が横や奥にいて、選んでいない子のほうが手前で大きく見える並びがあった。いまは、選んだ子がいつもまん中のいちばん手前、ほかの 2 人は左右の少し奥。
+     明かり（titleLight）も選んだ子だけに当て、ほかの 2 人は少し暗くする */
+  const side = (W > H * 1.25 && W >= 900) ? 1.0 : 1.3; // 横長の画面は、右の札にかくれないよう少し寄せる
+  const pR = segPos(seg, TITLE_FRONT, 0), pJ = segPos(seg, TITLE_BACK, me === 'jill' ? side : -side);
   [P.wx, P.wz] = pR; P.wy = pR[2] + (me === 'pom' ? Math.abs(Math.sin(G.t * 5)) * .07 : Math.abs(Math.sin(P.ph)) * .05); [F.wx, F.wz] = pJ; F.wy = pJ[2] + (me === 'ren' ? Math.abs(Math.sin(G.t * 6)) * .03 * ((G.t % 7) > 5.6) : 0);
   P.air = F.air = P.slide = F.slide = false; P.tilt = F.tilt = 0; P.fly = F.fly = 0;
   /* たて長の画面（スマホ）：3 人が画面の上半分のまん中に全員おさまるよう、カメラを引いて 3 人のまん中に寄せる（2026-11-15 ホーム画面の作り直し：前は 3 人が見切れ、しかもメニューの札の後ろに隠れていた） */
-  const tall = W < H * .8, mid = me === 'pom' ? -.6 : me === 'ren' ? .55 : -.55;
+  const tall = W < H * .8, mid = 0;
   const wide = W > H * 1.25 && W >= 900; // 横長：札が右にあるので、3 人が左のまん中に来るようカメラを右へ
   const cp = segPos(seg, (tall ? 7.9 : wide ? 6.9 : 6.6) - Math.sin(G.t * .11) * .2, (tall ? mid : wide ? TITLE_WIDE : 0) + Math.sin(G.t * .23) * (tall ? .18 : .3));
   CAM.x = cp[0]; CAM.z = cp[1]; CAM.y = (tall ? 1.02 : 1.1) + cp[2] + Math.sin(G.t * .7) * .015; CAM.yaw = Math.PI + Math.sin(G.t * .17) * .02; CAM.pitch = tall ? TITLE_PITCH : .06;
-  camPrep(); P.depth = me === 'pom' ? 4.8 : 4.2; F.depth = me === 'pom' ? 4.2 : 3.9;
+  camPrep(); P.depth = 7.4 - TITLE_FRONT; F.depth = 7.4 - TITLE_BACK;
   // once you have met Pom, the rookie peeks out on the title screen too, bouncing with excitement
   const M = G.pom; M.title = !!SV.pomMet; M.show = M.title;
-  if (M.title) { const pm = me === 'pom' ? segPos(seg, 3.5, .8) : segPos(seg, 2.6, me === 'ren' ? 1.85 : -1.85); M.view = 'front'; M.who = third; M.ph += dt * 4; M.wx = pm[0]; M.wz = pm[1]; M.wy = pm[2] + Math.abs(Math.sin(G.t * 5)) * .07; M.depth = me === 'pom' ? 3.9 : 4.8; M.tilt = 0; M.air = M.slide = false;
+  if (M.title) { const pm = segPos(seg, TITLE_BACK, me === 'jill' ? -side : side); M.view = 'front'; M.who = third; M.ph += dt * 4; M.wx = pm[0]; M.wz = pm[1]; M.wy = pm[2] + Math.abs(Math.sin(G.t * 5)) * .07; M.depth = 7.4 - TITLE_BACK; M.tilt = 0; M.air = M.slide = false;
     M.mood = third === 'pom' ? pomMood : jillMood; M.look = 0; }
 }
 
