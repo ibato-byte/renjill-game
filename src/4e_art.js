@@ -311,10 +311,13 @@ function paintUmbrellas(g, W, H) { /* 見た目 86〜89：かさ立て。かさ�
   { const bg = g.createLinearGradient(W * .12, 0, W * .88, 0); bg.addColorStop(0, '#4A6C8E'); bg.addColorStop(.3, '#7FA4C8'); bg.addColorStop(1, '#3A5876'); g.fillStyle = bg; } rrect(g, W * .12, H * .5, W * .76, H * .47, 10); g.fill();
   g.fillStyle = '#35506B'; rrect(g, W * .1, H * .49, W * .8, H * .04, 5); g.fill(); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(W * .12, H * .495, W * .76, 2); g.fillStyle = '#2B3F54'; rrect(g, W * .08, H * .94, W * .84, H * .045, 4); g.fill();
 }
-function paintCopier(g, W, H) {
-  SH(g, W, H); g.fillStyle = vgrad(g, H * .2, H, [[0, '#E9ECEF'], [1, '#B9C0C7']]); rrect(g, W * .03, H * .14, W * .94, H * .84, 8); g.fill();
-  g.fillStyle = '#9AA9B6'; rrect(g, W * .03, H * .02, W * .94, H * .14, 6); g.fill(); g.fillStyle = '#46525E'; rrect(g, W * .55, H * .2, W * .34, H * .12, 4); g.fill(); g.fillStyle = '#7FD06A'; g.fillRect(W * .6, H * .23, W * .08, H * .05);
-  g.fillStyle = '#FFFFFF'; g.fillRect(W * .08, H * .26, W * .38, H * .05); g.fillStyle = '#C9CDD2'; for (const y of [.48, .66, .84]) { g.fillRect(W * .08, H * y, W * .84, H * .02); rrect(g, W * .42, H * (y - .08), W * .16, H * .04, 3); g.fill(); }
+function paintCopier(g, W, H) { /* 見た目 172〜175：コピー機。上のふたとガラス面／操作パネルのボタンと画面の光／出てきた紙／トレーの取っ手と段のかげ */
+  SH(g, W, H); { const bg = g.createLinearGradient(W * .03, 0, W * .97, 0); bg.addColorStop(0, '#C6CDD4'); bg.addColorStop(.25, '#F3F5F7'); bg.addColorStop(1, '#AEB6BE'); g.fillStyle = bg; } rrect(g, W * .03, H * .14, W * .94, H * .84, 8); g.fill();
+  g.fillStyle = vgrad(g, H * .02, H * .16, [[0, '#B4C0CB'], [1, '#7E8C99']]); rrect(g, W * .03, H * .02, W * .94, H * .14, 6); g.fill(); g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(W * .06, H * .035, W * .88, H * .012); g.fillStyle = '#2B343D'; g.fillRect(W * .03, H * .145, W * .94, H * .012);
+  g.fillStyle = '#35414C'; rrect(g, W * .55, H * .2, W * .37, H * .13, 4); g.fill(); g.fillStyle = vgrad(g, H * .21, H * .3, [[0, '#B8F0A8'], [1, '#5FBE58']]); rrect(g, W * .58, H * .22, W * .13, H * .07, 2); g.fill(); g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(W * .585, H * .225, W * .05, H * .012);
+  for (const [x, c] of [[.75, '#7FD06A'], [.8, '#C9CDD2'], [.85, '#C9CDD2'], [.75, '#C9CDD2'], [.8, '#C9CDD2'], [.85, '#E86A5F']].entries()) { const [xx, col] = c; g.fillStyle = col; g.beginPath(); g.arc(W * xx, H * (x < 3 ? .235 : .29), W * .015, 0, Math.PI * 2); g.fill(); }
+  g.fillStyle = '#2B343D'; g.fillRect(W * .07, H * .3, W * .42, H * .025); g.fillStyle = '#FFFFFF'; g.beginPath(); g.moveTo(W * .1, H * .31); g.lineTo(W * .46, H * .31); g.lineTo(W * .44, H * .25); g.lineTo(W * .12, H * .25); g.closePath(); g.fill(); g.strokeStyle = 'rgba(120,130,140,.5)'; g.lineWidth = 1; for (const y of [.265, .28, .295]) { g.beginPath(); g.moveTo(W * .15, H * y); g.lineTo(W * .4, H * y); g.stroke(); }
+  for (const y of [.48, .66, .84]) { g.fillStyle = 'rgba(0,0,0,.14)'; g.fillRect(W * .06, H * y, W * .88, H * .012); g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(W * .06, H * (y + .012), W * .88, H * .008); g.fillStyle = '#8A96A2'; rrect(g, W * .4, H * (y - .085), W * .2, H * .035, 4); g.fill(); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(W * .42, H * (y - .065), W * .16, H * .01); }
 }
 function paintMug(g, W, H) {
   SH(g, W, H); g.strokeStyle = '#E9E2D5'; g.lineWidth = W * .1; g.beginPath(); g.arc(W * .82, H * .5, W * .14, -1.2, 1.2); g.stroke();
@@ -1006,6 +1009,10 @@ function paintStreetGate(g, W, H, v) { // a shopping-street arch: two slim posts
   g.fillStyle = shadeHex(c, .6); rrect(g, W * .02, H * .02, W * .96, H * .24, 8); g.fill(); g.fillStyle = vgrad(g, H * .04, H * .24, [[0, shadeHex(c, 1.15)], [1, c]]); rrect(g, W * .035, H * .035, W * .93, H * .21, 6); g.fill();
   g.fillStyle = '#FBF6EE'; g.font = `900 ${Math.round(H * .15)}px "Zen Maru Gothic","Hiragino Sans",sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 4; g.fillText(txt || '', W / 2, H * .145, W * .86); g.shadowBlur = 0;
   g.fillStyle = '#FFE9A8'; for (let x = W * .05; x < W * .96; x += W * .035) { g.beginPath(); g.arc(x, H * .275, 3, 0, Math.PI * 2); g.fill(); }
+  /* 見た目 179〜181：商店街のアーチ。電球のまわりのあかり／看板の上のふちの光と、下のかげ／柱の根もとの台と帯 */
+  g.fillStyle = 'rgba(255,233,168,.28)'; for (let x = W * .05; x < W * .96; x += W * .035) { g.beginPath(); g.arc(x, H * .275, 7, 0, Math.PI * 2); g.fill(); }
+  g.fillStyle = 'rgba(255,255,255,.25)'; rrect(g, W * .045, H * .04, W * .91, H * .02, 4); g.fill(); g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(W * .04, H * .225, W * .92, H * .018);
+  for (const x of [W * .06, W * .94]) { g.fillStyle = shadeHex(c, .9); g.fillRect(x - 8, H * .5, 16, H * .03); g.fillStyle = '#3A3A40'; rrect(g, x - 14, H - 16, 28, 16, 3); g.fill(); g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(x - 14, H - 16, 28, 2); }
 }
 Object.assign(PROP_ART, { torii: (n, v) => artCanvas('ptorii|' + v, 720, 520, (g, w, h) => paintTorii(g, w, h, v)), sgate: (n, v) => artCanvas('psgate|' + v, 900, 560, (g, w, h) => paintStreetGate(g, w, h, v)) });
 function paintOverpass(g, W, H, v) { // an elevated road or railway seen head-on: the deck's concrete edge with a sound wall or a railing, piers at both ends, the shadow underneath
@@ -1032,6 +1039,10 @@ function paintNobori(g, W, H, v) { // a tall banner on a pole, its top bar and a
   g.fillStyle = ink; g.font = `900 ${Math.round((x1 - x0) * .62)}px "Zen Maru Gothic","Hiragino Sans",sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
   const ch = [...(txt || '名物')]; ch.forEach((t, i) => g.fillText(t, (x0 + x1) / 2, y0 + (y1 - y0) * (i + .5) / Math.max(3, ch.length)));
   g.fillStyle = '#5A5E63'; g.fillRect(W * .06, H - 10, W * .24, 10);
+  /* 見た目 176〜178：のぼり旗。布の波のかげと光／さおのつやと先の玉／さおを通す輪（ちち） */
+  { const fg = g.createLinearGradient(x0, 0, x1, 0); fg.addColorStop(0, 'rgba(0,0,0,.16)'); fg.addColorStop(.25, 'rgba(255,255,255,.16)'); fg.addColorStop(.55, 'rgba(0,0,0,.1)'); fg.addColorStop(.8, 'rgba(255,255,255,.12)'); fg.addColorStop(1, 'rgba(0,0,0,.14)'); g.fillStyle = fg; g.fillRect(x0, y0, x1 - x0, y1 - y0); }
+  g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(W * .12, 0, 1.6, H); g.fillStyle = '#C9CDD2'; g.beginPath(); g.arc(W * .12 + 2.5, 3, 4, 0, Math.PI * 2); g.fill();
+  g.fillStyle = shadeHex(c, .7); for (let k = 0; k < 5; k++) g.fillRect(W * .1, y0 + (y1 - y0) * (k + .5) / 5 - 3, W * .1, 6);
 }
 PROP_ART.nobori = (n, v) => artCanvas('pnobori|' + v, 90, 400, (g, w, h) => paintNobori(g, w, h, v));
 
