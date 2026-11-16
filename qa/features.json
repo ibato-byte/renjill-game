@@ -905,6 +905,16 @@
       "name": "最初のタップで題名の曲",
       "file": "src/5_audio.js",
       "has": "for (const ev of ['touchend', 'click']) addEventListener(ev, audioWake, true);"
+    },
+    {
+      "name": "PC ではチュートリアルを矢印キーで案内",
+      "file": "src/6_game.js",
+      "has": "const TUT = KB_PC ?"
+    },
+    {
+      "name": "PC では走っている間のヒントも矢印キー",
+      "file": "src/1_data.js",
+      "has": "if (KB_PC) Object.assign(STR, {"
     }
   ]
 }

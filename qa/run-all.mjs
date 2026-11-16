@@ -69,6 +69,7 @@ const T = [
   { n: 'pomplay', why: 'ポムで走れる（会う前は出ない・3人そろう）', ok: has('POM PLAY OK'), timeout: 400 },
   { n: 'chaltest', why: '友だちへの挑戦リンク', ok: has('CHALLENGE OK'), timeout: 400 },
   { n: 'firstrun', why: 'はじめての30秒（ごほうび・初回ボーナス）', ok: has('FIRST RUN OK'), timeout: 300 },
+  { n: 'kbcue', why: 'PC は矢印キー・スマホはスワイプで案内（4言語）', ok: has('KB CUE OK'), timeout: 300 },
   { n: 'resettest', why: 'データのリセット（ランキングの記録も消える）', ok: has('RESET OK'), timeout: 200 },
   { n: 'inputtest', why: '操作が効かなくならない（速いフリック・高く跳びすぎない）', ok: has('INPUT OK'), timeout: 200 },
   { n: 'forkstuck', why: '分かれ道で画面が止まって動けなくならない（曲がる瞬間に道が作れない・分かれ道の道がない・数値の壊れ・絵のメモリ切れ→道に戻す／だめなら結果画面）', ok: has('FORK STUCK OK'), timeout: 400 },
