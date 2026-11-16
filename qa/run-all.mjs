@@ -111,6 +111,7 @@ const T = [
   { n: 'keeprun', why: '「ここで一区切り」で勝手に終わらない（直せないときはほかの道から同じ時刻で続ける・死んだのに画面が出ないときはふつうの画面）', ok: has('KEEP RUN OK'), timeout: 120 },
   { n: 'viewclear', why: '道の先が見える（帯・おしごとのカード・ナイスの文字が道の先にかからない、8つの画面の大きさ。スマホ縦長は頭の上に道が見える。鳥居のトンネルではカメラが下がる）', ok: has('VIEW CLEAR OK'), timeout: 200 },
   { n: 'featureguard', why: '入れた機能が消えていない（古い版のファイルで上書きして、機能が気づかずに消えた事故の再発防止）', ok: has('FEATURE OK'), timeout: 60 },
+  { n: 'cgfresh', why: 'CrazyGames ではじめて開いた人は、キャラクターとスタートだけの題名（1 回走ると、ふだんの題名）。自社サイト版は今までどおり（2026-11-16）', ok: has('CGFRESH OK'), timeout: 200 },
   { n: 'portal', why: 'CrazyGames の中だけ：外へのリンクを出さない・遊んでいる合図・見たい人だけの広告。自社サイト版は広告なし', ok: has('PORTAL OK'), timeout: 200 },
   { n: 'jumpfair', why: '飛び越えられそうなのに越えられない障害物がない（見た目と当たりの高さが合う）', ok: has('JUMP FAIR OK'), timeout: 120 },
   { n: 'wallcheck', why: '3レーンとも壁（飛び越えられない）の列が出ない', ok: has('WALL OK'), timeout: 200 },

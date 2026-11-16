@@ -411,6 +411,10 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--badge);outline-off
 /* inside CrazyGames: nothing that leads out to a playable web version (their rule). The game itself is unchanged */
 .portal-cg #tGuide,.portal-cg #tSite,.portal-cg #tFollow,.portal-cg .sharebar,.portal-cg #resFollow,.portal-cg #tFeed,.portal-cg .notelink,.portal-cg #btnShare,.portal-cg .fol-chips,.portal-cg .xfer.sns,.portal-cg #btnLinkCopy,.portal-cg #shareBox,.portal-cg #tFeed{display:none!important}
 
+/* CrazyGames ではじめて開いた人（まだ 1 回も走っていない）：題名はキャラクターとスタートだけ。ほかのボタン・目標・昇進は 1 回走ったあとに出す（2026-11-16：CrazyGames の試験公開で、開いた人の半分近くが遊ばずに離れた） */
+.portal-cg.cg-fresh #sTitle .card > :not(.chars):not(#btnStart):not(#btnCont):not(.bank){display:none!important}
+.portal-cg.cg-fresh #sTitle #btnSet{display:none!important}
+.portal-cg.cg-fresh #sTitle #btnStart{font-size:1.25em;min-height:64px}
 /* 2026-11-08 点検で見つけた所 */
 @media (max-width:340px){.shbtns a,.sharebar .shbtns a,.sharebar .shbtns #shIg,#app .shbtns #shIg{font-size:9px;letter-spacing:-.05em;padding-left:0;padding-right:0;white-space:nowrap}} /* 320px で「Instagram」が切れていた */
 .mini{min-height:42px;justify-content:center} .sub.small{min-height:34px} #btnSet{min-width:36px} .buy{min-height:36px} /* 押しやすい大きさ（小さい画面で 26〜28px しかなかった） */

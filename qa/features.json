@@ -965,6 +965,11 @@
       "name": "道の先が見える試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'viewclear'"
+    },
+    {
+      "name": "CrazyGames ではじめての人は、スタートだけの題名",
+      "file": "src/7_ui.js",
+      "has": "classList.toggle('cg-fresh'"
     }
   ]
 }
