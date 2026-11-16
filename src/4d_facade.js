@@ -237,6 +237,40 @@ const FAC_STYLE = {
     g.fillStyle = '#4A4F57'; g.fillRect(0, PH - gf, PW, 12); g.fillStyle = 'rgba(255,255,255,.18)'; for (let x = 0; x < PW; x += 7) g.fillRect(x, PH - gf, 1, 12);
     if (PH > gf + 24) { const y = PH - gf - 40; g.fillStyle = night ? '#F7D58A' : '#C9BFA8'; g.fillRect(PW * .2, y, PW * .6, 28); g.fillStyle = '#2A201A'; for (let x = PW * .2; x < PW * .8; x += 6) g.fillRect(x, y, 2, 28); g.fillStyle = '#4A4F57'; g.fillRect(0, 0, PW, 8); }
   },
+  // 2026-11-17 景色 74〜96：住宅街の 2 階建ての家（それまでは、うすい色の壁に青い窓が 2 つずつだけで、作り物っぽかった）
+  house(g, r, PW, PH, w, h, night, variant) {
+    const P = FAC_P, k = night ? .42 : 1, base = ['#EFE6D6', '#E2D6C2', '#D6CDBF', '#C9BFAF', '#E9E2D5', '#BFB6A6', '#DCD3C4', '#C7C9C4'][variant % 8], sh = (c, m) => shadeHex(c, m * k);
+    g.fillStyle = sh(base, 1); g.fillRect(0, 0, PW, PH);
+    const siding = variant % 3 !== 2; if (siding) { for (let y = PH; y > 0; y -= .45 * P) { g.fillStyle = 'rgba(0,0,0,.07)'; g.fillRect(0, y - 1.5, PW, 1.5); g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(0, y - 2.5, PW, 1); } for (let x = 30 + r() * 30; x < PW; x += 45 + r() * 30) { g.fillStyle = 'rgba(0,0,0,.05)'; g.fillRect(x, 0, 1, PH); } } // [74] 外壁のサイディングの横じまと継ぎ目
+    else { for (let i = 0; i < 260; i++) { g.fillStyle = r() < .5 ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.07)'; g.fillRect(r() * PW, r() * PH, 2, 2); } } // [75] 吹きつけの壁のざらざら
+    const fl = 2.9 * P, g1 = PH, g2 = PH - fl, top = Math.max(0, PH - fl * 2);
+    g.fillStyle = sh(base, .86); g.fillRect(0, g2 - 3, PW, 5); g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(0, g2 - 4, PW, 1); // [92] 1 階と 2 階の間の帯
+    const win = (x, y, ww, hh, lit) => { g.fillStyle = sh('#E8E8E4', 1); g.fillRect(x - 3, y - 3, ww + 6, hh + 6); g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(x - 3, y + hh + 3, ww + 6, 2); // [81] 白いアルミサッシ [93] 窓の下のかげ
+      if (night) { const on = lit; g.fillStyle = on ? '#FFE2A8' : '#232A38'; g.fillRect(x, y, ww, hh); if (on) { g.fillStyle = 'rgba(255,255,255,.35)'; for (let xx = x + 2; xx < x + ww; xx += 4) g.fillRect(xx, y, 1.5, hh); g.fillStyle = 'rgba(120,70,30,.25)'; g.fillRect(x + ww * .55, y, ww * .45, hh); } } // [90] カーテン越しのあかり [91] レースのカーテンのひだ
+      else { const gr = g.createLinearGradient(0, y, 0, y + hh); gr.addColorStop(0, '#B7CCDB'); gr.addColorStop(.5, '#7F98AC'); gr.addColorStop(1, '#4E6274'); g.fillStyle = gr; g.fillRect(x, y, ww, hh); g.fillStyle = 'rgba(245,242,232,.75)'; g.fillRect(x + ww * .52, y + 1, ww * .46, hh - 2); g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.moveTo(x + 2, y + hh); g.lineTo(x + ww * .3, y); g.lineTo(x + ww * .4, y); g.lineTo(x + ww * .12, y + hh); g.fill(); }
+      g.fillStyle = sh('#D5D5D0', 1); g.fillRect(x + ww / 2 - 1.5, y, 3, hh); };
+    // 1 階：玄関・小窓（面格子）・掃き出し窓
+    const dx = PW * (.12 + r() * .2), dw = 1.0 * P, dh = 2.1 * P, dy = g1 - dh - 4;
+    g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(dx - 10, dy - 14, dw + 20, 4); g.fillStyle = sh('#6E6E6E', 1); g.fillRect(dx - 12, dy - 18, dw + 24, 5); // [77] 玄関の上のひさし
+    { const wood = ['#7A5236', '#5E4030', '#8E6A4A', '#4A4A4E'][variant % 4], gr = g.createLinearGradient(dx, 0, dx + dw, 0); gr.addColorStop(0, sh(wood, .85)); gr.addColorStop(.5, sh(wood, 1.12)); gr.addColorStop(1, sh(wood, .8)); g.fillStyle = gr; g.fillRect(dx, dy, dw, dh); g.fillStyle = 'rgba(0,0,0,.12)'; for (let y = dy + 3; y < dy + dh; y += 4) g.fillRect(dx, y, dw, 1); g.fillStyle = night ? '#FFE9B8' : 'rgba(200,215,225,.7)'; g.fillRect(dx + dw * .2, dy + 6, dw * .14, dh * .7); g.fillStyle = sh('#C9C2B0', 1.1); g.fillRect(dx + dw * .78, dy + dh * .45, 3, 12); } // [76] 木目の玄関ドアと取っ手
+    { const lx = dx + dw + 8, ly = dy + 8; if (night) { g.save(); g.shadowColor = '#FFC870'; g.shadowBlur = 14; g.fillStyle = '#FFF0C8'; g.beginPath(); g.arc(lx, ly, 3.5, 0, 7); g.fill(); g.restore(); g.fillStyle = 'rgba(255,210,140,.18)'; g.beginPath(); g.arc(lx, ly + 10, 22, 0, 7); g.fill(); } else { g.fillStyle = '#F4F1E6'; g.beginPath(); g.arc(lx, ly, 3.5, 0, 7); g.fill(); g.strokeStyle = '#6E6E6E'; g.lineWidth = 1; g.stroke(); } } // [78] 玄関灯（夜は点く）
+    g.fillStyle = sh('#3A3A3A', 1); g.fillRect(dx - 14, dy + dh * .32, 9, 6); g.fillStyle = sh('#EDE7D8', 1); g.fillRect(dx - 13, dy + dh * .32 + 1, 7, 4); // [79] 表札
+    g.fillStyle = sh('#DADADA', 1); g.fillRect(dx - 12, dy + dh * .45, 5, 8); g.fillStyle = sh('#333', 1); g.fillRect(dx - 11, dy + dh * .45 + 1, 3, 3); // [80] インターホン
+    const sx = Math.min(PW - 1.8 * P - 8, dx + dw + 1.2 * P); if (sx + 1.8 * P < PW) win(sx, g1 - 2.2 * P, 1.8 * P, 1.9 * P, r() < .6); // 掃き出し窓
+    { const mx = dx > PW * .3 ? dx - .9 * P : Math.max(sx + 1.8 * P + 14, PW - .9 * P - 10); if (mx > 6 && mx + .7 * P < PW - 4) { win(mx, g1 - 2.1 * P, .7 * P, .55 * P, r() < .4); g.fillStyle = sh('#CFCFCB', 1); for (let x = mx + 2; x < mx + .7 * P; x += 4) g.fillRect(x, g1 - 2.1 * P - 2, 1.5, .55 * P + 4); } } // [82] 小窓の面格子
+    // 2 階：ベランダ・窓・雨戸の戸袋・小さなひさし
+    if (PH > fl + 20) { const n2 = Math.max(1, Math.round(PW / (3.2 * P))); for (let i = 0; i < n2; i++) { const cw = PW / n2, ww = Math.min(1.7 * P, cw * .62), x = i * cw + (cw - ww) / 2, y = g2 - 2.3 * P;
+        win(x, y, ww, 1.75 * P, r() < .55); g.fillStyle = sh(base, .9); g.fillRect(x + ww + 4, y - 2, .45 * P, 1.75 * P + 4); g.fillStyle = 'rgba(0,0,0,.08)'; for (let yy = y; yy < y + 1.75 * P; yy += 3) g.fillRect(x + ww + 4, yy, .45 * P, 1); // [83] 雨戸の戸袋
+        g.fillStyle = sh('#7C7C7C', 1); g.fillRect(x - 6, y - 9, ww + 12, 4); g.fillStyle = 'rgba(0,0,0,.15)'; g.fillRect(x - 4, y - 5, ww + 8, 3); } // [87] 窓の上の小さなひさし
+      const bx = PW * (.4 + r() * .1), bw = PW * .5, by = g2 - 1.0 * P; if (r() < .8) { g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(bx, by + 1.0 * P - 2, bw, 4); g.fillStyle = sh('#ECEBE6', 1); g.fillRect(bx, by, bw, 3); for (let x = bx; x < bx + bw; x += 4) g.fillRect(x, by, 1.3, 1.0 * P); g.fillRect(bx, by + 1.0 * P - 3, bw, 3); // [84] ベランダの手すり
+        if (!night && r() < .7) { const fc = ['#F2EFE6', '#E7C9CF', '#C9D9E8', '#F2E2B8'][(r() * 4) | 0]; g.fillStyle = fc; g.fillRect(bx + bw * .1, by - 3, bw * .35, .75 * P); g.fillStyle = 'rgba(0,0,0,.08)'; g.fillRect(bx + bw * .1, by + .5 * P, bw * .35, 3); } // [95] 干した布団
+        if (!night) { g.strokeStyle = sh('#9A9A9A', 1); g.lineWidth = 1; g.beginPath(); g.moveTo(bx + bw * .5, by - .7 * P); g.lineTo(bx + bw * .95, by - .7 * P); g.stroke(); for (let x = bx + bw * .53; x < bx + bw * .93; x += 7 + r() * 5) { g.fillStyle = ['#FFFFFF', '#7FA6D6', '#E6A4A9', '#F2C230', '#5F9E5A'][(r() * 5) | 0]; g.fillRect(x, by - .7 * P, 5, 8 + r() * 6); } } // [96] 洗濯物
+        g.fillStyle = sh('#E9EAE6', 1); g.fillRect(bx + bw - .9 * P, by + .25 * P, .8 * P, .6 * P); g.fillStyle = sh('#5A5C60', 1); g.beginPath(); g.arc(bx + bw - .55 * P, by + .55 * P, .22 * P, 0, 7); g.fill(); } } // [85] ベランダの室外機
+    { const gx = r() < .5 ? 3 : PW - 6; g.fillStyle = sh('#8E8A80', 1); g.fillRect(gx, top, 3, PH - top); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(gx, top, 1, PH - top); for (let y = top + 20; y < PH; y += 40) { g.fillStyle = sh('#6E6A60', 1); g.fillRect(gx - 1, y, 5, 2); } } // [86] たての雨どい
+    { const vx = PW * (.55 + r() * .3), vy = g2 + .5 * P; g.fillStyle = sh('#D6D6D2', 1); g.beginPath(); g.arc(vx, vy, 5, 0, 7); g.fill(); g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(vx - 4, vy + 1, 8, 2); g.fillStyle = 'rgba(80,60,40,.18)'; g.fillRect(vx - 2, vy + 4, 4, 18); } // [88] 換気口の丸いフードと、下のよごれのすじ
+    { const mx = dx + dw + 22, my = g1 - 1.3 * P; g.fillStyle = sh('#CFCFCB', 1); g.fillRect(mx, my, 10, 14); g.fillStyle = sh('#2E2E2E', 1); g.fillRect(mx + 2, my + 3, 6, 4); g.fillStyle = sh('#6E6E6E', 1); g.fillRect(mx + 4, my + 14, 2, g1 - my - 14); } // [89] 電気のメーター
+    g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(0, 0, PW, 6); g.fillStyle = 'rgba(0,0,0,.1)'; g.fillRect(0, 6, PW, 8); // [94] 屋根ののきのかげ
+  },
   // second-hand bookshops: book racks under the window, shelves inside, a hand-written sign
   books(g, r, PW, PH, w, h, night, variant) {
     FAC_STYLE.mixed(g, r, PW, PH, w, h, night, variant);

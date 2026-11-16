@@ -586,9 +586,8 @@ function drawBunnyWorld(b) {
   // フィーバー中は走る自分のうしろに、うすい残像を2つ（C-38）。手前（画面の下）に少しずらし、レーン移動の向きにも流す。「動きを減らす」設定では出さない
   // 2026-11-09：相棒とポムにも（メインのキャラクターだけ残像が出ていた）。ダッシュ中も
   if ((b === G.player || b === G.follow || b === G.pom) && (G.fever > 0 || G.pow.dash > 0) && G.mode === 'play' && !OPT().calm && !b.fly && !(b.look > 0)) { const lx = b === G.player && G.laneT > 0 ? -Math.sign(G.lane - G.prevLane) * 60 : 0; G.ghostN = (G.ghostN || 0) + 1; const tn = G.trailN || (G.trailN = {}); tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] = (tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] || 0) + 1;
-    for (const [k, a] of [[2, .14], [1, .26]]) { ctx.globalAlpha = a; ctx.drawImage(img, -BS / 2 + lx * k, -GROUND_Y - BTOP + 34 * k, img.width, img.height); } ctx.globalAlpha = 1; }
-  else if (b === G.player && G.laneT > 0 && G.lane !== G.prevLane && G.mode === 'play' && !OPT().calm && !b.fly && !(b.look > 0) && !(typeof lowQ !== 'undefined' && lowQ)) { /* レーンを移る一瞬だけ、来た方にうすい残像（アニメの「オバケ」）。速く動いたことが目に残る */
-    const dl = -Math.sign(G.lane - G.prevLane), k = Math.sin(clamp(G.laneT / .35, 0, 1) * Math.PI); for (const [m, a] of [[2, .09], [1, .17]]) { ctx.globalAlpha = a * k; ctx.drawImage(img, -BS / 2 + dl * 62 * m * k, -GROUND_Y - BTOP, img.width, img.height); } ctx.globalAlpha = 1; G.smearN = (G.smearN || 0) + 1; }
+    for (const [k, a] of [[1, .12]]) { ctx.globalAlpha = a; ctx.drawImage(img, -BS / 2, -GROUND_Y - BTOP + 30 * k, img.width, img.height); } ctx.globalAlpha = 1; } /* フィーバー・ダッシュの残像も、うすい 1 つだけ・横へは流さない（2026-11-17 オーナー：「残像がウザくなりすぎないように全体的に気をつけて」。前は 2 つ・レーン移動の向きにも流していた） */
+  /* レーンを移る一瞬の残像は、やめた（2026-11-17 オーナー：「キャラクターが左右に移動した時の残像はうざったいのでいらない」）。qa/motion.js が、出ないことを見張る */
   if (b.flash && G.mode === 'play' && Math.floor(G.t * 16) % 2) ctx.globalAlpha = .45; // 点滅は走っている時だけ（ホーム画面・結果の画面では出さない）
   ctx.drawImage(LT.indoor ? img : litSprite(img, bunnyAmb(), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
   if (b.hawk) drawHawk(b);
