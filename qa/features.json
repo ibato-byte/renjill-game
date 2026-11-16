@@ -1037,14 +1037,159 @@
       "has": "'kpg-best'"
     },
     {
+      "name": "曲がり終えた角の看板・うしろの外の通りを描かない",
+      "file": "src/4_render.js",
+      "has": "function prevHidden()"
+    },
+    {
+      "name": "外から入った部屋の角の四角に壁",
+      "file": "src/3_world.js",
+      "has": "wallRun(out, -HW, s0)"
+    },
+    {
+      "name": "つきあたりの壁に物を掛ける・電車の車両のはし",
+      "file": "src/3_world.js",
+      "has": "put('carend', -HW, HW, 0, H)"
+    },
+    {
+      "name": "ポムの走り：足を交互に・ほとんど跳ねない（ハムスター）",
+      "file": "src/2b_bunny.js",
+      "has": "const upOf = sd => { if (!run) return 0;"
+    },
+    {
       "name": "走りはうさぎ跳び（12 コマ：ため・けり・空中・着地・引きよせ）",
       "file": "src/2b_bunny.js",
       "has": "function hopPose(u) {"
     },
     {
+      "name": "Y 字路（45 度ずつの分かれ道・とがった角の建物）",
+      "file": "src/3_world.js",
+      "has": "function yWedge(seg)"
+    },
+    {
+      "name": "yfork テスト",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'yfork'"
+    },
+    {
       "name": "ホーム画面では、ぶつかった直後の点滅を消す",
       "file": "src/6_game.js",
       "has": "P.flash = F.flash = G.pom.flash = false;"
+    },
+    {
+      "name": "電波塔コース（10万点・30万点）",
+      "file": "src/6_game.js",
+      "has": "function courseStart(last)"
+    },
+    {
+      "name": "コースの場所と本当の方角",
+      "file": "src/1b_places.js",
+      "has": "const COURSES = {"
+    },
+    {
+      "name": "オオタカの絵",
+      "file": "src/4_render.js",
+      "has": "function drawHawk(b)"
+    },
+    {
+      "name": "空の上（床なし・高さが下がる）",
+      "file": "src/3_world.js",
+      "has": "function skyItems(seg)"
+    },
+    {
+      "name": "上から見た東京（空撮のような地面）",
+      "file": "src/4g_aerial.js",
+      "has": "function aerDetail(night)"
+    },
+    {
+      "name": "大きな地形の絵（川・公園・高速）",
+      "file": "src/4g_aerial.js",
+      "has": "function aerMacro(night)"
+    },
+    {
+      "name": "目印の本当の方角",
+      "file": "src/4b_patterns.js",
+      "has": "function lmAngle(seg, lm)"
+    },
+    {
+      "name": "towercourse テスト",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'towercourse'"
+    },
+    {
+      "name": "50万点：浅草寺コース",
+      "file": "src/1b_places.js",
+      "has": "asakusa: { at: 500000"
+    },
+    {
+      "name": "浅草寺の本堂の絵",
+      "file": "src/4b_patterns.js",
+      "has": "function drawHondo("
+    },
+    {
+      "name": "坂の頂上の向こうのかげを手前に重ねない",
+      "file": "src/4c_atmos.js",
+      "has": "OCC.on && b - a > 3.01"
+    },
+    {
+      "name": "鉄道の橋：電車の走る所ぜんぶに橋げたとかべ高欄",
+      "file": "src/3_world.js",
+      "has": "l0: -95, l1: 95, s0: a0 + .05"
+    },
+    {
+      "name": "紙飛行機の間は足を止める",
+      "file": "src/4_render.js",
+      "has": "else if (b.fly) pose ="
+    },
+    {
+      "name": "ポムの走り：3 つの場面の足・けり出した足の裏",
+      "file": "src/2b_bunny.js",
+      "has": "const legS = sd =>"
+    },
+    {
+      "name": "車のナンバー（日本の色の決まり）",
+      "file": "src/4e_art.js",
+      "has": "function carPlate("
+    },
+    {
+      "name": "スポーツカーの作り込み（夜の絵）",
+      "file": "src/4e_art.js",
+      "has": "function paintSupercar(g, W, H, col, night)"
+    },
+    {
+      "name": "車の夜の絵",
+      "file": "src/4e_art.js",
+      "has": "`car|${o.av.t}|${o.av.c}|${night ? 'n' : 'd'}`"
+    },
+    {
+      "name": "障害物：ロボットそうじ機の描き直し",
+      "file": "src/4h_artplus.js",
+      "has": "function paintRoomba2("
+    },
+    {
+      "name": "障害物：本物の部品を描き足すしくみ",
+      "file": "src/4h_artplus.js",
+      "has": "function plusArt("
+    },
+    {
+      "name": "障害物の作り込み 200",
+      "file": "src/4h_artplus.js",
+      "has": "[200]"
+    },
+    {
+      "name": "ホーム画面：敷きぶとんの厚み",
+      "file": "src/6_game.js",
+      "has": "const FT = .11;"
+    },
+    {
+      "name": "ホーム画面：たんすを奥行きのある箱に",
+      "file": "src/4h_artplus.js",
+      "has": "kind !== 'tansu2'"
+    },
+    {
+      "name": "箱の上の面を描かない（ふとん）",
+      "file": "src/4_render.js",
+      "has": "if (b.noTop) return boxFaces("
     },
     {
       "name": "ホーム画面で跳ねるのは選んだ子だけ",

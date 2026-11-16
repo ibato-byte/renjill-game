@@ -132,6 +132,7 @@ function sunK(n) {
 }
 function boxFaces(seg, b, ds, dl, dy) {
   const s0 = b.s0 + ds, s1 = b.s1 + ds, l0 = b.l0 + dl, l1 = b.l1 + dl, y0 = b.y0 + dy, y1 = b.y1 + dy, f = seg.f, r = seg.r;
+  if (b.noTop) return boxFaces(seg, Object.assign({}, b, { noTop: 0 }), ds, dl, dy).filter(fc => !fc.top); // 上の面を描かない箱（ホーム画面の敷きぶとん：上の面は床の絵＝シーツと掛けぶとん）
   return [
     { v: quad(seg, [[s0, l0, y1], [s0, l1, y1], [s1, l1, y1], [s1, l0, y1]]), n: [0, 1, 0], sh: FACE_SH.top, top: 1 },
     { v: quad(seg, [[s0, l0, y0], [s0, l1, y0], [s0, l1, y1], [s0, l0, y1]]), n: [-f[0], 0, -f[1]], sh: FACE_SH.front, front: 1 },
@@ -223,7 +224,7 @@ function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
       if (y1 - y0 > 14) { const gr = ctx.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, 'rgba(255,255,255,.10)'); gr.addColorStop(.6, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(20,15,30,.22)'); ctx.fillStyle = gr; ctx.fill(); } }
     if (fd < 30 && !b.noEdge) { ctx.strokeStyle = 'rgba(40,30,24,.08)'; ctx.lineWidth = 1; ctx.stroke(); }
     if (fc.top && m === 4 && fd < 22 && !glow) { ctx.strokeStyle = `rgba(255,250,240,${(.22 * (1 - fd / 22)).toFixed(3)})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(SCR[0], SCR[1]); ctx.lineTo(SCR[2], SCR[3]); ctx.stroke(); }
-    if (b.face && m === 4 && fd < (b.faceN ? 120 : 50) && (b.faceFront ? fc.front : b.faceSide ? (b.faceSide === 'L' ? fc.sideL : fc.sideR) : (fc.sideL || fc.sideR))) faceImage(paintFace(b.faceN && LT.night > .4 ? b.faceN : b.face, b.faceW, b.faceH), fc.sideL, fc.v); // 電車（faceN）は遠くからも絵で。先頭の顔は前の面（faceFront）
+    if (b.face && m === 4 && fd < (b.faceN ? 120 : 50) && (b.faceAll ? (fc.front || fc.sideL || fc.sideR) : b.faceFront ? fc.front : b.faceSide ? (b.faceSide === 'L' ? fc.sideL : fc.sideR) : (fc.sideL || fc.sideR))) faceImage(paintFace(b.faceN && LT.night > .4 ? b.faceN : b.face, b.faceW, b.faceH), fc.sideL, fc.v); // 電車（faceN）は遠くからも絵で。先頭の顔は前の面（faceFront）
     if (m === 4 && fd < 45) {
       if (b.pat === 'vend' && (fc.sideL || fc.sideR || fc.front)) vendFace(b);
       if (b.txt && (fc.front || (b.vert && (fc.sideL || fc.sideR)))) qtext(b.txt, .08, .06, .92, .94, b.tc || (hexRgb(b.c)[0] + hexRgb(b.c)[1] < 260 ? '#FBF6EE' : '#2B1A12'), { vert: b.vert });
@@ -235,7 +236,14 @@ function vendFace(b) { bquad(.08, .45, .92, .95, '#FFFFFF'); for (let r = 0; r <
 
 /* ================= frame ================= */
 const DRAW = [];
-function segOrder() { const out = []; for (let i = G.segs.length - 1; i > G.ci; i--) out.push(G.segs[i]); if (G.fork) out.push(...G.fork); if (G.segs[G.ci - 1]) out.push(G.segs[G.ci - 1]); out.push(G.segs[G.ci]); return out.filter(Boolean); }
+const IN_K = k => k === 'room' || k === 'train' || k === 'glass';
+/* 外から建物の中へ曲がった時：カメラが半分以上まわったら、うしろの外の道は描かない（2026-11-16 オーナー「曲がり角で壁が透けて先が見える」。
+   中に入ったのに、入り口の横から前の通りの建物や看板が見えていた） */
+function prevHidden() { const cur = G.segs[G.ci], pv = G.segs[G.ci - 1]; if (!cur || !pv || G.mode === 'title') return false; if (cur.th.sky) return true; /* 空の上：うしろの展望台（地面の高さに作ってある）は描かない */ if (!IN_K(cur.th.kind) || IN_K(pv.th.kind)) return false;
+  let d = (G.camYaw || 0) - cur.dir * Math.PI / 2; d = Math.atan2(Math.sin(d), Math.cos(d)); return Math.abs(d) < Math.PI / 4; }
+// 空の上の先（着地する公園）は地面の高さにある。塔の上・展望台にいる間は、空の先は描かない（150m の窓の外に、目の高さの公園が浮いて見えないように）
+function skyCut() { const cur = G.segs[G.ci]; if (!cur || cur.th.sky) return 1e9; for (let i = G.ci + 1; i < G.segs.length; i++) if (G.segs[i].th.sky) return i; return 1e9; }
+function segOrder() { const out = [], cut = skyCut(); for (let i = G.segs.length - 1; i > G.ci; i--) if (i <= cut) out.push(G.segs[i]); if (G.fork) out.push(...G.fork); if (G.segs[G.ci - 1] && !prevHidden()) out.push(G.segs[G.ci - 1]); out.push(G.segs[G.ci]); return out.filter(Boolean); }
 // つきあたりの壁の上（cap）：先が、天井のもっと高い部屋のときも描く
 function capOn(sg) { if (sg !== G.segs[G.ci] || G.mode === 'title') return false; const nx = G.fork && G.fork.length ? G.fork : [G.segs[G.ci + 1]]; return nx.some(n => n && (n.wallH || 0) > (sg.wallH || 0) + .05); }
 // のばした奥の壁（3_world.js の wing）を描くか：その建物の中にいる間と、外へ曲がり始めた一瞬だけ。先が建物の中なら描かない
@@ -258,11 +266,8 @@ function titleLight() {
       const x = W * (-.05 + u * .75) + ph * top * .5 + Math.sin(t * .5 + i) * m * .012, y = ph * top * .92, tw = .5 + .5 * Math.sin(t * (1.1 + (i % 4) * .3) + i * 1.7), al = tw * .55 * Math.sin(ph * Math.PI);
       if (al < .03) continue; const r = m * (.0028 + (i % 3) * .0012); const dg = ctx.createRadialGradient(x, y, 0, x, y, r * 3); dg.addColorStop(0, `rgba(255,248,225,${al})`); dg.addColorStop(1, 'rgba(255,248,225,0)'); ctx.fillStyle = dg; ctx.fillRect(x - r * 3, y - r * 3, r * 6, r * 6); }
   ctx.restore();
-  /* 選んだ子だけに明かり：足もとに光のたまりと、体をつつむやわらかい光。だれを選んでいるかが、絵だけで分かるように（2026-11-16） */
-  const sp = spriteAt(G.player.wx, G.player.wy, G.player.wz), cx = sp ? sp.sx : W / 2, fy = sp ? sp.sy : H * .5, k = sp ? sp.k : m * .2, cy = fy - k * .55;
-  { ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.translate(cx, fy + k * .04); ctx.scale(1, .26); const pg = ctx.createRadialGradient(0, 0, 0, 0, 0, k * 1.5); pg.addColorStop(0, 'rgba(255,232,170,.46)'); pg.addColorStop(.6, 'rgba(255,232,170,.16)'); pg.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(0, 0, k * 1.5, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
-  { ctx.save(); ctx.globalCompositeOperation = 'soft-light'; ctx.translate(cx, cy); ctx.scale(.62, 1); const hg = ctx.createRadialGradient(0, 0, 0, 0, 0, k * 1.25); hg.addColorStop(0, 'rgba(255,214,150,.9)'); hg.addColorStop(.55, 'rgba(255,214,150,.42)'); hg.addColorStop(1, 'rgba(255,214,150,0)'); ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, k * 1.25, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } // 体の光は「やわらかい光」の重ね方：明るく・あたたかくするが、色はうすくしない（2026-11-16 オーナー：光が明るすぎて色がうすい）
-  // 選んだ子だけを、やわらかい光でつつむ（横にせまいだ円なので、となりの子には届かない）。画面全体やほかの子は暗くしない（オーナー 2026-11-16：「ホーム画面全体を暗くしなくていい」）。qa/homelight.js が 3 画面 × 3 人で確かめる
+  /* 選んだ子へのスポットライトは無し（オーナー 2026-11-17：「スポットライトが明るすぎて不自然。選択されてるキャラクターのライトいらない」）。
+     だれを選んでいるかは、まん中・いちばん手前にいることで分かる。qa/homelight.js が、選んだ子だけ明るくなっていないことを見張る */
 }
 function render() {
   const seg = G.segs[G.ci] || G.segs[0]; if (!seg) return;
@@ -324,7 +329,8 @@ function drawSegment(sg, isCur) {
   DRAW.length = 0;
   const wing = wingOn(sg), cap = wing || capOn(sg);
   for (const w of sg.walls) { if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; DRAW.push([d, 1, w]); }
-  for (const e of sg.decos) { if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (lowQ ? 70 : 90)) continue; DRAW.push([d - 1.6, 2, e]); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
+  const behind = G.segs.indexOf(sg) >= 0 && G.segs.indexOf(sg) < G.ci; // 曲がり終えた角の矢印の看板は描かない（横に浮いた板に見えていた）
+  for (const e of sg.decos) { if (e.sign && behind) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (lowQ ? 70 : 90)) continue; DRAW.push([d - 1.6, 2, e]); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
   DRAW.sort((a, b) => b[0] - a[0]);
   for (const [d, t, w] of DRAW) {
     if (oc && occAt(d - 2) !== Infinity) { occDraw(d - 2, () => drawWallItem(d, t, w)); continue; }
@@ -363,7 +369,7 @@ function drawObjects(sg, isCur, oc) {
     const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d < -3 || d > FAR) continue;
     DRAW.push([d, 3, o]);
   }
-  if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) DRAW.push([d, 8, m]); }
+  if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) DRAW.push([m.cross ? d + 8 : d, 8, m]); } // 橋の上の電車は、橋げた・かべ高欄より先に描く（下から見上げても、電車の床下は橋げたにかくれる。2026-11-17）
   for (const p of sg.props) { if (p.nodraw) continue; const mid = segPos(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d < -3 || d > (p.big ? FAR : lowQ ? 60 : 85)) continue; DRAW.push([d, 6, p]); }
   for (const s of sg.spr) { if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const p = segPos(sg, s.s, s.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > (s.far ? FAR : 80)) continue; DRAW.push([d, 7, s]); }
   // pigeons on the street: they peck about and fly off as you run up (2026-11-08)
@@ -482,7 +488,7 @@ function drawItem(it, sg, d) {
   const size = (it.type === 'hay' ? .74 : isPow ? .9 : .7) * sp.k; // a little bigger: the hay was hard to see on a phone
   const spin = it.type === 'hay' || it.type === 'goldhay' || isPow ? .72 + .28 * Math.cos(G.t * 3.2 + it.ph) : 1;
   ctx.globalAlpha = (1 - fogK(d) * .9) * passFade(d);
-  if (d < 40 && !lowQ) { const gp = spriteAt(p[0], p[2], p[1]); if (gp) { const hk = clamp(1 - it.y / 3, .35, 1); ctx.fillStyle = `rgba(30,22,16,${(.16 * hk).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(gp.sx, gp.sy, size * .34 * hk, size * .09 * hk, 0, 0, Math.PI * 2); ctx.fill(); } } // a soft shadow on the ground under each item (2026-11-08)
+  if (d < 40 && !lowQ && !sg.th.sky) { const gp = spriteAt(p[0], p[2], p[1]); if (gp) { const hk = clamp(1 - it.y / 3, .35, 1); ctx.fillStyle = `rgba(30,22,16,${(.16 * hk).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(gp.sx, gp.sy, size * .34 * hk, size * .09 * hk, 0, 0, Math.PI * 2); ctx.fill(); } } // a soft shadow on the ground under each item (2026-11-08)
   if (isPow || it.type === 'goldhay') { ctx.beginPath(); ctx.fillStyle = def.kind === 'stamp' ? 'rgba(255,120,110,.45)' : 'rgba(255,236,150,.5)'; ctx.arc(sp.sx, sp.sy, size * .62 * (1 + .08 * Math.sin(G.t * 6)), 0, Math.PI * 2); ctx.fill(); }
   const img = def.kind === 'stamp' ? stampSprite(sg.tid) : SPR[bad ? it.type + 'NG' : it.type];
   ctx.drawImage(img, sp.sx - size * spin / 2, sp.sy - size / 2, size * spin, size);
@@ -494,7 +500,8 @@ function objShadows(sg) {
   const one = (s0, s1, l0, l1) => {
     const p = segPos(sg, (s0 + s1) / 2, (l0 + l1) / 2), sp = spriteAt(p[0], p[2], p[1]); if (!sp || sp.z > 55) return;
     const rx = Math.min(3, (l1 - l0) / 2 + .15) * sp.k, ry = Math.min(2, (s1 - s0) / 2 + .1) * sp.k * .35;
-    ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, Math.max(1, ry), 0, 0, Math.PI * 2); ctx.fill();
+    const fill = () => { ctx.fillStyle = 'rgba(30,22,16,.16)'; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, Math.max(1, ry), 0, 0, Math.PI * 2); ctx.fill(); };
+    if (sg === G.segs[G.ci] && OCC.on) occDraw(sp.z, fill); else fill(); // 坂の頂上の向こうの物のかげは、手前の坂に重ねない
   };
   for (const o of sg.obs) if (!o.dead && !o.full && o.k !== 'high' && o.top < 3.5) one(o.s0 + (o.ds || 0), o.s1 + (o.ds || 0), o.l0, o.l1);
   for (const p of sg.props) if (!p.big && p.bx[0] && p.bx[0].y0 <= .05) one(p.s0, p.s1, p.l0, p.l1);
@@ -512,6 +519,7 @@ function objShadows(sg) {
 }
 let SHG = null; function softShadow() { if (SHG) return SHG; SHG = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); SHG.addColorStop(0, 'rgba(30,22,16,.34)'); SHG.addColorStop(.55, 'rgba(30,22,16,.2)'); SHG.addColorStop(1, 'rgba(30,22,16,0)'); return SHG; }
 function drawShadows(seg) {
+  if (seg.th.sky) return; // 空の上：足もとに地面が無いので、かげも無い
   ctx.fillStyle = 'rgba(30,22,16,.22)';
   const sh = (s, lat, r, a) => { const p = segPos(seg, s, lat); const sp = spriteAt(p[0], p[2], p[1]); if (!sp) return; ctx.save(); ctx.globalAlpha = a; ctx.translate(sp.sx, sp.sy); ctx.scale(r * sp.k * 1.15, r * sp.k * .34); ctx.fillStyle = softShadow(); ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }; // a soft-edged pool, darkest under the feet
   if (G.player.show && G.mode !== 'title') { sh(G.s, G.lat, .55, clamp(1 - G.y * .3, .25, 1)); if (G.follow.show) sh(G.s - G.follow.back, G.follow.lat, .46, .8); if (G.pom.on && G.pom.show) sh(G.s - G.pom.back, G.pom.lat, G.pom.who === 'pom' ? .32 : .46, .75); }
@@ -519,12 +527,46 @@ function drawShadows(seg) {
 }
 /* うさぎに当たる夕方の色はひかえめに（赤むらさきに染まりすぎて、だれだか分からなくなっていた）。明るさは残して色味だけ弱める */
 function bunnyAmb() { const a = LT.amb.map(x => x + (1 - x) * .45), m = (a[0] + a[1] + a[2]) / 3; return a.map((x, i) => Math.max(i === 2 ? .58 : .55, m + (x - m) * .45)); }
+/* オオタカ（2026-11-17）：うしろ・少し上から見た、成鳥のオオタカ。
+   背中と翼の上は青みのある灰黒色、風切羽の先はこい色で指のように 6 本に分かれる（タカの仲間の丸い翼）。
+   尾は長く、こい横帯が 4 本・先が白い。頭は黒っぽく、目の上に白いまゆ（白い眉斑）。足は黄色。
+   ふだんは翼を広げてすべるように飛び（滑空）、ときどき重そうに 2〜3 回はばたく。かぎづめで背中の上（首のうしろ）をそっとつかむ */
+function drawHawk(b) {
+  const k = b === G.player ? 0 : b === G.follow ? 1.7 : 3.1, t = G.t + k, cyc = (t * .55) % 1, flapping = cyc > .62, fl = flapping ? Math.sin((cyc - .62) / .38 * Math.PI * 3) : Math.sin(t * 1.3) * .08;
+  const T = c => tint(c), up = -fl * 70, x0 = Math.sin(t * .9) * 6;
+  ctx.save(); ctx.translate(x0, -335 + fl * 8);
+  // 足：黄色いすね・白い羽毛の「ズボン」・黒いかぎづめ。首のうしろ（両肩）をつかむ
+  ctx.lineCap = 'round';
+  for (const sd of [-1, 1]) { ctx.strokeStyle = T('#E2B53A'); ctx.lineWidth = 11; ctx.beginPath(); ctx.moveTo(sd * 16, 40); ctx.quadraticCurveTo(sd * 30, 100, sd * 44, 150); ctx.stroke();
+    ctx.fillStyle = T('#EDEFF0'); ctx.beginPath(); ctx.ellipse(sd * 18, 52, 15, 24, sd * -.2, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = T('#9AA3AD'); ctx.lineWidth = 2; for (let j = 0; j < 3; j++) { ctx.beginPath(); ctx.moveTo(sd * 8, 42 + j * 9); ctx.lineTo(sd * 28, 46 + j * 9); ctx.stroke(); }
+    ctx.strokeStyle = T('#23262B'); ctx.lineWidth = 6; for (const a of [-.6, 0, .6]) { ctx.beginPath(); ctx.moveTo(sd * 44, 150); ctx.quadraticCurveTo(sd * (44 + Math.sin(a) * 26), 154, sd * (44 + Math.sin(a) * 22), 172); ctx.stroke(); } }
+  // 尾：手前に向かって長い扇形。こい横帯 4 本と白い先
+  ctx.save(); ctx.beginPath(); ctx.moveTo(-16, 30); ctx.lineTo(-38, 128); ctx.quadraticCurveTo(0, 146, 38, 128); ctx.lineTo(16, 30); ctx.closePath(); ctx.fillStyle = T('#69727D'); ctx.fill(); ctx.clip();
+  ctx.fillStyle = T('#3A4048'); for (let j = 0; j < 4; j++) ctx.fillRect(-50, 46 + j * 21, 100, 8); ctx.fillStyle = T('#F1F2F2'); ctx.fillRect(-50, 128, 100, 20); ctx.restore();
+  // 翼（左右）：付け根は灰色、外は濃く、先は指のように分かれた 6 本の羽
+  for (const sd of [-1, 1]) {
+    const tipX = sd * 300, tipY = -6 + up;
+    ctx.beginPath(); ctx.moveTo(sd * 24, -14); ctx.bezierCurveTo(sd * 110, -54 + up * .3, sd * 210, -40 + up * .7, tipX, tipY); ctx.lineTo(sd * 250, 24 + up * .8); ctx.bezierCurveTo(sd * 170, 58 + up * .5, sd * 80, 52 + up * .2, sd * 22, 34); ctx.closePath();
+    const gr = ctx.createLinearGradient(0, 0, tipX, 0); gr.addColorStop(0, T('#7A8490')); gr.addColorStop(.55, T('#5D6672')); gr.addColorStop(1, T('#3B414A')); ctx.fillStyle = gr; ctx.fill();
+    for (let j = 0; j < 6; j++) { const q = j / 5, fx = sd * (236 + q * 78), fy = 8 + up * .92 - q * 26 + (j % 2) * 4; ctx.fillStyle = T(j % 2 ? '#353A42' : '#2E333A'); ctx.beginPath(); ctx.ellipse(fx, fy, 40, 9, sd * (.15 + q * .45), 0, Math.PI * 2); ctx.fill(); }
+    ctx.strokeStyle = 'rgba(30,34,40,.35)'; ctx.lineWidth = 2.5; for (let j = 1; j < 5; j++) { const q = j / 5; ctx.beginPath(); ctx.moveTo(sd * (60 + q * 150), 46 - q * 6 + up * q * .6); ctx.lineTo(sd * (70 + q * 160), 6 - q * 18 + up * q * .7); ctx.stroke(); } // 羽のすじ
+    ctx.strokeStyle = LT.night > .4 ? 'rgba(200,214,255,.55)' : 'rgba(255,255,255,.22)'; ctx.lineWidth = LT.night > .4 ? 4 : 3; ctx.beginPath(); ctx.moveTo(sd * 28, -16); ctx.bezierCurveTo(sd * 110, -54 + up * .3, sd * 210, -40 + up * .7, tipX, tipY); ctx.stroke(); }
+  // 胴と頭：背中は灰黒、頭は黒っぽく、目の上に白いまゆ
+  ctx.fillStyle = T('#59626D'); ctx.beginPath(); ctx.ellipse(0, 12, 34, 48, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.beginPath(); ctx.ellipse(-8, 0, 16, 30, -.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = T('#2B3036'); ctx.beginPath(); ctx.ellipse(0, -40, 21, 20, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = T('#F4F4F2'); ctx.lineWidth = 4; for (const sd of [-1, 1]) { ctx.beginPath(); ctx.moveTo(sd * 8, -50); ctx.quadraticCurveTo(sd * 18, -48, sd * 22, -38); ctx.stroke(); }
+  ctx.fillStyle = T('#3A3F45'); ctx.beginPath(); ctx.moveTo(-5, -58); ctx.lineTo(0, -66); ctx.lineTo(5, -58); ctx.fill(); // くちばしの先（向こう向きなので少しだけ）
+  ctx.restore();
+}
 function drawBunnyWorld(b) {
   const sp = spriteAt(b.wx, b.wy, b.wz); if (!sp) return;
   const sc = sp.k * (b.who === 'ren' ? 1.18 : b.who === 'pom' ? .72 * (b.big || 1) : 1.0) / 240;
   let pose;
   // しゃがむ・跳ぶが、ふり返り（look）より先（ふり返っている間に下スワイプしても、しゃがまなかった：2026-11-09 の報告）
   if (b.view === 'front') pose = 'front_' + (b.mood || 'open');
+  else if (b.hawk) pose = 'air'; /* オオタカにつかまれて、足をのばしてぶら下がる */
+  else if (b.fly) pose = 'run0'; /* 紙飛行機に乗っている間は、足を止めて座る（2026-11-17 オーナー：「紙飛行機に乗ってる時も走り続けてる動作をしてる」）。下半分は紙飛行機にかくれる */
   else if (b.slide) pose = 'slide'; else if (b.air) pose = !b.fly && (b === G.player ? G.vy : b.vy) < -2.5 ? 'fall' : 'air'; /* くだりは「落ちてくる絵」 */
   else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
   else pose = 'run' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES;
@@ -549,6 +591,7 @@ function drawBunnyWorld(b) {
     const dl = -Math.sign(G.lane - G.prevLane), k = Math.sin(clamp(G.laneT / .35, 0, 1) * Math.PI); for (const [m, a] of [[2, .09], [1, .17]]) { ctx.globalAlpha = a * k; ctx.drawImage(img, -BS / 2 + dl * 62 * m * k, -GROUND_Y - BTOP, img.width, img.height); } ctx.globalAlpha = 1; G.smearN = (G.smearN || 0) + 1; }
   if (b.flash && G.mode === 'play' && Math.floor(G.t * 16) % 2) ctx.globalAlpha = .45; // 点滅は走っている時だけ（ホーム画面・結果の画面では出さない）
   ctx.drawImage(LT.indoor ? img : litSprite(img, bunnyAmb(), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
+  if (b.hawk) drawHawk(b);
   if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; const pl = planePic(); if (pl) ctx.drawImage(pl, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Pom rides his own)
   if (G.weather === 'rain' && !LT.indoor && G.mode !== 'title' && !b.fly) { ctx.globalAlpha = .55; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 5; ctx.lineCap = 'round'; for (const [x, y, a] of [[-60, -190, 0], [55, -150, .6], [-20, -120, 1.2]]) { const k = .5 + .5 * Math.sin(G.t * 3 + a * 3); ctx.globalAlpha = .25 + .3 * k; ctx.beginPath(); ctx.arc(x, y, 14, -2.4, -1.3); ctx.stroke(); } ctx.globalAlpha = 1; G.wetN = (G.wetN || 0) + 1; } // 雨の日はうっすらぬれて光る（C-34）
   if (b.glow) { ctx.globalAlpha = .9; ctx.strokeStyle = b.glow; ctx.lineWidth = 7; ctx.beginPath(); ctx.ellipse(0, -110, 130, 120, 0, 0, Math.PI * 2); ctx.stroke(); }
@@ -643,6 +686,7 @@ function drawFX() {
     ctx.stroke();
   }
   if (G.flashT > 0) { ctx.fillStyle = `rgba(200,70,60,${G.flashT * .45})`; ctx.fillRect(0, 0, W, H); }
+  if (G.skyWipe > 0) { ctx.fillStyle = `rgba(255,255,255,${(G.skyWipe * G.skyWipe * .9).toFixed(3)})`; ctx.fillRect(0, 0, W, H); G.skyWipe = Math.max(0, G.skyWipe - (G.dtFX || .016) * 1.4); } // オオタカにつかまれた瞬間：白い風（展望台から空へ）
 }
 const WX = [];
 function drawWeather(seg) {

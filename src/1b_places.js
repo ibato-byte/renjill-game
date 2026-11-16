@@ -54,15 +54,15 @@ const THEMES = {
   river:    { ja: '隅田川・水上バス', en: 'Sumida River water bus', kind: 'deck', len: [104, 116], road: ['#EDEAE3', '#E2DED5'], rpat: 'planks', side: ['#2E6E99', '#2A6690'], spat: 'water', view: 'river', rail: '#F3F3F3',
     props: [['buoyS', 1]], obs: ['bridge', 'ring', 'bench', 'bridge', 'rope'], lm: [{ t: 'skytree', sc: 1.4, off: .15 }, { t: 'kokugikan', sc: 1, off: -.28 }],
     stamp: { k: '隅田', ja: '隅田川', en: 'Sumida River', note: { ja: '水上バスで、色とりどりの橋をくぐって進む。', en: 'The water bus glides under a series of colorful bridges.' } } },
-  skytree:  { ja: '押上の電波塔・展望回廊', lbl: '押上の電波塔', lblEn: 'Oshiage tower', en: 'Oshiage tower, sky walkway', kind: 'glass', len: [108, 118], road: ['#E3E7EB', '#D9DEE3'], rpat: 'grid', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [350, 450], view: 'city',
-    props: [['scopeS', 1]], obs: ['telescope', 'bench', 'rope', 'suitcase'], lm: [{ t: 'fuji', sc: 1, off: .3 }, { t: 'tower', sc: .5, off: -.25 }],
+  skytree:  { ja: '押上の電波塔・展望回廊', lbl: '押上の電波塔', lblEn: 'Oshiage tower', en: 'Oshiage tower, sky walkway', kind: 'glass', len: [108, 118], road: ['#E3E7EB', '#D9DEE3'], rpat: 'grid', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [445, 451], view: 'city', face: 236,
+    props: [['scopeS', 1]], obs: ['telescope', 'bench', 'rope', 'suitcase'], lm: [{ t: 'fuji', sc: 1, brg: 248 }, { t: 'tower', sc: .5, brg: 226 }, { t: 'tocho', sc: .55, brg: 258 }],
     stamp: { k: '634', ja: '押上の電波塔', en: 'Oshiage tower', note: { ja: '高さ634mの電波塔。展望回廊は地上約450m。', en: 'A 634 m broadcasting tower. Its sky walkway is about 450 m up.' } } },
   /* ---- evening, west ---- */
   shibuya:  { ja: '渋谷スクランブル交差点', lbl: '渋谷', lblEn: 'Shibuya', en: 'Shibuya Scramble Crossing', kind: 'street', len: [100, 112], road: ['#5E5E63', '#59595E'], rpat: 'scramble', side: ['#A8A49C', '#A09C94'], spat: 'walk', curb: '#D9D6CE',
     fac: { style: 'neon', mood: 'shibuya', h: [16, 30], pal: ['#8A8F99', '#6E7480', '#9AA0AA', '#7A7F88', '#B0B4BA'], screen: .8, vsign: .5 }, props: [['signal', 2], ['pole', 1], ['guard', 2]], obs: ['cone', 'kick', 'sign', 'barrier', 'car'], lm: [{ t: 'cyl', sc: 1, off: .22 }],
     stamp: { k: '渋谷', ja: '渋谷スクランブル交差点', en: 'Shibuya Crossing', note: { ja: '青信号で、四方八方から人がいっせいに渡る。', en: 'When the lights turn green, people cross from every direction at once.' } } },
-  tower:    { ja: '芝公園の赤い電波塔・外階段', lbl: '赤い電波塔', lblEn: 'Red tower', en: 'Red tower in Shiba, outdoor stairs', kind: 'deck', len: [108, 118], road: ['#9AA0A6', '#90969C'], rpat: 'stairs', side: ['#8A9096', '#80868C'], spat: 'stairs', climb: [0, 150], view: 'city', rail: '#D9452B', beams: '#D9452B',
-    props: [], obs: ['cone', 'bench', 'suitcase', 'rope'], lm: [{ t: 'skytree', sc: .55, off: .25 }, { t: 'fuji', sc: .9, off: -.3 }],
+  tower:    { ja: '芝公園の赤い電波塔・外階段', lbl: '赤い電波塔', lblEn: 'Red tower', en: 'Red tower in Shiba, outdoor stairs', kind: 'deck', len: [108, 118], road: ['#9AA0A6', '#90969C'], rpat: 'stairs', side: ['#8A9096', '#80868C'], spat: 'stairs', climb: [0, 150], view: 'city', rail: '#D9452B', beams: '#D9452B', face: 250,
+    props: [], obs: ['cone', 'bench', 'suitcase', 'rope'], lm: [{ t: 'fuji', sc: .9, brg: 250 }, { t: 'hills', sc: 1.3, brg: 282 }, { t: 'tocho', sc: .7, brg: 305 }],
     stamp: { k: '333', ja: '芝公園の赤い電波塔', en: 'Red tower in Shiba', note: { ja: '高さ333mの電波塔。外階段は約600段で、地上150mの展望台まで続く。', en: 'A 333 m broadcasting tower. About 600 outdoor steps lead up to the deck at 150 m.' } } },
   /* ---- evening, day 2+ ---- */
   akihabara:{ ja: '秋葉原・電気街', en: 'Akihabara Electric Town', kind: 'street', len: [100, 112], road: ['#6A6A70', '#646469'], rpat: 'road', side: ['#A5A097', '#9D988F'], spat: 'walk', curb: '#D9D6CE',
@@ -117,7 +117,7 @@ const ARRIVE = {
   errand: { ja: '', en: '' },
   station: { ja: '電車がホームに入ってきた', en: 'The train is pulling in' }, deadline: { ja: '締め切りまであと1時間', en: 'One hour to the deadline' },
 };
-const SUMMIT = { tower: { en: '150 m DECK!', ja: '地上150mの展望台に到着', en2: 'You reached the 150 m deck' }, skytree: { en: '450 m!', ja: '地上450mの展望回廊を走りきった', en2: 'You ran the whole sky walkway' } };
+const SUMMIT = { tower: { en: '150 m DECK!', ja: '地上150mの展望台に到着', en2: 'You reached the 150 m deck' }, skytree: { en: '451 m!', ja: '地上451mの展望回廊を走りきった', en2: 'You ran the whole sky walkway' }, hawk: { en: 'SAFE LANDING!', ja: 'オオタカと空の旅', en2: 'A goshawk flew you down' }, hawk2: { en: 'SAFE LANDING!', ja: 'オオタカと空の旅', en2: 'A goshawk flew you down' } };
 
 /* ================= the day's route =================
    A plan is a list of steps: {t: room, d: minutes} or {fork: {L: {...}, R: {...}}} */
@@ -372,6 +372,62 @@ Object.assign(ARRIVE, {
 });
 AREA.central.push('hie', 'tsukishima', 'kanda'); AREA.east.push('kuramae', 'terrace', 'shibamata'); AREA.west.push('catst', 'shimokita', 'yoyogi', 'kichijoji'); AREA.bay.push('takeshiba');
 NIGHT.west.push('shimokita'); NIGHT.bay.push('tsukishima'); NIGHT.east.push('terrace');
+
+/* ---- 電波塔コース（2026-11-17 オーナー：10万点で赤い電波塔、30万点で押上の電波塔。頂上から景色を見て、オオタカに運ばれて地上へ） ----
+   face＝その道が向いている本当の方角（北 0・東 90・南 180・西 270 度）。lm の brg＝塔から見た本当の方角（地図の緯度経度から計算。docs/TOWER-COURSE-2026-11-17.md）。
+   同じ方角の物は、どの場所から見ても同じ向きに見える（空の上でぐるっと見回すと、本物と同じ順に並ぶ） */
+Object.assign(THEMES, {
+  tfoot:  { ja: '芝公園・赤い電波塔の足もと', lbl: '電波塔の足もと', lblEn: 'Foot of the red tower', en: 'Shiba Park, foot of the red tower', kind: 'street', len: [100, 110], road: ['#C9C2B6', '#BFB8AB'], rpat: 'plaza', side: ['#7FA35E', '#77995A'], spat: 'lawn', curb: '#9A9384',
+    fac: { style: 'park' }, props: [['tree', 3], ['pinetree', 1], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'suitcase'], tree: 'green', flat: 1, course: 'tower', face: 20,
+    lm: [{ t: 'tower', brg: 20, sc: 1.25, grow: 1.7 }], arrive: { ja: '見上げると、赤と白の鉄の塔', en: 'Look up: a tower of red and white steel' } },
+  tdeck:  { ja: '赤い電波塔・展望台（地上150m）', lbl: '150mの展望台', lblEn: '150 m deck', en: 'Red tower, 150 m deck', kind: 'glass', len: [100, 108], road: ['#8C939A', '#858C93'], rpat: 'lookdown', side: ['#C9CDD2', '#C1C5CA'], spat: 'tile', climb: [150, 150], view: 'city',
+    wall: '#F2F3F4', ceil: '#E9ECEF', props: [['scopeS', 2]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'tower', face: 46, grab: 1,
+    lm: [{ t: 'skytree', brg: 46, sc: .9 }, { t: 'clock', brg: 38, sc: .7 }, { t: 'yagura', brg: 13, sc: .8 }, { t: 'tocho', brg: 305, sc: .7 }, { t: 'hills', brg: 282, sc: 1.2 }],
+    arrive: { ja: '足もとはガラス。真下に町が見える', en: 'A glass floor, with the city straight below' } },
+  hawk:   { ja: 'オオタカにつかまって空の上', lbl: 'オオタカと空の上', lblEn: 'Carried by a goshawk', en: 'Over Tokyo with a goshawk', kind: 'deck', sky: 1, len: [200, 210], road: ['#9AA0A6', '#90969C'], rpat: 'road', side: ['#8A9096', '#80868C'], spat: 'road', climb: [150, 0], view: 'city',
+    props: [], obs: [], course: 'tower', face: 250, rail: '#9AA0A6',
+    lm: [{ t: 'fuji', brg: 250, sc: 1 }, { t: 'hills', brg: 282, sc: 1.4 }, { t: 'tocho', brg: 305, sc: .8 }, { t: 'yagura', brg: 13, sc: .7 }, { t: 'clock', brg: 38, sc: .6 }, { t: 'skytree', brg: 46, sc: .9 }, { t: 'rbridge', brg: 146, sc: .9 }, { t: 'airport', brg: 165, sc: .35 }],
+    bay: [95, 205, 2300], arrive: { ja: '東京をぐるっと見わたしながら、地上へ', en: 'A full turn over Tokyo on the way down' } },
+  tland:  { ja: '芝公園（着地）', lbl: '芝公園', lblEn: 'Shiba Park', en: 'Shiba Park (landing)', kind: 'street', len: [100, 110], road: ['#D9CBA8', '#D1C29E'], rpat: 'gravel', side: ['#7FA35E', '#77995A'], spat: 'lawn', curb: '#B9B2A5',
+    fac: { style: 'park' }, props: [['tree', 4], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'leafpile'], tree: 'green', flat: 1, course: 'tower', face: 20,
+    lm: [{ t: 'tower', brg: 20, sc: 1.5 }], arrive: { ja: 'ぶじに着地。ふり返ると、さっきまでいた塔', en: 'Safe landing, under the tower you just climbed' } },
+  sfoot:  { ja: '押上・北十間川のほとり', lbl: '押上の川べり', lblEn: 'Oshiage riverside', en: 'Oshiage, by the Kitajukken River', kind: 'street', len: [100, 110], road: ['#C9C2B6', '#BFB8AB'], rpat: 'plaza', side: ['#A8A49C', '#A09C94'], spat: 'walk', curb: '#D9D6CE',
+    fac: { style: 'park' }, moat: -1, props: [['tree', 3], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'suitcase', 'bike'], tree: 'green', flat: 1, course: 'skytree', face: 60,
+    lm: [{ t: 'skytree', brg: 60, sc: 1.5, grow: 1.6 }], arrive: { ja: '川の向こうに、空までのびる白い塔', en: 'Across the river, a white tower reaching for the sky' } },
+  sdeck:  { ja: '押上の電波塔・展望デッキ（地上350m）', lbl: '350mのデッキ', lblEn: '350 m deck', en: 'Oshiage tower, 350 m deck', kind: 'glass', len: [100, 108], road: ['#6E757D', '#687078'], rpat: 'lookdown', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [350, 350], view: 'city',
+    wall: '#EEF1F4', ceil: '#2F343B', props: [['scopeS', 1]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'skytree', face: 226,
+    lm: [{ t: 'tower', brg: 226, sc: .55 }, { t: 'kokugikan', brg: 227, sc: .8 }, { t: 'clock', brg: 231, sc: .55 }, { t: 'fuji', brg: 248, sc: 1 }, { t: 'tocho', brg: 258, sc: .6 }, { t: 'pagoda', brg: 292, sc: .7 }],
+    arrive: { ja: 'エレベーターで約50秒。地上350m', en: 'About 50 seconds by elevator: 350 m up' } },
+  hawk2:  { ja: 'オオタカにつかまって空の上', lbl: 'オオタカと空の上', lblEn: 'Carried by a goshawk', en: 'Over Tokyo with a goshawk', kind: 'deck', sky: 1, len: [220, 230], road: ['#9AA0A6', '#90969C'], rpat: 'road', side: ['#8A9096', '#80868C'], spat: 'road', climb: [451, 0], view: 'city',
+    props: [], obs: [], course: 'skytree', face: 248, rail: '#9AA0A6',
+    lm: [{ t: 'fuji', brg: 248, sc: 1.1 }, { t: 'tocho', brg: 258, sc: .6 }, { t: 'pagoda', brg: 292, sc: .8 }, { t: 'tsukuba', brg: 25, sc: 1 }, { t: 'rbridge', brg: 208, sc: .6 }, { t: 'clock', brg: 231, sc: .5 }, { t: 'tower', brg: 226, sc: .5 }, { t: 'kokugikan', brg: 227, sc: .9 }],
+    bay: [165, 220, 7000], arrive: { ja: '451mから、東京をぐるっと見わたして地上へ', en: 'From 451 m, a full turn over Tokyo on the way down' } },
+  sland:  { ja: '隅田公園（着地）', lbl: '隅田公園', lblEn: 'Sumida Park', en: 'Sumida Park (landing)', kind: 'street', len: [100, 110], road: ['#C8B58F', '#BFAC86'], rpat: 'gravel', side: ['#7FA35E', '#77995A'], spat: 'lawn', curb: '#8A7A5A',
+    fac: { style: 'park' }, moat: -1, props: [['tree', 4], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'leafpile'], tree: 'green', flat: 1, course: 'skytree', face: 80,
+    lm: [{ t: 'skytree', brg: 80, sc: 1.2 }], arrive: { ja: 'ぶじに着地。川の向こうに、さっきの塔', en: 'Safe landing, the tower across the river' } },
+});
+/* 50万点：浅草寺（2026-11-17 オーナー「東京の最も人気で有名なスポット」）。本物と同じ順に、南から北へまっすぐ：
+   雷門 → 仲見世通り（約 250m）→ 宝蔵門（左に五重塔）→ 本堂の前（常香炉のけむり）→ 伝法院通りへ出る（東に押上の電波塔） */
+Object.assign(THEMES, {
+  nakamise: { ja: '浅草・仲見世通り', lbl: '仲見世通り', lblEn: 'Nakamise street', en: 'Asakusa, Nakamise street', kind: 'street', len: [110, 120], road: ['#B9AE9C', '#AFA392'], rpat: 'stone', side: ['#A89C88', '#9F937F'], spat: 'stone',
+    fac: { style: 'nakamise', h: [4.5, 6], pal: ['#C9432F', '#B83B29', '#D04A33'] }, props: [['chochin', 5], ['stoneLantern', 1]], obs: ['rickshaw', 'bench', 'cone', 'suitcase'], course: 'asakusa', face: 8, flat: 1,
+    lm: [{ t: 'hondo', brg: 8, sc: .55, grow: 1.5 }, { t: 'pagoda', brg: 352, sc: .8 }], arrive: { ja: '朱色の店がずらり。奥に大きな門', en: 'Rows of vermilion shops, with a great gate ahead' } },
+  hozomon:  { ja: '浅草寺・宝蔵門', lbl: '宝蔵門', lblEn: 'Hozomon gate', en: 'Senso-ji, Hozomon gate', kind: 'street', len: [100, 108], road: ['#C9C2B6', '#BFB8AB'], rpat: 'plaza', side: ['#BDB5A7', '#B3AB9D'], spat: 'stone', curb: '#9A9384',
+    fac: { style: 'park' }, gate: '宝蔵門', gateColor: '#B5302A', props: [['stoneLantern', 2], ['pinetree', 2], ['tree', 1]], obs: ['bench', 'stoneLanternO', 'cone', 'rickshaw'], tree: 'pine', course: 'asakusa', face: 8, flat: 1,
+    lm: [{ t: 'hondo', brg: 8, sc: .9, grow: 1.4 }, { t: 'pagoda', brg: 335, sc: 1.7 }], arrive: { ja: '二階建ての朱色の門。左に五重塔', en: 'A two-storey vermilion gate, the pagoda on the left' } },
+  hondo:    { ja: '浅草寺・本堂の前', lbl: '浅草寺の本堂', lblEn: 'Senso-ji main hall', en: 'Senso-ji, before the main hall', kind: 'street', len: [100, 108], road: ['#C9C2B6', '#BFB8AB'], rpat: 'plaza', side: ['#BDB5A7', '#B3AB9D'], spat: 'stone', curb: '#9A9384',
+    fac: { style: 'park' }, props: [['stoneLantern', 3], ['pinetree', 2], ['benchS', 1]], obs: ['jokoro', 'bench', 'stoneLanternO', 'jokoro'], tree: 'pine', course: 'asakusa', face: 8, flat: 1,
+    lm: [{ t: 'hondo', brg: 8, sc: 1.5, grow: 1.6 }, { t: 'pagoda', brg: 318, sc: 2 }], arrive: { ja: '大きな屋根の本堂。けむりを浴びてお参り', en: 'The great roof of the main hall, through the incense smoke' } },
+  denboin:  { ja: '浅草・伝法院通り', lbl: '伝法院通り', lblEn: 'Denboin street', en: 'Asakusa, Denboin street', kind: 'street', len: [100, 110], road: ['#B9AE9C', '#AFA392'], rpat: 'stone', side: ['#A89C88', '#9F937F'], spat: 'stone',
+    fac: { style: 'nakamise', h: [5, 7], pal: ['#6A4A38', '#7A5540', '#5A4034', '#8A6248'] }, props: [['chochin', 3], ['stoneLantern', 1]], obs: ['rickshaw', 'bench', 'cone', 'bike'], course: 'asakusa', face: 90, flat: 1,
+    lm: [{ t: 'skytree', brg: 112, sc: 1.2 }], arrive: { ja: '江戸の町なみの通り。東に白い塔', en: 'An Edo-style street, the white tower to the east' } },
+});
+// 点数で 1 回ずつ（1 回の遊びで）。赤い電波塔は外階段（約600段）を自分の足で。押上の電波塔の階段は一般には開いていないので、エレベーター（約50秒）で 350m へ
+const COURSES = {
+  tower: { at: 100000, steps: [{ t: 'tfoot', d: 8 }, { t: 'tower', d: 13 }, { t: 'tdeck', d: 10 }, { t: 'hawk', d: 3 }, { t: 'tland', d: 8 }], ja: '赤い電波塔へ！', en: 'To the red tower!' },
+  asakusa: { at: 500000, steps: [{ t: 'asakusa', d: 8 }, { t: 'nakamise', d: 10 }, { t: 'hozomon', d: 8 }, { t: 'hondo', d: 10 }, { t: 'denboin', d: 8 }], ja: '浅草寺へ！', en: 'To Senso-ji!' },
+  skytree: { at: 300000, steps: [{ t: 'sfoot', d: 8 }, { t: 'sdeck', d: 10 }, { t: 'skytree', d: 10 }, { t: 'hawk2', d: 4 }, { t: 'sland', d: 8 }], ja: '押上の電波塔へ！', en: 'To the Oshiage tower!' },
+};
 
 Object.assign(THEMES, {
   chikagai: { ja: '東京駅の地下街', lbl: '駅の地下街', en: 'Station underground mall', kind: 'room', len: [88, 100], road: ['#D9D2C6', '#CFC7BA'], rpat: 'grid', side: ['#CFC7BA', '#C5BDB0'], spat: 'grid',

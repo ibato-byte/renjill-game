@@ -20,7 +20,7 @@ concurrency:
 jobs:
   qa:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 100 # 2026-11-17：テストが 110 本をこえて quick が 60 分に収まらず、途中で打ち切られた（#80）
     steps:
       - uses: actions/checkout@v4
       - name: Automation Hub：一時停止の確認

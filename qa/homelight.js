@@ -3,7 +3,7 @@
 // 確かめること：
 //  (1) ホーム画面では光を描く (2) 走っている間は描かない（画面に固定の光の帯は、走ると「斜めの残像」に見える。2026-11-08 の報告）
 //  (3) だれを選んでも、選んだ子が画面の横のまん中（±8%）にいて、3 人の中でいちばん手前（大きい）
-//  (4) 明かりは選んだ子に当たる：明かりを入れると、選んだ子の所は明るくなり（3% 以上）、ほかの子より 4% 以上明るい側
+//  (4) スポットライトは無し（オーナー 2026-11-17：「明るすぎて不自然。選択されてるキャラクターのライトいらない」）：明かりを入れても、だれの所も 3% 以上は明るくならない
 //  (6) 選んだ子の色がうすくならない：明かりを入れても、体の色のこさ（彩度）が 9 割以上のまま（オーナー 2026-11-16：「光が明るすぎて色合いが逆にうすくなってる」）
 //  (5) 画面を暗くしない：明かりを入れても、ほかの 2 人の所・画面の四すみ・下のほうは暗くならない（オーナー 2026-11-16：「ホーム画面全体を暗くしなくていい」）
 const { chromium } = require('playwright'); const path = require('path');
@@ -29,9 +29,9 @@ const { chromium } = require('playwright'); const path = require('path');
     if (mid != null && Math.abs(r.P.x - mid) > r.W * .08) bad.push(tag + '選んだ子がまん中にいない（x=' + r.P.x.toFixed(0) + '）');
     for (const [nm, q] of [['2 人目', r.F], ['3 人目', r.M]]) if (q && !(r.P.k > q.k * 1.1)) bad.push(tag + '選んだ子がいちばん手前ではない（' + nm + '）');
     for (const [nm, q] of [['2 人目', r.F], ['3 人目', r.M]]) if (q && Math.abs(q.x - r.P.x) < r.P.k * .95) bad.push(tag + nm + 'が選んだ子に重なっている（横の間 ' + Math.abs(q.x - r.P.x).toFixed(0) + '・目安 ' + (r.P.k * .95).toFixed(0) + '）');
-    const kP = r.on[0] / r.off[0]; if (!(kP > 1.03)) bad.push(tag + '選んだ子が明るくならない（' + (kP * 100).toFixed(0) + '%）');
+    const kP = r.on[0] / r.off[0]; if (!(kP < 1.03)) bad.push(tag + '選んだ子にスポットライトが当たっている（' + (kP * 100).toFixed(0) + '%。オーナー 2026-11-17：ライトはいらない）'); if (!(kP > .985)) bad.push(tag + '選んだ子が暗くなっている（' + (kP * 100).toFixed(0) + '%）');
     for (const [nm, i] of [['2 人目', 1], ['3 人目', 2]]) { if (r.on[i] == null) continue; const k = r.on[i] / r.off[i];
-      if (!(k > .985)) bad.push(tag + nm + 'が暗くなっている（' + (k * 100).toFixed(0) + '%）'); if (!(kP > k + .04)) bad.push(tag + '明かりが選んだ子に当たっていない（選んだ子 ' + (kP * 100).toFixed(0) + '%・' + nm + ' ' + (k * 100).toFixed(0) + '%）'); }
+      if (!(k > .985)) bad.push(tag + nm + 'が暗くなっている（' + (k * 100).toFixed(0) + '%）'); if (!(k < 1.03)) bad.push(tag + nm + 'にスポットライトが当たっている（' + (k * 100).toFixed(0) + '%）'); }
     if (!(r.satOn >= r.satOff * .9)) bad.push(tag + '選んだ子の色がうすくなっている（彩度 ' + (r.satOn / r.satOff * 100).toFixed(0) + '%）');
     r.eon.forEach((v, i) => { if (!(v >= r.eoff[i] * .985)) bad.push(tag + '画面が暗くなっている（' + ['左上', '右上', '左', '右', '下'][i] + ' ' + (v / r.eoff[i] * 100).toFixed(0) + '%）'); });
     if (w === 390 && ch === 'ren') { await p.click('#btnStart'); await p.waitForTimeout(900); const n2 = await p.evaluate(() => window.__tl); await p.waitForTimeout(900); const n3 = await p.evaluate(() => window.__tl); if (n3 !== n2) bad.push('走っている間も光を描いている（' + (n3 - n2) + ' 回）'); }
