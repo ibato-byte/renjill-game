@@ -33,6 +33,15 @@ const TORII_TUNNEL_H = 4.8; // 鳥居のトンネルの高さ（m）。横木の
 let SEGN = 0;
 
 function noRail(th) { return !!(th.fac && th.fac.style === 'park') || !!th.moat || !!th.boats; } // 電車が通ると変な場所（公園・参道・お堀や池のそば）
+/* 向き（0〜4 を一周）からの前・右の向き。0.5 きざみ（Y 字路の 45 度）も使える。整数の向きは前と同じ数字（DIRS）になる */
+function dirVec(d) { const a = d * Math.PI / 2, x = Math.round(Math.sin(a) * 1e9) / 1e9, z = Math.round(Math.cos(a) * 1e9) / 1e9; return [x, z]; }
+/* Y 字路（2026-11-16 オーナー「左右に曲がるだけでなく、Y 字路も」）：分かれ道のうち、手前も先の 2 本も外の通り（公園・水辺・室内を除く）のとき、ときどき Y 字にする。
+   道はまっすぐ進んで、つきあたりの代わりに、2 本の道の間に「とがった角の建物」（東京の Y 字路によくある、細い正面の建物）が立つ。2 本はそれぞれ 45 度ずつ左右へ。
+   その先の角はまた 90 度（45 度ずれた向きで続く）。壁・床・建物は 45 度の角でつながるように作る（すき間から景色が透けない） */
+const YT = HW * Math.tan(Math.PI / 8); // 45 度の角の内側で、壁が角の点より手前で止まる長さ（約 1.9m）
+function yOK(th, nf, day) { if (!nf || th.kind !== 'street' || (th.fac && th.fac.style === 'park') || th.toriiTunnel || th.overpass) return false;
+  const one = x => { const t = Array.isArray(x) ? x[0] : x; if (!t || !t.t) return false; const h = themeFor(t.t, day || 1); return h && h.kind === 'street' && !(h.fac && h.fac.style === 'park') && !h.toriiTunnel && !h.torii && !h.gate; };
+  return one(nf.L) && one(nf.R); }
 function newSeg(prev, step, opts) {
   opts = opts || {};
   const th = themeFor(step.t, opts.day || 1);
@@ -41,9 +50,10 @@ function newSeg(prev, step, opts) {
   const dir = first ? 0 : (prev.dir + turnIn + 4) % 4;
   let sx = 0, sz = 0; if (!first) { const p = segPos(prev, prev.len, 0); sx = p[0]; sz = p[1]; }
   const len = first ? (opts.len || 92) : Math.round(rand(th.len[0], th.len[1]));
-  const seg = { id: ++SEGN, turnIn: first ? 0 : turnIn, prevFork: !!(prev && prev.fork), prevIn: !!(prev && prev.th && ['room', 'train', 'glass'].includes(prev.th.kind)), tid: step.t, th, step, t0: opts.t0 ?? 480, t1: (opts.t0 ?? 480) + step.d, dir, sx, sz, f: DIRS[dir], r: DIRS[(dir + 1) % 4], first, day: opts.day || 1,
-    len, turn: opts.fork ? 0 : (turnIn ? -turnIn : (Math.random() < .5 ? -1 : 1)), fork: opts.fork || null,
+  const seg = { id: ++SEGN, turnIn: first ? 0 : turnIn, prevFork: !!(prev && prev.fork), prevIn: !!(prev && prev.th && ['room', 'train', 'glass'].includes(prev.th.kind)), tid: step.t, th, step, t0: opts.t0 ?? 480, t1: (opts.t0 ?? 480) + step.d, dir, sx, sz, f: dirVec(dir), r: dirVec(dir + 1), first, day: opts.day || 1,
+    len, turn: opts.fork ? 0 : (turnIn ? -Math.sign(turnIn) : (Math.random() < .5 ? -1 : 1)), fork: opts.fork || null, prevForkY: !!(prev && prev.forkY), halfIn: Math.abs(turnIn) === .5 ? Math.sign(turnIn) : 0,
     floor: [], walls: [], decos: [], obs: [], items: [], props: [], lines: [], spr: [] };
+  if (seg.fork && yOK(th, seg.fork, opts.day) && (window.__forceY || Math.random() < .45)) seg.forkY = 1;
   seg.wallH = th.wallH || 3; { const k0 = th.kind; if (k0 === 'room' || k0 === 'glass') seg.wallH = Math.max(seg.wallH, CEIL_ROOM); else if (k0 === 'train') seg.wallH = Math.max(seg.wallH, CEIL_TRAIN); } /* 2026-11-15 オーナー：天井そのものを高く（空港のロビーのように）。低い天井だと、縦長のスマホで天井のすぐ下をはうように見え、ジャンプでつきぬけた */
   terrainFor(seg, prev);
   buildGeometry(seg);
@@ -60,7 +70,7 @@ function newSeg(prev, step, opts) {
    side belongs to it, the rest to the next (or previous) stretch. Walls already stop at the corner;
    this keeps open scenery (water, far banks, distant trees, boats) from overlapping the neighbour, which
    is what made corners flicker or change at the moment of turning. u = distance from the road's centre line. */
-function terrK(seg, sd) { return { endTurn: !!(seg.fork || sd === seg.turn), startIn: !seg.first && sd === seg.turnIn, first: seg.first }; }
+function terrK(seg, sd) { return { endTurn: !!(seg.fork || sd === seg.turn), startIn: !seg.first && (sd === seg.turnIn || !!seg.prevForkY), first: seg.first }; }
 function terrOK(seg, s, lat) {
   const u = Math.abs(lat); if (u <= HW + .01) return true;
   const sd = lat < 0 ? -1 : 1, k = terrK(seg, sd), L = seg.len;
@@ -94,7 +104,8 @@ function addWallQuad(seg, side, a, b, y0, y1, c, extra) {
   const w = Object.assign({ v: quad(seg, pts), c, n, sh: side < 0 ? .94 : .86 }, extra || {});
   seg.walls.push(w); return w;
 }
-function sideEnds(seg) { const L = seg.len, s0 = seg.first ? (seg.th.backAt != null ? seg.th.backAt : -16) : HW; return { s0, lEnd: (seg.turn === -1 || seg.fork) ? L - HW : L + HW, rEnd: (seg.turn === 1 || seg.fork) ? L - HW : L + HW }; }
+function sideStart(seg, sd) { if (!seg.prevForkY) return null; return sd === seg.halfIn ? YT : HW + .9; } // Y 字路の先：内側の壁は 1.9m から、とがった建物の側は角の先から
+function sideEnds(seg) { const L = seg.len, s0 = seg.first ? (seg.th.backAt != null ? seg.th.backAt : -16) : HW; if (seg.forkY) return { s0, lEnd: L - YT, rEnd: L - YT }; return { s0, lEnd: (seg.turn === -1 || seg.fork) ? L - HW : L + HW, rEnd: (seg.turn === 1 || seg.fork) ? L - HW : L + HW }; }
 function buildGeometry(seg) {
   const th = seg.th, L = seg.len, k = th.kind;
   const { s0, lEnd, rEnd } = sideEnds(seg);
@@ -102,7 +113,7 @@ function buildGeometry(seg) {
   const T = th.rpat === 'tatami' ? 1.8 : 1.5;
   // the corner square belongs to the stretch you turn into (so the new place starts right at the corner);
   // at a fork it stays with the fork's own stretch, since two stretches leave from it
-  const fS = seg.first || seg.prevFork ? s0 : -HW, fE = seg.fork ? L + HW : L - HW;
+  const fS = seg.first || seg.prevFork ? s0 : -HW, fE = seg.forkY ? L - YT : seg.fork ? L + HW : L - HW;
   seg.fS = fS; seg.fE = fE;
   let i = 0;
   for (let a = fS; a < fE - .01; a += T, i++) {
@@ -116,6 +127,11 @@ function buildGeometry(seg) {
       seg.floor.push({ v: quad(seg, [[a, l0, 0], [b, l0, 0], [b, l1, 0], [a, l1, 0]]), c: floorTone(th, 'side', i + (sd > 0)), pat: th.spat, ti: i, a, b, sd }); }
   }
   addDecals(seg, fS, fE);
+  if (seg.forkY) { /* Y 字路の分かれ目の路面：手前の道の終わりから、2 本の道の始まりまでを 1 枚の五角形で（すき間・重なりが出ない） */
+    const k = HW * Math.SQRT2, pg = [[L - YT, -HW], [L, -k], [L + k, 0], [L, k], [L - YT, HW]];
+    seg.floor.push({ v: quad(seg, pg.map(q => [q[0], q[1], 0])), c: floorTone(th, 'road', 0), pat: null, ti: 0, a: L - YT, b: L + k, mid: 1, yPad: 1 });
+    // 分かれ目の白い線（止まれの線と、2 本へ分かれる白い線）
+    seg.floor.push({ v: quad(seg, [[L - YT - .5, -ROAD + .2, .012], [L - YT - .2, -ROAD + .2, .012], [L - YT - .2, ROAD - .2, .012], [L - YT - .5, ROAD - .2, .012]]), c: [240, 240, 236], pat: null, ti: 0, a: L - YT - .5, b: L - YT, dec: 'line' }); }
   // water / void beyond decks
   if (th.view === 'river' || th.view === 'sea') {
     for (let a = s0 - 30; a < L + 60; a += 15) for (const sd of [-1, 1]) {
@@ -127,9 +143,9 @@ function buildGeometry(seg) {
   else if (k === 'street') buildStreet(seg, s0, lEnd, rEnd);
   else buildDeck(seg, s0, lEnd, rEnd);
   // corner sign
-  const e = L + HW - .05, H = k === 'street' ? 3.2 : k === 'deck' ? 2.4 : Math.min(seg.wallH - .3, 2.4);
+  const e = seg.forkY ? L + HW * Math.SQRT2 + .5 : L + HW - .05, H = k === 'street' ? 3.2 : k === 'deck' ? 2.4 : Math.min(seg.wallH - .3, 2.4);
   const sign = { n: [-seg.f[0], -seg.f[1]], pat: seg.fork ? 'forkSign' : seg.turn > 0 ? 'arrowR' : 'arrowL', seg, sign: 1 };
-  sign.v = quad(seg, [[e, -2.2, H - 1.4], [e, 2.2, H - 1.4], [e, 2.2, H], [e, -2.2, H]]);
+  { const sw = seg.forkY ? .62 : 2.2, se = seg.forkY ? L + Math.SQRT1_2 * (2 * HW + .9) - .04 : e; sign.v = quad(seg, [[se, -sw, H - 1.4], [se, sw, H - 1.4], [se, sw, H], [se, -sw, H]]); } // Y 字路：とがった建物の細い正面に、たての札
   seg.decos.push(sign);
   if (k === 'deck') { // a post holding the sign
     seg.props.push(mkProp(seg, [{ l0: -.1, l1: .1, s0: L + HW - .3, s1: L + HW - .1, y0: 0, y1: H - 1.4, c: '#6E7B88' }]));
@@ -223,7 +239,7 @@ function buildStreet(seg, s0, lEnd, rEnd) {
   const cc = C(th.curb || '#D9D6CE');
   for (const sd of [-1, 1]) {
     const lat = sd * ROAD, l2 = sd * (ROAD + .2), end = sd < 0 ? lEnd : rEnd;
-    for (let a = s0; a < end - .01; a += 6) { const b = Math.min(a + 6, end);
+    for (let a = sideStart(seg, sd) ?? s0; a < end - .01; a += 6) { const b = Math.min(a + 6, end);
       seg.walls.push({ v: quad(seg, [[a, lat, .14], [b, lat, .14], [b, l2, .14], [a, l2, .14]]), c: cc, n3: [0, 1, 0], sh: 1, curb: 1 });
       seg.walls.push({ v: quad(seg, sd < 0 ? [[a, lat, 0], [b, lat, 0], [b, lat, .14], [a, lat, .14]] : [[b, lat, 0], [a, lat, 0], [a, lat, .14], [b, lat, .14]]), c: cc, n: [sd * seg.r[0] * -1, sd * seg.r[1] * -1], sh: .8, curb: 1 }); }
   }
@@ -244,7 +260,8 @@ function buildStreet(seg, s0, lEnd, rEnd) {
     seg.props.push(mkProp(seg, [{ l0: -HW - 6, l1: HW + 6, s0: a0 + .05, s1: a1, y0: 8.6, y1: 10.2, c: '#9AA0A6' }], { big: 1 }));
     for (const sd of [-1, 1]) seg.props.push(mkProp(seg, [{ l0: sd * (HW + .4) - .5, l1: sd * (HW + .4) + .5, s0: a1 - 5, s1: a1 - 3.8, y0: 0, y1: 8.6, c: '#8F949A' }], { big: 1 })); }
   if (fac.style === 'park') { buildPark(seg, s0, lEnd, rEnd); return; }
-  for (const sd of [-1, 1]) buildFacades(seg, sd, s0, sd < 0 ? lEnd : rEnd);
+  for (const sd of [-1, 1]) buildFacades(seg, sd, sideStart(seg, sd) ?? s0, sd < 0 ? lEnd : rEnd);
+  if (seg.forkY) { yWedge(seg); return; }
   // end of the street: one building across
   const e = L + HW, h = clamp(rand(fac.h[0], fac.h[1]), 8, 40), c = C(pick(fac.pal));
   for (let x = -HW; x < HW - .01; x += 3) seg.walls.push({ v: quad(seg, [[e, x, 0], [e, x + 3, 0], [e, x + 3, h], [e, x, h]]), c, n: [-seg.f[0], -seg.f[1]], sh: 1, pat: 'fac', st: fac.style === 'station' ? 'glass' : fac.style, h, w: 3, seed: (x * 7 + 3) | 0 });
@@ -347,6 +364,14 @@ function buildPark(seg, s0, lEnd, rEnd) {
   for (let x = -HW; x < HW - .01; x += 3) seg.walls.push({ v: quad(seg, [[e, x, 0], [e, x + 3, 0], [e, x + 3, .7], [e, x, .7]]), c: C('#8A8470'), n: [-seg.f[0], -seg.f[1]], sh: 1, pat: 'stonewall' });
   if (th.tree === 'sakura') for (let x = -HW - 4; x < HW + 4; x += 5) seg.spr.push(Object.assign(sakuraSpr(x, e + rand(1, 4), 0, 11, 10), { keep: Math.abs(x) <= HW }));
   else for (let x = -HW - 4; x < HW + 4; x += 3) seg.spr.push({ lat: x, s: e + rand(1, 4), y: 0, h: rand(7, 10), w: 7, img: 'canopy_' + (th.tree || 'green'), trunk: 1, keep: Math.abs(x) <= HW });
+}
+/* Y 字路のとがった角の建物の「細い正面」：2 本の道の建物（それぞれの道が作る）がとがって出会う所を、幅 1.8m ほどの正面でつなぐ。
+   正面は 1 階が小さな店（ガラス戸・ひさし）、上は窓。角の看板（分かれ道の札）はこの正面に付く */
+function yWedge(seg) {
+  const th = seg.th, fac = th.fac, L = seg.len, k = Math.SQRT1_2, h = clamp(rand(fac.h[0], fac.h[1]), 10, 34), c = C(pick(fac.pal));
+  const fs = L + k * (2 * HW + .9), half = .9 * k; // 2 本の道の建物は、それぞれの道の「角から 0.9m 先」から始まる。その 2 点を結ぶ正面
+  seg.walls.push({ v: quad(seg, [[fs, -half, 0], [fs, half, 0], [fs, half, h], [fs, -half, h]]), c, n: [-seg.f[0], -seg.f[1]], sh: 1, pat: 'fac', st: fac.style === 'station' ? 'glass' : fac.style, h, w: 1.3, seed: (Math.random() * 1e5) | 0, yFront: 1 });
+  seg.yFront = { s: fs, half, h };
 }
 /* ---- decks: railings, water or open air ---- */
 function buildDeck(seg, s0, lEnd, rEnd) {

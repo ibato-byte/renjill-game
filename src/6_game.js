@@ -38,7 +38,7 @@ function ensureSegs(max) {
       if (step.fork) {
         const Ls = Array.isArray(step.fork.L) ? step.fork.L : [step.fork.L], Rs = Array.isArray(step.fork.R) ? step.fork.R : [step.fork.R];
         G.distEst = G.dist + (G.segs.length - G.ci) * 90;
-        const a = forkSide(last, Ls, -1, t0, G.plan[0]), b = forkSide(last, Rs, 1, t0, G.plan[0]);
+        const hy = last && last.forkY ? .5 : 1, a = forkSide(last, Ls, -hy, t0, G.plan[0]), b = forkSide(last, Rs, hy, t0, G.plan[0]); // Y 字路は 45 度ずつ
         G.fork = [a, b]; G.forkRest = { L: Ls.slice(1), R: Rs.slice(1), d0: Ls[0].d, d1: Rs[0].d };
         { const rs = Math.random() < .5 ? 0 : 1; richHay(G.fork[rs]); if (last) last.richSide = rs ? 1 : -1; } // one way has more hay, and its sign says so (2026-11-08)
         break;
@@ -347,7 +347,8 @@ function doTurn() {
   if (!next) { next = G.segs[G.ci + 1]; if (!next) { ensureSegs(1); next = G.segs[G.ci + 1]; } }
   if (!next) { G.s = Math.min(G.s, seg.len); G.segDue = Math.max(G.segDue || 0, .2); return; } // nothing to turn into yet: wait at the corner (the safety net ends the run if it never comes)
   if (next.turnIn) dir = next.turnIn; // the street that was built decides the side
-  const ns = dir > 0 ? G.lat : -G.lat, nlat = clamp(dir > 0 ? -over : over, -ROAD, ROAD);
+  let ns = dir > 0 ? G.lat : -G.lat, nlat = clamp(dir > 0 ? -over : over, -ROAD, ROAD);
+  if (Math.abs(next.turnIn) === .5) { const p = segPos(seg, G.s, G.lat), dx = p[0] - next.sx, dz = p[1] - next.sz; ns = dx * next.f[0] + dz * next.f[1]; nlat = clamp(dx * next.r[0] + dz * next.r[1], -ROAD, ROAD); } // Y 字路（45 度）：いる場所を、そのまま新しい道の向きで測りなおす
   try { onLeaveSeg(seg); } catch (e) { reportErr(e); }
   if (seg.fork && seg.fork.label === 'lunch') G.stats.lunch = 1;
   const qt = G.turnQT;
