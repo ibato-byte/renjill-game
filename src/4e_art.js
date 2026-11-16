@@ -22,58 +22,181 @@ function rrect(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x
 function vgrad(g, y0, y1, stops) { const gr = g.createLinearGradient(0, y0, 0, y1); stops.forEach(([t, c]) => gr.addColorStop(t, c)); return gr; }
 
 /* ---- cars, seen from the front ---- */
-const CAR_SHAPE = { // cabin top, cabin bottom (as part of height), body roundness, cabin inset, ride height
-  sedan: { ct: .14, cb: .46, r: .18, inset: .16, ride: .1 }, hybrid: { ct: .12, cb: .47, r: .22, inset: .17, ride: .1 }, taxi: { ct: .2, cb: .47, r: .14, inset: .15, ride: .1 },
-  suv: { ct: .06, cb: .44, r: .14, inset: .1, ride: .14 }, kei: { ct: .04, cb: .42, r: .2, inset: .08, ride: .11 }, van: { ct: .03, cb: .38, r: .12, inset: .06, ride: .1 },
+/* ---- 車（正面から）。2026-11-17 オーナー：「スポーツカーや普通車のクオリティが低すぎる。現実の車をもっと参考に、30 以上のブラッシュアップを」
+   前は「四角い体・台形の窓・白い楕円のライト・黒い四角の格子」だけだった。本物の車の正面のつくりを部品ごとに描く（会社のマーク・車名は出さない）。
+   調べたこと（日本の道を走る車の正面）：
+   ・窓（フロントガラス）は上にいくほどせまい台形で、まわりに黒いふち（セラミックの帯・ドットのぼかし）。上の方は色つき。内側にミラー・センサー・日よけ・ダッシュボード。日本の車は右ハンドル＝正面から見て左に運転する人
+   ・ボンネットは空をうつして上が明るく、手前は地面の色。ボンネットとバンパー・フェンダーのあいだに細いすき間（パネルのつなぎ目）
+   ・ライトは「黒い器の中に、丸いレンズ（プロジェクター）と、細い LED の光の線（昼間も光る）」。外のはしにオレンジの方向指示器
+   ・格子（グリル）は、はちの巣か横の桟。まん中にレーダーの小さな四角（車のマークの代わり）
+   ・バンパーの下に、黒い空気の取り入れ口と、左右のくぼみにフォグライト。いちばん下は黒い樹脂のリップ
+   ・ナンバー：自家用は白地に緑の字、軽自動車は黄色地に黒い字、タクシーなど仕事の車は緑地に白い字（日本の決まり）。上に地名と番号、下にひらがなと 4 けた
+   ・タイヤは正面から見ると、黒いゴムのブロックの帯。車の下は真っ暗（地面とのあいだのかげ）
+   車ごとに：セダン（低く長いボンネット）／ハイブリッド（細いライト・小さな格子）／SUV（高い・黒い樹脂のふち・銀色の下のガード・屋根のレール）／
+   軽（せまく背が高い・四角い）／タクシー（屋根の行灯・「空車」の赤い表示・緑のナンバー）／ワゴン車（短い鼻・大きな窓・高い屋根）。
+   夜は、ライトとその光の線が光り、窓の中は暗く、ガラスに町の明かりがうつる */
+const CAR_SHAPE = { // 正面の形（画面の割合）：屋根の高さ・屋根の半はば・窓の下・肩の半はば・体の半はば・ライトの高さ・バンパーの高さ・車の下
+  sedan: { roofY: .13, roofH: .29, beltY: .47, beltH: .43, bodyH: .485, lightY: .555, bumpY: .7, botY: .9, glassT: .02, hood: .05, grille: 'slat', light: 'proj' },
+  hybrid: { roofY: .12, roofH: .28, beltY: .48, beltH: .42, bodyH: .485, lightY: .56, bumpY: .72, botY: .9, glassT: .015, hood: .04, grille: 'hex', light: 'slim' },
+  taxi: { roofY: .2, roofH: .3, beltY: .49, beltH: .43, bodyH: .48, lightY: .575, bumpY: .72, botY: .9, glassT: .02, hood: .05, grille: 'slat', light: 'round' },
+  suv: { roofY: .07, roofH: .34, beltY: .43, beltH: .44, bodyH: .49, lightY: .52, bumpY: .68, botY: .86, glassT: .025, hood: .04, grille: 'big', light: 'proj', suv: 1 },
+  kei: { roofY: .05, roofH: .34, beltY: .43, beltH: .38, bodyH: .4, lightY: .53, bumpY: .7, botY: .9, glassT: .02, hood: .03, grille: 'slat', light: 'round', kei: 1 },
+  van: { roofY: .03, roofH: .37, beltY: .42, beltH: .4, bodyH: .44, lightY: .56, bumpY: .73, botY: .91, glassT: .03, hood: .02, grille: 'slat', light: 'proj' },
 };
-function paintCar(g, W, H, col, type) {
-  const S = CAR_SHAPE[type] || CAR_SHAPE.sedan, ride = H * S.ride, bodyTop = H * S.cb, bodyBot = H - ride * .6;
-  // shadow under the car
-  g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(W / 2, H - 4, W * .5, 7, 0, 0, Math.PI * 2); g.fill();
-  // tyres
-  g.fillStyle = '#16181B'; for (const x of [W * .06, W * .79]) rrect(g, x, H - ride * 2.2, W * .15, ride * 2.2 - 2, 8), g.fill();
-  // body
-  const bx = W * .02, bw = W * .96;
-  g.fillStyle = vgrad(g, bodyTop, bodyBot, [[0, shadeHex(col, 1.18)], [.18, shadeHex(col, 1.05)], [.55, shadeHex(col, .9)], [1, shadeHex(col, .62)]]);
-  rrect(g, bx, bodyTop, bw, bodyBot - bodyTop, [W * S.r * .6, W * S.r * .6, 14, 14]); g.fill();
-  // cabin (pillars in body colour) and windscreen
-  const ci = W * S.inset, ct = H * S.ct;
-  g.fillStyle = vgrad(g, ct, bodyTop, [[0, shadeHex(col, 1.1)], [1, shadeHex(col, .92)]]);
-  g.beginPath(); g.moveTo(ci, bodyTop + 2); g.lineTo(ci + W * .07, ct + 6); g.quadraticCurveTo(W / 2, ct - 4, W - ci - W * .07, ct + 6); g.lineTo(W - ci, bodyTop + 2); g.closePath(); g.fill();
-  const gi = W * .045, gt = ct + H * .045;
-  g.fillStyle = vgrad(g, gt, bodyTop, [[0, '#B9D3E6'], [.45, '#6F8FA8'], [1, '#26323E']]);
-  g.beginPath(); g.moveTo(ci + gi, bodyTop - 2); g.lineTo(ci + W * .07 + gi * .6, gt + 4); g.quadraticCurveTo(W / 2, gt - 3, W - ci - W * .07 - gi * .6, gt + 4); g.lineTo(W - ci - gi, bodyTop - 2); g.closePath(); g.fill();
-  // a sky reflection streak and the interior (seats, a driver)
-  g.save(); g.clip(); g.fillStyle = 'rgba(255,255,255,.28)'; g.beginPath(); g.moveTo(W * .58, gt); g.lineTo(W * .7, gt); g.lineTo(W * .48, bodyTop); g.lineTo(W * .36, bodyTop); g.closePath(); g.fill();
-  g.fillStyle = 'rgba(20,24,30,.55)'; g.beginPath(); g.ellipse(W * .33, bodyTop - (bodyTop - gt) * .38, W * .07, (bodyTop - gt) * .3, 0, 0, Math.PI * 2); g.fill(); g.fillRect(W * .27, bodyTop - (bodyTop - gt) * .18, W * .12, (bodyTop - gt) * .2); g.restore();
-  // mirrors
-  g.fillStyle = shadeHex(col, .95); for (const x of [ci - W * .06, W - ci + W * .01]) { rrect(g, x, bodyTop - H * .05, W * .05, H * .06, 4); g.fill(); }
-  // bonnet crease highlight
-  g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 2; g.beginPath(); g.moveTo(W * .2, bodyTop + 6); g.quadraticCurveTo(W / 2, bodyTop + 1, W * .8, bodyTop + 6); g.stroke();
-  // headlights (white glass) with amber corners, grille, bumper, plate
-  const hy = bodyTop + (bodyBot - bodyTop) * .26, hh = (bodyBot - bodyTop) * .2;
-  for (const sd of [-1, 1]) { const x = sd < 0 ? W * .07 : W * .93 - W * .2; g.fillStyle = vgrad(g, hy, hy + hh, [[0, '#FFFFFF'], [1, '#C9D2DA']]); rrect(g, x, hy, W * .2, hh, hh * .45); g.fill();
-    g.fillStyle = 'rgba(255,190,90,.95)'; rrect(g, sd < 0 ? x : x + W * .2 - W * .045, hy + 2, W * .045, hh - 4, 3); g.fill(); g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 1.5; rrect(g, x, hy, W * .2, hh, hh * .45); g.stroke(); }
-  g.fillStyle = '#1F2328'; rrect(g, W * .33, hy + hh * .1, W * .34, hh * 1.1, 6); g.fill();
-  g.strokeStyle = 'rgba(255,255,255,.12)'; g.lineWidth = 1.5; for (let k = 1; k < 4; k++) { const y = hy + hh * .1 + k * hh * 1.1 / 4; g.beginPath(); g.moveTo(W * .35, y); g.lineTo(W * .65, y); g.stroke(); }
-  const by = bodyBot - (bodyBot - bodyTop) * .3; g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(bx + 6, by, bw - 12, 3);
-  g.fillStyle = '#2A2E33'; rrect(g, W * .2, by + 6, W * .6, (bodyBot - by) * .45, 5); g.fill();
-  g.fillStyle = '#F4F4EC'; rrect(g, W * .38, by + 4, W * .24, (bodyBot - by) * .5, 3); g.fill(); g.strokeStyle = '#3C7A4E'; g.lineWidth = 1.5; g.stroke();
-  g.fillStyle = '#3C7A4E'; g.font = `900 ${Math.round((bodyBot - by) * .3)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('12-34', W / 2, by + 4 + (bodyBot - by) * .27);
-  if (type === 'taxi') { const tw = W * .26, th = H * .09; g.fillStyle = '#FBF6EE'; rrect(g, W / 2 - tw / 2, ct - th + 4, tw, th, 4); g.fill(); g.strokeStyle = 'rgba(0,0,0,.3)'; g.stroke(); g.fillStyle = '#2B2B2B'; g.font = `900 ${Math.round(th * .7)}px sans-serif`; g.fillText('TAXI', W / 2, ct - th / 2 + 4); }
+function carPlate(g, cx, y, w, kind, night) { // 日本のナンバー：自家用＝白に緑・軽＝黄に黒・仕事の車＝緑に白
+  const h = w * .5, bg = kind === 'kei' ? '#F2D23A' : kind === 'taxi' ? '#2F7A4E' : '#F6F6EE', fg = kind === 'kei' ? '#1E1E1E' : kind === 'taxi' ? '#F6F6EE' : '#2F6E46';
+  g.fillStyle = 'rgba(0,0,0,.45)'; rrect(g, cx - w / 2 - 2, y - 2, w + 4, h + 4, 4); g.fill(); // 枠
+  g.fillStyle = bg; rrect(g, cx - w / 2, y, w, h, 3); g.fill(); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(cx - w / 2 + 2, y + 1, w - 4, h * .18); // つや
+  g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `700 ${Math.round(h * .3)}px sans-serif`; g.fillText('品川 500', cx + w * .06, y + h * .26);
+  g.font = `700 ${Math.round(h * .26)}px sans-serif`; g.fillText('あ', cx - w * .38, y + h * .7); g.font = `900 ${Math.round(h * .5)}px sans-serif`; g.fillText('12-34', cx + w * .08, y + h * .68);
+  for (const sx of [-.36, .36]) { g.fillStyle = 'rgba(120,120,120,.8)'; g.beginPath(); g.arc(cx + w * sx, y + h * .14, h * .05, 0, 7); g.fill(); } // 留めねじ
+  if (night) { g.fillStyle = 'rgba(255,255,240,.18)'; g.fillRect(cx - w / 2, y, w, h * .5); } }
+function paintCar(g, W, H, col, type, night) {
+  const S = CAR_SHAPE[type] || CAR_SHAPE.sedan, cx = W / 2, X = f => W * f, Y = f => H * f, metallic = !['#2B2B2B', '#F3F3F3', '#F2C230', '#2F6B4F'].includes(col);
+  const roofY = Y(S.roofY), belt = Y(S.beltY), lightY = Y(S.lightY), bump = Y(S.bumpY), bot = Y(S.botY), bh = X(S.bodyH), sh = X(S.beltH), rh = X(S.roofH);
+  // ①地面のかげ（車の下は真っ暗、外へやわらかく）
+  { const gr = g.createRadialGradient(cx, H - 6, 4, cx, H - 6, W * .56); gr.addColorStop(0, 'rgba(0,0,0,.55)'); gr.addColorStop(.7, 'rgba(0,0,0,.28)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.save(); g.translate(0, H - 6); g.scale(1, .12); g.translate(0, -(H - 6)); g.beginPath(); g.arc(cx, H - 6, W * .56, 0, 7); g.fill(); g.restore(); }
+  g.fillStyle = 'rgba(8,8,10,.85)'; rrect(g, cx - bh * .9, bot - 6, bh * 1.8, H - bot + 2, 6); g.fill(); // ②車の下のくらがり
+  // ③タイヤ：ゴムのブロックの帯（正面から見える前輪）。タイヤの上のかげ
+  for (const sd of [-1, 1]) { const tx = cx + sd * bh * .8, tw = W * (S.suv ? .15 : .13), ty = bot - Y(.07);
+    g.fillStyle = vgrad(g, ty, H - 3, [[0, '#0E0F11'], [.5, '#22252A'], [1, '#0B0C0E']]); rrect(g, tx - tw / 2, ty, tw, H - 3 - ty, 7); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.07)'; g.lineWidth = 1.2; for (let y = ty + 5; y < H - 6; y += 5) { g.beginPath(); g.moveTo(tx - tw * .4, y); g.lineTo(tx - tw * .1, y + 1.5); g.moveTo(tx + tw * .1, y + 1.5); g.lineTo(tx + tw * .4, y); g.stroke(); } // ブロックの溝
+    g.fillStyle = 'rgba(255,255,255,.08)'; rrect(g, tx - tw / 2 + 2, ty + 2, tw * .25, H - ty - 8, 4); g.fill(); } // 横のふくらみの光
+  // ④体（肩から下）：上は空をうつして明るく、下は地面の色で暗く。メタリックは細かいつぶ
+  const body = () => { g.beginPath(); g.moveTo(cx - sh, belt); g.bezierCurveTo(cx - bh * .97, belt + Y(.01), cx - bh, lightY - Y(.03), cx - bh, lightY + Y(.02)); g.lineTo(cx - bh * .99, bot - Y(.04)); g.quadraticCurveTo(cx - bh * .98, bot, cx - bh * .9, bot);
+    g.lineTo(cx + bh * .9, bot); g.quadraticCurveTo(cx + bh * .98, bot, cx + bh * .99, bot - Y(.04)); g.lineTo(cx + bh, lightY + Y(.02)); g.bezierCurveTo(cx + bh, lightY - Y(.03), cx + bh * .97, belt + Y(.01), cx + sh, belt); g.closePath(); };
+  body(); g.fillStyle = vgrad(g, belt, bot, [[0, shadeHex(col, 1.22)], [.12, shadeHex(col, 1.08)], [.4, shadeHex(col, .96)], [.75, shadeHex(col, .8)], [1, shadeHex(col, .58)]]); g.fill();
+  g.save(); body(); g.clip();
+  { const hg = g.createLinearGradient(0, belt, 0, lightY); hg.addColorStop(0, 'rgba(200,225,255,.35)'); hg.addColorStop(.6, 'rgba(255,255,255,.08)'); hg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = hg; g.fillRect(0, belt, W, lightY - belt); } // ⑤ボンネットに空がうつる
+  g.fillStyle = 'rgba(40,46,56,.22)'; g.beginPath(); g.moveTo(cx - bh, belt + Y(.035)); g.quadraticCurveTo(cx, belt + Y(.05), cx + bh, belt + Y(.035)); g.lineTo(cx + bh, belt + Y(.045)); g.quadraticCurveTo(cx, belt + Y(.06), cx - bh, belt + Y(.045)); g.fill(); // ⑥ボンネットにうつる町の地平線（暗い帯）
+  for (const sd of [-1, 1]) { const fg = g.createRadialGradient(cx + sd * bh * .78, belt + Y(.03), 2, cx + sd * bh * .78, belt + Y(.03), W * .14); fg.addColorStop(0, 'rgba(255,255,255,.5)'); fg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = fg; g.fillRect(0, belt - Y(.05), W, Y(.2)); } // ⑦フェンダーの上のつやの点
+  if (metallic) { const r = rnd(col.length * 31 + type.length); for (let i = 0; i < 260; i++) { g.fillStyle = r() < .5 ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.08)'; g.fillRect(cx - bh + r() * bh * 2, belt + r() * (bot - belt), 1, 1); } } // ⑧メタリックの細かい光のつぶ
+  g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(cx - bh, bot - Y(.05), bh * 2, Y(.06)); // ⑨下のふちのかげ（地面の照り返しの少ない所）
+  g.restore();
+  // ⑩パネルのつなぎ目：ボンネットとフェンダー、バンパーの上
+  g.strokeStyle = 'rgba(0,0,0,.32)'; g.lineWidth = 1.2; g.beginPath(); for (const sd of [-1, 1]) { g.moveTo(cx + sd * sh * .86, belt + 2); g.quadraticCurveTo(cx + sd * bh * .74, lightY - Y(.04), cx + sd * bh * .66, lightY - Y(.012)); } g.moveTo(cx - bh * .66, lightY - Y(.012)); g.quadraticCurveTo(cx, lightY - Y(.02), cx + bh * .66, lightY - Y(.012)); g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.28)'; g.lineWidth = 1.5; g.beginPath(); for (const sd of [-1, 1]) { g.moveTo(cx + sd * sh * .5, belt + Y(.012)); g.quadraticCurveTo(cx + sd * sh * .45, lightY - Y(.06), cx + sd * sh * .36, lightY - Y(.03)); } g.stroke(); // ⑪ボンネットの 2 本のプレスライン（光）
+  g.fillStyle = '#20242A'; for (const sd of [-1, 1]) { g.beginPath(); g.ellipse(cx + sd * W * .06, belt + Y(.012), 2.4, 1.4, 0, 0, 7); g.fill(); } // ⑫ウォッシャーの小さな口
+  // ⑬窓のまわり（屋根と柱）
+  const cab = () => { g.beginPath(); g.moveTo(cx - sh * .98, belt + 1); g.lineTo(cx - rh - X(.015), roofY + Y(.03)); g.quadraticCurveTo(cx - rh + X(.01), roofY - Y(.005), cx - rh + X(.05), roofY - Y(.01)); g.lineTo(cx + rh - X(.05), roofY - Y(.01)); g.quadraticCurveTo(cx + rh - X(.01), roofY - Y(.005), cx + rh + X(.015), roofY + Y(.03)); g.lineTo(cx + sh * .98, belt + 1); g.closePath(); };
+  cab(); g.fillStyle = vgrad(g, roofY, belt, [[0, shadeHex(col, 1.18)], [.2, shadeHex(col, 1.02)], [1, shadeHex(col, .86)]]); g.fill();
+  g.strokeStyle = 'rgba(255,255,255,.4)'; g.lineWidth = 2; g.beginPath(); g.moveTo(cx - rh + X(.04), roofY - Y(.008)); g.lineTo(cx + rh - X(.04), roofY - Y(.008)); g.stroke(); // ⑭屋根のふちの光
+  // ⑮フロントガラス：黒いふち（ドットのぼかし）→ 色つきの上の帯 → 空と町のうつりこみ → 中のダッシュボード
+  const gt = roofY + Y(S.glassT + .02), gb = belt - Y(.008), gl = (t) => lerp(rh - X(.012), sh * .9, t);
+  const glass = () => { g.beginPath(); g.moveTo(cx - gl(1), gb); g.lineTo(cx - gl(0), gt); g.quadraticCurveTo(cx, gt - Y(.012), cx + gl(0), gt); g.lineTo(cx + gl(1), gb); g.closePath(); };
+  glass(); g.fillStyle = '#0E1115'; g.fill();
+  g.save(); glass(); g.clip();
+  const inset = 5; g.fillStyle = vgrad(g, gt, gb, night ? [[0, '#0B0E14'], [.6, '#141A24'], [1, '#0A0C10']] : [[0, '#3C4C5C'], [.16, '#7E9AB2'], [.5, '#A9C2D6'], [.78, '#5E7286'], [1, '#2A3440']]); g.beginPath(); g.moveTo(cx - gl(1) + inset, gb - inset); g.lineTo(cx - gl(0) + inset, gt + inset); g.lineTo(cx + gl(0) - inset, gt + inset); g.lineTo(cx + gl(1) - inset, gb - inset); g.closePath(); g.fill();
+  if (!night) { g.fillStyle = 'rgba(30,50,80,.35)'; g.fillRect(0, gt, W, (gb - gt) * .16); } // 上の色つきの帯
+  // 中：日よけ・ハンドル・運転する人（右ハンドル＝正面から見て左）・となりの席・ダッシュボード
+  const ih = gb - gt; g.fillStyle = night ? 'rgba(0,0,0,.6)' : 'rgba(22,26,32,.6)';
+  for (const sd of [-1, 1]) rrect(g, cx + sd * gl(.2) * .5 - X(.09), gt + ih * .16, X(.18), ih * .1, 3), g.fill(); // 日よけ
+  g.fillStyle = night ? 'rgba(0,0,0,.7)' : 'rgba(18,22,28,.62)'; g.beginPath(); g.ellipse(cx - gl(.6) * .5, gt + ih * .5, X(.06), ih * .16, 0, 0, 7); g.fill(); g.fillRect(cx - gl(.6) * .5 - X(.085), gt + ih * .62, X(.17), ih * .3); // 運転する人
+  g.beginPath(); g.ellipse(cx + gl(.6) * .5, gt + ih * .58, X(.07), ih * .2, 0, 0, 7); g.fill(); // となりの席の背もたれ
+  g.strokeStyle = night ? 'rgba(0,0,0,.8)' : 'rgba(10,12,16,.75)'; g.lineWidth = 3; g.beginPath(); g.ellipse(cx - gl(.6) * .5, gt + ih * .82, X(.055), ih * .06, 0, Math.PI, 0); g.stroke(); // ハンドル
+  g.fillStyle = night ? '#07090C' : 'rgba(16,18,22,.85)'; g.fillRect(0, gb - ih * .14, W, ih * .14); // ダッシュボード
+  g.fillStyle = night ? 'rgba(120,200,255,.5)' : 'rgba(255,255,255,.12)'; g.fillRect(cx - gl(.8) * .5 - X(.03), gb - ih * .12, X(.06), ih * .04); // メーターの光
+  g.fillStyle = 'rgba(20,22,26,.85)'; rrect(g, cx - X(.035), gt + ih * .02, X(.07), ih * .07, 3); g.fill(); g.fillStyle = 'rgba(40,44,50,.9)'; rrect(g, cx - X(.06), gt + ih * .09, X(.12), ih * .045, 3); g.fill(); // ⑯センサーの箱とルームミラー
+  if (type === 'taxi') { g.fillStyle = '#E8322A'; rrect(g, cx + gl(.85) * .5 - X(.02), gb - ih * .3, X(.12), ih * .14, 2); g.fill(); g.fillStyle = '#FFF2C8'; g.font = `900 ${Math.round(ih * .11)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('空車', cx + gl(.85) * .5 + X(.04), gb - ih * .23); } // ⑰タクシーの「空車」の表示（助手席側）
+  // うつりこみ：空の明るいななめの帯と、ビルの縦のすじ
+  g.fillStyle = night ? 'rgba(255,214,150,.12)' : 'rgba(255,255,255,.3)'; g.beginPath(); g.moveTo(cx + X(.06), gt); g.lineTo(cx + X(.18), gt); g.lineTo(cx - X(.02), gb); g.lineTo(cx - X(.14), gb); g.closePath(); g.fill();
+  g.fillStyle = night ? 'rgba(255,214,150,.18)' : 'rgba(255,255,255,.12)'; for (let i = 0; i < 6; i++) { const x = cx - gl(.5) + (i + .4) * gl(.5) * .34; g.fillRect(x, gt + ih * .05, X(.012), ih * (.3 + (i % 3) * .1)); } // ⑱ガラスにうつるビルの縦のすじ（夜は窓の明かり）
+  g.restore();
+  // ⑲ガラスのふちの黒いセラミックの帯（点のぼかし）
+  g.save(); glass(); g.clip(); g.strokeStyle = '#08090B'; g.lineWidth = 9; glass(); g.stroke(); g.fillStyle = 'rgba(8,9,11,.7)'; for (let x = cx - gl(.5); x < cx + gl(.5); x += 5) { g.beginPath(); g.arc(x, gt + 6.5, 1.1, 0, 7); g.fill(); } g.restore();
+  // ⑳ワイパー（ガラスの下で休んでいる）
+  g.strokeStyle = '#121416'; g.lineWidth = 2.2; g.lineCap = 'round'; g.beginPath(); g.moveTo(cx - gl(1) * .78, gb - 2); g.lineTo(cx - X(.02), gb - Y(.02)); g.moveTo(cx + X(.03), gb - 2); g.lineTo(cx + gl(1) * .6, gb - Y(.016)); g.stroke();
+  // ㉑ドアミラー：黒い付け根・体の色のカバー・方向指示器の細い光
+  for (const sd of [-1, 1]) { const mx = cx + sd * (sh + X(.035)), my = belt - Y(.035);
+    g.fillStyle = '#16181B'; g.beginPath(); g.moveTo(cx + sd * sh * .96, belt - Y(.005)); g.lineTo(mx - sd * X(.02), my + Y(.02)); g.lineTo(mx - sd * X(.02), my + Y(.035)); g.lineTo(cx + sd * sh * .96, belt + Y(.012)); g.fill();
+    g.fillStyle = vgrad(g, my - Y(.03), my + Y(.03), [[0, shadeHex(col, 1.2)], [1, shadeHex(col, .8)]]); rrect(g, mx - X(.04), my - Y(.028), X(.08), Y(.058), [8, 8, 6, 6]); g.fill();
+    g.fillStyle = night ? '#FFB24A' : 'rgba(255,170,60,.85)'; rrect(g, mx - X(.035), my + Y(.018), X(.07), Y(.008), 2); g.fill(); }
+  // ㉒SUV：屋根のレール／タクシー：屋根の行灯／アンテナ
+  if (S.suv) { g.fillStyle = '#1A1C1F'; for (const sd of [-1, 1]) rrect(g, cx + sd * rh * .78 - X(.015), roofY - Y(.03), X(.03), Y(.028), 3), g.fill(); g.fillStyle = '#2A2D31'; g.fillRect(cx - rh * .8, roofY - Y(.03), rh * 1.6, Y(.012)); }
+  if (type === 'taxi') { const tw = X(.24), th = Y(.1), ty = roofY - th - Y(.005); g.fillStyle = '#D9D4C8'; rrect(g, cx - tw * .45, ty + th * .82, tw * .9, th * .22, 3); g.fill();
+    g.fillStyle = night ? vgrad(g, ty, ty + th, [[0, '#FFF6D0'], [1, '#FFD98A']]) : vgrad(g, ty, ty + th, [[0, '#FFFDF6'], [1, '#E2DCCD']]); g.beginPath(); g.moveTo(cx - tw / 2, ty + th * .9); g.quadraticCurveTo(cx - tw / 2, ty + th * .15, cx - tw * .25, ty); g.lineTo(cx + tw * .25, ty); g.quadraticCurveTo(cx + tw / 2, ty + th * .15, cx + tw / 2, ty + th * .9); g.closePath(); g.fill(); g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = 1.2; g.stroke();
+    g.fillStyle = night ? '#5A3A10' : '#2B2B2B'; g.font = `900 ${Math.round(th * .5)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('TAXI', cx, ty + th * .52); }
+  else if (!S.suv) { g.fillStyle = shadeHex(col, .5); g.beginPath(); g.moveTo(cx - X(.02), roofY - Y(.008)); g.quadraticCurveTo(cx, roofY - Y(.04), cx + X(.025), roofY - Y(.008)); g.fill(); } // シャークフィンのアンテナ（うしろの方に少し）
+  // ㉓ライト：黒い器・プロジェクターのレンズ・LED の光の線・オレンジの方向指示器・ガラスのつや
+  const lw = X(S.light === 'slim' ? .17 : S.light === 'round' ? .15 : .19), lh = Y(S.light === 'slim' ? .045 : S.light === 'round' ? .07 : .062);
+  for (const sd of [-1, 1]) { const x0 = cx + sd * bh * .9, x1 = cx + sd * (bh * .9 - lw), ly = lightY - lh * .55, xa = Math.min(x0, x1), xb = Math.max(x0, x1);
+    const shape = () => { g.beginPath(); if (S.light === 'round') { g.ellipse((xa + xb) / 2, ly + lh / 2, lw / 2, lh / 2, 0, 0, 7); return; } g.moveTo(x0, ly + lh * .1); g.quadraticCurveTo(x0 + sd * X(.005), ly + lh * .85, x0 - sd * lw * .15, ly + lh); g.lineTo(x1, ly + lh * .78); g.quadraticCurveTo(x1 - sd * X(.008), ly + lh * .3, x1 + sd * X(.01), ly + lh * .05); g.closePath(); };
+    shape(); g.fillStyle = '#0B0D10'; g.fill(); g.save(); shape(); g.clip();
+    g.fillStyle = vgrad(g, ly, ly + lh, [[0, '#3A414A'], [.5, '#1A1E24'], [1, '#2C3138']]); g.fillRect(xa, ly, lw, lh); // 器の中のくらがり
+    const lx = (xa + xb) / 2 - sd * lw * .12, lr = lh * .32; // プロジェクターのレンズ
+    { const rg = g.createRadialGradient(lx - lr * .3, ly + lh * .5 - lr * .3, 1, lx, ly + lh * .5, lr); rg.addColorStop(0, night ? '#FFFFFF' : '#E9F2FA'); rg.addColorStop(.5, night ? '#FFF6D8' : '#8FA3B6'); rg.addColorStop(1, night ? '#C9B98A' : '#2A333D'); g.fillStyle = rg; g.beginPath(); g.arc(lx, ly + lh * .5, lr, 0, 7); g.fill(); g.strokeStyle = '#9AA6B2'; g.lineWidth = 1.2; g.stroke(); }
+    if (S.light !== 'round') { const lx2 = lx + sd * lw * .32; g.fillStyle = night ? '#FFF8E2' : '#C3CDD6'; g.beginPath(); g.arc(lx2, ly + lh * .5, lr * .7, 0, 7); g.fill(); g.strokeStyle = '#7F8A96'; g.stroke(); } // 2 つ目のレンズ（ハイビーム）
+    g.strokeStyle = night ? '#FFFFFF' : '#F4F9FF'; g.lineWidth = Math.max(2, lh * .12); g.lineCap = 'round'; g.shadowColor = night ? 'rgba(255,255,255,.9)' : 'rgba(255,255,255,.5)'; g.shadowBlur = night ? 8 : 3; // LED の光の線（昼間も光る）。L 字
+    g.beginPath(); g.moveTo(xa + lw * .08, ly + lh * .16); g.lineTo(xb - lw * .08, ly + lh * .16); if (S.light === 'slim') { g.moveTo(sd < 0 ? xb - lw * .1 : xa + lw * .1, ly + lh * .16); g.lineTo(sd < 0 ? xb - lw * .12 : xa + lw * .12, ly + lh * .8); } g.stroke(); g.shadowBlur = 0;
+    g.fillStyle = night ? 'rgba(255,180,80,.9)' : 'rgba(255,170,60,.75)'; g.fillRect(sd < 0 ? xa : xb - lw * .12, ly + lh * .35, lw * .12, lh * .5); // 方向指示器（外のはし）
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.ellipse(xa + lw * .3, ly + lh * .18, lw * .25, lh * .08, -.1, 0, 7); g.fill(); g.restore(); // ガラスのつや
+    shape(); g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 1; g.stroke(); }
+  // ㉔格子（グリル）：はちの巣／横の桟／大きな格子。まん中にレーダーの小さな四角（車のマークは出さない）
+  { const gw = S.grille === 'big' ? bh * .9 : S.grille === 'hex' ? bh * .5 : bh * .62, gy = lightY - Y(.03), gh = S.grille === 'big' ? Y(.1) : S.grille === 'hex' ? Y(.035) : Y(.06);
+    g.fillStyle = '#121418'; rrect(g, cx - gw / 2, gy, gw, gh, Math.min(10, gh / 2)); g.fill(); g.save(); rrect(g, cx - gw / 2, gy, gw, gh, Math.min(10, gh / 2)); g.clip();
+    if (S.grille === 'slat' || S.grille === 'big') { g.strokeStyle = S.grille === 'big' ? 'rgba(170,176,184,.55)' : 'rgba(255,255,255,.16)'; g.lineWidth = S.grille === 'big' ? 3 : 2; for (let y = gy + gh / 4; y < gy + gh; y += gh / 4) { g.beginPath(); g.moveTo(cx - gw / 2, y); g.lineTo(cx + gw / 2, y); g.stroke(); } }
+    else { g.strokeStyle = 'rgba(255,255,255,.14)'; g.lineWidth = 1; for (let y = gy; y < gy + gh + 4; y += 5) for (let x = cx - gw / 2 + ((y / 5) % 2) * 3; x < cx + gw / 2; x += 6) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + 3, y - 2); g.lineTo(x + 6, y); g.stroke(); } }
+    g.restore(); g.strokeStyle = S.grille === 'big' ? '#8A9098' : shadeHex(col, .7); g.lineWidth = 2; rrect(g, cx - gw / 2, gy, gw, gh, Math.min(10, gh / 2)); g.stroke(); // 格子のふち
+    g.fillStyle = '#2A2F36'; rrect(g, cx - X(.03), gy + gh * .2, X(.06), gh * .6, 3); g.fill(); g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(cx - X(.025), gy + gh * .24, X(.05), gh * .12); } // レーダーのカバー
+  // ㉕バンパー：下の空気の取り入れ口・左右のくぼみとフォグライト・黒い樹脂のリップ・SUV は銀色のガード
+  { const iy = bump - Y(.01), iw = bh * (S.kei ? .7 : .86), ih2 = Y(.07);
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.beginPath(); g.moveTo(cx - bh * .95, iy - Y(.035)); g.quadraticCurveTo(cx, iy - Y(.05), cx + bh * .95, iy - Y(.035)); g.lineTo(cx + bh * .95, iy - Y(.03)); g.quadraticCurveTo(cx, iy - Y(.045), cx - bh * .95, iy - Y(.03)); g.fill(); // バンパーの角の光
+    g.fillStyle = '#121418'; g.beginPath(); g.moveTo(cx - iw / 2, iy); g.lineTo(cx + iw / 2, iy); g.lineTo(cx + iw / 2 - X(.02), iy + ih2); g.lineTo(cx - iw / 2 + X(.02), iy + ih2); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.1)'; g.lineWidth = 1; for (let x = cx - iw / 2 + 6; x < cx + iw / 2 - 6; x += 7) { g.beginPath(); g.moveTo(x, iy + 3); g.lineTo(x, iy + ih2 - 3); g.stroke(); }
+    for (const sd of [-1, 1]) { const fx = cx + sd * bh * .8; g.fillStyle = '#16181C'; rrect(g, fx - X(.05), iy - Y(.005), X(.1), Y(.05), 6); g.fill(); g.fillStyle = night ? '#FFF6D8' : '#C9D2DA'; rrect(g, fx - X(.03), iy + Y(.01), X(.06), Y(.018), 4); g.fill(); } // フォグライト
+    g.fillStyle = S.suv ? '#9AA1A8' : '#1A1C20'; rrect(g, cx - bh * .92, bot - Y(.035), bh * 1.84, Y(.03), 4); g.fill(); // いちばん下のリップ／SUV は銀色のガード
+    if (S.suv) { g.fillStyle = '#1C1E22'; for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(cx + sd * bh, lightY + Y(.02)); g.lineTo(cx + sd * bh * 1.02, bot - Y(.02)); g.lineTo(cx + sd * bh * .9, bot - Y(.02)); g.lineTo(cx + sd * bh * .93, lightY + Y(.05)); g.closePath(); g.fill(); } } // SUV の黒い樹脂のふち
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(cx - X(.012), iy + ih2 + 2, X(.024), Y(.012)); // けん引フックのふた
+    carPlate(g, cx, iy + Y(.012), X(S.kei ? .165 : .18), S.kei ? 'kei' : type === 'taxi' ? 'taxi' : '', night); } // ㉖ナンバー（日本の色の決まり）
+  // ㉗体のふちの光（空の反射）と、肩のかげ
+  g.save(); body(); g.clip(); g.strokeStyle = 'rgba(255,255,255,.28)'; g.lineWidth = 3; body(); g.stroke(); g.restore();
+  // ㉘夜：ライトの光のにじみ
+  if (night) { g.globalCompositeOperation = 'lighter'; for (const sd of [-1, 1]) { const lx = cx + sd * (bh * .9 - lw / 2), gr = g.createRadialGradient(lx, lightY - lh * .1, 2, lx, lightY - lh * .1, lw * .9); gr.addColorStop(0, 'rgba(255,250,230,.6)'); gr.addColorStop(1, 'rgba(255,240,200,0)'); g.fillStyle = gr; g.fillRect(lx - lw, lightY - lw, lw * 2, lw * 2); } g.globalCompositeOperation = 'source-over'; }
 }
-function paintSupercar(g, W, H, col) {
-  const bodyTop = H * .5, bodyBot = H * .94;
-  g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.ellipse(W / 2, H - 4, W * .52, 7, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#121416'; for (const x of [W * .04, W * .8]) { rrect(g, x, H * .7, W * .16, H * .28, 8); g.fill(); }
-  g.fillStyle = vgrad(g, H * .3, bodyBot, [[0, shadeHex(col, 1.25)], [.35, shadeHex(col, 1)], [1, shadeHex(col, .55)]]);
-  g.beginPath(); g.moveTo(W * .01, bodyBot); g.lineTo(W * .02, bodyTop + 10); g.quadraticCurveTo(W * .1, bodyTop - 8, W * .3, bodyTop - 10); g.lineTo(W * .7, bodyTop - 10); g.quadraticCurveTo(W * .9, bodyTop - 8, W * .98, bodyTop + 10); g.lineTo(W * .99, bodyBot); g.closePath(); g.fill();
-  g.fillStyle = vgrad(g, H * .2, bodyTop - 8, [[0, '#9FB7C9'], [1, '#1F2A34']]);
-  g.beginPath(); g.moveTo(W * .24, bodyTop - 8); g.quadraticCurveTo(W * .3, H * .22, W / 2, H * .2); g.quadraticCurveTo(W * .7, H * .22, W * .76, bodyTop - 8); g.closePath(); g.fill();
-  g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.moveTo(W * .56, H * .22); g.lineTo(W * .64, H * .23); g.lineTo(W * .5, bodyTop - 8); g.lineTo(W * .43, bodyTop - 8); g.closePath(); g.fill();
-  for (const sd of [-1, 1]) { const x = sd < 0 ? W * .08 : W * .72; g.fillStyle = '#F4FBFF'; g.beginPath(); g.moveTo(x, bodyTop + 14); g.lineTo(x + W * .2, bodyTop + 6); g.lineTo(x + W * .2, bodyTop + 14); g.lineTo(x, bodyTop + 20); g.closePath(); g.fill(); }
-  g.fillStyle = '#16181B'; for (const [x, w] of [[W * .06, W * .22], [W * .72, W * .22], [W * .34, W * .32]]) { rrect(g, x, H * .72, w, H * .14, 6); g.fill(); }
-  g.strokeStyle = 'rgba(255,255,255,.3)'; g.lineWidth = 2; g.beginPath(); g.moveTo(W * .3, bodyTop + 2); g.quadraticCurveTo(W / 2, bodyTop - 6, W * .7, bodyTop + 2); g.stroke();
+/* スポーツカー（正面）：とても低く、はばが広い。ねかせた大きな窓、くさびの形の鼻、細いつり目の LED、大きな左右の空気の取り入れ口（網）、
+   まん中の口、黒いカーボンのリップ（スプリッター）、太いタイヤ、ボンネットの空気の出口、細い棒の上のミラー */
+function paintSupercar(g, W, H, col, night) {
+  const cx = W / 2, X = f => W * f, Y = f => H * f, bot = Y(.9), top = Y(.44), roofY = Y(.16);
+  { const gr = g.createRadialGradient(cx, H - 5, 4, cx, H - 5, W * .56); gr.addColorStop(0, 'rgba(0,0,0,.6)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.save(); g.translate(0, H - 5); g.scale(1, .1); g.translate(0, -(H - 5)); g.beginPath(); g.arc(cx, H - 5, W * .56, 0, 7); g.fill(); g.restore(); }
+  g.fillStyle = 'rgba(6,6,8,.9)'; rrect(g, cx - X(.44), bot - 6, X(.88), H - bot + 2, 5); g.fill();
+  for (const sd of [-1, 1]) { const tx = cx + sd * X(.4), tw = X(.17), ty = Y(.66); g.fillStyle = vgrad(g, ty, H - 2, [[0, '#0C0D0F'], [.5, '#202328'], [1, '#09090B']]); rrect(g, tx - tw / 2, ty, tw, H - 2 - ty, 8); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.06)'; g.lineWidth = 1.2; for (let y = ty + 5; y < H - 5; y += 5) { g.beginPath(); g.moveTo(tx - tw * .42, y); g.lineTo(tx + tw * .42, y); g.stroke(); } } // 太いタイヤ（はばの広いゴムの帯）
+  const body = () => { g.beginPath(); g.moveTo(cx - X(.47), bot); g.lineTo(cx - X(.49), Y(.66)); g.bezierCurveTo(cx - X(.495), Y(.52), cx - X(.44), top + Y(.02), cx - X(.32), top); g.quadraticCurveTo(cx, top + Y(.04), cx + X(.32), top); g.bezierCurveTo(cx + X(.44), top + Y(.02), cx + X(.495), Y(.52), cx + X(.49), Y(.66)); g.lineTo(cx + X(.47), bot); g.closePath(); };
+  body(); g.fillStyle = vgrad(g, top, bot, [[0, shadeHex(col, 1.3)], [.25, shadeHex(col, 1.05)], [.6, shadeHex(col, .85)], [1, shadeHex(col, .5)]]); g.fill();
+  g.save(); body(); g.clip();
+  { const hg = g.createLinearGradient(0, top, 0, Y(.6)); hg.addColorStop(0, 'rgba(210,230,255,.45)'); hg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = hg; g.fillRect(0, top, W, Y(.16)); } // ボンネットにうつる空
+  for (const sd of [-1, 1]) { const fg = g.createRadialGradient(cx + sd * X(.36), top + Y(.04), 2, cx + sd * X(.36), top + Y(.04), X(.12)); fg.addColorStop(0, 'rgba(255,255,255,.6)'); fg.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = fg; g.fillRect(0, top - Y(.05), W, Y(.2)); } // 盛り上がったフェンダーのつや
+  g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(0, bot - Y(.06), W, Y(.07)); g.restore();
+  // ボンネットのくぼみと空気の出口
+  g.fillStyle = shadeHex(col, .72); g.beginPath(); g.moveTo(cx - X(.16), top + Y(.03)); g.quadraticCurveTo(cx, top + Y(.07), cx + X(.16), top + Y(.03)); g.lineTo(cx + X(.1), Y(.56)); g.quadraticCurveTo(cx, Y(.58), cx - X(.1), Y(.56)); g.closePath(); g.fill();
+  g.fillStyle = '#121418'; for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(cx + sd * X(.06), top + Y(.06)); g.lineTo(cx + sd * X(.14), top + Y(.045)); g.lineTo(cx + sd * X(.12), top + Y(.075)); g.lineTo(cx + sd * X(.055), top + Y(.085)); g.closePath(); g.fill(); }
+  // 屋根と、ねかせた大きな窓
+  const cab = () => { g.beginPath(); g.moveTo(cx - X(.3), top + Y(.01)); g.bezierCurveTo(cx - X(.26), Y(.3), cx - X(.18), roofY + Y(.02), cx - X(.1), roofY); g.lineTo(cx + X(.1), roofY); g.bezierCurveTo(cx + X(.18), roofY + Y(.02), cx + X(.26), Y(.3), cx + X(.3), top + Y(.01)); g.closePath(); };
+  cab(); g.fillStyle = vgrad(g, roofY, top, [[0, shadeHex(col, 1.2)], [1, shadeHex(col, .9)]]); g.fill();
+  const glass = () => { g.beginPath(); g.moveTo(cx - X(.27), top); g.bezierCurveTo(cx - X(.235), Y(.31), cx - X(.16), roofY + Y(.05), cx - X(.09), roofY + Y(.03)); g.lineTo(cx + X(.09), roofY + Y(.03)); g.bezierCurveTo(cx + X(.16), roofY + Y(.05), cx + X(.235), Y(.31), cx + X(.27), top); g.closePath(); };
+  glass(); g.fillStyle = night ? '#07090D' : vgrad(g, roofY, top, [[0, '#2A3846'], [.3, '#7F9AB0'], [.7, '#4C6074'], [1, '#141A20']]); g.fill();
+  g.save(); glass(); g.clip(); g.strokeStyle = '#050607'; g.lineWidth = 8; glass(); g.stroke();
+  g.fillStyle = 'rgba(12,14,18,.7)'; g.beginPath(); g.ellipse(cx - X(.08), Y(.33), X(.045), Y(.06), 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(cx + X(.08), Y(.34), X(.045), Y(.06), 0, 0, 7); g.fill(); // ふたりの頭（低く座る）
+  g.fillStyle = night ? 'rgba(255,214,150,.15)' : 'rgba(255,255,255,.32)'; g.beginPath(); g.moveTo(cx + X(.03), roofY); g.lineTo(cx + X(.12), roofY); g.lineTo(cx - X(.04), top); g.lineTo(cx - X(.13), top); g.closePath(); g.fill(); g.restore();
+  g.strokeStyle = '#111316'; g.lineWidth = 2.2; g.lineCap = 'round'; g.beginPath(); g.moveTo(cx - X(.2), top - 2); g.lineTo(cx + X(.06), top - Y(.03)); g.stroke(); // 1 本のワイパー
+  for (const sd of [-1, 1]) { const mx = cx + sd * X(.36), my = top - Y(.04); g.strokeStyle = '#16181B'; g.lineWidth = 3; g.beginPath(); g.moveTo(cx + sd * X(.29), top + Y(.01)); g.lineTo(mx, my + Y(.02)); g.stroke(); g.fillStyle = vgrad(g, my - Y(.03), my + Y(.03), [[0, shadeHex(col, 1.2)], [1, shadeHex(col, .75)]]); rrect(g, mx - X(.035), my - Y(.025), X(.07), Y(.05), [10, 10, 4, 4]); g.fill(); } // 細い棒の上のミラー
+  // つり目の LED ライト（細いくさび形。外へいくほど上がる）
+  for (const sd of [-1, 1]) { const x0 = cx + sd * X(.13), x1 = cx + sd * X(.45), y0 = Y(.535), y1 = Y(.49);
+    const sh = () => { g.beginPath(); g.moveTo(x0, y0 + Y(.012)); g.lineTo(x1, y1); g.lineTo(x1 - sd * X(.01), y1 + Y(.035)); g.lineTo(x0 + sd * X(.03), y0 + Y(.035)); g.closePath(); };
+    sh(); g.fillStyle = '#0B0D10'; g.fill(); g.save(); sh(); g.clip(); g.fillStyle = '#1C2026'; g.fillRect(0, y1 - 4, W, Y(.08));
+    for (let k = 0; k < 3; k++) { const t = .35 + k * .2, x = lerp(x0, x1, t), y = lerp(y0, y1, t) + Y(.02); g.fillStyle = night ? '#FFFFFF' : '#DDE7F0'; g.beginPath(); g.arc(x, y, Y(.011), 0, 7); g.fill(); } // 小さなレンズが 3 つ
+    g.strokeStyle = night ? '#FFFFFF' : '#F6FBFF'; g.lineWidth = 2.6; g.shadowColor = 'rgba(255,255,255,.9)'; g.shadowBlur = night ? 9 : 3; g.beginPath(); g.moveTo(x0 + sd * X(.01), y0 + Y(.012)); g.lineTo(x1 - sd * X(.01), y1 + Y(.006)); g.stroke(); g.shadowBlur = 0; g.restore(); } // 上のふちの LED の線
+  // 大きな左右の空気の取り入れ口（網）・まん中の口・黒いリップ
+  const intake = (pts) => { g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); };
+  for (const sd of [-1, 1]) { const P = [[cx + sd * X(.2), Y(.6)], [cx + sd * X(.44), Y(.57)], [cx + sd * X(.46), Y(.76)], [cx + sd * X(.24), Y(.8)]]; intake(P); g.fillStyle = '#0A0B0D'; g.fill(); g.save(); intake(P); g.clip();
+    g.strokeStyle = 'rgba(255,255,255,.12)'; g.lineWidth = 1; for (let y = Y(.56); y < Y(.82); y += 5) for (let x = cx + sd * X(.2) - X(.3); x < cx + sd * X(.2) + X(.3); x += 6) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + 3, y - 2.5); g.lineTo(x + 6, y); g.stroke(); } g.restore();
+    intake(P); g.strokeStyle = shadeHex(col, 1.25); g.lineWidth = 1.5; g.stroke(); g.fillStyle = shadeHex(col, .9); g.beginPath(); g.moveTo(cx + sd * X(.3), Y(.59)); g.lineTo(cx + sd * X(.33), Y(.59)); g.lineTo(cx + sd * X(.36), Y(.78)); g.lineTo(cx + sd * X(.33), Y(.785)); g.fill(); } // 口の中の縦の羽
+  { const P = [[cx - X(.15), Y(.66)], [cx + X(.15), Y(.66)], [cx + X(.17), Y(.8)], [cx - X(.17), Y(.8)]]; intake(P); g.fillStyle = '#0B0C0E'; g.fill(); g.strokeStyle = 'rgba(255,255,255,.1)'; g.lineWidth = 1.5; for (let y = Y(.69); y < Y(.79); y += 5) { g.beginPath(); g.moveTo(cx - X(.15), y); g.lineTo(cx + X(.15), y); g.stroke(); } }
+  carPlate(g, cx, Y(.675), X(.13), '', night); // ナンバー（まん中の口の前）
+  { g.fillStyle = '#16181B'; g.beginPath(); g.moveTo(cx - X(.47), bot - Y(.04)); g.lineTo(cx + X(.47), bot - Y(.04)); g.lineTo(cx + X(.49), bot + Y(.01)); g.lineTo(cx - X(.49), bot + Y(.01)); g.closePath(); g.fill(); // カーボンのリップ
+    g.strokeStyle = 'rgba(255,255,255,.07)'; g.lineWidth = 1; for (let x = cx - X(.46); x < cx + X(.46); x += 5) { g.beginPath(); g.moveTo(x, bot - Y(.035)); g.lineTo(x + 4, bot); g.stroke(); } } // 炭素の織り目
+  g.save(); body(); g.clip(); g.strokeStyle = 'rgba(255,255,255,.3)'; g.lineWidth = 3; body(); g.stroke(); g.restore(); // 体のふちの光
+  if (night) { g.globalCompositeOperation = 'lighter'; for (const sd of [-1, 1]) { const lx = cx + sd * X(.3), gr = g.createRadialGradient(lx, Y(.51), 2, lx, Y(.51), X(.14)); gr.addColorStop(0, 'rgba(255,250,235,.55)'); gr.addColorStop(1, 'rgba(255,245,210,0)'); g.fillStyle = gr; g.fillRect(lx - X(.15), Y(.36), X(.3), Y(.3)); } g.globalCompositeOperation = 'source-over'; }
 }
 /* ---- people riding toward you ---- */
 function paintRider(g, W, H, shirt, pants, helmet, kind) {
@@ -178,8 +301,8 @@ function paintCardboard(g, W, H) {
   g.fillStyle = 'rgba(60,35,15,.6)'; rrect(g, W * .68, H * .26, W * .16, H * .055, 6); g.fill(); g.fillStyle = 'rgba(255,255,255,.14)'; g.fillRect(W * .04, H * .14, W * .92, H * .02); g.fillStyle = 'rgba(60,35,15,.16)'; g.fillRect(W * .9, H * .14, W * .06, H * .84);
 }
 const ART = {
-  car: (o, night) => artCanvas(`car|${o.av.t}|${o.av.c}`, 360, 300, (g, w, h) => paintCar(g, w, h, o.av.c, o.av.t)),
-  supercar: (o) => artCanvas(`super|${o.av.c}`, 400, 220, (g, w, h) => paintSupercar(g, w, h, o.av.c)),
+  car: (o, night) => artCanvas(`car|${o.av.t}|${o.av.c}|${night ? 'n' : 'd'}`, 360, 300, (g, w, h) => paintCar(g, w, h, o.av.c, o.av.t, night)),
+  supercar: (o, night) => artCanvas(`super|${o.av.c}|${night ? 'n' : 'd'}`, 400, 220, (g, w, h) => paintSupercar(g, w, h, o.av.c, night)),
   kick: (o) => artCanvas(`kick|${o.av.s}|${o.av.p}|${o.av.h}`, 160, 320, (g, w, h) => paintRider(g, w, h, o.av.s, o.av.p, o.av.h, 'kick')),
   bike: (o) => artCanvas(`bike|${o.av.s}|${o.av.p}|${o.av.h}`, 160, 320, (g, w, h) => paintRider(g, w, h, o.av.s, o.av.p, o.av.h, 'bike')),
   cone: () => artCanvas('cone', 120, 140, paintCone),
