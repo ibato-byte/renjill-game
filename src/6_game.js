@@ -657,7 +657,8 @@ function placeCamera(dt) {
   { const M = G.pom; if (M.on) { const mp = segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * .05); if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
   const ty = seg.dir * Math.PI / 2; let dy = ty - G.camYaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
   G.camYaw += dy * Math.min(1, dt * 9);
-  const tall = H / W > 1.6, dist = tall ? 4.4 : 3.9, fx = Math.sin(G.camYaw), fz = Math.cos(G.camYaw); // tall phones: the camera sits a little higher and further back, so the road ahead shows above the runners' heads (2026-11-14)
+  { const want = H / W > 1.6 && !seg.th.toriiTunnel ? 1 : 0; G.camTall = G.camTall == null ? want : lerp(G.camTall, want, Math.min(1, dt * 2.5)); } // under the rows of small gates the higher camera looked straight into their beams (2026-11-14「鳥居のゾーンで前が見えない」): there it comes back down, smoothly
+  const tk = G.camTall, dist = 3.9 + .3 * tk, fx = Math.sin(G.camYaw), fz = Math.cos(G.camYaw); // tall phones: the camera sits a little higher and further back, so the road ahead shows above the runners' heads (2026-11-14; measured: 108 → 133 px of road above their heads; the first, higher try (153 px) looked down too steeply and ran into overhead gates, so it was eased)
   const sh = G.shake > 0 ? Math.sin(G.t * 60) * .09 * G.shake : 0, sway = seg.th.kind === 'train' ? Math.sin(G.t * 1.7) * .05 : 0;
   CAM.x = G.rx - fx * dist + Math.cos(G.camYaw) * (sh + sway); CAM.z = G.rz - fz * dist - Math.sin(G.camYaw) * (sh + sway);
   G.fovK = lerp(G.fovK || 0, (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0, Math.min(1, dt * 4)); FOCAL = BASEF * (1 - .09 * G.fovK);
@@ -665,13 +666,13 @@ function placeCamera(dt) {
   const camNew = G.camE == null;
   G.camE = G.camE == null ? eC : lerp(G.camE, Math.max(eC, eP - .4), Math.min(1, dt * 10)); G.camSl = lerp(G.camSl || 0, slope, Math.min(1, dt * 3));
   /* 2026-11-15（オーナーの報告：電車や室内で天井が低く見える・ジャンプすると天井から飛び出る）
-     縦長のスマホはカメラが高い（2.75m）ので、天井（2.9〜3m）のすぐ下をはうように見えていた。ジャンプするとカメラが天井をつきぬけた。
+     縦長のスマホはカメラが高い（2026-11-14 は 2.75m、11-16 からは 2.45m）ので、天井（2.9〜3m）のすぐ下をはうように見えていた。ジャンプするとカメラが天井をつきぬけた。
      天井のある場所では ①カメラの高さを「天井より CAM_CEIL_GAP 下」までにする ②ジャンプでカメラが上がる分は、天井の手前でなめらかに止める ③それでも天井より上には絶対に出さない */
-  const ceilH = seg.ceilH || 0, camB = tall ? 2.75 : 2.1, camT = ceilH ? Math.min(camB, Math.max(2.1, ceilH - CAM_CEIL_GAP)) : camB;
+  const ceilH = seg.ceilH || 0, camB = 2.1 + .35 * tk, camT = ceilH ? Math.min(camB, Math.max(2.1, ceilH - CAM_CEIL_GAP)) : camB;
   G.camH = camNew || G.camH == null ? camT : lerp(G.camH, camT, Math.min(1, dt * 5));
   let camUp = G.y * .6 + sh * .5; if (ceilH && camUp > 0) { const room = Math.max(.05, ceilH - CAM_CEIL_MIN - G.camH); camUp = room * (1 - Math.exp(-camUp / room)); }
   CAM.y = G.camE + G.camH + camUp; if (ceilH) CAM.y = Math.min(CAM.y, G.camE + ceilH - CAM_CEIL_MIN + .08);
-  CAM.yaw = G.camYaw; CAM.pitch = (tall ? .19 + .08 * clamp((G.camH - 2.1) / .65, 0, 1) : .19) - G.camSl * .55 + Math.min(.1, G.y * .03);
+  CAM.yaw = G.camYaw; CAM.pitch = .19 + .04 * clamp((G.camH - 2.1) / .35, 0, 1) - G.camSl * .55 + Math.min(.1, G.y * .03);
   camPrep();
   P.depth = (P.wx - CAM.x) * CAM.s + (P.wz - CAM.z) * CAM.c; F.depth = (F.wx - CAM.x) * CAM.s + (F.wz - CAM.z) * CAM.c;
   if (F.tuck) F.depth = P.depth + .3;
@@ -715,7 +716,7 @@ function runGuard(rdt, err) {
   GUARD.errN = 0; GUARD.stillT = 0; GUARD.segId = -1;
   const hid = id => { const e = document.getElementById(id); return !e || e.hidden; };
   if (G.mode === 'dying' && GUARD.modeT > 3) { G.dyingT = 0; G.mode = 'dead'; GUARD.modeT = 0; try { if (canRevive()) openRevive(); else endRun(); } catch (e) { reportErr(e); finishRun('dying'); } }
-  else if (G.mode === 'dead' && GUARD.modeT > 1.5 && hid('sRevive') && hid('sResult') && hid('sPanel')) finishRun('dead');
+  else if (G.mode === 'dead' && GUARD.modeT > 1.5 && hid('sRevive') && hid('sResult') && hid('sPanel')) { GUARD.modeT = 0; try { if (G.cause !== 'quit' && canRevive()) openRevive(); else endRun(); } catch (e) { reportErr(e); finishRun('dead'); } } // ふつうの続ける／結果の画面を出す（「一区切り」にしない）
   else if (G.mode === 'result' && GUARD.modeT > 1.5 && hid('sResult') && hid('sPanel')) { try { hideAll(); show('sResult'); } catch (e) { goTitle(); } }
   else if (G.mode === 'countdown' && GUARD.modeT > 4) { G.mode = 'play'; G.invT = Math.max(G.invT, 1); const c = document.getElementById('tutCue'); if (c) c.className = ''; }
 }
@@ -725,6 +726,7 @@ function rescueRun(why) {
   errLog('rescue: ' + why + ' @' + ((curSeg() || {}).tid || '?') + ' ' + Math.round(G.clock || 0)); // なぜ止まったかを端末の記録に（設定の「エラーの記録」で見られる）
   if (GUARD.fixes <= 2) { try { if (snapBack()) return; } catch (e) { reportErr(e); } }
   try { if (newStreet()) return; } catch (e) { reportErr(e); } // 2026-11-10 の報告「長く遊ぶと強制的に早退」：直せないときも終わらせず、新しい道を作ってそこから続ける
+  if (!(G.freshN >= 1 && G.t - (G.freshT || -1e9) < 20)) { try { if (freshRoad()) { G.freshN = G.t - (G.freshT || -1e9) < 20 ? (G.freshN || 0) + 1 : 1; G.freshT = G.t; return; } } catch (e) { reportErr(e); } } // それでも同じことがすぐに続く（ゲームの中の故障）ときだけ、ふつうに終わる // 2026-11-14「途中で終わって記録は保存される、は意味不明。起きないようにして」：今の場所がだめでも、別の道から同じ時刻で続ける
   finishRun(why); // それでもだめなら、ふつうに終わる（点数・チモシー・ミッションは残る）
 }
 // put the runner back on the street they are on, in a lane, on the ground, with the camera right behind them
@@ -761,6 +763,25 @@ function newStreet() {
   try { onEnterSeg(s0); } catch (e) { reportErr(e); }
   placeCamera(.016); if (runOK()) return false; GUARD.fixes = 0; G.stats.newStreet = (G.stats.newStreet || 0) + 1; window.__newStreet = (window.__newStreet || 0) + 1;
   banner('KEEP GOING!', t('keepGoing'), 'good'); return true;
+}
+/* 最後の手：今の道も同じ場所の新しい道も作れないとき、ほかの場所の道を作って、同じ日・同じ時刻から続ける（点数・チモシーはそのまま） */
+function freshRoad() {
+  const day = G.day || 1, clock = Number.isFinite(G.clock) ? G.clock : 600, cur = (curSeg() || {}).tid;
+  for (const tid of [cur, 'ginza', 'yamanote', 'shibuya', 'desk'].filter((x, i, a) => x && THEMES[x] && a.indexOf(x) === i)) {
+    try {
+      const s0 = newSeg(null, { t: tid, d: 30 }, { t0: clock, day }); if (!s0 || !(s0.len > 0)) continue;
+      G.segs = [s0]; G.ci = 0; G.s = 0; G.lane = 1; G.lat = 0; G.fork = null; G.forkRest = null; G.planDay = day; G.planClock = s0.t1;
+      { let c = 480; G.plan = dayPlan(day).filter(x => { if (x.fork) return false; c += (+x.d || 30); return c > clock; }); } // the rest of today's places (not this morning's again) if (!G.plan.length) G.plan = [{ t: tid, d: 30 }, { t: tid, d: 30 }];
+      ensureSegs(); if (!G.segs[1] && !s0.fork) continue;
+      const p = segPos(s0, 0, 0); G.rx = p[0]; G.rz = p[1]; G.camYaw = s0.dir * Math.PI / 2; G.ey = G.camE = null; G.camSl = 0;
+      G.y = 0; G.vy = 0; G.air = false; G.slideT = 0; G.turnQueued = 0; G.turnAuto = 0; G.turnT = 0; G.invT = Math.max(G.invT, 3);
+      try { onEnterSeg(s0); } catch (e) { reportErr(e); }
+      placeCamera(.016); if (runOK()) continue;
+      GUARD.fixes = 0; G.stats.freshRoad = (G.stats.freshRoad || 0) + 1; window.__freshRoad = (window.__freshRoad || 0) + 1; errLog('fresh road: ' + tid);
+      banner('KEEP GOING!', t('keepGoing'), 'good'); return true;
+    } catch (e) { reportErr(e); }
+  }
+  return false;
 }
 function finishRun(why) {
   window.__finish = (window.__finish || 0) + 1; window.__finishWhy = why;
@@ -813,7 +834,7 @@ function collect(it, seg) {
     return;
   }
   // golden hay is a hay, but it has its own page in the food book (it used to never be recorded, so the book could never be completed)
-  if ((def.kind !== 'hay' || it.type === 'goldhay') && !SV.zukan[it.type]) { SV.zukan[it.type] = 1; save(); if (def.kind !== 'bad') floatText(W / 2, Math.max(H * .3, 214), t('newBook', L(def)), '#F2C230'); }
+  if ((def.kind !== 'hay' || it.type === 'goldhay') && !SV.zukan[it.type]) { SV.zukan[it.type] = 1; save(); if (def.kind !== 'bad') floatText(W / 2, cheerY(.42), t('newBook', L(def)), '#F2C230'); }
   if (it.type === 'hay' && !SV.zukan.hay) { SV.zukan.hay = 1; save(); }
   if (def.kind === 'bad') {
     SFX.bad(); G.stats.bads.push(it.type); G.feverG = Math.max(0, G.feverG - 25);
