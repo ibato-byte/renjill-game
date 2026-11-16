@@ -58,12 +58,12 @@ function ensureSegs(max) {
 /* 電波塔コース（2026-11-17）：10万点・30万点をこえたら、1 回の遊びで 1 回ずつ。
    外の道のあと・分かれ道ではない所に、コース（足もと → 階段／エレベーター → 展望台 → オオタカ → 公園に着地）をはさむ。会社の中・電車の中からは始めない */
 function courseTick() { if (G.mode !== 'play' || G.practice || !G.courseDone) return;
-  for (const k in COURSES) if (!G.courseDone[k] && G.courseDue !== k && G.score >= COURSES[k].at) { if (!G.courseDue) G.courseDue = k; break; } }
+  if (G.courseDue) return; let best = null; for (const k in COURSES) if (!G.courseDone[k] && G.score >= COURSES[k].at && (!best || COURSES[k].at < COURSES[best].at)) best = k; if (best) G.courseDue = best; } // 点の低いコースから順に
 function courseStart(last) { const k = G.courseDue; if (!k || !COURSES[k] || (G.courseQ && G.courseQ.length) || G.fork) return;
   const out = x => x && x.th && (x.th.kind === 'street' || (x.th.kind === 'deck' && !x.th.climb && !x.th.boat));
   if (!last || last.fork || !out(last) || last.th.course) return;
   const nx = G.plan[0]; if (nx && !nx.fork && THEMES[nx.t] && ['room', 'train', 'glass'].includes(THEMES[nx.t].kind)) return; // 次が建物・電車の中なら、外に出てから
-  G.courseQ = COURSES[k].steps.map(x => Object.assign({}, x)); G.courseDone[k] = 1; G.courseDue = null; G.courseGo = k; setTimeout(aerWarm, 60); }
+  G.courseQ = COURSES[k].steps.map((x, i) => Object.assign({ co: k, co0: i === 0 }, x)); G.courseDone[k] = 1; G.courseDue = null; G.courseGo = k; setTimeout(aerWarm, 60); }
 function reportErr(e) { window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (window.__frameErr < 4) console.error('frame error', e); errLog(window.__frameErrMsg); }
 // エラーの記録（C-65）：最後の 10 件をこの端末に残し、設定の下で見られる（送信はしない）
 function errLog(msg) { try { const a = JSON.parse(localStorage.getItem('rjErrLog') || '[]'); const m = String(msg).slice(0, 160); if (a.length && a[a.length - 1].m === m) a[a.length - 1].n++; else a.push({ t: Date.now(), m, n: 1 }); localStorage.setItem('rjErrLog', JSON.stringify(a.slice(-10))); } catch (x) { } }
@@ -237,7 +237,7 @@ const CP_NUM = ['t', 'speed', 'dist', 'distEst', 'speedEst', 'score', 'hay', 'sh
 function cpOK() { return G.mode === 'play' && !!SV.tutDone && !G.practice && !G.rev && !G.tut; }
 function cpSave() { try { if (!cpOK()) return false; const seg = curSeg(); if (!seg || !seg.tid || !THEMES[seg.tid]) return false;
   const same = G.segs.slice(G.ci + 1).filter(s => s.day === seg.day && s.step && !s.step.fork).map(s => s.step);
-  const o = { v: 1, at: Date.now(), char: G.char, easy: G.easy ? 1 : 0, tid: THEMES[seg.tid].course ? (THEMES[seg.tid].course === 'tower' ? 'tland' : 'sland') : seg.tid, t1: seg.t1, n: G.resumeN || 0, g: {}, stats: G.stats, plan: same.concat(G.planDay === seg.day ? G.plan : []) };
+  const o = { v: 1, at: Date.now(), char: G.char, easy: G.easy ? 1 : 0, tid: THEMES[seg.tid].course === 'tower' ? 'tland' : THEMES[seg.tid].course === 'skytree' ? 'sland' : seg.tid, t1: seg.t1, n: G.resumeN || 0, g: {}, stats: G.stats, plan: same.concat(G.planDay === seg.day ? G.plan : []) };
   for (const k of CP_NUM) { const v = G[k]; if (typeof v === 'number' && Number.isFinite(v)) o.g[k] = v; else if (typeof v === 'boolean') o.g[k] = v ? 1 : 0; }
   localStorage.setItem(CP_KEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
 function cpClear() { try { localStorage.removeItem(CP_KEY); } catch (e) { } }
@@ -380,7 +380,7 @@ function onEnterSeg(n) {
   if (!G.stats.spots.includes(n.tid) && th.stamp) G.stats.spots.push(n.tid);
   if (n.step && n.step.cont) { /* still the same place */ }
   else if (n.t0 === 480 && n.day > 1) { banner(LANG === 'en' ? t('dayLbl') + ' ' + n.day + ' · ' + seasonOf(n.day).toUpperCase() : `${t('dayN', n.day)}・${L(SEASON_LBL[seasonOf(n.day)]).split('・')[0]}`, L(SEASON_LBL[seasonOf(n.day)]), 'room'); /* 2026-11-09：「日目」だけが出ていた（数字なしの t('dayN')） */ G.chimed = 0; }
-  else if (th.course && COURSES[th.course] && COURSES[th.course].steps[0].t === n.tid) { bannerNow(LANG === 'en' ? COURSES[th.course].en.toUpperCase() : L(COURSES[th.course]), L(th.arrive), 'good'); SFX.mission(); }
+  else if (n.step && n.step.co0 && COURSES[n.step.co]) { const cz = COURSES[n.step.co]; bannerNow(LANG === 'en' ? cz.en.toUpperCase() : L(cz), L(th.arrive || ARRIVE[n.tid] || { ja: '', en: '' }), 'good'); SFX.mission(); }
   else if (th.sky) { bannerNow(tr('オオタカ！', 'GOSHAWK!'), L(th.arrive), 'good'); G.skyWipe = 1; tone(1175, .18, 'bell', .04); }
   else if (n.tid === 'lobby' || n.tid === 'ehall') { G.stats.office = 1; const b = 500 * SV.mlevel; G.score += b; banner('9:00 ON TIME!', t('onTime', fmt(b)), 'good'); SFX.mission(); react('cheer', 1); }
   else if (n.t0 >= 1080 && !G.chimed) { G.chimed = 1; G.rush = 0; G.stats.chime = 1; const b = 1000 * SV.mlevel; G.score += b; SFX.chime(); startFever(7); bannerNow("IT'S 6 PM! FEVER", t('chime', fmt(b)), 'good'); react('sparkle', 1); }

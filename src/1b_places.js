@@ -406,9 +406,26 @@ Object.assign(THEMES, {
     fac: { style: 'park' }, moat: -1, props: [['tree', 4], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'leafpile'], tree: 'green', flat: 1, course: 'skytree', face: 80,
     lm: [{ t: 'skytree', brg: 80, sc: 1.2 }], arrive: { ja: 'ぶじに着地。川の向こうに、さっきの塔', en: 'Safe landing, the tower across the river' } },
 });
+/* 50万点：浅草寺（2026-11-17 オーナー「東京の最も人気で有名なスポット」）。本物と同じ順に、南から北へまっすぐ：
+   雷門 → 仲見世通り（約 250m）→ 宝蔵門（左に五重塔）→ 本堂の前（常香炉のけむり）→ 伝法院通りへ出る（東に押上の電波塔） */
+Object.assign(THEMES, {
+  nakamise: { ja: '浅草・仲見世通り', lbl: '仲見世通り', lblEn: 'Nakamise street', en: 'Asakusa, Nakamise street', kind: 'street', len: [110, 120], road: ['#B9AE9C', '#AFA392'], rpat: 'stone', side: ['#A89C88', '#9F937F'], spat: 'stone',
+    fac: { style: 'nakamise', h: [4.5, 6], pal: ['#C9432F', '#B83B29', '#D04A33'] }, props: [['chochin', 5], ['stoneLantern', 1]], obs: ['rickshaw', 'bench', 'cone', 'suitcase'], course: 'asakusa', face: 8, flat: 1,
+    lm: [{ t: 'hondo', brg: 8, sc: .55, grow: 1.5 }, { t: 'pagoda', brg: 352, sc: .8 }], arrive: { ja: '朱色の店がずらり。奥に大きな門', en: 'Rows of vermilion shops, with a great gate ahead' } },
+  hozomon:  { ja: '浅草寺・宝蔵門', lbl: '宝蔵門', lblEn: 'Hozomon gate', en: 'Senso-ji, Hozomon gate', kind: 'street', len: [100, 108], road: ['#C9C2B6', '#BFB8AB'], rpat: 'plaza', side: ['#BDB5A7', '#B3AB9D'], spat: 'stone', curb: '#9A9384',
+    fac: { style: 'park' }, gate: '宝蔵門', gateColor: '#B5302A', props: [['stoneLantern', 2], ['pinetree', 2], ['tree', 1]], obs: ['bench', 'stoneLanternO', 'cone', 'rickshaw'], tree: 'pine', course: 'asakusa', face: 8, flat: 1,
+    lm: [{ t: 'hondo', brg: 8, sc: .9, grow: 1.4 }, { t: 'pagoda', brg: 335, sc: 1.7 }], arrive: { ja: '二階建ての朱色の門。左に五重塔', en: 'A two-storey vermilion gate, the pagoda on the left' } },
+  hondo:    { ja: '浅草寺・本堂の前', lbl: '浅草寺の本堂', lblEn: 'Senso-ji main hall', en: 'Senso-ji, before the main hall', kind: 'street', len: [100, 108], road: ['#C9C2B6', '#BFB8AB'], rpat: 'plaza', side: ['#BDB5A7', '#B3AB9D'], spat: 'stone', curb: '#9A9384',
+    fac: { style: 'park' }, props: [['stoneLantern', 3], ['pinetree', 2], ['benchS', 1]], obs: ['jokoro', 'bench', 'stoneLanternO', 'jokoro'], tree: 'pine', course: 'asakusa', face: 8, flat: 1,
+    lm: [{ t: 'hondo', brg: 8, sc: 1.5, grow: 1.6 }, { t: 'pagoda', brg: 318, sc: 2 }], arrive: { ja: '大きな屋根の本堂。けむりを浴びてお参り', en: 'The great roof of the main hall, through the incense smoke' } },
+  denboin:  { ja: '浅草・伝法院通り', lbl: '伝法院通り', lblEn: 'Denboin street', en: 'Asakusa, Denboin street', kind: 'street', len: [100, 110], road: ['#B9AE9C', '#AFA392'], rpat: 'stone', side: ['#A89C88', '#9F937F'], spat: 'stone',
+    fac: { style: 'nakamise', h: [5, 7], pal: ['#6A4A38', '#7A5540', '#5A4034', '#8A6248'] }, props: [['chochin', 3], ['stoneLantern', 1]], obs: ['rickshaw', 'bench', 'cone', 'bike'], course: 'asakusa', face: 90, flat: 1,
+    lm: [{ t: 'skytree', brg: 112, sc: 1.2 }], arrive: { ja: '江戸の町なみの通り。東に白い塔', en: 'An Edo-style street, the white tower to the east' } },
+});
 // 点数で 1 回ずつ（1 回の遊びで）。赤い電波塔は外階段（約600段）を自分の足で。押上の電波塔の階段は一般には開いていないので、エレベーター（約50秒）で 350m へ
 const COURSES = {
   tower: { at: 100000, steps: [{ t: 'tfoot', d: 8 }, { t: 'tower', d: 13 }, { t: 'tdeck', d: 10 }, { t: 'hawk', d: 3 }, { t: 'tland', d: 8 }], ja: '赤い電波塔へ！', en: 'To the red tower!' },
+  asakusa: { at: 500000, steps: [{ t: 'asakusa', d: 8 }, { t: 'nakamise', d: 10 }, { t: 'hozomon', d: 8 }, { t: 'hondo', d: 10 }, { t: 'denboin', d: 8 }], ja: '浅草寺へ！', en: 'To Senso-ji!' },
   skytree: { at: 300000, steps: [{ t: 'sfoot', d: 8 }, { t: 'sdeck', d: 10 }, { t: 'skytree', d: 10 }, { t: 'hawk2', d: 4 }, { t: 'sland', d: 8 }], ja: '押上の電波塔へ！', en: 'To the Oshiage tower!' },
 };
 

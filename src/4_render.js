@@ -265,11 +265,8 @@ function titleLight() {
       const x = W * (-.05 + u * .75) + ph * top * .5 + Math.sin(t * .5 + i) * m * .012, y = ph * top * .92, tw = .5 + .5 * Math.sin(t * (1.1 + (i % 4) * .3) + i * 1.7), al = tw * .55 * Math.sin(ph * Math.PI);
       if (al < .03) continue; const r = m * (.0028 + (i % 3) * .0012); const dg = ctx.createRadialGradient(x, y, 0, x, y, r * 3); dg.addColorStop(0, `rgba(255,248,225,${al})`); dg.addColorStop(1, 'rgba(255,248,225,0)'); ctx.fillStyle = dg; ctx.fillRect(x - r * 3, y - r * 3, r * 6, r * 6); }
   ctx.restore();
-  /* 選んだ子だけに明かり：足もとに光のたまりと、体をつつむやわらかい光。だれを選んでいるかが、絵だけで分かるように（2026-11-16） */
-  const sp = spriteAt(G.player.wx, G.player.wy, G.player.wz), cx = sp ? sp.sx : W / 2, fy = sp ? sp.sy : H * .5, k = sp ? sp.k : m * .2, cy = fy - k * .55;
-  { ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.translate(cx, fy + k * .04); ctx.scale(1, .26); const pg = ctx.createRadialGradient(0, 0, 0, 0, 0, k * 1.5); pg.addColorStop(0, 'rgba(255,232,170,.46)'); pg.addColorStop(.6, 'rgba(255,232,170,.16)'); pg.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(0, 0, k * 1.5, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
-  { ctx.save(); ctx.globalCompositeOperation = 'soft-light'; ctx.translate(cx, cy); ctx.scale(.62, 1); const hg = ctx.createRadialGradient(0, 0, 0, 0, 0, k * 1.25); hg.addColorStop(0, 'rgba(255,214,150,.9)'); hg.addColorStop(.55, 'rgba(255,214,150,.42)'); hg.addColorStop(1, 'rgba(255,214,150,0)'); ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, k * 1.25, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } // 体の光は「やわらかい光」の重ね方：明るく・あたたかくするが、色はうすくしない（2026-11-16 オーナー：光が明るすぎて色がうすい）
-  // 選んだ子だけを、やわらかい光でつつむ（横にせまいだ円なので、となりの子には届かない）。画面全体やほかの子は暗くしない（オーナー 2026-11-16：「ホーム画面全体を暗くしなくていい」）。qa/homelight.js が 3 画面 × 3 人で確かめる
+  /* 選んだ子へのスポットライトは無し（オーナー 2026-11-17：「スポットライトが明るすぎて不自然。選択されてるキャラクターのライトいらない」）。
+     だれを選んでいるかは、まん中・いちばん手前にいることで分かる。qa/homelight.js が、選んだ子だけ明るくなっていないことを見張る */
 }
 function render() {
   const seg = G.segs[G.ci] || G.segs[0]; if (!seg) return;

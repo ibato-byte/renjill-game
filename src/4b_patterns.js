@@ -392,11 +392,28 @@ function landmark(seg, lm, yb) {
   else if (lm.t === 'cyl') drawCyl(x, yb, FOCAL * .3 * s, N);
   else if (lm.t === 'gallery') drawGallery(x, yb, FOCAL * .16 * s, N);
   else if (lm.t === 'airport') drawAirport(x, yb, FOCAL * .3 * s, N);
+  else if (lm.t === 'hondo') drawHondo(x, yb, FOCAL * .3 * s, N);
   else if (lm.t === 'hills') drawHills(x, yb, FOCAL * .3 * s, N);
   else if (lm.t === 'rbridge') drawSusBridge(x, yb, FOCAL * .16 * s, N);
   else if (lm.t === 'tsukuba') drawTsukuba(x, yb, FOCAL * .09 * s, N);
 }
 /* 2026-11-17 電波塔コースで足した目印（どれも、名前・会社のマークは無い、ただの形） */
+// 浅草寺の本堂：急なこうばいの大きな屋根（両はしがそり上がる）、朱色の柱、白い壁、まん中に大きな赤いちょうちん、石段
+function drawHondo(x, yb, h, N) { ctx.save(); const w = h * 1.5, night = N > .4, roofC = night ? '#232838' : tint('#5E6A70'), roofL = night ? '#343B50' : tint('#8C989C'), red = night ? '#8A3024' : tint('#C23B2A'), wall = night ? '#C9B48A' : tint('#F1ECE0');
+  if (night) { ctx.shadowColor = 'rgba(255,190,110,.5)'; ctx.shadowBlur = 14; }
+  ctx.fillStyle = night ? '#55514A' : tint('#B9B2A5'); for (let k = 0; k < 4; k++) ctx.fillRect(x - w * (.36 + k * .025), yb - h * (.02 + k * .018) - h * .018, w * (.72 + k * .05), h * .02); // 石段
+  ctx.fillStyle = wall; ctx.fillRect(x - w * .44, yb - h * .4, w * .88, h * .32); ctx.shadowBlur = 0;
+  ctx.fillStyle = red; for (let k = 0; k <= 8; k++) ctx.fillRect(x - w * .44 + k * w * .88 / 8 - h * .012, yb - h * .4, h * .024, h * .32); ctx.fillRect(x - w * .46, yb - h * .43, w * .92, h * .035); ctx.fillRect(x - w * .46, yb - h * .1, w * .92, h * .022); // 柱・長押・縁
+  ctx.fillStyle = night ? '#3A2A1E' : 'rgba(40,24,18,.72)'; ctx.fillRect(x - w * .1, yb - h * .38, w * .2, h * .28); // ひらいた正面の暗がり
+  ctx.fillStyle = night ? '#E0603A' : tint('#C8342A'); ctx.beginPath(); ctx.ellipse(x, yb - h * .27, h * .06, h * .085, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = night ? '#1E1A18' : tint('#2A2422'); ctx.fillRect(x - h * .05, yb - h * .36, h * .1, h * .016); ctx.fillRect(x - h * .05, yb - h * .2, h * .1, h * .016); // 大ちょうちん
+  // 屋根：上は急で、軒へ向かってゆるく、両はしがそり上がる
+  ctx.beginPath(); ctx.moveTo(x - w * .6, yb - h * .44); ctx.quadraticCurveTo(x - w * .5, yb - h * .5, x - w * .3, yb - h * .62); ctx.quadraticCurveTo(x - w * .2, yb - h * .86, x - w * .17, yb - h * .98);
+  ctx.lineTo(x + w * .17, yb - h * .98); ctx.quadraticCurveTo(x + w * .2, yb - h * .86, x + w * .3, yb - h * .62); ctx.quadraticCurveTo(x + w * .5, yb - h * .5, x + w * .6, yb - h * .44); ctx.quadraticCurveTo(x, yb - h * .5, x - w * .6, yb - h * .44); ctx.closePath();
+  const rg = ctx.createLinearGradient(0, yb - h, 0, yb - h * .44); rg.addColorStop(0, roofL); rg.addColorStop(1, roofC); ctx.fillStyle = rg; ctx.fill();
+  ctx.strokeStyle = night ? 'rgba(255,255,255,.07)' : 'rgba(255,255,255,.2)'; ctx.lineWidth = Math.max(.5, h * .004); ctx.beginPath(); for (let k = -9; k <= 9; k++) { const u = k / 9; ctx.moveTo(x + u * w * .17, yb - h * .97); ctx.quadraticCurveTo(x + u * w * .25, yb - h * .7, x + u * w * .56, yb - h * .47); } ctx.stroke(); // かわらの筋
+  ctx.fillStyle = night ? '#1A1E2A' : tint('#434C52'); ctx.fillRect(x - w * .19, yb - h * 1.0, w * .38, h * .035); ctx.beginPath(); ctx.moveTo(x - w * .19, yb - h); ctx.quadraticCurveTo(x - w * .22, yb - h * 1.04, x - w * .2, yb - h * 1.07); ctx.lineTo(x - w * .17, yb - h); ctx.moveTo(x + w * .19, yb - h); ctx.quadraticCurveTo(x + w * .22, yb - h * 1.04, x + w * .2, yb - h * 1.07); ctx.lineTo(x + w * .17, yb - h); ctx.fill(); // 大むねと鬼がわら
+  ctx.fillStyle = night ? 'rgba(0,0,0,.35)' : 'rgba(30,24,20,.28)'; ctx.beginPath(); ctx.moveTo(x - w * .6, yb - h * .44); ctx.quadraticCurveTo(x, yb - h * .5, x + w * .6, yb - h * .44); ctx.lineTo(x + w * .46, yb - h * .4); ctx.lineTo(x - w * .46, yb - h * .4); ctx.closePath(); ctx.fill(); // 軒下のかげ
+  ctx.restore(); }
 // 六本木の高い四角いビル：すそが少し広がる、上に航空の赤い灯
 function drawHills(x, yb, h, N) { ctx.save(); const w = h * .26, c = N > .4 ? '#2A3352' : tint('#8D9BAA');
   ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(x - w * .62, yb); ctx.lineTo(x - w * .5, yb - h * .9); ctx.quadraticCurveTo(x, yb - h * 1.02, x + w * .5, yb - h * .9); ctx.lineTo(x + w * .62, yb); ctx.closePath(); ctx.fill();
