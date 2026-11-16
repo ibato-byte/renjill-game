@@ -1115,6 +1115,16 @@
       "name": "towercourse テスト",
       "file": "qa/run-all.mjs",
       "has": "n: 'towercourse'"
+    },
+    {
+      "name": "50万点：浅草寺コース",
+      "file": "src/1b_places.js",
+      "has": "asakusa: { at: 500000"
+    },
+    {
+      "name": "浅草寺の本堂の絵",
+      "file": "src/4b_patterns.js",
+      "has": "function drawHondo("
     }
   ]
 }
