@@ -1162,6 +1162,36 @@
       "has": "`car|${o.av.t}|${o.av.c}|${night ? 'n' : 'd'}`"
     },
     {
+      "name": "障害物：ロボットそうじ機の描き直し",
+      "file": "src/4h_artplus.js",
+      "has": "function paintRoomba2("
+    },
+    {
+      "name": "障害物：本物の部品を描き足すしくみ",
+      "file": "src/4h_artplus.js",
+      "has": "function plusArt("
+    },
+    {
+      "name": "障害物の作り込み 200",
+      "file": "src/4h_artplus.js",
+      "has": "[200]"
+    },
+    {
+      "name": "ホーム画面：敷きぶとんの厚み",
+      "file": "src/6_game.js",
+      "has": "const FT = .11;"
+    },
+    {
+      "name": "ホーム画面：たんすを奥行きのある箱に",
+      "file": "src/4h_artplus.js",
+      "has": "kind !== 'tansu2'"
+    },
+    {
+      "name": "箱の上の面を描かない（ふとん）",
+      "file": "src/4_render.js",
+      "has": "if (b.noTop) return boxFaces("
+    },
+    {
       "name": "ホーム画面で跳ねるのは選んだ子だけ",
       "file": "src/6_game.js",
       "has": "F.wy = pJ[2]; // 跳ねるのは選んだ子だけ"
