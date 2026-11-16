@@ -652,11 +652,6 @@
       "has": "G.takeT > 0"
     },
     {
-      "name": "レーン移動の残像",
-      "file": "src/4_render.js",
-      "has": "G.smearN = (G.smearN || 0) + 1"
-    },
-    {
       "name": "「本当にやめる？」（切れない）",
       "file": "src/1_data.js",
       "has": "quitSure: ['本当にやめる？'"
@@ -1195,6 +1190,31 @@
       "name": "ホーム画面で跳ねるのは選んだ子だけ",
       "file": "src/6_game.js",
       "has": "F.wy = pJ[2]; // 跳ねるのは選んだ子だけ"
+    },
+    {
+      "name": "道路のアスファルトの使われたあと",
+      "file": "src/4b_patterns.js",
+      "has": "function roadWear("
+    },
+    {
+      "name": "カーブミラー・標識・消火栓・バス停",
+      "file": "src/4h_artplus.js",
+      "has": "function paintCMirror("
+    },
+    {
+      "name": "路面のマンホール・側溝・路面の字と矢印（景色 51〜62）",
+      "file": "src/4b_patterns.js",
+      "has": "function roadMarks("
+    },
+    {
+      "name": "ごみ集積所・軒先の室外機と植木鉢（景色 63〜73）",
+      "file": "src/4h_artplus.js",
+      "has": "function paintGomi("
+    },
+    {
+      "name": "住宅街の家の壁を 1 軒ずつの絵に（景色 74〜96）",
+      "file": "src/4d_facade.js",
+      "has": "  house(g, r, PW, PH, w, h, night, variant) {"
     }
   ]
 }
