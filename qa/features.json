@@ -985,6 +985,11 @@
       "name": "建物から出てすぐは動く物を動かさない（室内で人力車にぶつかって見えた）",
       "file": "src/3_world.js",
       "has": "if (seg.prevIn) for (const o of seg.obs) if (o.mv && o.s0 < 70) o.mv = 0;"
+    },
+    {
+      "name": "自己ベストまでの棒は太く金色、あと少しで光る",
+      "file": "src/6e_keep.js",
+      "has": "'kpg-best'"
     }
   ]
 }

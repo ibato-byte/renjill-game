@@ -92,6 +92,7 @@ function kpHud() {
   if (!K.tgt || sc >= K.tgt.s) { K.tgt = kpTarget(); K.from = K.tgt ? Math.min(sc, K.tgt.s * .5) : 0; }
   if (!K.tgt) { if (!box.hidden) box.hidden = true; return; }
   if (box.hidden) box.hidden = false;
+  { const isB = K.tgt.k === 'best', near = isB && sc >= K.tgt.s * .85; if (box.classList.contains('kpg-best') !== isB) box.classList.toggle('kpg-best', isB); if (box.classList.contains('kpg-near') !== near) box.classList.toggle('kpg-near', near); } // 自己ベストの棒は太く金色、あと少しで光る（head.html）
   setStyle('kpFill', 'width', Math.round(clamp((sc - K.from) / Math.max(1, K.tgt.s - K.from), 0, 1) * 50) * 2 + '%'); setText('kpNext', K.tgt.l + '\n' + fmt(K.tgt.s));
 }
 function kpGrade(sc, prevBest, newBest) { if (!(prevBest > 0)) return ''; if (newBest) return 'S'; const r = sc / prevBest; return r >= .8 ? 'A' : r >= .5 ? 'B' : r >= .25 ? 'C' : 'D'; }

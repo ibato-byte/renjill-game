@@ -115,6 +115,7 @@ const T = [
   { n: 'featureguard', why: '入れた機能が消えていない（古い版のファイルで上書きして、機能が気づかずに消えた事故の再発防止）', ok: has('FEATURE OK'), timeout: 60 },
   { n: 'cgfresh', why: 'CrazyGames ではじめて開いた人は、キャラクターとスタートだけの題名（1 回走ると、ふだんの題名）。自社サイト版は今までどおり（2026-11-16）', ok: has('CGFRESH OK'), timeout: 200 },
   { n: 'softstart', why: '走り始めの 45 秒は、正面でぶつかっても曲がり損ねても BUMP! で続く（追いかけられている間にもう 1 回で終わり・ボスの道は今までどおり）（オーナー 2026-11-16）', ok: has('SOFTSTART OK'), timeout: 120 },
+  { n: 'bestbar', why: '自己ベストまでの棒：太く金色・85% で光る・スマホ横向きでも見える・ほかの所の名前とかぶって背景が付かない（オーナー 2026-11-16）', ok: has('BESTBAR OK'), timeout: 150 },
   { n: 'portal', why: 'CrazyGames の中だけ：外へのリンクを出さない・遊んでいる合図・見たい人だけの広告。自社サイト版は広告なし', ok: has('PORTAL OK'), timeout: 200 },
   { n: 'jumpfair', why: '飛び越えられそうなのに越えられない障害物がない（見た目と当たりの高さが合う）', ok: has('JUMP FAIR OK'), timeout: 120 },
   { n: 'wallcheck', why: '3レーンとも壁（飛び越えられない）の列が出ない', ok: has('WALL OK'), timeout: 200 },
