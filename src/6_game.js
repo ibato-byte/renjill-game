@@ -91,6 +91,7 @@ let TITLE_FRONT = 3.7, TITLE_BACK = 2.7; // ホーム画面：選んだ子の位
 function titleFrame(dt) {
   const seg = G.segs[0], me = G.char, other = me === 'ren' ? 'jill' : 'ren', third = me === 'pom' ? 'jill' : 'pom';
   const P = G.player, F = G.follow;
+  P.flash = F.flash = G.pom.flash = false; P.glow = F.glow = null; // ぶつかった直後の点滅を消す（遊び終わった時に点滅中だと、ホーム画面でもレンが半透明にちかちかし続けた。2026-11-16 オーナー指摘）
   P.who = me; F.who = other; F.off = false; F.show = true; P.big = me === 'pom' ? 1.3 : 1; P.view = F.view = 'front'; P.look = F.look = 0; // on the title, close to the camera: the smaller size. 2026-11-15：前を向かせる命令がこの説明書きの中に入っていて動かず、遊んだあとタイトルに戻るとレン・ジルが後ろ姿のまま（ポムだけ前向き）になっていた
   P.ph += dt * 3; F.ph += dt * 2;
   /* ホーム画面では顔を切りかえない（まばたき・あくび・にっこりをしない）。2026-11-16 オーナー：「キャラクター選択してる時に点滅するはいらない」。
