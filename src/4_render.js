@@ -250,8 +250,8 @@ let BUBS = [], BUBT = 0; // このコマに出したふきだし（重なり回�
 function titleLight() {
   const calm = !!OPT().calm, t = calm ? 0 : G.t, m = Math.min(W, H), top = H * (W < H * .8 ? .56 : .92); // たて長の画面は、下の札にかかる前で光を消す
   ctx.save(); ctx.globalCompositeOperation = 'screen';
-  { const gl = ctx.createRadialGradient(W * .08, H * .04, m * .05, W * .08, H * .04, m * 1.05); gl.addColorStop(0, 'rgba(255,238,196,.3)'); gl.addColorStop(.4, 'rgba(255,232,184,.07)'); gl.addColorStop(1, 'rgba(255,232,184,0)'); ctx.fillStyle = gl; ctx.fillRect(0, 0, W, top); }
-  for (let k = 0; k < 3; k++) { const x0 = W * (-.1 + k * .2), wd = m * (.09 + k * .025), a = (.11 + .035 * Math.sin(t * .35 + k * 2.1)) * (k === 1 ? 1.15 : 1), dx = top * .62;
+  { const gl = ctx.createRadialGradient(W * .08, H * .04, m * .05, W * .08, H * .04, m * 1.05); gl.addColorStop(0, 'rgba(255,238,196,.22)'); gl.addColorStop(.4, 'rgba(255,232,184,.07)'); gl.addColorStop(1, 'rgba(255,232,184,0)'); ctx.fillStyle = gl; ctx.fillRect(0, 0, W, top); }
+  for (let k = 0; k < 3; k++) { const x0 = W * (-.1 + k * .2), wd = m * (.09 + k * .025), a = (.075 + .025 * Math.sin(t * .35 + k * 2.1)) * (k === 1 ? 1.15 : 1), dx = top * .62;
     const lg = ctx.createLinearGradient(0, 0, 0, top); lg.addColorStop(0, `rgba(255,240,205,${a})`); lg.addColorStop(.7, `rgba(255,240,205,${a * .45})`); lg.addColorStop(1, 'rgba(255,240,205,0)'); ctx.fillStyle = lg;
     ctx.beginPath(); ctx.moveTo(x0, 0); ctx.lineTo(x0 + wd, 0); ctx.lineTo(x0 + wd * 1.9 + dx, top); ctx.lineTo(x0 + dx, top); ctx.closePath(); ctx.fill(); }
   if (!calm && !(typeof lowQ !== 'undefined' && lowQ)) for (let i = 0; i < 18; i++) { const u = (i * .6180339) % 1, v = (i * .3819660 + .13) % 1, sp = .012 + (i % 5) * .004, ph = (t * sp + v) % 1; // ほこり：光の帯にそって、ゆっくり右下へ
@@ -260,8 +260,8 @@ function titleLight() {
   ctx.restore();
   /* 選んだ子だけに明かり：足もとに光のたまりと、体をつつむやわらかい光。だれを選んでいるかが、絵だけで分かるように（2026-11-16） */
   const sp = spriteAt(G.player.wx, G.player.wy, G.player.wz), cx = sp ? sp.sx : W / 2, fy = sp ? sp.sy : H * .5, k = sp ? sp.k : m * .2, cy = fy - k * .55;
-  { ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.translate(cx, fy); ctx.scale(1, .3); const pg = ctx.createRadialGradient(0, 0, 0, 0, 0, k * 1.5); pg.addColorStop(0, 'rgba(255,236,180,.72)'); pg.addColorStop(.6, 'rgba(255,236,180,.24)'); pg.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(0, 0, k * 1.5, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
-  { ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.translate(cx, cy); ctx.scale(.62, 1); const hg = ctx.createRadialGradient(0, 0, 0, 0, 0, k * 1.25); hg.addColorStop(0, 'rgba(255,234,190,.24)'); hg.addColorStop(.55, 'rgba(255,234,190,.11)'); hg.addColorStop(1, 'rgba(255,234,190,0)'); ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, k * 1.25, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+  { ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.translate(cx, fy + k * .04); ctx.scale(1, .26); const pg = ctx.createRadialGradient(0, 0, 0, 0, 0, k * 1.5); pg.addColorStop(0, 'rgba(255,232,170,.46)'); pg.addColorStop(.6, 'rgba(255,232,170,.16)'); pg.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(0, 0, k * 1.5, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+  { ctx.save(); ctx.globalCompositeOperation = 'soft-light'; ctx.translate(cx, cy); ctx.scale(.62, 1); const hg = ctx.createRadialGradient(0, 0, 0, 0, 0, k * 1.25); hg.addColorStop(0, 'rgba(255,214,150,.9)'); hg.addColorStop(.55, 'rgba(255,214,150,.42)'); hg.addColorStop(1, 'rgba(255,214,150,0)'); ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, k * 1.25, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } // 体の光は「やわらかい光」の重ね方：明るく・あたたかくするが、色はうすくしない（2026-11-16 オーナー：光が明るすぎて色がうすい）
   // 選んだ子だけを、やわらかい光でつつむ（横にせまいだ円なので、となりの子には届かない）。画面全体やほかの子は暗くしない（オーナー 2026-11-16：「ホーム画面全体を暗くしなくていい」）。qa/homelight.js が 3 画面 × 3 人で確かめる
 }
 function render() {
