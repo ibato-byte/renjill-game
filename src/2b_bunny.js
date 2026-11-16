@@ -475,7 +475,7 @@ function jillHead(g, mood) { // アニメの座標（頭の中心は 188,210）
 /* ジルの帽子（2026-11-15 オーナー：「ベレー帽で耳が突き出すのはおかしい・ベレー帽に見えない」）：ジルの耳は頭のまん中近くに立っているので、
    頭の上に帽子を置くと耳が隠れ、穴をあけると耳が帽子から突き出す。そこで、小さめの帽子を頭の横（向かって右）にかたむけてかぶる。両耳はそのまま見える。
    side＝1 前から・-1 後ろから（反対側に見える）。単位は顔の大きさ（帽子の後ろの耳は先に描いてある） */
-const JILL_HAT = { beret: [32, -31, 42, .46], helmet: [30, -31, 43, .4], straw: [31, -33, 38, .38], santa: [31, -34, 37, .43], witch: [27, -37, 37, .38], pumpkin: [33, -28, 33, .45], crown: [26, -43, 29, .28], kagami: [26, -48, 23, .24], /* 2026-11-16 オーナー「ただ頭に乗ってるだけ」：小さすぎて頭の横にちょこんと付いていた。2 割大きく、少し深く・内側へ */ antler: [0, -40, 40, 0], heartband: [0, -40, 40, 0], laurel: [0, -42, 40, 0] }; // カチューシャ・月桂冠は頭の上を左右に通るので、まん中に水平 // 王冠・鏡もちも横に（まん中にのせると耳が隠れた）
+const JILL_HAT = { beret: [45, -35, 40, .72], helmet: [44, -35, 41, .68], straw: [45, -37, 36, .66], santa: [45, -35, 36, .7], witch: [43, -38, 35, .62], pumpkin: [47, -31, 32, .72], crown: [47, -40, 26, .66], /* 2026-11-16 夜 オーナー「ジルの着せかえの位置が少しおかしい」：帽子が右の耳に重なって、耳に引っかかって見えた。右の耳のさらに外、頭の右上の丸みにそってかぶる（両耳がまるごと見える） */ kagami: [26, -48, 23, .24], /* 2026-11-16 オーナー「ただ頭に乗ってるだけ」：小さすぎて頭の横にちょこんと付いていた。2 割大きく、少し深く・内側へ */ antler: [0, -40, 40, 0], heartband: [0, -40, 40, 0], laurel: [0, -42, 40, 0] }; // カチューシャ・月桂冠は頭の上を左右に通るので、まん中に水平 // 王冠・鏡もちも横に（まん中にのせると耳が隠れた）
 function jillHat(g, hk, side, sway, up) { const f = JILL_HAT[hk] || [32, -42, 28, .4]; HAT_OUT = 1; try { wearHat(g, hk, side * f[0], f[1] - (up || 0), .9, f[2], 8, 'jill', side * f[3] + (sway || 0)); } finally { HAT_OUT = 0; } }
 function faceJill(g, cx, cy, sc, mood) { g.save(); g.translate(cx, cy); g.scale(sc * RK.jil, sc * RK.jil); g.translate(-188, -210); jillHead(g, mood); g.restore(); }
 function pomEar(g, x, y, r, rot, back) { g.save(); g.translate(x, y); g.rotate(rot); g.beginPath(); g.ellipse(0, 0, r, r * 1.05, 0, 0, Math.PI * 2); g.fillStyle = '#8E786C'; g.fill(); g.beginPath(); g.ellipse(0, r * .12, r * .72, r * .78, 0, 0, Math.PI * 2); g.fillStyle = back ? '#A8928A' : '#E9A9A2'; g.fill();
@@ -524,19 +524,36 @@ function drawPom(g, p) {
     { const up = p.mood === 'cheer' ? 12 : 0; blob(g, -26, -96 - up, 11, 9, 0, c.pink); blob(g, 26, -96 - up, 11, 9, 0, c.pink); } // 手はほっぺの下（アニメの立ち絵と同じ）。ばんざいで少し上がる
     g.restore(); return;
   }
-  // back / look: one round pear-shaped body (hamsters have no neck), pink soles, a stub of a tail
-  const fy = GROUND_Y - 6 - Math.max(0, p.feet) * 7, fo = Math.max(0, -p.feet) * 8;
-  for (const sd of [-1, 1]) { blob(g, 150 + sd * brx * .5, fy + fo * .3, 17, 9 + fo * .3, 0, '#F2B8B0'); blob(g, 150 + sd * brx * .5, fy + fo * .3 + 1, 9, 4, 0, 'rgba(200,120,120,.45)'); }
-  if (WEAR.pom.suit === 'bee') beeWings(g, 150, by - bry * .2, 1, Math.sin((p.tiePh || 0) * 3) * .15);
-  fur(g, 150, by, brx, bry, 0, P.a, P.b);
-  if (WEAR.pom.suit) suitOver(g, WEAR.pom.suit, 150, by, brx, bry);
-  { const gl = g.createRadialGradient(150, by - bry * .4, 6, 150, by - bry * .3, brx); gl.addColorStop(0, 'rgba(222,182,128,.55)'); gl.addColorStop(1, 'rgba(222,182,128,0)'); g.fillStyle = gl; g.beginPath(); g.ellipse(150, by - bry * .25, brx * .9, bry * .8, 0, 0, Math.PI * 2); g.fill(); } // warmer back
-  blob(g, 150, by + bry * .62, 7, 5, 0, '#E8CFA8');
-  const hy = by - bry * .55 + (p.slide ? 14 : 0);
+  /* うしろ姿。2026-11-16 オーナー「キンクマの走り方を学んで、現実に近い質の高い動きに」。うさぎと同じ「両足そろえて跳ねる」動きだったのを、ハムスターの走りに作り直す。
+     調べた数字（Hampton ほか 2011・ハムスターの歩き方の計測）：足は 1 歩の約 72% の間 地面についている（＝ほとんど跳ねない）／後ろ足の幅 3.8cm は前足 2.4cm より広い／後ろ足は外へ約 9 度開く／左右の足は交互。
+     docs/POM-RUN-2026-11-16.md に番号つきの一覧 */
+  const run = p.run && !p.slide && !p.air ? 1 : 0, ph = p.ph || 0, sw = run ? Math.sin(ph) : 0, sw2 = run ? Math.sin(ph * 2) : 0;
+  const cx = 150 + sw * 4.2, hx = 150 + sw * 1.4;                       // おしりは左右にふれ、頭はあまりふれない（体がくねる）
+  const upOf = sd => run ? Math.max(0, (Math.sin(ph + (sd > 0 ? 0 : Math.PI)) - .64) / .36) : 0;   // 足が上がっているのは 1 歩の 28% だけ
+  for (const sd of [-1, 1]) { const up = upOf(sd), fx = cx + sd * brx * (run ? .6 : .5), fy = run ? GROUND_Y - 5 - up * 10 : GROUND_Y - 6 - Math.max(0, p.feet) * 7, fo = run ? up * 7 : Math.max(0, -p.feet) * 8;
+    if (run && up < .05) blob(g, fx, GROUND_Y - 1, 15, 3.2, 0, 'rgba(90,70,50,.16)');                                   // 着いている足の下の小さなかげ
+    g.save(); g.translate(fx, fy + fo * .3); g.rotate(sd * (run ? .15 + up * .2 : 0));                                 // 後ろ足は外へ開く。けり上げるとさらに開く
+    blob(g, 0, 0, 16 - up * 2, 8.5 + fo * .45, 0, '#F2B8B0'); blob(g, 0, 1, 9, 3.6 + fo * .25, 0, 'rgba(200,120,120,.45)');
+    if (fo > 2) for (const tx of [-7, -2.4, 2.4, 7]) blob(g, tx, -5.5 - fo * .3, 2.3, 2.6, 0, '#F6C9C2');                // けり上げた足の裏：4 本の指のふくらみ
+    g.restore(); }
+  if (run) for (const sd of [-1, 1]) { const up = upOf(-sd); if (up > .05) blob(g, cx + sd * brx * .9, by + bry * .5 - up * 4, 6.5, 5, sd * .4, '#F2B8B0', .9 * up); }   // 前足：後ろ足と逆の側が、体の横からちらっと見える（幅は後ろ足よりせまい）
+  if (WEAR.pom.suit === 'bee') beeWings(g, cx, by - bry * .2, 1, Math.sin((p.tiePh || 0) * 3) * .15);
+  g.save(); g.translate(cx, by); g.rotate(sw * .045); g.translate(-cx, -by);                                             // 体が左右にかたむく（足を出す側が下がる）
+  fur(g, cx, by, brx * (1 + (run ? .04 : 0)), bry * (1 - (run ? .05 : 0)), 0, P.a, P.b);                               // 走る時は体を低く平たく
+  if (WEAR.pom.suit) suitOver(g, WEAR.pom.suit, cx, by, brx, bry);
+  { const gl = g.createRadialGradient(cx - sw * 6, by - bry * .4, 6, cx, by - bry * .3, brx); gl.addColorStop(0, 'rgba(222,182,128,.55)'); gl.addColorStop(1, 'rgba(222,182,128,0)'); g.fillStyle = gl; g.beginPath(); g.ellipse(cx, by - bry * .25, brx * .9, bry * .8, 0, 0, Math.PI * 2); g.fill(); } // 背中のつやも体のくねりで動く
+  if (run) { soft(g, cx + sw * 10, by + bry * .1, brx * .5, bry * .45, '#B98E5C', .1 + .05 * Math.abs(sw), 3);            // 足を引く側のわき腹に、毛のしわのかげ
+    for (const sd of [-1, 1]) soft(g, cx + sd * brx * .52, by + bry * .5 - upOf(sd) * 5, 20, 14, '#EBCB9C', .32, 3); } // ももの丸みが、足といっしょに上下する
+  blob(g, cx - sw * 3.2, by + bry * .62 + sw2 * .8, 7, 5, 0, '#E8CFA8'); blob(g, cx - sw * 3.2 - 1.5, by + bry * .6 + sw2 * .8, 3, 2, 0, 'rgba(255,255,255,.45)');   // 短いしっぽは、おしりと逆へぴこぴこ
+  g.restore();
+  const hy = by - bry * .55 + (p.slide ? 14 : 0) + (run ? 3 + sw2 * 1.1 : 0);                                           // 走る時は頭を低く前へ。1 歩ごとに小さくうなずく
   if (p.view === 'look') { facePom(g, 156, hy - 24, .98, p.mood); if (p.mood === 'cheer') { fur(g, 150 + 56, hy + 10, 9, 16, -.6, P.a, P.b); blob(g, 150 + 64, hy - 6, 10, 8, -.3, '#F2B8B0'); } return; }
-  pomEar(g, 150 - 40, hy - 26, 16 + p.ear * 2, -.3 - p.ear * .3, 1); pomEar(g, 150 + 40, hy - 26, 16 + p.ear * 2, .3 + p.ear * .3, 1);
-  headband(g, 150, hy - 4, 58, 1, p.tiePh);
-  if (WEAR.pom.hat) { const f = pomHatFit(WEAR.pom.hat, 1); wearHat(g, WEAR.pom.hat, 150, hy + f[0] - (p.air ? 2 : 0), 1, f[1], f[2], 'pom', (p.ear || 0) * .16); } else if (WEAR.pom.suit === 'bee') antennae(g, 150, hy - 24, 1);
+  if (run) for (const sd of [-1, 1]) { fur(g, hx + sd * 47, hy + 9 + sw2 * sd * 1.2, 13, 11, 0, P.a, P.b);                 // ほお袋のふくらみが頭の横からのぞき、走るとゆれる
+    g.save(); g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 1.1; g.lineCap = 'round'; for (const k of [0, 1, 2]) { const a = sd * (.25 + k * .2) + sw2 * .06 * (k - 1); g.beginPath(); g.moveTo(hx + sd * 54, hy + 6 + k * 3); g.lineTo(hx + sd * 54 + Math.sin(a) * 15 * sd * sd + sd * 13, hy + 2 + k * 5 + Math.cos(ph * 2 + k) * 1.2); g.stroke(); } g.restore(); } // ひげの先が頭の横から出て、ふるえる
+  { const er = run ? 13.5 : 16 + p.ear * 2, ey = run ? hy - 21 : hy - 26, rot = run ? .62 : .3 + p.ear * .3, fl = run ? sw2 * .05 : 0;   // 走る時は耳を後ろへ寝かせる（小さく・低く・外へ）。風で少しはためく
+    pomEar(g, hx - (run ? 43 : 40), ey, er, -rot - (run ? fl : p.ear * 0), 1); pomEar(g, hx + (run ? 43 : 40), ey, er, rot - fl, 1); }
+  headband(g, hx, hy - 4, 58, 1, run ? ph * 1.6 + 1 : p.tiePh);                                                          // はちまきのたれは、速い足に合わせて速くはためく
+  if (WEAR.pom.hat) { const f = pomHatFit(WEAR.pom.hat, 1); wearHat(g, WEAR.pom.hat, hx, hy + f[0] - (p.air ? 2 : 0), 1, f[1], f[2], 'pom', run ? sw * .05 : (p.ear || 0) * .16); } else if (WEAR.pom.suit === 'bee') antennae(g, hx, hy - 24, 1);
 }
 /* ポムの帽子（2026-11-16 オーナー：「ヘルメットなどただ頭に乗ってるだけでおかしい」）：
    前は頭の幅（64）より細い帽子（42）を、はちまきより上の頭のてっぺんに置いていた。
@@ -713,7 +730,8 @@ function buildBunnies(only, part) {
       for (let k = 0; k < RUN_FRAMES; k++) {
         const ph = k / RUN_FRAMES * Math.PI * 2;
         SEED = 11 + k;
-        { const h = hopPose(k / RUN_FRAMES); BUN[who]['run' + k + key] = paint(g => drawBody(g, who, { lift: h.lift, sq: h.sq, feet: 0, ear: h.ear, tie: 0, tiePh: ph, view: 'back', mug, hop: h })); }
+        if (who === 'pom') BUN[who]['run' + k + key] = paint(g => drawBody(g, who, { lift: 1.5 + Math.abs(Math.sin(ph)) * 2.2, sq: 1 - .025 * Math.cos(ph * 2), feet: 0, ear: 0, tie: 0, tiePh: ph, view: 'back', run: 1, ph })); /* ポム：ほとんど跳ねず、足を交互に速く動かす（ハムスターの走り。うさぎ跳びにしない） */
+        else { const h = hopPose(k / RUN_FRAMES); BUN[who]['run' + k + key] = paint(g => drawBody(g, who, { lift: h.lift, sq: h.sq, feet: 0, ear: h.ear, tie: 0, tiePh: ph, view: 'back', mug, hop: h })); }
       }
       SEED = 3; BUN[who]['air' + key] = paint(g => drawBody(g, who, { lift: 10, sq: 1.04, feet: -.6, ear: -.3, tie: 0, tiePh: 1.2, air: 1, view: 'back', mug }));
       /* 2026-11-15：落ちてくる時の絵（前は跳んでいる間ずっと同じ絵だった）。のぼりは耳が下に流れて足をたたむ、くだりは耳がふわっと開いて足を着地にのばす */

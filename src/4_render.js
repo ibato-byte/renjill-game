@@ -235,7 +235,12 @@ function vendFace(b) { bquad(.08, .45, .92, .95, '#FFFFFF'); for (let r = 0; r <
 
 /* ================= frame ================= */
 const DRAW = [];
-function segOrder() { const out = []; for (let i = G.segs.length - 1; i > G.ci; i--) out.push(G.segs[i]); if (G.fork) out.push(...G.fork); if (G.segs[G.ci - 1]) out.push(G.segs[G.ci - 1]); out.push(G.segs[G.ci]); return out.filter(Boolean); }
+const IN_K = k => k === 'room' || k === 'train' || k === 'glass';
+/* 外から建物の中へ曲がった時：カメラが半分以上まわったら、うしろの外の道は描かない（2026-11-16 オーナー「曲がり角で壁が透けて先が見える」。
+   中に入ったのに、入り口の横から前の通りの建物や看板が見えていた） */
+function prevHidden() { const cur = G.segs[G.ci], pv = G.segs[G.ci - 1]; if (!cur || !pv || G.mode === 'title') return false; if (!IN_K(cur.th.kind) || IN_K(pv.th.kind)) return false;
+  let d = (G.camYaw || 0) - cur.dir * Math.PI / 2; d = Math.atan2(Math.sin(d), Math.cos(d)); return Math.abs(d) < Math.PI / 4; }
+function segOrder() { const out = []; for (let i = G.segs.length - 1; i > G.ci; i--) out.push(G.segs[i]); if (G.fork) out.push(...G.fork); if (G.segs[G.ci - 1] && !prevHidden()) out.push(G.segs[G.ci - 1]); out.push(G.segs[G.ci]); return out.filter(Boolean); }
 // つきあたりの壁の上（cap）：先が、天井のもっと高い部屋のときも描く
 function capOn(sg) { if (sg !== G.segs[G.ci] || G.mode === 'title') return false; const nx = G.fork && G.fork.length ? G.fork : [G.segs[G.ci + 1]]; return nx.some(n => n && (n.wallH || 0) > (sg.wallH || 0) + .05); }
 // のばした奥の壁（3_world.js の wing）を描くか：その建物の中にいる間と、外へ曲がり始めた一瞬だけ。先が建物の中なら描かない
@@ -324,7 +329,8 @@ function drawSegment(sg, isCur) {
   DRAW.length = 0;
   const wing = wingOn(sg), cap = wing || capOn(sg);
   for (const w of sg.walls) { if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; DRAW.push([d, 1, w]); }
-  for (const e of sg.decos) { if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (lowQ ? 70 : 90)) continue; DRAW.push([d - 1.6, 2, e]); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
+  const behind = G.segs.indexOf(sg) >= 0 && G.segs.indexOf(sg) < G.ci; // 曲がり終えた角の矢印の看板は描かない（横に浮いた板に見えていた）
+  for (const e of sg.decos) { if (e.sign && behind) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (lowQ ? 70 : 90)) continue; DRAW.push([d - 1.6, 2, e]); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
   DRAW.sort((a, b) => b[0] - a[0]);
   for (const [d, t, w] of DRAW) {
     if (oc && occAt(d - 2) !== Infinity) { occDraw(d - 2, () => drawWallItem(d, t, w)); continue; }

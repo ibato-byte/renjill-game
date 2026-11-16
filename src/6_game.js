@@ -642,7 +642,7 @@ function update(dt) {
   if (G.hint > 0) G.hint -= dt;
   G.clock = seg.t0 + (seg.t1 - seg.t0) * clamp(G.s / seg.len, 0, 1);
   // animation
-  P.ph += dt * (6 + G.speed * .55);
+  P.ph += dt * (P.who === 'pom' ? 9 + G.speed * .7 : 6 + G.speed * .55); /* ポムは足が短いので、同じ速さでも足の回転が速い */
   { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1, seg.th.kind); if (G.weather === 'snow' && seg.th.kind !== 'room' && seg.th.kind !== 'train') { const fw = segPos(seg, G.s, G.lat + ((c & 1) ? .12 : -.12)); (G.prints = G.prints || []).push({ x: fw[0], z: fw[1], y: fw[2], t: G.t, a: G.player.wy }); if (G.prints.length > 40) G.prints.shift(); } } } // footprints in the snow (2026-11-08) // a soft footstep on every stride
   P.air = G.air && !flying; P.slide = sliding; P.fly = flying; P.flash = G.invT > 0 && G.invT < 2.4 && !flying; P.glow = G.shield ? '#5FB05A' : G.pow.dash > 0 ? '#F08A2E' : null;
   if (P.look > 0) P.look = Math.max(0, P.look - dt);
@@ -660,12 +660,12 @@ function placeCamera(dt) {
   const k = G.turnT > 0 ? 1 - Math.exp(-dt * 14) : 1;
   G.rx = lerp(G.rx, p[0], k); G.rz = lerp(G.rz, p[1], k);
   const eP = segE(seg, G.s); G.ey = G.ey == null || G.turnT <= 0 && Math.abs(G.ey - eP) > 3 ? eP : lerp(G.ey, eP, Math.min(1, dt * 18));
-  P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * (.045 + Math.min(.035, G.speed * .002))); // the run bob grows a little with speed
+  P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * (P.who === 'pom' ? .012 : .045 + Math.min(.035, G.speed * .002))); // the run bob grows a little with speed
   if (G.aura && G.mode === 'play' && !OPT().calm && (G.auraT = (G.auraT || 0) + (G.dtFX || .016)) > .045) { G.auraT = 0; const sp = spriteAt(P.wx + rand(-.35, .35), P.wy + rand(.2, 1.1) * (P.big || 1), P.wz + .2); if (sp) FX.push({ x: sp.sx, y: sp.sy, vx: rand(-25, 25), vy: rand(-70, -20), life: rand(.35, .7), t: 0, c: Math.random() < .5 ? 'rgba(255,214,90,.95)' : 'rgba(255,246,200,.95)', r: rand(1.5, 3.2) }); } P.vy = P.who === 'pom' ? G.vy : null;
-  const fp = segPos(seg, G.s - F.back, F.lat); F.wx = fp[0]; F.wz = fp[1]; F.wy = fp[2] + (F.y || 0) + (F.air ? 0 : Math.abs(Math.sin(F.ph)) * .06);
+  const fp = segPos(seg, G.s - F.back, F.lat); F.wx = fp[0]; F.wz = fp[1]; F.wy = fp[2] + (F.y || 0) + (F.air ? 0 : Math.abs(Math.sin(F.ph)) * (F.who === 'pom' ? .012 : .06)); /* ポム（ハムスター）は足がほとんど地面についているので、体は上下しない */
   F.fly = P.fly; if (P.fly) { F.wy = G.ey + G.y - .3; }
   F.show = !F.off && G.s - F.back > (seg.first ? -14 : HW + .3);
-  { const M = G.pom; if (M.on) { const mp = segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * .05); if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
+  { const M = G.pom; if (M.on) { const mp = segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * (M.who === 'pom' ? .012 : .05)); if (M.who === 'pom' && !M.air && !P.fly) M.lat += Math.sin(M.ph * .5) * .0035; /* ちょこまか：走りながら、ごく小さく左右にゆれる */ if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
   const ty = seg.dir * Math.PI / 2; let dy = ty - G.camYaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
   G.camYaw += dy * Math.min(1, dt * 9);
   { const want = H / W > 1.6 && !seg.th.toriiTunnel ? 1 : 0; G.camTall = G.camTall == null ? want : lerp(G.camTall, want, Math.min(1, dt * 2.5)); } // under the rows of small gates the higher camera looked straight into their beams (2026-11-14「鳥居のゾーンで前が見えない」): there it comes back down, smoothly
