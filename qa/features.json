@@ -930,6 +930,41 @@
       "name": "走る時の後ろ足の裏（指・光）",
       "file": "src/2b_bunny.js",
       "has": "function soleC(g, who, x, y, rx, ry, sd)"
+    },
+    {
+      "name": "最後の手：ほかの道から同じ時刻で続ける",
+      "file": "src/6_game.js",
+      "has": "function freshRoad()"
+    },
+    {
+      "name": "一区切りで終わらない試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'keeprun'"
+    },
+    {
+      "name": "やめる確認の文字が切れない",
+      "file": "src/head.html",
+      "has": "#sPause .btns #btnQuit.danger{white-space:normal"
+    },
+    {
+      "name": "お知らせの帯は走る2人の下",
+      "file": "src/head.html",
+      "has": "#banner{position:absolute;left:50%;bottom:"
+    },
+    {
+      "name": "ナイスなどの文字は下から",
+      "file": "src/4_render.js",
+      "has": "function cheerY(k)"
+    },
+    {
+      "name": "スマホ縦長のカメラ（鳥居のトンネルでは下げる）",
+      "file": "src/6_game.js",
+      "has": "!seg.th.toriiTunnel ? 1 : 0"
+    },
+    {
+      "name": "道の先が見える試験",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'viewclear'"
     }
   ]
 }

@@ -16,7 +16,7 @@ const { chromium } = require('playwright'); const path = require('path');
           maxCam = Math.max(maxCam, H.ev('CAM.y - G.camE')); maxY = Math.max(maxY, G.y); if (el < 1500) requestAnimationFrame(tick); else res({ ceil: H.ev('curSeg().ceilH || 0'), ceil0: ceil, rest, maxCam, maxY }); }; tick(); }));
       const tag = w + 'x' + h + ' ' + tid + (sup ? '（スーパージャンプ）' : ''); out.push(tag + ' 天井 ' + r.ceil0 + ' カメラ ' + r.rest.toFixed(2) + ' → 最高 ' + r.maxCam.toFixed(2) + ' 足の最高 ' + r.maxY.toFixed(2));
       if (r.maxY < .9) { bad.push(tag + ' ジャンプできていない（試験の前提）' + r.maxY.toFixed(2)); continue; }
-      if (tid === 'street') { if (r.ceil0) bad.push(tag + ' 外なのに天井あつかい'); if (h / w > 1.6 && Math.abs(r.rest - 2.75) > .12) bad.push(tag + ' 外のカメラの高さが変わった（' + r.rest.toFixed(2) + '）'); if (sup && r.maxY < 1.6) bad.push(tag + ' 外のスーパージャンプが低くなった（' + r.maxY.toFixed(2) + '）'); continue; }
+      if (tid === 'street') { if (r.ceil0) bad.push(tag + ' 外なのに天井あつかい'); if (h / w > 1.6 && Math.abs(r.rest - 2.45) > .12) bad.push(tag + ' 外のカメラの高さが変わった（' + r.rest.toFixed(2) + '）'); if (sup && r.maxY < 1.6) bad.push(tag + ' 外のスーパージャンプが低くなった（' + r.maxY.toFixed(2) + '）'); continue; }
       if (!r.ceil0 || r.ceil !== r.ceil0) { bad.push(tag + ' 天井の高さが取れない／途中で場所が変わった'); continue; }
       if (r.ceil0 < 3.85) bad.push(tag + ' 天井そのものが低い（' + r.ceil0 + 'm。室内 4.4m・電車 3.9m 以上にする：オーナーの希望「空港のロビーのように」）');
       if (r.rest > r.ceil0 - .75) bad.push(tag + ' 走っている時のカメラが天井に近い（天井まで ' + (r.ceil0 - r.rest).toFixed(2) + 'm）');
