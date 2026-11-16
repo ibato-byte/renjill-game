@@ -1040,6 +1040,11 @@
       "name": "走りはうさぎ跳び（12 コマ：ため・けり・空中・着地・引きよせ）",
       "file": "src/2b_bunny.js",
       "has": "function hopPose(u) {"
+    },
+    {
+      "name": "ホーム画面では、ぶつかった直後の点滅を消す",
+      "file": "src/6_game.js",
+      "has": "P.flash = F.flash = G.pom.flash = false;"
     }
   ]
 }
