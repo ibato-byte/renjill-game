@@ -1160,6 +1160,11 @@
       "name": "車の夜の絵",
       "file": "src/4e_art.js",
       "has": "`car|${o.av.t}|${o.av.c}|${night ? 'n' : 'd'}`"
+    },
+    {
+      "name": "ホーム画面で跳ねるのは選んだ子だけ",
+      "file": "src/6_game.js",
+      "has": "F.wy = pJ[2]; // 跳ねるのは選んだ子だけ"
     }
   ]
 }

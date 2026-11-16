@@ -113,7 +113,7 @@ function titleFrame(dt) {
      明かり（titleLight）は選んだ子だけに当てる（ほかの子も画面も暗くしない） */
   const wd = W > H * 1.25 && W >= 900, sideL = wd ? 1.6 : 1.3, sideR = wd ? 1.12 : 1.3; // 横長の画面：右の子は札にかくれないよう寄せ、左の子は選んだ子に重ならないよう広げる（本番の大きな画面で、左の子が選んだ子のすぐ後ろに重なっていた）
   const pR = segPos(seg, TITLE_FRONT, 0), pJ = segPos(seg, TITLE_BACK, me === 'jill' ? sideL : -sideR);
-  [P.wx, P.wz] = pR; P.wy = pR[2] + (me === 'pom' ? Math.abs(Math.sin(G.t * 5)) * .07 : Math.abs(Math.sin(P.ph)) * .05); [F.wx, F.wz] = pJ; F.wy = pJ[2] + (me === 'ren' ? Math.abs(Math.sin(G.t * 6)) * .03 * ((G.t % 7) > 5.6) : 0);
+  [P.wx, P.wz] = pR; P.wy = pR[2] + (me === 'pom' ? Math.abs(Math.sin(G.t * 5)) * .07 : Math.abs(Math.sin(P.ph)) * .05); [F.wx, F.wz] = pJ; F.wy = pJ[2]; // 跳ねるのは選んだ子だけ（ほかの子も跳ねていて、だれを選んだか分かりにくかった。2026-11-17 オーナー）
   P.air = F.air = P.slide = F.slide = false; P.tilt = F.tilt = 0; P.fly = F.fly = 0;
   /* たて長の画面（スマホ）：3 人が画面の上半分のまん中に全員おさまるよう、カメラを引いて 3 人のまん中に寄せる（2026-11-15 ホーム画面の作り直し：前は 3 人が見切れ、しかもメニューの札の後ろに隠れていた） */
   const tall = W < H * .8, mid = 0;
@@ -123,7 +123,7 @@ function titleFrame(dt) {
   camPrep(); P.depth = 7.4 - TITLE_FRONT; F.depth = 7.4 - TITLE_BACK;
   // once you have met Pom, the rookie peeks out on the title screen too, bouncing with excitement
   const M = G.pom; M.title = !!SV.pomMet; M.show = M.title;
-  if (M.title) { const pm = segPos(seg, TITLE_BACK, me === 'jill' ? -sideR : sideL); M.view = 'front'; M.who = third; M.ph += dt * 4; M.wx = pm[0]; M.wz = pm[1]; M.wy = pm[2] + Math.abs(Math.sin(G.t * 5)) * .07; M.depth = 7.4 - TITLE_BACK; M.tilt = 0; M.air = M.slide = false;
+  if (M.title) { const pm = segPos(seg, TITLE_BACK, me === 'jill' ? -sideR : sideL); M.view = 'front'; M.who = third; M.ph += dt * 4; M.wx = pm[0]; M.wz = pm[1]; M.wy = pm[2]; M.depth = 7.4 - TITLE_BACK; M.tilt = 0; M.air = M.slide = false;
     M.mood = third === 'pom' ? pomMood : jillMood; M.look = 0; }
 }
 
