@@ -1060,6 +1060,16 @@
       "name": "走りはうさぎ跳び（12 コマ：ため・けり・空中・着地・引きよせ）",
       "file": "src/2b_bunny.js",
       "has": "function hopPose(u) {"
+    },
+    {
+      "name": "Y 字路（45 度ずつの分かれ道・とがった角の建物）",
+      "file": "src/3_world.js",
+      "has": "function yWedge(seg)"
+    },
+    {
+      "name": "yfork テスト",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'yfork'"
     }
   ]
 }
