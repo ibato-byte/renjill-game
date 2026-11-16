@@ -1215,6 +1215,11 @@
       "name": "住宅街の家の壁を 1 軒ずつの絵に（景色 74〜96）",
       "file": "src/4d_facade.js",
       "has": "  house(g, r, PW, PH, w, h, night, variant) {"
+    },
+    {
+      "name": "ブロック塀・電柱の作り込み（景色 98〜111）",
+      "file": "src/4h_artplus.js",
+      "has": "function paintPolePlus("
     }
   ]
 }

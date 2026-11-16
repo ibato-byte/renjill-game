@@ -492,3 +492,14 @@ Object.assign(PROP_ART, {
   noki: (n, v) => artCanvas('pnoki|' + n, 320, 230, (g, w, h) => paintNoki(g, w, h, n)),
 });
 Object.assign(PROP_DIM, { cmirror: { w: 1.0, h: 3.0, off: 0 }, roadsign: { w: .9, h: 2.6, off: 0 }, hydrant: { w: .7, h: 2.0, off: 0 }, busstop: { w: 1.9, h: 2.6, off: 0 }, gomi: { w: 1.7, h: 1.1, off: 0 }, noki: { w: 1.8, h: 1.3, off: 0 } });
+/* 2026-11-17 景色 105〜111：住宅街の電柱（前は、コンクリートの柱・腕木・変圧器・黄色い札だけ） */
+function paintPolePlus(g, W, H, night) { paintPole(g, W, H); const x = W / 2;
+  g.fillStyle = '#5B6066'; for (let k = 0; k < 7; k++) { const y = H * (.24 + k * .045), sd = k % 2 ? 1 : -1; g.fillRect(x + sd * 6, y, sd * 9, 3); g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(x + sd * 6, y + 3, sd * 9, 1); g.fillStyle = '#5B6066'; } // [105] 上の方の足場ボルト（互い違い）
+  g.strokeStyle = '#3A3A3A'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(x + 4, H * .2); g.lineTo(W - 4, H); g.stroke(); g.fillStyle = '#F2C230'; g.save(); g.translate(W - 14, H - 40); g.rotate(Math.atan2(H * .8, W / 2 - 8)); g.fillRect(-36, -4, 72, 8); g.fillStyle = '#2B2B2B'; for (let k = -34; k < 36; k += 12) g.fillRect(k, -4, 6, 8); g.restore(); // [106] 支線と、黄色と黒のしまのカバー
+  g.fillStyle = '#1E5AA8'; rrect(g, x - 9, H * .42, 18, 40, 2); g.fill(); g.fillStyle = '#FFFFFF'; g.font = '700 9px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('2丁目', x, H * .42 + 13, 16); g.font = '900 12px sans-serif'; g.fillText('5', x, H * .42 + 29); // [107] 住所の表示板（青い板に白い字）
+  g.fillStyle = '#E8E6DF'; g.fillRect(x - 5, H * .33, 10, 12); g.fillStyle = '#2B2B2B'; g.fillRect(x - 3, H * .33 + 3, 6, 1.5); g.fillRect(x - 3, H * .33 + 7, 6, 1.5); // [108] 電柱の番号札
+  g.strokeStyle = '#2B2B2B'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x - 6, H * .16); g.quadraticCurveTo(x - 30, H * .24, 0, H * .27); g.moveTo(x - 6, H * .18); g.quadraticCurveTo(x - 26, H * .25, 0, H * .3); g.stroke(); g.fillStyle = '#3A3A3A'; g.fillRect(x - 8, H * .15, 16, 7); // [109] ケーブルの束と、家へたれ下がる引き込み線
+  g.fillStyle = '#9A968C'; g.fillRect(x - 13, H - 8, 26, 8); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(x - 13, H - 8, 26, 2); // [110] 根もとのコンクリート
+  const ly = H * .29; g.strokeStyle = '#8B8F93'; g.lineWidth = 3; g.beginPath(); g.moveTo(x - 5, ly); g.lineTo(x - 28, ly - 8); g.stroke(); g.fillStyle = '#D9DCDF'; rrect(g, x - 38, ly - 12, 16, 7, 3); g.fill(); g.fillStyle = night ? '#FFFFFF' : '#C9CDD2'; g.fillRect(x - 36, ly - 6, 12, 2.5); // [111] 防犯灯（夜は光る）
+  if (night) { const gl = g.createRadialGradient(x - 30, ly - 4, 1, x - 30, ly - 4, 26); gl.addColorStop(0, 'rgba(235,245,255,.85)'); gl.addColorStop(1, 'rgba(235,245,255,0)'); g.fillStyle = gl; g.fillRect(x - 58, ly - 30, 56, 56); } }
+PROP_ART.pole = (n) => artCanvas('ppole2|' + (n ? 1 : 0), 120, 560, (g, w, h) => paintPolePlus(g, w, h, n));
