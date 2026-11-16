@@ -424,7 +424,7 @@ Object.assign(THEMES, {
 });
 /* 2026-11-17 景色 31〜50：住宅街・下町・商店街の道に、カーブミラー・止まれの標識・消火栓・バス停を足す（会社の中・公園・水辺・ビル街のまん中には出さない） */
 for (const k in THEMES) { const th = THEMES[k]; if (th.kind !== 'street' || !th.props || !th.fac || th.course) continue; const st = th.fac.style;
-  if (['house', 'machiya', 'market', 'mixed', 'books'].includes(st)) th.props = th.props.concat([['cmirror', 1], ['roadsign', 1], ['hydrant', 1]], ['house', 'machiya', 'mixed'].includes(st) ? [['gomi', 1], ['noki', 2]] : []); /* 63〜73 ごみ集積所・軒先 */
+  if (['house', 'machiya', 'market', 'mixed', 'books'].includes(st)) th.props = th.props.concat(th.rpat === 'road' ? [['cmirror', 1], ['roadsign', 1], ['hydrant', 1]] : [['hydrant', 1]], ['house', 'machiya', 'mixed'].includes(st) ? [['gomi', 1], ['noki', 2]] : []); /* 63〜73 ごみ集積所・軒先。113：カーブミラー・標識は車の通る道だけ（アメ横などの歩く道には立てない） */
   else if (['neon', 'luxury', 'glass', 'station'].includes(st)) th.props = th.props.concat([['busstop', 1], ['hydrant', 1]]); }
 // 点数で 1 回ずつ（1 回の遊びで）。赤い電波塔は外階段（約600段）を自分の足で。押上の電波塔の階段は一般には開いていないので、エレベーター（約50秒）で 350m へ
 const COURSES = {

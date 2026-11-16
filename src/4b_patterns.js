@@ -168,7 +168,16 @@ function wallPattern(w, d) {
   if (pat === 'fac') return w.fv != null && d < 75 ? drawFacadeTex(w, d) : facade(w, d); // far fronts still get their windows, just painted simply
   if (pat === 'roof') { ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1; ctx.beginPath(); for (let k = 1; k < 6; k++) bline(0, k / 6, 1, k / 6); ctx.stroke(); return; }
   if (d > 60) return;
-  if (pat === 'blocks') { ctx.globalAlpha = .35; ctx.strokeStyle = tint('#7A7468'); ctx.lineWidth = Math.max(.6, 24 / d); ctx.beginPath(); for (let k = 1; k < 4; k++) bline(0, k / 4, 1, k / 4); for (let k = 0; k < 5; k++) bline(k / 5 + ((k % 2) * .1), 0, k / 5 + ((k % 2) * .1), 1); ctx.stroke(); ctx.globalAlpha = 1; return; }
+  if (pat === 'blocks') { const sd = Math.abs((w.v[0] * 7 + w.v[2] * 13 + w.v[1] * 3) | 0), near = d < 30, T = tint;
+    /* 2026-11-17 景色 98〜104：住宅街のブロック塀（u＝横 3m、v＝下 0・上 1、高さ 1.35m） */
+    if (sd % 4 === 1 && near) { ctx.globalAlpha = .95; bquad(.08, .02, .44, .86, T('#4E5156')); ctx.globalAlpha = .9; for (let k = 0; k < 12; k++) { const u = .1 + k * .03; bquad(u, .05, u + .012, .84, T('#7A7E84')); } bquad(.08, .8, .44, .86, T('#8A8E94')); bquad(.08, .05, .44, .1, T('#6E7278')); ctx.globalAlpha = 1; } // [101] アルミの門扉（たての格子）
+    ctx.globalAlpha = .35; ctx.strokeStyle = T('#7A7468'); ctx.lineWidth = Math.max(.6, 24 / d); ctx.beginPath(); for (let k = 1; k < 6; k++) bline(0, k / 6.5, 1, k / 6.5); for (let r = 0; r < 6; r++) for (let k = 0; k < 8; k++) { const u = k / 7.5 + (r % 2) * .066; if (u < 1) bline(u, r / 6.5, u, (r + 1) / 6.5); } ctx.stroke(); // 目地（1 段ずつ互い違い）
+    if (sd % 3 === 0 && near) { ctx.globalAlpha = .8; for (const u0 of [.3, .57]) { bquad(u0, .62, u0 + .13, .76, T('#C9C3B5')); ctx.globalAlpha = .75; ctx.fillStyle = T('#4A4640'); const c = bil(u0 + .065, .69); ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(1, 26 / d), Math.max(1, 20 / d), 0, 0, 7); ctx.fill(); ctx.globalAlpha = .8; } } // [98] 透かしブロック（丸い穴の模様）
+    ctx.globalAlpha = .9; bquad(0, .93, 1, 1.03, T('#D2CDC2')); ctx.globalAlpha = .3; bquad(0, .89, 1, .93, '#2A2622'); // [99] 塀の上のかさ木と、その下のかげ
+    ctx.globalAlpha = .22; bquad(0, 0, 1, .12, T('#4E5A3A')); ctx.globalAlpha = .12; bquad(0, .12, 1, .2, T('#5E6A44')); // [100] 足もとの、しみとこけ
+    if (near) { ctx.globalAlpha = .12; for (let k = 0; k < 3; k++) { const u = ((sd * (k + 3)) % 97) / 100; bquad(u, .35, u + .012, .89, '#3A3530'); } } // [102] 雨だれのすじ
+    if (sd % 4 === 1 && near) { ctx.globalAlpha = .95; bquad(.5, .5, .62, .72, T('#3A3C40')); bquad(.505, .66, .615, .69, T('#1E1F22')); bquad(.66, .55, .74, .66, T('#EDE7D8')); ctx.globalAlpha = .6; bquad(.67, .57, .73, .64, T('#6E6658')); } // [103] 門のわきの郵便受け [104] 表札
+    ctx.globalAlpha = 1; return; }
   if (pat === 'ishigaki') { ctx.globalAlpha = .45; ctx.strokeStyle = tint('#6E685C'); ctx.lineWidth = 1; ctx.beginPath(); for (let k = 1; k < 6; k++) bline(0, k / 6, 1, k / 6 + .03); for (let k = 0; k < 8; k++) bline(k / 8 + ((k * 3) % 2) * .05, (k % 6) / 6, k / 8 + ((k * 3) % 2) * .05, (k % 6 + 1) / 6); ctx.stroke(); ctx.globalAlpha = 1; return; }
   if (pat === 'stonewall') { ctx.globalAlpha = .4; ctx.strokeStyle = tint('#5C574C'); ctx.lineWidth = 1; ctx.beginPath(); bline(0, .5, 1, .5); for (let k = 0; k < 4; k++) bline(k / 4 + .1, 0, k / 4 + .1, .5); ctx.stroke(); ctx.globalAlpha = 1; return; }
   if (pat === 'bricks') { ctx.globalAlpha = .35; ctx.strokeStyle = tint('#E9D9BF'); ctx.lineWidth = Math.max(.5, 18 / d); ctx.beginPath(); for (let k = 1; k < 12; k++) bline(0, k / 12, 1, k / 12); ctx.stroke(); ctx.globalAlpha = 1;
