@@ -31,7 +31,8 @@ function ensureSegs(max) {
   let built = 0;
   while (!G.fork && G.segs.length - G.ci < 4 && !(max && built >= max)) { // four ahead: a street is built well before it can come into view
     const last = G.segs[G.segs.length - 1];
-    let step; try { step = nextStep(); } catch (e) { reportErr(e); G.segDue = Math.max(G.segDue || 0, .25); break; }
+    courseStart(last);
+    let step, fromQ = 0; try { if (G.courseQ && G.courseQ.length) { step = G.courseQ.shift(); fromQ = 1; } else step = nextStep(); } catch (e) { reportErr(e); G.segDue = Math.max(G.segDue || 0, .25); break; }
     if (!step) break;
     const t0 = G.planClock;
     try {
@@ -43,17 +44,26 @@ function ensureSegs(max) {
         { const rs = Math.random() < .5 ? 0 : 1; richHay(G.fork[rs]); if (last) last.richSide = rs ? 1 : -1; } // one way has more hay, and its sign says so (2026-11-08)
         break;
       }
-      const nf = G.plan[0] && G.plan[0].fork;
+      const nf = G.courseQ && G.courseQ.length ? null : G.plan[0] && G.plan[0].fork; // 電波塔コースの途中では、分かれ道にしない
       G.distEst = G.dist + (G.segs.length - G.ci) * 90; G.speedEst = Math.min(MAXSPD + 1, G.speed + 1.2);
       // after a fork's own street only a fork can follow (it has no corner of its own); should a plain street ever come next, it turns
       const sg = newSeg(last, step, { t0, day: G.planDay, fork: nf || null, turnIn: last && last.fork ? (Math.random() < .5 ? -1 : 1) : undefined });
       if (nf) sg.forkLbl = forkLabels(nf, G.planDay);
       if (step.st) sg.stName = LANG === 'ja' || LANG === 'zh' ? step.st : stEn(step.st); // station names: kanji for Japanese/Chinese readers, romaji otherwise
       G.segs.push(sg); G.planClock = sg.t1; built++;
-    } catch (e) { G.plan.unshift(step); G.segFails = (G.segFails || 0) + 1; G.segDue = Math.max(G.segDue || 0, .25); reportErr(e); break; }
+    } catch (e) { (fromQ ? G.courseQ : G.plan).unshift(step); G.segFails = (G.segFails || 0) + 1; G.segDue = Math.max(G.segDue || 0, .25); reportErr(e); break; }
   }
   while (G.ci > 1) { G.segs.shift(); G.ci--; }
 }
+/* 電波塔コース（2026-11-17）：10万点・30万点をこえたら、1 回の遊びで 1 回ずつ。
+   外の道のあと・分かれ道ではない所に、コース（足もと → 階段／エレベーター → 展望台 → オオタカ → 公園に着地）をはさむ。会社の中・電車の中からは始めない */
+function courseTick() { if (G.mode !== 'play' || G.practice || !G.courseDone) return;
+  for (const k in COURSES) if (!G.courseDone[k] && G.courseDue !== k && G.score >= COURSES[k].at) { if (!G.courseDue) G.courseDue = k; break; } }
+function courseStart(last) { const k = G.courseDue; if (!k || !COURSES[k] || (G.courseQ && G.courseQ.length) || G.fork) return;
+  const out = x => x && x.th && (x.th.kind === 'street' || (x.th.kind === 'deck' && !x.th.climb && !x.th.boat));
+  if (!last || last.fork || !out(last) || last.th.course) return;
+  const nx = G.plan[0]; if (nx && !nx.fork && THEMES[nx.t] && ['room', 'train', 'glass'].includes(THEMES[nx.t].kind)) return; // 次が建物・電車の中なら、外に出てから
+  G.courseQ = COURSES[k].steps.map(x => Object.assign({}, x)); G.courseDone[k] = 1; G.courseDue = null; G.courseGo = k; setTimeout(aerWarm, 60); }
 function reportErr(e) { window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (window.__frameErr < 4) console.error('frame error', e); errLog(window.__frameErrMsg); }
 // エラーの記録（C-65）：最後の 10 件をこの端末に残し、設定の下で見られる（送信はしない）
 function errLog(msg) { try { const a = JSON.parse(localStorage.getItem('rjErrLog') || '[]'); const m = String(msg).slice(0, 160); if (a.length && a[a.length - 1].m === m) a[a.length - 1].n++; else a.push({ t: Date.now(), m, n: 1 }); localStorage.setItem('rjErrLog', JSON.stringify(a.slice(-10))); } catch (x) { } }
@@ -134,7 +144,7 @@ function startRun() { G.drawRetry = 0; cpClear(); G.resumeN = 0; G.cpT = 0; try 
   G.mates = { ren: 0, jill: 0 }; G.mateOrder = Math.random() < .5 ? ['ren', 'jill'] : ['jill', 'ren']; G.mateAt = [rand(20, 28), rand(52, 64)];
   G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.bumps = 0; G.lastHit = null; G.bestPic = 0; G.newTitles = []; G.chalFlag = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
-  resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480;
+  resetRoutes(SV.lastRoute); G.planDay = 1; G.plan = dayPlan(1); G.planClock = 480; G.courseQ = []; G.courseDone = {}; G.courseDue = null; G.courseGo = null;
   G.rev = !!(G.revNext && SV.tutDone && !G.practiceNext); G.revNext = 0; // 逆走デー（B-37）：夕方 6 時に会社を出て、帰り道を走って家（寝室）まで。そのまま次の日の朝へ
   if (G.rev) { const k = G.plan.findIndex(x => x.eve); G.plan = G.plan.slice(Math.max(0, k)).concat([{ t: 'genkan', d: 4, home: 1 }, { t: 'bedroom', d: 6, home: 1 }]); G.planClock = 1080; G.clock = 1080; G.chaseT = 0; G.chaseIntro = 0; G.chaseVis = 0; banner('REVERSE DAY', t('revGo'), 'good'); }
   { const f = G.plan.find(x => x.fork); SV.lastRoute = f ? [f.fork.L.t, f.fork.R.t] : []; save(); } G.weather = WEATHERS[0];
@@ -227,7 +237,7 @@ const CP_NUM = ['t', 'speed', 'dist', 'distEst', 'speedEst', 'score', 'hay', 'sh
 function cpOK() { return G.mode === 'play' && !!SV.tutDone && !G.practice && !G.rev && !G.tut; }
 function cpSave() { try { if (!cpOK()) return false; const seg = curSeg(); if (!seg || !seg.tid || !THEMES[seg.tid]) return false;
   const same = G.segs.slice(G.ci + 1).filter(s => s.day === seg.day && s.step && !s.step.fork).map(s => s.step);
-  const o = { v: 1, at: Date.now(), char: G.char, easy: G.easy ? 1 : 0, tid: seg.tid, t1: seg.t1, n: G.resumeN || 0, g: {}, stats: G.stats, plan: same.concat(G.planDay === seg.day ? G.plan : []) };
+  const o = { v: 1, at: Date.now(), char: G.char, easy: G.easy ? 1 : 0, tid: THEMES[seg.tid].course ? (THEMES[seg.tid].course === 'tower' ? 'tland' : 'sland') : seg.tid, t1: seg.t1, n: G.resumeN || 0, g: {}, stats: G.stats, plan: same.concat(G.planDay === seg.day ? G.plan : []) };
   for (const k of CP_NUM) { const v = G[k]; if (typeof v === 'number' && Number.isFinite(v)) o.g[k] = v; else if (typeof v === 'boolean') o.g[k] = v ? 1 : 0; }
   localStorage.setItem(CP_KEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
 function cpClear() { try { localStorage.removeItem(CP_KEY); } catch (e) { } }
@@ -304,6 +314,7 @@ function turnWindow(seg) { return seg.len - Math.max(13, G.speed * 1.0); }
 function act(a) {
   if (G.mode !== 'play') return;
   const seg = curSeg();
+  if (seg && seg.th.sky) return; // オオタカに運ばれている間は、操作しない（ぐるっと見回す）
   if (a === 'left' || a === 'right') {
     const d = a === 'left' ? -1 : 1;
     G.lastSwipe = d;
@@ -369,6 +380,8 @@ function onEnterSeg(n) {
   if (!G.stats.spots.includes(n.tid) && th.stamp) G.stats.spots.push(n.tid);
   if (n.step && n.step.cont) { /* still the same place */ }
   else if (n.t0 === 480 && n.day > 1) { banner(LANG === 'en' ? t('dayLbl') + ' ' + n.day + ' · ' + seasonOf(n.day).toUpperCase() : `${t('dayN', n.day)}・${L(SEASON_LBL[seasonOf(n.day)]).split('・')[0]}`, L(SEASON_LBL[seasonOf(n.day)]), 'room'); /* 2026-11-09：「日目」だけが出ていた（数字なしの t('dayN')） */ G.chimed = 0; }
+  else if (th.course && COURSES[th.course] && COURSES[th.course].steps[0].t === n.tid) { bannerNow(LANG === 'en' ? COURSES[th.course].en.toUpperCase() : L(COURSES[th.course]), L(th.arrive), 'good'); SFX.mission(); }
+  else if (th.sky) { bannerNow(tr('オオタカ！', 'GOSHAWK!'), L(th.arrive), 'good'); G.skyWipe = 1; tone(1175, .18, 'bell', .04); }
   else if (n.tid === 'lobby' || n.tid === 'ehall') { G.stats.office = 1; const b = 500 * SV.mlevel; G.score += b; banner('9:00 ON TIME!', t('onTime', fmt(b)), 'good'); SFX.mission(); react('cheer', 1); }
   else if (n.t0 >= 1080 && !G.chimed) { G.chimed = 1; G.rush = 0; G.stats.chime = 1; const b = 1000 * SV.mlevel; G.score += b; SFX.chime(); startFever(7); bannerNow("IT'S 6 PM! FEVER", t('chime', fmt(b)), 'good'); react('sparkle', 1); }
   else if (n.step && n.step.last) banner('LAST TRAIN', t('lastTrain'), 'room');
@@ -533,7 +546,7 @@ function update(dt) {
   // speed rises gently and levels off (it used to reach 24 m/s mid-run, which got too hard)
   const base = Math.min(G.easy ? 12.6 : MAXSPD, (SV.tutDone ? 12.4 : 11) + G.dist * .0024 + (G.day - 1) * .7);
   { const tier = Math.floor((base - 12.4) / 1.8); if (tier > (G.spTier || 0) && SV.tutDone) { G.spTier = tier; banner('SPEED UP!', tr('少し速くなった！', 'A little faster now!'), 'good'); tone(523, .1, 'bell', .04); tone(784, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .09); } } // so it never just 'gets hard' without a word (2026-11-08)
-  const target = base * (G.legend ? 1.15 : 1) * (G.pow.dash > 0 ? 1.4 : 1) * (G.fever > 0 ? 1.18 : 1) * (G.pow.fly > 0 ? 1.1 : 1);
+  const target = base * (G.legend ? 1.15 : 1) * (G.pow.dash > 0 ? 1.4 : 1) * (G.fever > 0 ? 1.18 : 1) * (G.pow.fly > 0 ? 1.1 : 1) * (seg.th.sky ? .5 : 1); // 空の上はゆっくり（景色を見わたす時間）
   G.speed = lerp(G.speed, target, 1 - Math.exp(-dt * 2.5));
   if (AU.music && OPT().music) { const cm = G.clock % 1440, night = cm >= 1200 || cm < 360, tg = musicLv() * (night ? .8 : 1); AU.music.gain.value += (tg - AU.music.gain.value) * Math.min(1, dt * .6); } // the music settles down at night (2026-11-08)
   const step = G.speed * dt, prevS = G.s, prevY = G.y;
@@ -602,7 +615,7 @@ function update(dt) {
   // corners and forks
   const win = turnWindow(seg);
   // invincible states turn on their own, but only at the very last moment, so a swipe always wins
-  if (G.s > seg.len - .6 && !G.turnQueued && (G.pow.dash > 0 || G.fever > 0 || G.invT > 1.6 || flying || seg.fork || (G.tut && seg === G.tutSeg))) { G.turnQueued = seg.fork ? (G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || -1)) : seg.turn; G.turnAuto = 1; }
+  if (G.s > seg.len - .6 && !G.turnQueued && (G.pow.dash > 0 || G.fever > 0 || G.invT > 1.6 || flying || seg.fork || seg.th.sky || seg.th.grab || (G.tut && seg === G.tutSeg))) { G.turnQueued = seg.fork ? (G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || -1)) : seg.turn; G.turnAuto = 1; }
   if (G.s >= seg.len && G.turnQueued) doTurn();
   else if (G.s > seg.len + HW - .8) { if (!softHit()) { die('wall'); return; } G.turnQueued = seg.fork ? (G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || -1)) : seg.turn; G.turnAuto = 1; try { doTurn(); } catch (e) { reportErr(e); } return; } // 走り始めは曲がり損ねても、ぶつかって曲がる
   const cue = $('#turnCue');
@@ -637,7 +650,7 @@ function update(dt) {
   if (G.landT > 0) G.landT -= dt; if (G.takeT > 0) G.takeT -= dt;
   if (G.comboT > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
   if (G.chaseT > 0) G.chaseT = Math.max(0, G.chaseT - dt);
-  chalFlags(); // 社長・おつかいは「おしごと」（gigTick）と同じなので、そちらに一本化（2026-11-08）
+  courseTick(); chalFlags(); // 社長・おつかいは「おしごと」（gigTick）と同じなので、そちらに一本化（2026-11-08）
   const chaseTarget = G.rush ? .55 + .1 * Math.sin(G.t * 3) : G.chaseT > 0 ? Math.min(1, G.chaseT) : 0;
   G.chaseVis = lerp(G.chaseVis, chaseTarget, 1 - Math.exp(-dt * 4));
   G.flashT = Math.max(0, G.flashT - dt * 2.5);
@@ -646,6 +659,7 @@ function update(dt) {
   // animation
   P.ph += dt * (P.who === 'pom' ? 9 + G.speed * .7 : 6 + G.speed * .55); /* ポムは足が短いので、同じ速さでも足の回転が速い */
   { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1, seg.th.kind); if (G.weather === 'snow' && seg.th.kind !== 'room' && seg.th.kind !== 'train') { const fw = segPos(seg, G.s, G.lat + ((c & 1) ? .12 : -.12)); (G.prints = G.prints || []).push({ x: fw[0], z: fw[1], y: fw[2], t: G.t, a: G.player.wy }); if (G.prints.length > 40) G.prints.shift(); } } } // footprints in the snow (2026-11-08) // a soft footstep on every stride
+  { const sky = !!seg.th.sky; P.hawk = sky; G.follow.hawk = sky; G.pom.hawk = sky; }
   P.air = G.air && !flying; P.slide = sliding; P.fly = flying; P.flash = G.invT > 0 && G.invT < 2.4 && !flying; P.glow = G.shield ? '#5FB05A' : G.pow.dash > 0 ? '#F08A2E' : null;
   if (P.look > 0) P.look = Math.max(0, P.look - dt);
   if (G.follow.look > 0) G.follow.look = Math.max(0, G.follow.look - dt);
@@ -656,6 +670,8 @@ function update(dt) {
   G.missionCheck -= dt; if (G.missionCheck <= 0) { G.missionCheck = .5; checkMissions(true); checkAch(true); dailyCheck(true); }
   hud();
 }
+// 空の上：おりながら、カメラが 1 回ぐるっと回る（東京を 360 度見わたす。終わりは進む向きにもどる）
+function skySpin(seg) { if (!seg || !seg.th.sky) return 0; const u = clamp((G.s - 10) / Math.max(40, seg.len - 70), 0, 1); return Math.PI * 2 * sstep(u); }
 function placeCamera(dt) {
   const seg = curSeg(), P = G.player, F = G.follow;
   const p = segPos(seg, G.s, G.lat);
@@ -668,7 +684,8 @@ function placeCamera(dt) {
   F.fly = P.fly; if (P.fly) { F.wy = G.ey + G.y - .3; }
   F.show = !F.off && G.s - F.back > (seg.first ? -14 : HW + .3);
   { const M = G.pom; if (M.on) { const mp = segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * (M.who === 'pom' ? .012 : .05)); if (M.who === 'pom' && !M.air && !P.fly) M.lat += Math.sin(M.ph * .5) * .0035; /* ちょこまか：走りながら、ごく小さく左右にゆれる */ if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
-  const ty = seg.dir * Math.PI / 2; let dy = ty - G.camYaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
+  if (P.hawk) { const sw = k => .3 + Math.sin(G.t * 2.1 + k) * .07; P.wy = G.ey + G.y + sw(0); F.wy = fp[2] + sw(1.3); if (G.pom.on) G.pom.wy += sw(2.1) - (G.pom.air ? 0 : Math.abs(Math.sin(G.pom.ph)) * .012); } // オオタカの羽ばたきで、ゆっくり上下
+  const ty = seg.dir * Math.PI / 2 + skySpin(seg); let dy = ty - G.camYaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
   G.camYaw += dy * Math.min(1, dt * 9);
   { const want = H / W > 1.6 && !seg.th.toriiTunnel ? 1 : 0; G.camTall = G.camTall == null ? want : lerp(G.camTall, want, Math.min(1, dt * 2.5)); } // under the rows of small gates the higher camera looked straight into their beams (2026-11-14「鳥居のゾーンで前が見えない」): there it comes back down, smoothly
   const tk = G.camTall, dist = 3.9 + .3 * tk, fx = Math.sin(G.camYaw), fz = Math.cos(G.camYaw); // tall phones: the camera sits a little higher and further back, so the road ahead shows above the runners' heads (2026-11-14; measured: 108 → 133 px of road above their heads; the first, higher try (153 px) looked down too steeply and ran into overhead gates, so it was eased)

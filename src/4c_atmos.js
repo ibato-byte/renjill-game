@@ -266,7 +266,7 @@ function cityReflections(seg) {
     const x = W / 2 + Math.tan(dx) * FOCAL, w = b.w * FOCAL * .7, len = Math.min(H * .5, b.h * FOCAL * 1.6);
     const g = ctx.createLinearGradient(0, hz, 0, hz + len); g.addColorStop(0, `rgba(255,214,150,${(.32 * N * (.5 + b.t)).toFixed(3)})`); g.addColorStop(1, 'rgba(255,214,150,0)');
     ctx.fillStyle = g; const k = 7; for (let i = 0; i < k; i++) { const y0 = hz + len * i / k, y1 = hz + len * (i + 1) / k, sx = Math.sin(wob + i * 1.3 + b.t * 9) * (2 + i * 1.6); ctx.fillRect(x - w / 2 + sx, y0, w, y1 - y0 + 1); } }
-  for (const lm of seg.th.lm || []) { if (lm.t !== 'tower' && lm.t !== 'skytree') continue; const a = seg.dir * Math.PI / 2 + (lm.off || 0) + (seg.lmOff || 0) * .3, dx = angDiff(a, CAM.yaw); if (Math.abs(dx) > 1.1) continue;
+  for (const lm of seg.th.lm || []) { if (lm.t !== 'tower' && lm.t !== 'skytree') continue; const a = seg.dir * Math.PI / 2 + lmAngle(seg, lm), dx = angDiff(a, CAM.yaw); if (Math.abs(dx) > 1.1) continue;
     const x = W / 2 + Math.tan(dx) * FOCAL, col = lm.t === 'tower' ? '255,150,80' : '170,200,255'; const g = ctx.createLinearGradient(0, hz, 0, hz + H * .5); g.addColorStop(0, `rgba(${col},${(.5 * N).toFixed(2)})`); g.addColorStop(1, `rgba(${col},0)`);
     ctx.fillStyle = g; for (let i = 0; i < 10; i++) { const y0 = hz + H * .05 * i, sx = Math.sin(wob * 1.1 + i) * (3 + i * 2); ctx.fillRect(x - 5 + sx, y0, 10 + i * 1.5, H * .05 + 1); } }
   ctx.restore();

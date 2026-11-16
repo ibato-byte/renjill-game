@@ -56,12 +56,14 @@ function newSeg(prev, step, opts) {
   if (seg.fork && yOK(th, seg.fork, opts.day) && (window.__forceY || Math.random() < .45)) seg.forkY = 1;
   seg.wallH = th.wallH || 3; { const k0 = th.kind; if (k0 === 'room' || k0 === 'glass') seg.wallH = Math.max(seg.wallH, CEIL_ROOM); else if (k0 === 'train') seg.wallH = Math.max(seg.wallH, CEIL_TRAIN); } /* 2026-11-15 オーナー：天井そのものを高く（空港のロビーのように）。低い天井だと、縦長のスマホで天井のすぐ下をはうように見え、ジャンプでつきぬけた */
   terrainFor(seg, prev);
+  if (th.sky) { /* オオタカに運ばれる空：本当に高い所（climb[0] m）から、地面（0 m）までおりる。先の場所（着地する公園）は本当に真下の地面にある */
+    seg.e0 = th.climb[0]; seg.hp = { a: 0, b: seg.len - 22, d: -th.climb[0], hump: 0, w2: 0, shape: 'sky' }; }
   buildGeometry(seg);
   buildProps(seg); buildWalkers(seg);
   // open scenery that would spill into the next or previous stretch is dropped (see terrOK)
   seg.spr = seg.spr.filter(sp => sp.keep || terrOK(seg, sp.s, sp.lat));
   seg.props = seg.props.filter(p => p.big || terrOK(seg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2));
-  if (!opts.empty) populate(seg);
+  if (!opts.empty) (th.sky ? skyItems : populate)(seg);
   return seg;
 }
 
@@ -108,6 +110,7 @@ function sideStart(seg, sd) { if (!seg.prevForkY) return null; return sd === seg
 function sideEnds(seg) { const L = seg.len, s0 = seg.first ? (seg.th.backAt != null ? seg.th.backAt : -16) : HW; if (seg.forkY) return { s0, lEnd: L - YT, rEnd: L - YT }; return { s0, lEnd: (seg.turn === -1 || seg.fork) ? L - HW : L + HW, rEnd: (seg.turn === 1 || seg.fork) ? L - HW : L + HW }; }
 function buildGeometry(seg) {
   const th = seg.th, L = seg.len, k = th.kind;
+  if (th.sky) { seg.fS = 0; seg.fE = L; return; } // 空の上：床・壁・曲がり角の札は無い（下に見えるのは町）
   const { s0, lEnd, rEnd } = sideEnds(seg);
   // floor: road in the middle, side zones outside
   const T = th.rpat === 'tatami' ? 1.8 : 1.5;
@@ -820,4 +823,6 @@ function richHay(sg) { if (!sg || sg.rich) return; sg.rich = 1; const add = [];
     add.push({ type: 'hay', s: it.s, lane: l, lat, y: it.y, got: 0, ph: Math.random() * 6 }); break; } });
   sg.items.push(...add); }
 let LINE_ID = 0; // every line of hay gets a number: take every piece of one line for a PERFECT LINE bonus (2026-11-08)
+// 空の上：オオタカの通り道に、牧草がまっすぐ一列（ハンドルを切らなくても取れる。見回している間に、操作がいらない）
+function skyItems(seg) { const L = seg.len; for (let s = 24; s < L - 30; s += 3.2) addItem(seg, Math.random() < .03 ? 'goldhay' : 'hay', s, 1, .5); }
 function addItem(seg, type, s, lane, y) { seg.items.push({ type, s, lane, lat: LANES[lane], y, got: 0, ph: Math.random() * 6 }); }
