@@ -1075,6 +1075,46 @@
       "name": "ホーム画面では、ぶつかった直後の点滅を消す",
       "file": "src/6_game.js",
       "has": "P.flash = F.flash = G.pom.flash = false;"
+    },
+    {
+      "name": "電波塔コース（10万点・30万点）",
+      "file": "src/6_game.js",
+      "has": "function courseStart(last)"
+    },
+    {
+      "name": "コースの場所と本当の方角",
+      "file": "src/1b_places.js",
+      "has": "const COURSES = {"
+    },
+    {
+      "name": "オオタカの絵",
+      "file": "src/4_render.js",
+      "has": "function drawHawk(b)"
+    },
+    {
+      "name": "空の上（床なし・高さが下がる）",
+      "file": "src/3_world.js",
+      "has": "function skyItems(seg)"
+    },
+    {
+      "name": "上から見た東京（空撮のような地面）",
+      "file": "src/4g_aerial.js",
+      "has": "function aerDetail(night)"
+    },
+    {
+      "name": "大きな地形の絵（川・公園・高速）",
+      "file": "src/4g_aerial.js",
+      "has": "function aerMacro(night)"
+    },
+    {
+      "name": "目印の本当の方角",
+      "file": "src/4b_patterns.js",
+      "has": "function lmAngle(seg, lm)"
+    },
+    {
+      "name": "towercourse テスト",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'towercourse'"
     }
   ]
 }
