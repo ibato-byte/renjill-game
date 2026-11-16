@@ -14,8 +14,9 @@ on:
 permissions:
   contents: write
 # a newer push to the same branch replaces a run still in progress (so an older upload never publishes over a newer one)
+# 予定の実行は時刻ごとに別の組にする（2026-11-16：月曜の全部のチェックが、あとから始まった 5:17 のくわしいチェックに打ち切られた。Hub 依頼 #230）
 concurrency:
-  group: qa-${{ github.ref }}-${{ github.event_name }}
+  group: qa-${{ github.ref }}-${{ github.event_name }}-${{ github.event.schedule }}
   cancel-in-progress: true
 jobs:
   qa:
