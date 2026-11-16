@@ -95,7 +95,10 @@ function floorPattern(p, d) {
     case 'brickroad': ctx.strokeStyle = T('#8A7558'); for (let k = 0; k <= 6; k++) bline(0, k / 6, 1, k / 6); for (let k = 0; k < 3; k++) bline(k / 3 + (p.ti % 2) * .16, 0, k / 3 + (p.ti % 2) * .16, 1); break;
     case 'walk': ctx.globalAlpha = a * .25; ctx.strokeStyle = T('#8E887C'); bline(0, 0, 0, 1); bline(.5, 0, .5, 1); bline(0, .5, 1, .5); ctx.stroke(); ctx.globalAlpha = a * .95; { const v0 = p.sd < 0 ? .52 : .33; bquad(0, v0, 1, v0 + .15, T('#E8C23A')); } break;
     case 'platform': ctx.globalAlpha = a * .95; bquad(0, .02, 1, .1, T('#FBF6EE')); bquad(0, .16, 1, .27, T('#E8C23A')); ctx.strokeStyle = T('#8F8676'); ctx.beginPath(); bline(0, .6, 1, .6); break;
-    case 'train': ctx.strokeStyle = T('#5E6A76'); bline(0, .5, 1, .5); bline(0, 0, 0, 1); ctx.stroke(); ctx.beginPath(); ctx.strokeStyle = T('#E8C23A'); bline(0, .06, 1, .06); bline(0, .94, 1, .94); break;
+    case 'train': { /* 電車の床（2026-11-16）：座席の前（足もと）は少しこい色、通路はうすい色、細かいつぶの模様。黄色い線は出さない（本物の車内には無い） */
+      ctx.stroke(); ctx.globalAlpha = a * .5; bquad(0, 0, 1, .14, T('#6E7A86')); bquad(0, .86, 1, 1, T('#6E7A86')); ctx.globalAlpha = a * .8; ctx.beginPath(); ctx.strokeStyle = T('#5E6A76'); bline(0, .14, 1, .14); bline(0, .86, 1, .86); bline(0, 0, 0, 1); ctx.stroke();
+      if (d < 16) { ctx.globalAlpha = a * .35; const r = rnd(p.ti * 7 + 3); for (let k = 0; k < 26; k++) { const u = r(), v = .15 + r() * .7; bquad(u, v, u + .012, v + .012, k % 2 ? '#B9C2CA' : '#6E7A86'); } }
+      ctx.globalAlpha = a; ctx.beginPath(); break; }
     case 'planks': ctx.strokeStyle = T('#B9B2A5'); for (let k = 1; k < 7; k++) bline(0, k / 7, 1, k / 7); bline(.5, 0, .5, 1); break;
     case 'stairs': ctx.globalAlpha = Math.min(1, a * 1.4); ctx.strokeStyle = T('#4F555B'); for (let k = 0; k < 6; k++) bline(k / 6, 0, k / 6, 1); ctx.stroke(); ctx.beginPath(); ctx.strokeStyle = T('#F2C230'); bline(0, .02, 1, .02); bline(0, .98, 1, .98); break;
     case 'water': case 'sea': { ctx.globalAlpha = .5; ctx.strokeStyle = LT.night > .5 ? 'rgba(255,220,160,.5)' : 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.4; const o = (G.t * .15) % .25;
@@ -122,7 +125,14 @@ function ceiling(w, d) {
   const cp = w.cp, li = w.light;
   /* 2026-11-15：のっぺりした天井に、走っても動いて見えない（道に沿った）物だけを足す。壁ぎわのうすい陰・板の継ぎ目・電車の手すり棒と空調の筋。横切る線は足さない（上の数字の後ろでちらつくため） */
   bquad(0, 0, 1, .075, 'rgba(30,22,16,.085)'); bquad(0, .925, 1, 1, 'rgba(30,22,16,.085)'); bquad(0, .075, 1, .15, 'rgba(30,22,16,.035)'); bquad(0, .85, 1, .925, 'rgba(30,22,16,.035)');
-  if (w.train) { bquad(0, .43, 1, .57, 'rgba(255,255,255,.16)'); ctx.strokeStyle = 'rgba(70,80,92,.5)'; ctx.lineWidth = Math.max(1, Math.min(3, 9 / Math.max(1, d))); ctx.beginPath(); bline(0, .2, 1, .2); bline(0, .8, 1, .8); ctx.stroke(); }
+  if (w.train) { /* 電車の天井（2026-11-16）：まん中に冷房の吹き出し口の帯（細いすき間の列）、両わきに乳白のカバーの明かり、つなぎ目、ときどき送風機の丸い格子 */
+    const lw = Math.max(1, Math.min(3, 9 / Math.max(1, d)));
+    bquad(0, .41, 1, .59, 'rgba(120,132,144,.16)'); ctx.strokeStyle = 'rgba(70,80,92,.45)'; ctx.lineWidth = lw; ctx.beginPath(); bline(0, .41, 1, .41); bline(0, .59, 1, .59); bline(0, .2, 1, .2); bline(0, .8, 1, .8); ctx.stroke();
+    if (d < 34) { ctx.fillStyle = 'rgba(60,70,82,.35)'; for (let k = 0; k < 8; k++) { bquad(.04 + k * .12, .46, .1 + k * .12, .48, ctx.fillStyle); bquad(.04 + k * .12, .52, .1 + k * .12, .54, ctx.fillStyle); } }
+    if (w.ti % 3 === 1 && d < 30) { const c = bil(.5, .5), rx = (Math.abs(bil(.56, .5)[0] - c[0]) + Math.abs(bil(.5, .55)[0] - c[0])) * .8, ry = (Math.abs(bil(.5, .55)[1] - c[1]) + Math.abs(bil(.56, .5)[1] - c[1])) * .8;
+      ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(2, rx), Math.max(1, ry), 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(200,208,216,.9)'; ctx.fill(); ctx.strokeStyle = 'rgba(70,80,92,.55)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.beginPath(); for (let k = 1; k < 4; k++) ctx.ellipse(c[0], c[1], Math.max(1, rx * k / 4), Math.max(.5, ry * k / 4), 0, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.strokeStyle = 'rgba(70,80,92,.28)'; ctx.lineWidth = 1; ctx.beginPath(); bline(0, 0, 0, 1); ctx.stroke(); }
   ctx.strokeStyle = 'rgba(0,0,0,.12)'; ctx.lineWidth = 1; ctx.beginPath();
   if (cp === 'plain' && !w.train) { bline(0, 1 / 3, 1, 1 / 3); bline(0, 2 / 3, 1, 2 / 3); }
   if (cp === 'wood') { for (let k = 1; k < 8; k++) bline(0, k / 8, 1, k / 8); bline(0, 0, 1, 0); }
@@ -131,6 +141,7 @@ function ceiling(w, d) {
   ctx.stroke();
   const on = `rgba(255,253,240,${(.95 * clamp((d - 1.2) / 3, 0, 1)).toFixed(2)})`; // fixtures right overhead fade out instead of slicing the top of the screen
   if (li === 'panel' && w.ti % 2 === 0) { bquad(.2, .18, .8, .32, on); bquad(.2, .68, .8, .82, on); }
+  else if (li === 'strip' && w.train) { const halo = on.replace(/[\d.]+\)$/, m => (parseFloat(m) * .25).toFixed(3) + ')'); bquad(0, .21, 1, .37, halo); bquad(0, .63, 1, .79, halo); bquad(0, .25, 1, .33, on); bquad(0, .67, 1, .75, on); ctx.strokeStyle = 'rgba(150,160,170,.6)'; ctx.lineWidth = 1; ctx.beginPath(); bline(0, .25, 1, .25); bline(0, .33, 1, .33); bline(0, .67, 1, .67); bline(0, .75, 1, .75); ctx.stroke(); } // 電車：つながった乳白のカバーの明かりと、まわりのうすい光
   else if (li === 'strip') { bquad(.1, .3, .9, .36, on); bquad(.1, .64, .9, .7, on); }
   else if (li === 'round' && w.ti % 3 === 1) { const c = bil(.5, .5), r = Math.abs(bil(.62, .5)[0] - c[0]) + Math.abs(bil(.5, .62)[1] - c[1]); ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(3, r * 1.9), Math.max(1.5, r * .68), 0, 0, Math.PI * 2); ctx.fillStyle = on.replace(/[\d.]+\)$/, m => (parseFloat(m) * .18).toFixed(3) + ')'); ctx.fill(); /* 明かりのまわりのうすい光 */ ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(2, r), Math.max(1, r * .35), 0, 0, Math.PI * 2); ctx.fillStyle = on; ctx.fill(); }
   else if (li === 'bulb') { /* 裸電球：すぐ頭の上では巨大な黄色い丸になっていた（ガード下・横丁）。大きさに上限をつけ、近づくと消え、まわりにうすい光の輪 */ const rr = Math.min(7, Math.max(1.5, 34 / d)), al = clamp((d - 2.2) / 3, 0, 1); if (al > .02) for (let k = 0; k < 3; k++) { const c = bil(.5, .2 + k * .3); ctx.globalAlpha = al * .22; ctx.beginPath(); ctx.arc(c[0], c[1], rr * 2.4, 0, Math.PI * 2); ctx.fillStyle = '#FFC860'; ctx.fill(); ctx.globalAlpha = al; ctx.beginPath(); ctx.arc(c[0], c[1], rr, 0, Math.PI * 2); ctx.fillStyle = '#FFE2A0'; ctx.fill(); } ctx.globalAlpha = 1; }
@@ -207,15 +218,37 @@ const DECO_DRAW = {
   calendar(e) { bquad(0, 0, 1, 1, tint('#FFFFFF')); bquad(0, .82, 1, 1, tint('#C8463C')); ctx.strokeStyle = tint('#B9B2A5'); ctx.lineWidth = 1; ctx.beginPath(); for (let k = 1; k < 7; k++) bline(k / 7, 0, k / 7, .8); for (let k = 1; k < 5; k++) bline(0, k / 5 * .8, 1, k / 5 * .8); ctx.stroke();
     const c = bil(.64, .3); ctx.beginPath(); ctx.strokeStyle = '#C8463C'; ctx.lineWidth = 2.4; ctx.ellipse(c[0], c[1], Math.abs(bil(.72, .3)[0] - c[0]) + 1, Math.abs(bil(.64, .42)[1] - c[1]) + 1, 0, 0, Math.PI * 2); ctx.stroke(); },
   frame(e) { bquad(0, 0, 1, 1, tint('#C9962F')); bquad(.1, .1, .9, .9, tint('#E3F0F6')); bquad(.1, .1, .9, .45, tint('#8FC07A')); bquad(.55, .5, .75, .7, tint('#F2C230')); },
-  seatwin(e) { bquad(0, .35, 1, .95, tint('#C9CDD2')); for (const u of [0, .5]) { bpath(u + .04, .42, u + .46, .9); ctx.save(); ctx.clip();
-      if (e.seg && e.seg.th.tunnel) { bquad(u + .04, .42, u + .46, .9, '#1A1D24'); const o2 = (G.t * 1.6) % 1; bquad(u + .04 + o2 * .42 - .04, .62, u + .04 + o2 * .42, .66, '#FFE3A0'); }
-      else sceneView(e, u + .04, .42, u + .46, .9, e.seg && e.seg.th.winView || 'city');
-      const off = (G.t * .5) % 1; for (let k = 0; k < 4; k++) bquad(u + .04 + ((k * .3 + off) % 1) * .42 - .05, .42, u + .04 + ((k * .3 + off) % 1) * .42, .7, LT.night > .4 ? '#2A3550' : tint('#7D8B97')); ctx.restore(); }
-    bquad(0, .92, 1, .97, tint(LC)); },
-  door(e) { bquad(0, 0, 1, 1, tint('#B9C0C7')); bquad(.12, .48, .44, .88, LT.night > .4 ? '#2A3550' : tint('#BFE3F5')); bquad(.56, .48, .88, .88, LT.night > .4 ? '#2A3550' : tint('#BFE3F5')); ctx.strokeStyle = tint('#46525E'); ctx.lineWidth = 2; ctx.beginPath(); bline(.5, 0, .5, 1); ctx.stroke(); bquad(0, 0, 1, .04, tint('#F2C230')); },
-  trainmap(e) { bquad(0, 0, 1, 1, tint('#FBF6EE')); const c = bil(.5, .5), rx = Math.abs(bil(.85, .5)[0] - c[0]), ry = Math.abs(bil(.5, .85)[1] - c[1]);
+  /* 電車の座席側の壁（2026-11-16 オーナー「ただの図形の組み合わせ」）：下から 座席の背（別の箱）→ 帯 → 窓（黒い枠・角の丸い 2 枚のガラス・まん中の柱・半分おろした日よけ・流れる景色と電柱）→ 網棚 → 窓の上の広告の列 */
+  seatwin(e) { const night = LT.night > .4, r = rnd((e.seed || 7) + (e.v2 || 0) * 13);
+    bquad(0, .4, 1, 1, tint('#E8ECEF')); bquad(0, .405, 1, .425, tint(LC));
+    for (const u of [0, .5]) { const x0 = u + .05, x1 = u + .45, y0 = .45, y1 = .79;
+      bquad(x0 - .015, y0 - .02, x1 + .015, y1 + .02, tint('#59626B'));
+      bpath(x0, y0, x1, y1); ctx.save(); ctx.clip();
+      if (e.seg && e.seg.th.tunnel) { bquad(x0, y0, x1, y1, '#1A1D24'); const o2 = (G.t * 1.6) % 1; bquad(x0 + o2 * .4 - .04, .6, x0 + o2 * .4, .64, '#FFE3A0'); }
+      else { sceneView(e, x0, y0, x1, y1, e.seg && e.seg.th.winView || 'city');
+        const off = (G.t * .5) % 1; for (let k = 0; k < 4; k++) bquad(x0 + ((k * .3 + off) % 1) * .4 - .05, y0, x0 + ((k * .3 + off) % 1) * .4, .62, night ? '#2A3550' : tint('#7D8B97'));   // 近くのビル
+        const op = (G.t * 1.9 + u) % 1.4; if (op < 1) bquad(x0 + op * .4, y0, x0 + op * .4 + .008, y1, night ? '#11151C' : tint('#3B4148')); }                                            // 電柱（近いので速く流れる）
+      if (night) bquad(x0, y0, x1, y1, 'rgba(255,240,210,.12)'); else { ctx.globalAlpha = .18; bpath(x0 + .05, y0, x0 + .14, y1); ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.globalAlpha = 1; }   // ガラスの映りこみ
+      const bl = (r() < .45 ? r() * .45 : 0) * (y1 - y0); if (bl > .01) { bquad(x0, y1 - bl, x1, y1, tint('#C9C3B5')); bquad(x0, y1 - bl - .012, x1, y1 - bl, tint('#8A949E')); }       // 日よけ（ところどころ半分おろしてある）
+      ctx.restore(); bquad(u + .245, y0, u + .255, y1, tint('#59626B')); }
+    bquad(0, .82, 1, .83, tint('#9AA4AD')); ctx.strokeStyle = tint('#B9C2CA'); ctx.lineWidth = 1; ctx.beginPath(); for (let k = 0; k <= 16; k++) bline(k / 16, .8, k / 16 + .02, .83); ctx.stroke(); bquad(0, .83, 1, .845, 'rgba(60,70,80,.18)'); // 網棚（金属の棒としかげ）
+    for (let k = 0; k < 4; k++) { const a = k * .25 + .01, c = ['#F7E7B8', '#CFE6F5', '#F4CFD8', '#D7EFD0', '#FBF6EE'][((e.seed || 0) + k) % 5]; bquad(a, .86, a + .23, .98, tint('#B9C2CA')); bquad(a + .01, .87, a + .22, .97, tint(c)); bquad(a + .03, .9, a + .12, .95, tint(['#C8463C', '#355F86', '#5F9E5A', '#E86A75'][k % 4])); } },  // 窓の上の広告
+  /* ドア（2026-11-16）：戸袋のこい枠・2 枚の戸（細長い窓・ゴムのふち・注意の小さなシール）・横の手すり・上のふたつの画面（つぎの駅）・足もとの黄色 */
+  door(e) { const night = LT.night > .4;
+    bquad(0, 0, 1, .86, tint('#59626B'));
+    for (const [a, b] of [[.06, .495], [.505, .94]]) { bquad(a, .02, b, .85, tint('#C3CAD1')); bquad(a, .02, b, .05, tint('#9AA4AD'));
+      bpath(a + .08, .42, b - .08, .82); ctx.fillStyle = night ? '#2A3550' : tint('#BFE3F5'); ctx.fill(); if (!night) { ctx.globalAlpha = .3; bquad(a + .1, .44, a + .16, .8, '#FFFFFF'); ctx.globalAlpha = 1; }
+      bquad(a + .12, .34, a + .2, .38, tint('#F2C230')); }
+    bquad(.495, .02, .505, .85, '#1E2024');
+    bquad(.0, .05, .03, .8, tint('#D9DEE2')); bquad(.97, .05, 1, .8, tint('#D9DEE2'));
+    bquad(.04, .875, .48, .975, '#15181C'); bquad(.52, .875, .96, .975, '#15181C');
+    bquad(.06, .89, .46, .96, night ? '#24476A' : '#2E5F8E'); bquad(.54, .89, .94, .96, '#F7F9FA'); bquad(.56, .9, .62, .95, LC);
+    const nx = G.announce && G.announce.find(a => a.s > G.s); qtext(nx ? 'つぎは ' + nx.st : 'つぎは', .08, .895, .44, .955, '#FBF6EE');
+    bquad(.0, .86, 1, .875, tint('#E8C23A')); bquad(0, 0, 1, .03, tint('#E8C23A')); },
+  trainmap(e) { bquad(0, 0, 1, 1, tint('#FBF6EE')); bquad(0, .86, 1, 1, tint(LC)); const c = bil(.5, .45), rx = Math.abs(bil(.85, .45)[0] - c[0]), ry = Math.abs(bil(.5, .78)[1] - c[1]);
     ctx.beginPath(); ctx.strokeStyle = LC; ctx.lineWidth = Math.max(1.5, rx * .12); ctx.ellipse(c[0], c[1], rx + .1, ry + .1, 0, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = tint('#3B2A20'); for (let k = 0; k < 15; k++) { const a = k / 15 * Math.PI * 2; ctx.fillRect(c[0] + Math.cos(a) * rx - 1.5, c[1] + Math.sin(a) * ry - 1.5, 3, 3); } },
+    ctx.fillStyle = tint('#3B2A20'); for (let k = 0; k < 15; k++) { const a = k / 15 * Math.PI * 2; ctx.fillRect(c[0] + Math.cos(a) * rx - 1.5, c[1] + Math.sin(a) * ry - 1.5, 3, 3); }
+    const a = (G.t * .05) % (Math.PI * 2); ctx.fillStyle = '#C8463C'; ctx.beginPath(); ctx.arc(c[0] + Math.cos(a) * rx, c[1] + Math.sin(a) * ry, Math.max(2, rx * .09), 0, Math.PI * 2); ctx.fill(); },  // 路線図：いまいる所に赤い丸
   stationsign(e) { const st = (e.seg && e.seg.stName) || '上野'; bquad(0, 0, 1, 1, tint('#FBF6EE')); bquad(0, .0, 1, .18, tint(LC)); qtext(st, .2, .45, .8, .9, '#2B2B2B'); },
   poster(e) { bquad(0, 0, 1, 1, tint('#FBF6EE')); bquad(.1, .45, .9, .9, tint(['#F2C230', '#4E77A0', '#5F9E5A', '#E86A75'][e.v2 || 0])); bquad(.1, .18, .7, .28, tint('#3B2A20')); bquad(.1, .32, .55, .38, tint('#9AA9B6')); },
   timetable(e) { bquad(0, 0, 1, 1, '#1C1919'); for (let k = 0; k < 4; k++) { bquad(.05, .1 + k * .22, .45, .24 + k * .22, '#F2C230'); bquad(.55, .1 + k * .22, .95, .24 + k * .22, k % 2 ? '#7FD06A' : '#FBF6EE'); } },

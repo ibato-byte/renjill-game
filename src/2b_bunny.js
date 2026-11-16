@@ -204,6 +204,7 @@ function hat(g, kind, w, H) { // H = half the width of the head where the brim s
 // put a hat on a head: x,y = the top of the head as before, hw = half the head's width at the brow, sink = how far the brow is below x,y
 let HAT_OUT = 0; // 立ち耳の子（ジル）がカチューシャをつける時：かざりを耳の外側へ
 const HAT_COVER = { helmet: 1, beret: 1, straw: 1, santa: 1, witch: 1, pumpkin: 1 }, HAT_PERCH = { crown: 1, kagami: 1 };
+const HAT_BAND = { antler: 1, heartband: 1, starband: 1 }; // カチューシャ：頭の上に浮かせず、頭の丸みに少ししずめる（2026-11-16）
 /* 2026-11-15 オーナー：「帽子をただ載せただけのように見える」。かぶっている感じを出す 3 つ：
    ①ふちの下に、頭と耳にだけ落ちる柔らかい影（絵の外には落とさない） ②ふちの下から毛が少しのぞく ③帽子ごとに少しだけかたむける。who＝だれの頭か（毛の色に使う） */
 const HAT_TILT = { helmet: .05, straw: -.06, santa: -.07, witch: .07, pumpkin: .06, crown: -.06, kagami: .03 };
@@ -217,13 +218,13 @@ function hatTufts(g, hw, who, y0) {
   g.restore();
 }
 function wearHat(g, kind, x, y, w, hw, sink, who, rot) {
-  const dy = HAT_COVER[kind] ? sink * (HAT_SINK[kind] || 1) : HAT_PERCH[kind] ? sink * .4 : 0, onSprite = who && !(g.canvas && g.canvas.id === 'cv');
+  const dy = HAT_COVER[kind] ? sink * (HAT_SINK[kind] || 1) : HAT_PERCH[kind] ? sink * .4 : kind === 'laurel' ? sink * .6 : HAT_BAND[kind] ? sink * .3 : 0, onSprite = who && !(g.canvas && g.canvas.id === 'cv');
   g.save(); g.translate(x, y + dy);
-  if (onSprite && (HAT_COVER[kind] || HAT_PERCH[kind])) { g.save(); g.globalCompositeOperation = 'source-atop'; // 影は、もう描いてある頭・耳の上にだけ
-    if (HAT_COVER[kind]) soft(g, 0, hw * .03, hw * .98, hw * .1, '#6B4A32', .16, 2.5); else soft(g, 0, 1, hw * .55, hw * .07, '#6B4A32', .12, 2); g.restore(); } // 影はふちのすぐ下だけ・うすい茶色（2026-11-16 オーナー：「帽子をかぶった時の目の影が怖くて可愛くない」。前は目の上まで濃い影が落ちていた）
+  if (onSprite && (HAT_COVER[kind] || HAT_PERCH[kind] || HAT_BAND[kind] || kind === 'laurel')) { g.save(); g.globalCompositeOperation = 'source-atop'; // 影は、もう描いてある頭・耳の上にだけ
+    if (HAT_COVER[kind]) soft(g, 0, hw * .03, hw * .98, hw * .1, '#6B4A32', .16, 2.5); else if (HAT_PERCH[kind]) soft(g, 0, 1, hw * .55, hw * .07, '#6B4A32', .12, 2); else soft(g, 0, hw * .04, hw * .9, hw * .05, '#6B4A32', .1, 2); g.restore(); } // カチューシャ・月桂冠も、頭に当たる所にうすいかげ（2026-11-16） // 影はふちのすぐ下だけ・うすい茶色（2026-11-16 オーナー：「帽子をかぶった時の目の影が怖くて可愛くない」。前は目の上まで濃い影が落ちていた）
   g.rotate((HAT_TILT[kind] || 0) + (rot || 0));
   hat(g, kind, w, hw / w);
-  if (onSprite && HAT_TUFT[kind] && Math.abs(rot || 0) < .22) hatTufts(g, hw * HAT_TUFT[kind][0], who, HAT_TUFT[kind][1] * w);
+  if (onSprite && who !== 'pom' && HAT_TUFT[kind] && Math.abs(rot || 0) < .22) hatTufts(g, hw * HAT_TUFT[kind][0], who, HAT_TUFT[kind][1] * w);
   g.restore();
 }
 function earHoles(g, x, y, dx, rot) { g.save(); g.fillStyle = 'rgba(60,30,20,.28)'; for (const sd of [-1, 1]) { g.beginPath(); g.ellipse(x + sd * (dx + 4), y, 15, 7, sd * rot, 0, Math.PI * 2); g.fill(); } g.restore(); }
@@ -474,7 +475,7 @@ function jillHead(g, mood) { // アニメの座標（頭の中心は 188,210）
 /* ジルの帽子（2026-11-15 オーナー：「ベレー帽で耳が突き出すのはおかしい・ベレー帽に見えない」）：ジルの耳は頭のまん中近くに立っているので、
    頭の上に帽子を置くと耳が隠れ、穴をあけると耳が帽子から突き出す。そこで、小さめの帽子を頭の横（向かって右）にかたむけてかぶる。両耳はそのまま見える。
    side＝1 前から・-1 後ろから（反対側に見える）。単位は顔の大きさ（帽子の後ろの耳は先に描いてある） */
-const JILL_HAT = { beret: [36, -36, 34, .5], helmet: [34, -36, 35, .42], straw: [34, -38, 31, .4], santa: [32, -38, 32, .45], witch: [30, -42, 30, .4], pumpkin: [38, -32, 27, .48], crown: [28, -46, 25, .3], kagami: [26, -48, 23, .24], antler: [0, -40, 40, 0], heartband: [0, -40, 40, 0], laurel: [0, -42, 40, 0] }; // カチューシャ・月桂冠は頭の上を左右に通るので、まん中に水平 // 王冠・鏡もちも横に（まん中にのせると耳が隠れた）
+const JILL_HAT = { beret: [32, -31, 42, .46], helmet: [30, -31, 43, .4], straw: [31, -33, 38, .38], santa: [29, -33, 40, .42], witch: [27, -37, 37, .38], pumpkin: [33, -28, 33, .45], crown: [26, -43, 29, .28], kagami: [26, -48, 23, .24], /* 2026-11-16 オーナー「ただ頭に乗ってるだけ」：小さすぎて頭の横にちょこんと付いていた。2 割大きく、少し深く・内側へ */ antler: [0, -40, 40, 0], heartband: [0, -40, 40, 0], laurel: [0, -42, 40, 0] }; // カチューシャ・月桂冠は頭の上を左右に通るので、まん中に水平 // 王冠・鏡もちも横に（まん中にのせると耳が隠れた）
 function jillHat(g, hk, side, sway, up) { const f = JILL_HAT[hk] || [32, -42, 28, .4]; HAT_OUT = 1; try { wearHat(g, hk, side * f[0], f[1] - (up || 0), .9, f[2], 8, 'jill', side * f[3] + (sway || 0)); } finally { HAT_OUT = 0; } }
 function faceJill(g, cx, cy, sc, mood) { g.save(); g.translate(cx, cy); g.scale(sc * RK.jil, sc * RK.jil); g.translate(-188, -210); jillHead(g, mood); g.restore(); }
 function pomEar(g, x, y, r, rot, back) { g.save(); g.translate(x, y); g.rotate(rot); g.beginPath(); g.ellipse(0, 0, r, r * 1.05, 0, 0, Math.PI * 2); g.fillStyle = '#8E786C'; g.fill(); g.beginPath(); g.ellipse(0, r * .12, r * .72, r * .78, 0, 0, Math.PI * 2); g.fillStyle = back ? '#A8928A' : '#E9A9A2'; g.fill();
@@ -503,7 +504,7 @@ function pomHead(g, mood) { // アニメの座標（足もとが 0,0・頭の中
     sPath(g, `M-54 ${hy - 24} Q0 ${hy - 44} 54 ${hy - 24}`, bc[0], 10); sPath(g, `M-44 ${hy - 28} Q0 ${hy - 45} 44 ${hy - 28}`, '#FFFFFF', 2, .4);
     fPath(g, `M50 ${hy - 26} q16 2 22 12 l-6 4 q-6 -8 -16 -10 Z M50 ${hy - 26} q18 -6 26 0 l-4 6 q-8 -4 -20 0 Z`, bc[0]); }
   g.save(); g.translate(0, hy); g.scale(1 / RK.pom, 1 / RK.pom);
-  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 0, -50, .95, 42, 12, 'pom'); else if (WEAR.pom.suit === 'bee') antennae(g, 0, -52, .9);
+  if (WEAR.pom.hat) { const f = pomHatFit(WEAR.pom.hat); wearHat(g, WEAR.pom.hat, 0, f[0], .95, f[1], f[2], 'pom'); } else if (WEAR.pom.suit === 'bee') antennae(g, 0, -52, .9);
   moodFx(g, mood, -40, 54); g.restore();
 }
 function facePom(g, cx, cy, sc, mood) { g.save(); g.translate(cx, cy); g.scale(sc * RK.pom, sc * RK.pom); g.translate(0, 128); pomHead(g, mood); g.restore(); }
@@ -535,8 +536,15 @@ function drawPom(g, p) {
   if (p.view === 'look') { facePom(g, 156, hy - 24, .98, p.mood); if (p.mood === 'cheer') { fur(g, 150 + 56, hy + 10, 9, 16, -.6, P.a, P.b); blob(g, 150 + 64, hy - 6, 10, 8, -.3, '#F2B8B0'); } return; }
   pomEar(g, 150 - 40, hy - 26, 16 + p.ear * 2, -.3 - p.ear * .3, 1); pomEar(g, 150 + 40, hy - 26, 16 + p.ear * 2, .3 + p.ear * .3, 1);
   headband(g, 150, hy - 4, 58, 1, p.tiePh);
-  if (WEAR.pom.hat) wearHat(g, WEAR.pom.hat, 150, hy - 30 - (p.air ? 2 : 0), 1, 46, 12, 'pom', (p.ear || 0) * .16); else if (WEAR.pom.suit === 'bee') antennae(g, 150, hy - 24, 1);
+  if (WEAR.pom.hat) { const f = pomHatFit(WEAR.pom.hat, 1); wearHat(g, WEAR.pom.hat, 150, hy + f[0] - (p.air ? 2 : 0), 1, f[1], f[2], 'pom', (p.ear || 0) * .16); } else if (WEAR.pom.suit === 'bee') antennae(g, 150, hy - 24, 1);
 }
+/* ポムの帽子（2026-11-16 オーナー：「ヘルメットなどただ頭に乗ってるだけでおかしい」）：
+   前は頭の幅（64）より細い帽子（42）を、はちまきより上の頭のてっぺんに置いていた。
+   かぶる帽子は頭の幅いっぱいにして、ふちを「はちまきの上半分」にかぶせる（はちまきの下半分と結び目は、ふちの下からのぞく）。
+   [頭の上の位置, ふちの半分の幅, ふちまでの深さ]。前（頭の中心から）と後ろ（hy から）で別の数字 */
+const POM_HAT = { helmet: [[-60, 64, 30], [-38, 62, 26]], beret: [[-57, 60, 26], [-36, 58, 22]], straw: [[-58, 52, 26], [-36, 52, 22]], santa: [[-59, 60, 30], [-38, 58, 26]],
+  witch: [[-60, 54, 24], [-38, 52, 20]], pumpkin: [[-59, 58, 28], [-38, 56, 24]], laurel: [[-58, 56, 16], [-36, 56, 14]] };
+function pomHatFit(k, back) { const f = POM_HAT[k]; if (f) return f[back ? 1 : 0]; return back ? [-30, 46, 12] : [-50, 42, 12]; }
 function mugHat(g, y) { g.save(); g.translate(0, y); rr(g, -22, -38, 44, 38, 6, '#FBF6EE', '#9AA9B6', 3); g.beginPath(); g.ellipse(27, -19, 9, 12, 0, 0, Math.PI * 2); g.strokeStyle = '#9AA9B6'; g.lineWidth = 5; g.stroke(); rr(g, -22, -30, 44, 7, 0, '#4E77A0'); g.restore(); }
 
 // ---- full bodies ----
