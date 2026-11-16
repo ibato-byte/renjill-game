@@ -980,6 +980,11 @@
       "name": "走り始めの45秒はやさしく（BUMP!で続く）",
       "file": "src/6_game.js",
       "has": "function softHit()"
+    },
+    {
+      "name": "建物から出てすぐは動く物を動かさない（室内で人力車にぶつかって見えた）",
+      "file": "src/3_world.js",
+      "has": "if (seg.prevIn) for (const o of seg.obs) if (o.mv && o.s0 < 70) o.mv = 0;"
     }
   ]
 }
