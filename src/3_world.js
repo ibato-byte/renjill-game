@@ -271,8 +271,8 @@ function buildStreet(seg, s0, lEnd, rEnd) {
   for (const sd of [-1, 1]) buildFacades(seg, sd, sideStart(seg, sd) ?? s0, sd < 0 ? lEnd : rEnd);
   if (seg.forkY) { yWedge(seg); return; }
   // end of the street: one building across
-  const e = L + HW, h = clamp(rand(fac.h[0], fac.h[1]), 8, 40), c = C(pick(fac.pal));
-  for (let x = -HW; x < HW - .01; x += 3) seg.walls.push({ v: quad(seg, [[e, x, 0], [e, x + 3, 0], [e, x + 3, h], [e, x, h]]), c, n: [-seg.f[0], -seg.f[1]], sh: 1, pat: 'fac', st: fac.style === 'station' ? 'glass' : fac.style, h, w: 3, seed: (x * 7 + 3) | 0 });
+  const e = L + HW, h = clamp(rand(fac.h[0], fac.h[1]), 8, 40), c = C(pick(fac.pal)), ev = (Math.random() * 8) | 0;
+  for (let x = -HW; x < HW - .01; x += 3) seg.walls.push({ v: quad(seg, [[e, x, 0], [e, x + 3, 0], [e, x + 3, h], [e, x, h]]), c, n: [-seg.f[0], -seg.f[1]], sh: 1, pat: 'fac', st: fac.style === 'station' ? 'glass' : fac.style, h, w: 3, seed: (x * 7 + 3) | 0, fv: ev, fw: 2 * HW, fh: Math.round(h * 2) / 2, fm: fac.mood || '', fu0: (x + HW) / (2 * HW), fu1: (x + 3 + HW) / (2 * HW) }); // 2026-11-17 景色 97：つきあたりの建物も、両わきの建物と同じ 1 枚の絵（前は青い窓がならぶだけ）
 }
 function buildFacades(seg, sd, s0, end) {
   const th = seg.th, fac = th.fac;
@@ -314,7 +314,7 @@ function houseBehind(seg, sd, a, b, h, c, seed) {
   const lat = sd * (HW + 3.2), n = [-sd * seg.r[0], -sd * seg.r[1]];
   for (let x = a; x < b - .01; x += 3) { const y = Math.min(x + 3, b);
     const pts = sd < 0 ? [[x, lat, 0], [y, lat, 0], [y, lat, h], [x, lat, h]] : [[y, lat, 0], [x, lat, 0], [x, lat, h], [y, lat, h]];
-    seg.walls.push({ v: quad(seg, pts), c, n, sh: sd < 0 ? .94 : .86, pat: 'fac', st: 'house', h, w: y - x, seed: seed + x | 0 }); }
+    seg.walls.push({ v: quad(seg, pts), c, n, sh: sd < 0 ? .94 : .86, pat: 'fac', st: 'house', h, w: y - x, seed: seed + x | 0, fv: seed % 8, fw: Math.round((b - a) * 2) / 2, fh: Math.round(h * 2) / 2, fm: '', fu0: (x - a) / (b - a), fu1: (y - a) / (b - a) }); } // 2026-11-17：家の壁も 1 軒ぶんの絵（玄関・窓・ベランダ）
   // tiled roof sloping away from the street
   const l2 = sd * (HW + 6.5), rc = C(pick(['#4A5866', '#5C5550', '#3F4D5C', '#6B4C3B']));
   seg.walls.push({ v: quad(seg, sd < 0 ? [[a, l2, h + 2.2], [b, l2, h + 2.2], [b, lat, h], [a, lat, h]] : [[b, l2, h + 2.2], [a, l2, h + 2.2], [a, lat, h], [b, lat, h]]), c: rc, n3: [-sd * seg.r[0] * .6, .8, -sd * seg.r[1] * .6], sh: 1, pat: 'roof' });
@@ -491,6 +491,13 @@ const PROPS = {
   bonbori: (sd, s) => ({ w: 3.4, bx: [B(sd * 3.1, s, .12, .12, 0, 1.45, '#3B2A20'), B(sd * 3.1, s - .14, .4, .4, 1.45, 2.0, '#FBEFE6', 2), B(sd * 3.1, s - .16, .44, .44, 2.0, 2.08, '#2B1E18'), B(sd * 3.1, s - .16, .44, .44, 1.4, 1.46, '#2B1E18')],
     spr: [{ lat: sd * 3.1, s: s + .05, y: 1.1, h: 1.8, w: 1.8, img: 'glow', glow: 1, night: 1 }] }),
   lampC: (sd, s) => ({ w: 4, bx: [B(sd * 3.2, s, .3, .3, 0, .5, '#2F3B47'), B(sd * 3.2, s + .1, .1, .1, .5, 4.2, '#2F3B47'), B(sd * 3.2, s, .4, .4, 4.2, 4.7, '#FFF3D6', 1)], spr: [{ lat: sd * 3.2, s: s + .2, y: 3.4, h: 2.6, w: 2.6, img: 'glow', glow: 1, night: 1 }] }),
+  // 2026-11-17 景色 31〜50：東京の道ならではの物（絵は 4h_artplus.js。PROP_DIM で道に向いた 1 枚の絵になる）
+  cmirror: (sd, s) => ({ w: 2, bx: [B(sd * 3.4, s, .2, .2, 0, 3.0, '#E87A2E')] }),
+  roadsign: (sd, s) => ({ w: 2, bx: [B(sd * 3.5, s, .15, .15, 0, 2.6, '#9AA0A6')] }),
+  hydrant: (sd, s) => ({ w: 1.5, bx: [B(sd * 3.6, s, .12, .12, 0, 2.0, '#D7262E')] }),
+  busstop: (sd, s) => ({ w: 3, bx: [B(sd * 3.4, s, .2, .2, 0, 2.6, '#2E7A4E')] }),
+  gomi: (sd, s) => ({ w: 2.4, bx: [B(sd * 4.0, s, .9, 1.6, 0, .9, '#3E8A4A')] }),
+  noki: (sd, s) => ({ w: 2.4, bx: [B(sd * 4.15, s, .6, 1.7, 0, .7, '#C9C7BF')] }),
   signal: (sd, s) => ({ w: 5, bx: [B(sd * 3.0, s, .2, .2, 0, 5.2, '#9AA0A6'), B(sd * 2.2, s, 1.7, .15, 5.0, 5.12, '#9AA0A6'), B(sd * 1.6, s - .1, 1.2, .35, 4.8, 5.2, '#46525E'), B(sd * 1.2, s - .12, .26, .02, 4.88, 5.12, '#7FD06A', 1), B(sd * 1.6, s - .12, .26, .02, 4.88, 5.12, '#3B3B3B'), B(sd * 2.0, s - .12, .26, .02, 4.88, 5.12, '#3B3B3B')] }),
   guard: (sd, s) => ({ w: 6, ln: [{ a: [s, sd * 2.8, .7], b: [s + 6, sd * 2.8, .7], c: '#F3F3F3', w: .12 }, { a: [s, sd * 2.8, .45], b: [s + 6, sd * 2.8, .45], c: '#F3F3F3', w: .08 }, { a: [s, sd * 2.8, 0], b: [s, sd * 2.8, .75], c: '#D9DEE3', w: .07 }] }),
   benchS: (sd, s) => ({ w: 2.2, bx: [B(sd * 3.9, s, .5, 1.8, .38, .46, '#B08155'), B(sd * 3.9, s + .1, .45, .1, 0, .38, '#46525E'), B(sd * 3.9, s + 1.6, .45, .1, 0, .38, '#46525E'), B(sd * 4.12, s, .08, 1.8, .46, .85, '#B08155')] }),

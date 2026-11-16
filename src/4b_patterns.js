@@ -80,6 +80,37 @@ function futonTopTex() {
     g.strokeStyle = 'rgba(90,110,150,.45)'; g.lineWidth = 2; g.beginPath(); for (let x = mx - 6; x <= mx + mw + 6; x += 10) { const y = wave(x) + H * .06 + Math.sin(x * .02) * 3; x === mx - 6 ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke();
   });
 }
+/* 道路のアスファルト（2026-11-17 景色 21〜30。オーナー「図形の組み合わせだけのような景色にならないように」）。
+   本物の東京の道は、①車のタイヤが通る所が黒くみがかれた 2 本の帯 ②白線はところどころはげる ③ひび割れをふさいだ黒いタールのすじ
+   ④掘り返して埋めた四角い補修のあと ⑤小石まじりの細かいつぶ ⑥車の止まる所の油じみ ⑦1 区画ごとに色がちがう（舗装の年） */
+function roadWear(p, d, a, T) { const r = rnd(p.ti * 31 + 7 + ((p.a || 0) * 13 | 0)), near = d < 18;
+  ctx.stroke(); ctx.beginPath();
+  ctx.globalAlpha = a * .08; bquad(0, .04, 1, .96, p.ti % 4 === 1 ? '#000000' : p.ti % 4 === 3 ? '#FFFFFF' : 'rgba(0,0,0,0)'); // [27] 区画ごとの色のちがい
+  ctx.globalAlpha = a * .13; for (const v of [.12, .23, .44, .55, .76, .87]) bquad(0, v - .025, 1, v + .025, '#1A1A1E'); // [21] タイヤの通り道の黒い帯（1 車線に 2 本）
+  if (near) { ctx.globalAlpha = a * .35; for (let i = 0; i < 26; i++) { const u = r(), v = .05 + r() * .9, c = r() < .5 ? '#B9B6AE' : '#2E2E32'; bquad(u, v, u + .006, v + .008, c); } } // [22] 小石まじりの細かいつぶ
+  if (p.ti % 7 === 3) { ctx.globalAlpha = a * .5; ctx.strokeStyle = '#18181B'; ctx.lineWidth = Math.max(.6, 6 / Math.max(d, 4)); ctx.beginPath(); let u = r() * .3, v = .1 + r() * .3; for (let k = 0; k < 5; k++) { const u2 = u + .1 + r() * .15, v2 = v + (r() - .3) * .2; bline(u, v, u2, v2); u = u2; v = v2; } ctx.stroke(); ctx.beginPath(); } // [23] ひび割れをふさいだ黒いタールのすじ
+  if (p.ti % 11 === 5) { ctx.globalAlpha = a * .08; const v0 = .1 + r() * .5; bquad(.15, v0, .85, v0 + .25, '#2A2A2E'); ctx.globalAlpha = a * .14; ctx.strokeStyle = '#1A1A1E'; ctx.beginPath(); bline(.15, v0, .85, v0); bline(.15, v0 + .25, .85, v0 + .25); bline(.15, v0, .15, v0 + .25); bline(.85, v0, .85, v0 + .25); ctx.stroke(); ctx.beginPath(); } // [24] 掘り返して埋めた補修のあと（色のちがう四角と継ぎ目）
+  if (p.ti % 3 !== 2 && near) { ctx.globalAlpha = a * .7; for (let i = 0; i < 4; i++) { const u = r(); for (const v of [.355, .645]) bquad(u, v - .006, u + .04 + r() * .05, v + .006, T('#5A5A60')); } } // [25] 白線のはげた所
+  if (p.ti % 9 === 4) { ctx.globalAlpha = a * .18; const c = bil(.5, .2 + (p.ti % 3) * .3); ctx.fillStyle = '#121214'; ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(2, 40 / d), Math.max(1, 14 / d), 0, 0, 7); ctx.fill(); } // [26] 車が止まる所の油じみ
+  roadMarks(p, d, a, T, r, near);
+  ctx.globalAlpha = a; }
+/* 2026-11-17 景色 51〜62：東京の道の路面（マンホール・側溝・路面の数字と矢印・ひし形・水たまり）。タイル 1 枚＝長さ 1.5m・はば 5.2m（u＝進む向き、v＝横） */
+function roadPaint(fn, u0, u1, v0, v1) { const o = bil(u1, v0), x = bil(u1, v1), y = bil(u0, v0); ctx.save(); ctx.transform((x[0] - o[0]) / 100, (x[1] - o[1]) / 100, (y[0] - o[0]) / 100, (y[1] - o[1]) / 100, o[0], o[1]); fn(); ctx.restore(); } // 100×100 の箱に描くと、路面に寝かせて貼れる（上＝進む先）
+function roadMarks(p, d, a, T, r, near) { const ti = p.ti, night = LT.night > .5, paint = T('#E9E8E1');
+  if (ti % 13 === 6) { const v = [.175, .5, .825][(ti >> 2) % 3], ru = .2, rv = .058, ring = (k, rr, ss) => { const c = bil(.5 + Math.cos(k) * rr, v + Math.sin(k) * ss); return c; }, disc = (rr, ss, fill) => { ctx.beginPath(); for (let k = 0; k <= 24; k++) { const c = ring(k / 24 * 6.2832, rr, ss); k ? ctx.lineTo(c[0], c[1]) : ctx.moveTo(c[0], c[1]); } ctx.fillStyle = fill; ctx.fill(); };
+    ctx.globalAlpha = a * .25; disc(ru * 1.5, rv * 1.5, '#55565B'); // [53] ふたのまわりの、新しいアスファルトの輪
+    ctx.globalAlpha = a * .95; disc(ru, rv, T('#3F3D3B')); ctx.globalAlpha = a * .9; disc(ru * .86, rv * .86, T('#55524D')); // [51] マンホールの鉄のふた（ふちの輪）
+    if (near) { ctx.globalAlpha = a * .5; ctx.strokeStyle = T('#2E2C2A'); ctx.lineWidth = Math.max(.5, 3 / d); ctx.beginPath(); for (let k = -3; k <= 3; k++) { bline(.5 + k * ru * .25, v - rv * .8 * Math.sqrt(1 - (k / 3.6) ** 2), .5 + k * ru * .25, v + rv * .8 * Math.sqrt(1 - (k / 3.6) ** 2)); bline(.5 - ru * .8 * Math.sqrt(1 - (k / 3.6) ** 2), v + k * rv * .25, .5 + ru * .8 * Math.sqrt(1 - (k / 3.6) ** 2), v + k * rv * .25); } ctx.stroke(); } // [52] ふたのすべり止めのもよう
+    ctx.globalAlpha = a * (night ? .12 : .22); disc(ru * .35, rv * .5, '#FFFFFF'); } // [54] ふたのにぶい光り
+  ctx.globalAlpha = a * .55; bquad(0, 0, 1, .022, T('#A9A79F')); bquad(0, .978, 1, 1, T('#A9A79F')); ctx.globalAlpha = a * .5; ctx.strokeStyle = T('#6E6C66'); ctx.beginPath(); bline(.5, 0, .5, .022); bline(.5, .978, .5, 1); bline(0, .022, 1, .022); bline(0, .978, 1, .978); ctx.stroke(); // [55] 道の両はしの側溝のコンクリートのふた（継ぎ目つき）
+  if (ti % 4 === 2) { ctx.globalAlpha = a * .9; bquad(.2, .002, .8, .02, T('#4A4844')); bquad(.2, .98, .8, .998, T('#4A4844')); if (near) { ctx.globalAlpha = a * .8; for (let k = 0; k < 9; k++) { const u = .23 + k * .065; bquad(u, .004, u + .03, .018, '#141414'); bquad(u, .982, u + .03, .996, '#141414'); } } } // [56] 鉄の格子ぶた [57] 格子のすきまの暗さ
+  const lane = [.175, .5, .825], fade = (u0, u1, v0, v1) => { if (!near) return; ctx.globalAlpha = a * .6; for (let k = 0; k < 3; k++) { const u = u0 + r() * (u1 - u0), w = v0 + r() * (v1 - v0); bquad(u, w, u + .05, w + .02, T('#6C6D72')); } }; // [60] 路面の字・矢印のかすれ
+  const k37 = ti % 37, span = (t0, len, fn) => { if (k37 < t0 || k37 >= t0 + len) return; const uA = t0 - k37, a0 = bil(0, 0), a1 = bil(1, 0), a2 = bil(1, 1), a3 = bil(0, 1); ctx.save(); ctx.beginPath(); ctx.moveTo(a0[0], a0[1]); ctx.lineTo(a1[0], a1[1]); ctx.lineTo(a2[0], a2[1]); ctx.lineTo(a3[0], a3[1]); ctx.closePath(); ctx.clip(); fn(uA, uA + len); ctx.restore(); }; // 何枚かのタイルにまたがる字・矢印は、タイルごとに自分の分だけ描く
+  span(17, 3, (u0, u1) => { const v = lane[1]; ctx.globalAlpha = a * .85; roadPaint(() => { ctx.fillStyle = paint; ctx.font = '900 100px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('30', 50, 52, 92); }, u0, u1, v - .11, v + .11); fade(u0 + .1, u1 - .2, v - .08, v + .08); }); // [58] 路面の「30」（進む向きに細長い字）
+  for (const t0 of [4, 30]) span(t0, 2, (u0, u1) => { const v = lane[(t0 >> 1) % 3]; ctx.globalAlpha = a * .85; roadPaint(() => { ctx.fillStyle = paint; ctx.beginPath(); ctx.moveTo(50, 0); ctx.lineTo(88, 34); ctx.lineTo(62, 34); ctx.lineTo(62, 100); ctx.lineTo(38, 100); ctx.lineTo(38, 34); ctx.lineTo(12, 34); ctx.closePath(); ctx.fill(); }, u0, u1, v - .06, v + .06); fade(u0 + .1, u1 - .1, v - .03, v + .03); }); // [59] 進む向きの矢印
+  for (const t0 of [22, 25]) span(t0, 2, (u0, u1) => { ctx.globalAlpha = a * .8; ctx.strokeStyle = paint; ctx.lineWidth = Math.max(.8, 14 / Math.max(d, 4)); const um = (u0 + u1) / 2; for (const v of lane) { ctx.beginPath(); bline(um, v - .1, u0, v); bline(u0, v, um, v + .1); bline(um, v + .1, u1, v); bline(u1, v, um, v - .1); ctx.stroke(); } }); // [61] 「この先に横断歩道」のひし形（2 つ続けて）
+  if (ti % 17 === 9) { const v = lane[ti % 3] + .06, c = bil(.5, v); ctx.globalAlpha = a * (night ? .3 : .22); ctx.fillStyle = night ? '#F2D59A' : T('#C9D6E2'); ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(2, 70 / d), Math.max(1, 9 / d), 0, 0, 7); ctx.fill(); } // [62] 水たまりにうつる空（夜は街灯の色）
+}
 function floorPattern(p, d) {
   if (p.dec) return decalDraw(p, d);
   if (d > 70 && p.pat !== 'sea' && p.pat !== 'water') return;
@@ -100,6 +131,7 @@ function floorPattern(p, d) {
     case 'gravel': ctx.fillStyle = T('#A8966F'); for (let k = 0; k < 8; k++) bquad((k * .37 + p.ti * .11) % .9, (k * .61) % .9, (k * .37 + p.ti * .11) % .9 + .04, (k * .61) % .9 + .05, T('#A8966F')); break;
     case 'leaves': for (let k = 0; k < 9; k++) bquad((k * .29 + p.ti * .17) % .92, (k * .53) % .9, (k * .29 + p.ti * .17) % .92 + .06, (k * .53) % .9 + .08, k % 2 ? T('#F2CD45') : T('#C9961B')); break;
     case 'road': case 'hokoten': ctx.globalAlpha = Math.min(1, a * 1.5) * .8; ctx.strokeStyle = T('#ECEBE4'); ctx.lineWidth *= 1.25; if (p.ti % 3 !== 2) { bline(0, .355, 1, .355); bline(0, .645, 1, .645); } ctx.stroke(); ctx.beginPath(); ctx.strokeStyle = T('#E4E3DC'); ctx.lineWidth *= 1.2; bline(0, .03, 1, .03); bline(0, .97, 1, .97);
+      if (d < 42 && p.pat === 'road') roadWear(p, d, a, T); // 2026-11-17 景色 21〜30：本物のアスファルトの使われたあと
  break;
     case 'scramble': ctx.globalAlpha = Math.min(1, a * 1.6); { const ph = p.ti % 12; if (ph < 7) for (let v = .05; v < .95; v += .125) bquad(0, v, 1, v + .07, T('#ECECE6')); else if (ph === 8) { ctx.globalAlpha = a * .6; ctx.strokeStyle = T('#ECECE6'); ctx.lineWidth *= 2; bline(0, 0, 1, 1); bline(0, 1, 1, 0); } } break;
     case 'petals': case 'petalstone': if (p.pat === 'petalstone') { ctx.strokeStyle = T('#8F8577'); for (let k = 0; k <= 4; k++) bline(0, k / 4, 1, k / 4); bline(.5, (p.ti % 2) * .25, .5, (p.ti % 2) * .25 + .25); ctx.stroke(); ctx.beginPath(); }
@@ -115,7 +147,8 @@ function floorPattern(p, d) {
     case 'lawn': ctx.globalAlpha = a * .5; bquad(0, 0, 1, .5, T('#8DB26A')); break;
     case 'sand': ctx.globalAlpha = a * .45; for (let k = 0; k < 7; k++) bquad((k * .41 + p.ti * .13) % .9, (k * .67) % .9, (k * .41 + p.ti * .13) % .9 + .05, (k * .67) % .9 + .03, T('#C9B48A')); break;
     case 'brickroad': ctx.strokeStyle = T('#8A7558'); for (let k = 0; k <= 6; k++) bline(0, k / 6, 1, k / 6); for (let k = 0; k < 3; k++) bline(k / 3 + (p.ti % 2) * .16, 0, k / 3 + (p.ti % 2) * .16, 1); break;
-    case 'walk': ctx.globalAlpha = a * .25; ctx.strokeStyle = T('#8E887C'); bline(0, 0, 0, 1); bline(.5, 0, .5, 1); bline(0, .5, 1, .5); ctx.stroke(); ctx.globalAlpha = a * .95; { const v0 = p.sd < 0 ? .52 : .33; bquad(0, v0, 1, v0 + .15, T('#E8C23A')); } break;
+    case 'walk': if (d < 30) { ctx.globalAlpha = a * .08; bquad(0, 0, .5, .5, p.ti % 2 ? '#000000' : '#FFFFFF'); bquad(.5, .5, 1, 1, p.ti % 2 ? '#FFFFFF' : '#000000'); const v0 = p.sd < 0 ? .52 : .33; if (d < 16) { ctx.globalAlpha = a * .5; for (let i = 0; i < 6; i++) for (let j = 0; j < 2; j++) bquad(i / 6 + .03, v0 + .03 + j * .07, i / 6 + .07, v0 + .06 + j * .07, '#B8961E'); } ctx.beginPath(); } /* [28] 歩道のタイル 1 枚ごとの色のちがい [29] 黄色い点字ブロックの点の出っぱり */
+      ctx.globalAlpha = a * .25; ctx.strokeStyle = T('#8E887C'); bline(0, 0, 0, 1); bline(.5, 0, .5, 1); bline(0, .5, 1, .5); ctx.stroke(); ctx.globalAlpha = a * .95; { const v0 = p.sd < 0 ? .52 : .33; bquad(0, v0, 1, v0 + .15, T('#E8C23A')); } break;
     case 'platform': ctx.globalAlpha = a * .95; bquad(0, .02, 1, .1, T('#FBF6EE')); bquad(0, .16, 1, .27, T('#E8C23A')); ctx.strokeStyle = T('#8F8676'); ctx.beginPath(); bline(0, .6, 1, .6); break;
     case 'train': { /* 電車の床（2026-11-16）：座席の前（足もと）は少しこい色、通路はうすい色、細かいつぶの模様。黄色い線は出さない（本物の車内には無い） */
       ctx.stroke(); ctx.globalAlpha = a * .5; bquad(0, 0, 1, .14, T('#6E7A86')); bquad(0, .86, 1, 1, T('#6E7A86')); ctx.globalAlpha = a * .8; ctx.beginPath(); ctx.strokeStyle = T('#5E6A76'); bline(0, .14, 1, .14); bline(0, .86, 1, .86); bline(0, 0, 0, 1); ctx.stroke();
