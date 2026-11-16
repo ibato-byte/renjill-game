@@ -1037,6 +1037,26 @@
       "has": "'kpg-best'"
     },
     {
+      "name": "曲がり終えた角の看板・うしろの外の通りを描かない",
+      "file": "src/4_render.js",
+      "has": "function prevHidden()"
+    },
+    {
+      "name": "外から入った部屋の角の四角に壁",
+      "file": "src/3_world.js",
+      "has": "wallRun(out, -HW, s0)"
+    },
+    {
+      "name": "つきあたりの壁に物を掛ける・電車の車両のはし",
+      "file": "src/3_world.js",
+      "has": "put('carend', -HW, HW, 0, H)"
+    },
+    {
+      "name": "ポムの走り：足を交互に・ほとんど跳ねない（ハムスター）",
+      "file": "src/2b_bunny.js",
+      "has": "const upOf = sd => run ?"
+    },
+    {
       "name": "走りはうさぎ跳び（12 コマ：ため・けり・空中・着地・引きよせ）",
       "file": "src/2b_bunny.js",
       "has": "function hopPose(u) {"
