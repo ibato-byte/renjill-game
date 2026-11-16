@@ -88,12 +88,28 @@ function buildTitleRoom(seg) {
   dec('tokonoma', 1, 3.6, 2.2, .35, 2.5); dec('clock', 1, 1.0, .9, 2.05, 2.8); dec('calendar', 1, 2.4, .8, 1.5, 2.3);
   seg.titleWins = [{ sd: -1, s0: .4, s1: 3.0 }, { sd: -1, s0: 3.2, s1: 5.8 }];
   // the futon he has just left (left), the low table with his mug and the paper (right), his things about the room
-  seg.floor.push({ v: quad(seg, [[1.3, 1.3, .02], [4.1, 1.3, .02], [4.1, 3.3, .02], [1.3, 3.3, .02]]), c: [0, 0, 0], dec: 'futonD', ti: 0, a: 1.3, b: 4.1 });
+  /* 2026-11-17 オーナー：「スタート画面の布団に厚みがなくて安っぽい」。前は床に貼った 1 枚の絵だった。
+     本物の敷きぶとんは厚さ 8〜10cm、掛けぶとんは 5〜8cm。敷きぶとんを本当の厚みの箱にして、上の面（シーツ・まくら・掛けぶとんの絵）をその上にのせる。
+     掛けぶとんのめくった折り返しは、ふくらんだ厚み（もう 1 段）。まくらはそば殻のふくらんだ形（絵）。畳との間にやわらかいかげ。docs/TITLE-ROOM-2026-11-17.md */
+  const FT = .11;
+  seg.floor.push({ v: quad(seg, [[1.3, 1.3, FT + .004], [4.1, 1.3, FT + .004], [4.1, 3.3, FT + .004], [1.3, 3.3, FT + .004]]), c: [0, 0, 0], dec: 'futonD', ti: 0, a: 1.3, b: 4.1 });
+  seg.floor.push({ v: quad(seg, [[1.18, 1.2, .006], [4.22, 1.2, .006], [4.22, 3.42, .006], [1.18, 3.42, .006]]), c: [0, 0, 0], dec: 'futonShadow', ti: 0, a: 1.18, b: 4.22 }); // [2] 畳に落ちるやわらかいかげ
+  seg.props.push(mkProp(seg, [{ l0: 1.3, l1: 3.3, s0: 1.3, s1: 4.1, y0: 0, y1: FT, c: '#EFE8D8', noTop: 1, face: 'futonSide', faceW: 600, faceH: 40, faceAll: 1 }, // [1] 敷きぶとんの厚み（11cm）
+    { l0: 1.27, l1: 3.33, s0: 1.27, s1: 4.13, y0: FT - .012, y1: FT + .002, c: '#D9CFBC', noTop: 1 }, // [3] 上のふちの丸み（パイピング）
+    { l0: 1.32, l1: 3.28, s0: 1.32, s1: 4.08, y0: 0, y1: .012, c: '#B9AE98', noTop: 1 }], { big: 1 })); // [4] 下のふち（畳に押されてつぶれた所）
+  // [5] まくらは上の面の絵の中（立てた絵にすると、レンの足の前にういて見えた）。上の面は、マットのふちまでいっぱいに切り出した絵（すみのすき間なし）
+  // [6] 掛けぶとんの折り返しの厚みは、上の面の絵の中のかげとふくらみで出す（箱にすると、白い棒に見えた）
   seg.spr.push({ lat: 0, s: 3.4, y: 2.05, w: .9, h: .95, img: artKey('pendant', ''), keep: 1 });
   sp('lowtable', '', 2.4, -2.5, 1.5, .62); // the low round table, his mug and the morning paper on it (one picture, so nothing floats)
   sp('tZabuton', '', 3.4, -1.6, 1.0, .34); { const k = .6 + .2 * plantLv(); sp('plant', '', 5.6, 3.7, 1.0 * k, 1.75 * k); } /* 牧草で育つ観葉植物（B-12）：これまでに集めた牧草で 5 段階 */ sp('futon', '', 5.3, -3.8, 1.5, 1.1);
   if (EVENT) { const dk = EV_KITS[EVENT].deco; sp(dk, '', 3.9, -2.15, .46, .43); sp(dk, '', 2.75, -2.55, .36, .34); } // the season's decorations by the table
-  dec('tansuW', 1, -1.2, 1.5, 0, 1.65); // the chest of drawers, painted flat against the wall so its lines stay true
+  /* 2026-11-17 オーナー：「タンスは紙切れみたいになってる」。前は壁に貼った絵だった。本物のきりのたんすは奥行き 45cm。
+     奥行きのある箱にして、正面に引き出しの絵（4e_art.js の paintFace 'tansu2'）、上の面と横の面は木。上に小物（写真立て・一輪ざし） */
+  seg.props.push(mkProp(seg, [{ l0: HW - .47, l1: HW - .03, s0: -1.2, s1: .3, y0: .06, y1: 1.65, c: '#B88A5C', face: 'tansu2', faceW: 300, faceH: 330, faceSide: 'L' }, // [11] 奥行き 45cm の箱
+    { l0: HW - .48, l1: HW - .02, s0: -1.22, s1: .32, y0: 1.65, y1: 1.69, c: '#C79A68' }, // [12] 天板（少し出っぱる）
+    { l0: HW - .45, l1: HW - .05, s0: -1.16, s1: .26, y0: 0, y1: .06, c: '#5E3E24' }], { big: 1 })); // [13] 足もとの台輪（少し引っこむ）
+  seg.spr.push({ lat: HW - .25, s: -.85, y: 1.69, w: .26, h: .3, img: artKey('photoFrame', ''), keep: 1 }); // [14] 写真立て
+  seg.spr.push({ lat: HW - .25, s: -.05, y: 1.69, w: .16, h: .42, img: artKey('ichirin', ''), keep: 1 }); // [15] 一輪ざし
   seg.spr.push({ lat: -4.0, s: .5, y: 0, w: .9, h: 1.9, img: artKey('andon', '0'), pn: 1, keep: 1, gnd: .3 });
 }
 let TITLE_PITCH = .2, TITLE_WIDE = -.9;

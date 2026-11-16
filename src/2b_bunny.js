@@ -541,12 +541,16 @@ function drawPom(g, p) {
   const upOf = sd => { if (!run) return 0; const L = legS(sd); return L.st === 'push' ? Math.sin(L.u * Math.PI * .5) : L.st === 'swing' ? 1 - L.u : 0; };
   // 体の下のかげ（足のあいだの暗がり）
   soft(g, cx, GROUND_Y - 6, brx * .78, 10, '#3B2A20', .26, 4);
-  const feet = front => { for (const sd of [-1, 1]) { const L = run ? legS(sd) : { st: 'plant', u: .5 }; if ((L.st === 'push') !== front) continue; // けり出した足は体より手前（あとから描く）
+  const feet = front => { for (const sd of [-1, 1]) { const L = run ? legS(sd) : { st: p.air && p.feet < 0 ? 'push' : 'plant', u: .5 }; if ((L.st === 'push') !== front) continue; // けり出した足は体より手前（あとから描く）
     let fx = cx + sd * brx * .56, fy = GROUND_Y - 6, s = 1, sole = 0, tuck = 0, rot = sd * .14;
     if (run && L.st === 'plant') { fy = GROUND_Y - 6 + L.u * 3; s = .92 + L.u * .16; fx += sd * L.u * 4; }                         // 地面をつかんで、後ろ（手前）へ送る
     if (run && L.st === 'push') { const e = Math.sin(L.u * Math.PI * .5); fy = GROUND_Y - 8 - e * 22; s = 1.08 + e * .3; sole = e; fx += sd * (4 + e * 9); rot = sd * (.25 + e * .35); } // けり出し：足の裏がこちらを向いて、はね上がる
     if (run && L.st === 'swing') { tuck = 1 - L.u * .4; fy = GROUND_Y - 30 + L.u * 20; s = .7 + L.u * .25; fx = cx + sd * brx * (.46 + L.u * .1); rot = sd * .1; } // 空中で前へもどす：体の下にたたむ
     if (!run) fy = GROUND_Y - 6 - Math.max(0, p.feet) * 7;
+    /* 2026-11-17（ポムの走り 40〜46）：跳んでいる時の足。前は地面に立つ足を少し上げただけで、跳んでも落ちても同じ形だった。
+       上りは、後ろ足 2 本をそろえてうしろへけり出した形（足の裏がこちら・指を開く）。下りは、着地に向けて足を左右に大きく開き、指を広げる */
+    if (p.air && p.feet < 0) { fx = cx + sd * brx * .2; fy = GROUND_Y - 30; s = 1.25; sole = .95; rot = sd * .5; }
+    if (p.air && p.feet > 0) { fx = cx + sd * brx * .82; fy = GROUND_Y - 4; s = 1.15; rot = sd * .35; }
     if (run && L.st === 'plant') blob(g, fx, GROUND_Y - 1, 17 * s, 3.4, 0, 'rgba(90,70,50,.2)');                                 // 地面についている足の下のかげ
     // もも〜すね：毛のある足（足の裏だけが浮いて見えないように、体からつなぐ）
     if (run && !tuck) { g.save(); g.globalAlpha = .95; fur(g, (fx + cx + sd * brx * .5) / 2, (fy + by + bry * .55) / 2 - 2, 15 + sole * 3, Math.max(12, (fy - (by + bry * .55)) / 2 + 9), sd * (.3 + sole * .3), P.a, P.b); g.restore(); }
@@ -558,25 +562,28 @@ function drawPom(g, p) {
       g.save(); }
     else { blob(g, 0, 0, 16, 8.5, 0, '#F2B8B0'); blob(g, 0, 1, 9, 3.6, 0, 'rgba(200,120,120,.45)'); for (const tx of [-9, -3.2, 3.2, 9]) blob(g, tx, -4.5, 2.6, 2.4, 0, '#F6C9C2'); } // 地面をつかむ足：つま先の指
     g.restore(); } };
+  if (p.air && p.feet < 0) { g.save(); g.translate(cx, by + bry * .62); g.rotate(-.2); blob(g, 0, 0, 8, 6, 0, '#E8CFA8'); g.restore(); } // [42] 跳ぶ時はしっぽが上がる
+  if (p.slide) for (const sd of [-1, 1]) { for (let i = 0; i < 4; i++) blob(g, cx + sd * (brx + 10 + i * 9), GROUND_Y - 4 - i * 3, 7 - i, 4 - i * .6, 0, 'rgba(176,160,140,.4)', .7 - i * .14); blob(g, cx + sd * brx * 1.02, GROUND_Y - 10, 11, 7, sd * .3, '#F2B8B0'); } // [47] すべる時の両わきの土ぼこり・[48] 横へのばした前足
   feet(false);
   if (run) for (const sd of [-1, 1]) { const up = upOf(-sd); if (up > .05) { blob(g, cx + sd * brx * .92, by + bry * .45 - up * 8, 7.5, 6, sd * .4, '#F2B8B0', .95 * up); fur(g, cx + sd * brx * .86, by + bry * .32 - up * 6, 9, 9, sd * .3, P.a, P.b); } } // 前足：反対側の足が、体の横からちらっと見える
   if (WEAR.pom.suit === 'bee') beeWings(g, cx, by - bry * .2, 1, Math.sin((p.tiePh || 0) * 3) * .15);
   g.save(); g.translate(cx, by); g.rotate(sw * .1); g.translate(-cx, -by);                                              // 体が左右にかたむく（けった側へ）。前は .045 で見えなかった
-  fur(g, cx, by, brx * (1 + (run ? .05 + .03 * sw2 : 0)), bry * (1 - (run ? .06 + .04 * sw2 : 0)), 0, P.a, P.b);           // 着く時につぶれ、けった時にのびる                               // 走る時は体を低く平たく
+  fur(g, cx, by, brx * (1 + (run ? .05 + .03 * sw2 : 0) + (p.air && p.feet > 0 ? .05 : 0)), bry * (1 - (run ? .06 + .04 * sw2 : 0) - (p.air && p.feet > 0 ? .04 : 0)), 0, P.a, P.b); // [46] 着地の前は体を少し広げて構える
+  if (p.air) for (const sd of [-1, 1]) soft(g, cx + sd * brx * .86, by + bry * .1, 10, bry * .6, '#FFF6E2', .16, 4); // [49] 空中では体のふちに光（足もとのかげから離れる）           // 着く時につぶれ、けった時にのびる                               // 走る時は体を低く平たく
   if (WEAR.pom.suit) suitOver(g, WEAR.pom.suit, cx, by, brx, bry);
   { const gl = g.createRadialGradient(cx - sw * 6, by - bry * .4, 6, cx, by - bry * .3, brx); gl.addColorStop(0, 'rgba(222,182,128,.55)'); gl.addColorStop(1, 'rgba(222,182,128,0)'); g.fillStyle = gl; g.beginPath(); g.ellipse(cx, by - bry * .25, brx * .9, bry * .8, 0, 0, Math.PI * 2); g.fill(); } // 背中のつやも体のくねりで動く
   if (run) { soft(g, cx + sw * 10, by + bry * .1, brx * .5, bry * .45, '#B98E5C', .1 + .05 * Math.abs(sw), 3);            // 足を引く側のわき腹に、毛のしわのかげ
     for (const sd of [-1, 1]) soft(g, cx + sd * brx * .52, by + bry * .5 - upOf(sd) * 5, 20, 14, '#EBCB9C', .32, 3); } // ももの丸みが、足といっしょに上下する
   if (run) { soft(g, cx - lag * 12, by + bry * .45, brx * .42, bry * .3, '#FFF3DE', .22, 4); soft(g, cx + lag * 14, by + bry * .62, brx * .5, bry * .22, '#9A7448', .2, 4); } // おしりの毛が体よりおくれてゆれる（光とかげが逆へずれる）
   if (run) for (const sd of [-1, 1]) { g.save(); g.strokeStyle = 'rgba(255,248,232,.55)'; g.lineWidth = 1.6; g.lineCap = 'round'; for (let i = 0; i < 3; i++) { const y = by - bry * .1 + i * 14, x0 = cx + sd * (brx + 6 + i * 3); g.beginPath(); g.moveTo(x0, y); g.lineTo(x0 + sd * (10 + Math.abs(sw2) * 6), y + 3); g.stroke(); } g.restore(); } // 速さのすじ（体の横の毛が風でなびく）
-  if (run) { g.restore(); feet(true); g.save(); } // けり出した足：体のすその上に重ねる（こちらへ向かってくる足）
+  if (run || (p.air && p.feet < 0)) { g.restore(); feet(true); g.save(); } // [40][41] 跳ぶ時も、けり出した 2 本の足の裏（指を開く）を体のすその上に // けり出した足：体のすその上に重ねる（こちらへ向かってくる足）
   blob(g, cx - lag * 6, by + bry * .62 + sw2 * 1.6, 7.5, 5.5, 0, '#E8CFA8'); blob(g, cx - lag * 6 - 1.5, by + bry * .6 + sw2 * 1.6, 3, 2, 0, 'rgba(255,255,255,.5)');   // 短いしっぽは、おしりと逆へぴこぴこ
   g.restore();
   const hy = by - bry * .55 + (p.slide ? 14 : 0) + (run ? 3 + sw2 * 1.1 : 0);                                           // 走る時は頭を低く前へ。1 歩ごとに小さくうなずく
   if (p.view === 'look') { facePom(g, 156, hy - 24, .98, p.mood); if (p.mood === 'cheer') { fur(g, 150 + 56, hy + 10, 9, 16, -.6, P.a, P.b); blob(g, 150 + 64, hy - 6, 10, 8, -.3, '#F2B8B0'); } return; }
-  if (run) for (const sd of [-1, 1]) { fur(g, hx + sd * 47, hy + 9 + sw2 * sd * 1.2, 13, 11, 0, P.a, P.b);                 // ほお袋のふくらみが頭の横からのぞき、走るとゆれる
+  if (run || p.air) for (const sd of [-1, 1]) { fur(g, hx + sd * 47, hy + 9 + sw2 * sd * 1.2, 13, 11, 0, P.a, P.b); /* [43] 跳んでいる時も、ほお袋とひげが見える */                 // ほお袋のふくらみが頭の横からのぞき、走るとゆれる
     g.save(); g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 1.1; g.lineCap = 'round'; for (const k of [0, 1, 2]) { const a = sd * (.25 + k * .2) + sw2 * .06 * (k - 1); g.beginPath(); g.moveTo(hx + sd * 54, hy + 6 + k * 3); g.lineTo(hx + sd * 54 + Math.sin(a) * 15 * sd * sd + sd * 13, hy + 2 + k * 5 + Math.cos(ph * 2 + k) * 1.2); g.stroke(); } g.restore(); } // ひげの先が頭の横から出て、ふるえる
-  { const er = run ? 13.5 : 16 + p.ear * 2, ey = run ? hy - 21 : hy - 26, rot = run ? .62 : .3 + p.ear * .3, fl = run ? sw2 * .05 : 0;   // 走る時は耳を後ろへ寝かせる（小さく・低く・外へ）。風で少しはためく
+  { const er = run || p.slide ? 13.5 : 16 + p.ear * 2, ey = run || p.slide ? hy - 21 : hy - 26, rot = run || p.slide ? .7 : .3 + p.ear * .3, /* [50] すべる時も耳をぴったり寝かせる */ fl = run ? sw2 * .05 : 0;   // 走る時は耳を後ろへ寝かせる（小さく・低く・外へ）。風で少しはためく
     pomEar(g, hx - (run ? 43 : 40), ey, er, -rot - (run ? fl : p.ear * 0), 1); pomEar(g, hx + (run ? 43 : 40), ey, er, rot - fl, 1); }
   headband(g, hx, hy - 4, 58, 1, run ? ph * 1.6 + 1 : p.tiePh);                                                          // はちまきのたれは、速い足に合わせて速くはためく
   if (WEAR.pom.hat) { const f = pomHatFit(WEAR.pom.hat, 1); wearHat(g, WEAR.pom.hat, hx, hy + f[0] - (p.air ? 2 : 0), 1, f[1], f[2], 'pom', run ? sw * .05 : (p.ear || 0) * .16); } else if (WEAR.pom.suit === 'bee') antennae(g, hx, hy - 24, 1);
