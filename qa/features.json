@@ -970,6 +970,16 @@
       "name": "ホーム画面で顔を切りかえない（点滅に見えた）",
       "file": "src/6_game.js",
       "has": "const renMood = 'open', jillMood = 'open', pomMood = 'open';"
+    },
+    {
+      "name": "CrazyGames ではじめての人は、スタートだけの題名",
+      "file": "src/7_ui.js",
+      "has": "classList.toggle('cg-fresh'"
+    },
+    {
+      "name": "走り始めの45秒はやさしく（BUMP!で続く）",
+      "file": "src/6_game.js",
+      "has": "function softHit()"
     }
   ]
 }
