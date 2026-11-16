@@ -965,6 +965,11 @@
       "name": "道の先が見える試験",
       "file": "qa/run-all.mjs",
       "has": "n: 'viewclear'"
+    },
+    {
+      "name": "ホーム画面で顔を切りかえない（点滅に見えた）",
+      "file": "src/6_game.js",
+      "has": "const renMood = 'open', jillMood = 'open', pomMood = 'open';"
     }
   ]
 }

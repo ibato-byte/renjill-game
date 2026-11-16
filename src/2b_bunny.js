@@ -709,7 +709,7 @@ function charCardFit() { const dpr = Math.min(3, window.devicePixelRatio || 1); 
 function drawCharCard(cv, who, t) {
   const g = cv.getContext('2d') || noCtx(); g.clearRect(0, 0, cv.width, cv.height);
   /* 選んだときに、はねたり顔が切りかわったりしない（2026-11-15：オーナー「チカチカするやつ、いらない」。選んだ印は、わくの色で足りる） */
-  const mood = (t % 3.4) < .14 ? 'blink' : ((t % 9) > 7.4 ? 'happy' : 'open'), hop = 0;
+  const mood = 'open', hop = 0; // 札の絵も顔を切りかえない（2026-11-16 オーナー：「キャラクター選択してる時に点滅するはいらない」。まばたき・にっこりが点滅に見えた）
   const base = bunFrame(who, 'front_' + mood, SV.mugOn);
   const s = cv.width / BS * 1.05 * (who === 'pom' ? 1.25 : 1), bob = Math.sin(t * 2.2) * 2;
   const img = s > 1.15 ? bunHi(who, mood, base, Math.min(2, s)) : base; /* 大きく映すときは、その大きさで描いた絵を使う（小さい絵を引きのばすと、ぼやける） */
