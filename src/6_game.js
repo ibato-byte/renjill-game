@@ -100,7 +100,7 @@ function titleFrame(dt) {
   if (me === 'ren') { P.mood = renMood; F.mood = jillMood; } else if (me === 'jill') { P.mood = jillMood; F.mood = renMood; } else { P.mood = pomMood; F.mood = renMood; }
   /* 2026-11-16 オーナー：「ポムを選んだ時にジルにもスポットが当たる。どのキャラを選んでいるのか直感的に分かりづらい」。
      前は、選んだ子が横や奥にいて、選んでいない子のほうが手前で大きく見える並びがあった。いまは、選んだ子がいつもまん中のいちばん手前、ほかの 2 人は左右の少し奥。
-     明かり（titleLight）も選んだ子だけに当て、ほかの 2 人は少し暗くする */
+     明かり（titleLight）は選んだ子だけに当てる（ほかの子も画面も暗くしない） */
   const wd = W > H * 1.25 && W >= 900, sideL = wd ? 1.6 : 1.3, sideR = wd ? 1.12 : 1.3; // 横長の画面：右の子は札にかくれないよう寄せ、左の子は選んだ子に重ならないよう広げる（本番の大きな画面で、左の子が選んだ子のすぐ後ろに重なっていた）
   const pR = segPos(seg, TITLE_FRONT, 0), pJ = segPos(seg, TITLE_BACK, me === 'jill' ? sideL : -sideR);
   [P.wx, P.wz] = pR; P.wy = pR[2] + (me === 'pom' ? Math.abs(Math.sin(G.t * 5)) * .07 : Math.abs(Math.sin(P.ph)) * .05); [F.wx, F.wz] = pJ; F.wy = pJ[2] + (me === 'ren' ? Math.abs(Math.sin(G.t * 6)) * .03 * ((G.t % 7) > 5.6) : 0);

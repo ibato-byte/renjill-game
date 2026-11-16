@@ -245,7 +245,7 @@ function wingOn(sg) { const inK = k => k === 'room' || k === 'train' || k === 'g
   if (sg === cur) { const nx = G.fork && G.fork.length ? G.fork : [G.segs[G.ci + 1]]; return nx.some(n => n && n.th && !inK(n.th.kind)); }
   return sg === G.segs[G.ci - 1] && G.turnT > .5 && cur && cur.th && !inK(cur.th.kind); }
 let BUBS = [], BUBT = 0; // このコマに出したふきだし（重なり回避）
-/* ホーム画面の第 2 段（2026-11-16）：朝の光。障子ごしの日ざしが左上からさしこみ、光の中をほこりがゆっくり舞う。四すみは少し暗くして、まん中の 3 人に目がいくようにする。
+/* ホーム画面の第 2 段（2026-11-16）：朝の光。障子ごしの日ざしが左上からさしこみ、光の中をほこりがゆっくり舞う。画面を暗くはしない。
    ホーム画面だけ（走っている間は出さない：画面に固定の光の帯は、走ると「斜めの残像」に見えた。2026-11-08）。「動きをひかえめに」の時は、光は止まったまま・ほこりは出さない */
 function titleLight() {
   const calm = !!OPT().calm, t = calm ? 0 : G.t, m = Math.min(W, H), top = H * (W < H * .8 ? .56 : .92); // たて長の画面は、下の札にかかる前で光を消す
@@ -258,10 +258,11 @@ function titleLight() {
       const x = W * (-.05 + u * .75) + ph * top * .5 + Math.sin(t * .5 + i) * m * .012, y = ph * top * .92, tw = .5 + .5 * Math.sin(t * (1.1 + (i % 4) * .3) + i * 1.7), al = tw * .55 * Math.sin(ph * Math.PI);
       if (al < .03) continue; const r = m * (.0028 + (i % 3) * .0012); const dg = ctx.createRadialGradient(x, y, 0, x, y, r * 3); dg.addColorStop(0, `rgba(255,248,225,${al})`); dg.addColorStop(1, 'rgba(255,248,225,0)'); ctx.fillStyle = dg; ctx.fillRect(x - r * 3, y - r * 3, r * 6, r * 6); }
   ctx.restore();
-  /* 選んだ子だけに明かり：足もとに光のたまり、まわり（ほかの 2 人）は少し暗く。だれを選んでいるかが、絵だけで分かるように（2026-11-16） */
+  /* 選んだ子だけに明かり：足もとに光のたまりと、体をつつむやわらかい光。だれを選んでいるかが、絵だけで分かるように（2026-11-16） */
   const sp = spriteAt(G.player.wx, G.player.wy, G.player.wz), cx = sp ? sp.sx : W / 2, fy = sp ? sp.sy : H * .5, k = sp ? sp.k : m * .2, cy = fy - k * .55;
   { ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.translate(cx, fy); ctx.scale(1, .3); const pg = ctx.createRadialGradient(0, 0, 0, 0, 0, k * 1.5); pg.addColorStop(0, 'rgba(255,236,180,.72)'); pg.addColorStop(.6, 'rgba(255,236,180,.24)'); pg.addColorStop(1, 'rgba(255,236,180,0)'); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(0, 0, k * 1.5, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
-  { ctx.save(); ctx.translate(cx, cy); ctx.scale(.6, 1); const vg = ctx.createRadialGradient(0, 0, k * .8, 0, 0, k * 2.3); vg.addColorStop(0, 'rgba(34,22,12,0)'); vg.addColorStop(.5, 'rgba(34,22,12,.36)'); vg.addColorStop(1, 'rgba(34,22,12,.48)'); ctx.fillStyle = vg; ctx.fillRect(-(W + H) * 3, -(W + H) * 3, (W + H) * 6, (W + H) * 6); ctx.restore(); } // 横に早く暗くなるだ円（となりの子は、すぐ横にいても暗くなる。qa/homelight.js が 2 画面 × 3 人で確かめる）
+  { ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.translate(cx, cy); ctx.scale(.62, 1); const hg = ctx.createRadialGradient(0, 0, 0, 0, 0, k * 1.25); hg.addColorStop(0, 'rgba(255,234,190,.24)'); hg.addColorStop(.55, 'rgba(255,234,190,.11)'); hg.addColorStop(1, 'rgba(255,234,190,0)'); ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, k * 1.25, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+  // 選んだ子だけを、やわらかい光でつつむ（横にせまいだ円なので、となりの子には届かない）。画面全体やほかの子は暗くしない（オーナー 2026-11-16：「ホーム画面全体を暗くしなくていい」）。qa/homelight.js が 3 画面 × 3 人で確かめる
 }
 function render() {
   const seg = G.segs[G.ci] || G.segs[0]; if (!seg) return;
