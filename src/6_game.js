@@ -93,10 +93,9 @@ function titleFrame(dt) {
   const P = G.player, F = G.follow;
   P.who = me; F.who = other; F.off = false; F.show = true; P.big = me === 'pom' ? 1.3 : 1; P.view = F.view = 'front'; P.look = F.look = 0; // on the title, close to the camera: the smaller size. 2026-11-15：前を向かせる命令がこの説明書きの中に入っていて動かず、遊んだあとタイトルに戻るとレン・ジルが後ろ姿のまま（ポムだけ前向き）になっていた
   P.ph += dt * 3; F.ph += dt * 2;
-  // Ren is still half asleep (a yawn now and then); Jill is wide awake and keeps glancing at her watch
-  const tt = G.t % 9, renMood = tt < 6 ? ((G.t % 3.1) < .14 ? 'blink' : 'open') : tt < 7.2 ? 'yawn' : 'sleepy';
-  const jillMood = ((G.t + 1.7) % 4.6) < .14 ? 'blink' : (G.t % 7) > 5.6 ? 'happy' : 'open';
-  const pomMood = (G.t % 5) < .16 ? 'blink' : (G.t % 11) > 9.5 ? 'puff' : 'open';
+  /* ホーム画面では顔を切りかえない（まばたき・あくび・にっこりをしない）。2026-11-16 オーナー：「キャラクター選択してる時に点滅するはいらない」。
+     顔が目を開けた顔 → 閉じた顔 → 笑った顔と入れかわるのが、点滅に見えた。動きは、体の小さな上下だけ（qa/titlestill.js が見張る） */
+  const renMood = 'open', jillMood = 'open', pomMood = 'open';
   if (me === 'ren') { P.mood = renMood; F.mood = jillMood; } else if (me === 'jill') { P.mood = jillMood; F.mood = renMood; } else { P.mood = pomMood; F.mood = renMood; }
   /* 2026-11-16 オーナー：「ポムを選んだ時にジルにもスポットが当たる。どのキャラを選んでいるのか直感的に分かりづらい」。
      前は、選んだ子が横や奥にいて、選んでいない子のほうが手前で大きく見える並びがあった。いまは、選んだ子がいつもまん中のいちばん手前、ほかの 2 人は左右の少し奥。
