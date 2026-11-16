@@ -169,7 +169,19 @@ function hit(o) {
   if (G.tut && G.tut.some(x => !x.done) && curSeg() === G.tutSeg) { smash(o); return; } // the first lesson never kills
   if (G.pow.dash > 0 || G.fever > 0 || G.invT > 0 || G.pow.fly > 0) { smash(o); return; }
   if (G.shield) { G.bumpN = (G.bumpN || 0) + 1; G.shield = 0; smash(o); G.invT = 1.2; SFX.bump(); banner('SAVED!', t('saved'), 'good'); return; }
+  if (softHit()) { smash(o); return; }
   die('obstacle');
+}
+// 走り始めの 45 秒は、正面でぶつかっても・曲がり損ねても「BUMP!」で続く（追いかけられている間にもう 1 回で終わり）。
+// 2026-11-16 オーナーの決定：CrazyGames の試験公開で、慣れていない人が 2 回目から 10〜15 秒で終わり、10 分まで遊んだ人が 2.4% だった。
+const SOFT_T = 45;
+function softHit() {
+  if (G.t > SOFT_T || G.rush || G.practice || (G.chaseT > 0 && !G.chaseIntro)) return false;
+  G.bumpN = (G.bumpN || 0) + 1; G.bumps = (G.bumps || 0) + 1; G.stats.soft = (G.stats.soft || 0) + 1;
+  SFX.bump(); buzz(60); G.flashT = .6; G.combo = 0; G.stats.cleanCur = 0; G.invT = 1.2; G.hitStop = .08; G.shake = .7;
+  G.chaseT = 5.5; G.chaseIntro = 0; bannerNow('BUMP!', t('bump1', 5), 'bad'); pomSay(t('pomDonmai'), 'worry', 1.3);
+  { const seg = curSeg(); for (const o of seg.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 14) o.dead = .001; } // 立て直す間：すぐ先の障害物はどける
+  return true;
 }
 // skill chain: close dodges, jump-overs and slide-unders within a second of each other
 function nice(kind) {
@@ -590,7 +602,7 @@ function update(dt) {
   // invincible states turn on their own, but only at the very last moment, so a swipe always wins
   if (G.s > seg.len - .6 && !G.turnQueued && (G.pow.dash > 0 || G.fever > 0 || G.invT > 1.6 || flying || seg.fork || (G.tut && seg === G.tutSeg))) { G.turnQueued = seg.fork ? (G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || -1)) : seg.turn; G.turnAuto = 1; }
   if (G.s >= seg.len && G.turnQueued) doTurn();
-  else if (G.s > seg.len + HW - .8) { die('wall'); return; }
+  else if (G.s > seg.len + HW - .8) { if (!softHit()) { die('wall'); return; } G.turnQueued = seg.fork ? (G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || -1)) : seg.turn; G.turnAuto = 1; try { doTurn(); } catch (e) { reportErr(e); } return; } // 走り始めは曲がり損ねても、ぶつかって曲がる
   const cue = $('#turnCue');
   { // fork cards: both destinations on screen well before the junction, lit up when the swipe window opens
     const fc = $('#forkCards'), showF = seg.fork && seg.forkLbl && G.s > seg.len - 42 && G.s < seg.len;

@@ -22,6 +22,7 @@ function applyLang() {
 // the character cards are narrow: put each part ("課長" / "ホーランドロップ") on its own line, never split a word
 function cardTxt(sel, txt) { const el = $(sel); el.textContent = ''; String(txt).split(/\s*[・：:·]\s*/).forEach((p, i) => { if (i) el.appendChild(document.createElement('br')); const s = document.createElement('span'); s.textContent = p; el.appendChild(s); }); }
 function refreshTitle() {
+  document.documentElement.classList.toggle('cg-fresh', HOST_PORTAL === 'crazygames' && !(SV.runs > 0)); // CrazyGames ではじめての人には、スタートだけの題名（head.html）
   { const lt = $('#tLangTop'); if (lt) lt.textContent = LANG_NAME[LANG]; const bt = $('#btnLangTop'); if (bt) bt.hidden = !$('#sPanel').hidden; }
   refreshNameBtn();
   { const lv = plantLv(); if (lv > (SV.plantLv || 0)) { SV.plantLv = lv; save(); setTimeout(() => toastTitle(t('plantUp')), 1600); } } // 観葉植物が育った（B-12）
