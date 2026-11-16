@@ -223,7 +223,7 @@ function buildStreet(seg, s0, lEnd, rEnd) {
     const mid = (seg.hp.a + seg.hp.b) / 2, a0 = mid - 4, a1 = mid + 4;
     seg.spr.push({ lat: 0, s: a0, y: 0, w: (HW + 1.2) * 2, h: 7.6, img: artKey('overpass', 'rail'), far: 1, keep: 1 });
     seg.props.push(mkProp(seg, [{ l0: -HW - 8, l1: HW + 8, s0: a0 + .05, s1: a1, y0: 4.6, y1: 5.6, c: '#8E949A' }], { big: 1 })); // the deck's underside, so it reads as a bridge from below too
-    seg.movers = seg.movers || []; seg.movers.push({ ds: rand(-30, 30), v: -22, cross: 1, bx: [{ l0: -40, l1: -10, s0: a0 + 1, s1: a1 - 1, y0: 6, y1: 9, c: '#C9CDD2', cc: C('#C9CDD2') }, { l0: -40, l1: -10, s0: a0 + .98, s1: a0 + 1, y0: 7, y1: 8.2, c: '#46525E', cc: C('#46525E'), glow: 2 }, { l0: -40, l1: -10, s0: a0 + .97, s1: a0 + .99, y0: 6.4, y1: 6.7, c: '#80C241', cc: C('#80C241') }] });
+    seg.movers = seg.movers || []; seg.movers.push({ ds: rand(-30, 30), v: -22, cross: 1, bx: trainCars({ cross: 1, l0: -40, l1: -10, s0: a0 + 1, s1: a1 - 1, y0: 6.2, lc: th.lc || '#80C241' }) });
   }
   if (th.overpass) { const a0 = L * .3, a1 = Math.min(L - HW - 6, a0 + 34); // an expressway passing overhead
     seg.spr.push({ lat: 0, s: a0, y: 0, w: (HW + 6) * 2, h: 14.6, img: artKey('overpass', 'road'), far: 1, keep: 1 });
@@ -241,7 +241,7 @@ function buildFacades(seg, sd, s0, end) {
   if (style === 'viaduct') { // elevated railway: arches below, a train going by on top
     for (let a = s0, k = 0; a < end - .01; a += 3, k++) { const b = Math.min(a + 3, end); addWallQuad(seg, sd, a, b, 0, 8, C('#8E8A82'), { pat: 'fac', st: 'viaduct', h: 8, w: b - a, seed: k, k }); }
     seg.movers = seg.movers || [];
-    seg.movers.push({ ds: rand(s0, end - 40), v: -16, r0: s0, r1: end, bx: [{ l0: sd * (HW + .4), l1: sd * (HW + 3.4), s0: 0, s1: 40, y0: 8.3, y1: 11.4, c: '#C9CDD2', cc: C('#C9CDD2') }, { l0: sd * (HW + .38), l1: sd * (HW + .4), s0: 0, s1: 40, y0: 9.0, y1: 9.3, c: '#80C241', cc: C('#80C241') }, { l0: sd * (HW + .36), l1: sd * (HW + .38), s0: 1, s1: 39, y0: 9.6, y1: 10.6, c: '#46525E', cc: C('#46525E'), glow: 2 }] });
+    seg.movers.push({ ds: rand(s0, end - 40), v: -16, r0: s0, r1: end, bx: trainCars({ side: sd, near: HW + .4, far: HW + 3.4, y0: 8.3, len: 40, lc: th.lc || '#80C241' }) });
     return;
   }
   const pal = style === 'glass' && fac.pal2 ? fac.pal2 : fac.pal;
@@ -376,6 +376,37 @@ function mkProp(seg, boxes, o) {
   const lamp = bx.find(b => b.glow && b.y1 > 1.2 && (b.l1 - b.l0) < 1.2);
   return { bx, s0, s1, l0, l1, prop: 1, big: o.big, spr: o.spr || [], lamp };
 }
+/* 走る電車（高架の上・道の上の橋）：2026-11-16 オーナー「ただの図形の組み合わせ」→ 本物の通勤電車のつくりで組み立てる。
+   1 両 20m を 5m ずつ 4 つに分け、横の面に絵（4e_art.js の paintFace 'tc…'：ステンレスの車体・窓・両開きのドア・帯・行き先の表示）を貼る。
+   屋根（丸みの段・冷房の箱・パンタグラフ）、床下の機器、台車と車輪、車両のあいだのほろ、先頭の運転台の顔。夜は窓に明かり。 docs/TRAIN-2026-11-16.md */
+function trainCars(o) {
+  const out = [], CAR = 20, H = 3.05, y0 = o.y0, lc = o.lc, n = o.cross ? 1.5 : Math.round((o.len || 40) / CAR);
+  // put a box along the train: a = from the head (m), b = to (m), across: n0..n1 (m from the side that faces the street), height y0..y1
+  const put = (a, b, n0, n1, ya, yb, c, extra) => {
+    let box;
+    if (o.cross) box = { l0: o.l0 + a, l1: o.l0 + b, s0: o.s0 + n0, s1: o.s0 + n1, y0: ya, y1: yb };
+    else { const sd = o.side, p0 = sd * (o.near + n0), p1 = sd * (o.near + n1); box = { l0: Math.min(p0, p1), l1: Math.max(p0, p1), s0: a, s1: b, y0: ya, y1: yb, faceSide: sd < 0 ? 'R' : 'L' }; }   // 道に向いた面だけに絵
+    out.push(Object.assign(box, { c, cc: C(c) }, extra || {})); };
+  const W = o.cross ? (o.s1 - o.s0) : (o.far - o.near), FW = 600, FH = 366;
+  for (let k = 0; k * CAR < n * CAR - .1; k++) {
+    const c0 = k * CAR, last = (k + 1) * CAR > n * CAR + .1;
+    for (let q = 0; q < 4; q++) { const a = c0 + q * 5 + (q === 0 ? .2 : 0), b = c0 + (q + 1) * 5 - (q === 3 ? .2 : 0); if (o.cross && a > (o.l1 - o.l0) - .1) break;
+      const part = k === 0 && q === 0 ? 'head' : q === 1 && k % 2 === 0 ? 'led' : 'mid', key = 'tc' + part + lc;
+      put(a, Math.min(b, o.cross ? o.l1 - o.l0 : b), 0, W, y0, y0 + H, '#C9CDD2', o.cross ? { face: key, faceN: key + 'N', faceW: FW, faceH: FH, faceFront: 1, noEdge: 1 } : { face: key, faceN: key + 'N', faceW: FW, faceH: FH, noEdge: 1 }); }
+    if (o.cross && c0 + CAR > o.l1 - o.l0) { /* the part of a car still beyond the bridge */ }
+    const e = Math.min(c0 + CAR, o.cross ? o.l1 - o.l0 : 1e9);
+    put(c0 + .3, e - .3, .12, W - .12, y0 + H, y0 + H + .18, '#A9B0B7', { noEdge: 1 });                        // 屋根の丸みの段
+    put(c0 + 3.2, c0 + 6.4, .55, W - .55, y0 + H + .18, y0 + H + .55, '#B9C0C7');                              // 冷房の箱（前）
+    if (e > c0 + 16.6) put(c0 + 13.6, c0 + 16.8, .55, W - .55, y0 + H + .18, y0 + H + .55, '#B9C0C7');          // 冷房の箱（後ろ）
+    if (k % 2 === 1 && e > c0 + 11) { put(c0 + 9, c0 + 9.12, .8, W - .8, y0 + H + .18, y0 + H + 1.25, '#3A3F45'); put(c0 + 9, c0 + 11, .9, W - .9, y0 + H + 1.2, y0 + H + 1.28, '#3A3F45'); } // パンタグラフ
+    put(c0 + 4.5, Math.min(e, c0 + 15.5), .35, W - .35, y0 - .55, y0, '#3A3F45', { noEdge: 1 });               // 床下の機器
+    for (const t of [1.2, 16.4]) if (e > c0 + t + 2.4) { put(c0 + t, c0 + t + 2.4, .05, W - .05, y0 - .8, y0 - .05, '#2B2E33');   // 台車
+      for (const w of [.35, 1.65]) put(c0 + t + w, c0 + t + w + .4, .1, W - .1, y0 - .95, y0 - .5, '#1E2024', { noEdge: 1 }); }  // 車輪
+    if (!last && !(o.cross && c0 + CAR > o.l1 - o.l0)) put(c0 + CAR - .2, c0 + CAR + .2, .4, W - .4, y0 + .2, y0 + H - .2, '#2B2E33', { noEdge: 1 });   // ほろ
+  }
+  if (!o.cross) out.push(Object.assign({}, out[0], { s0: out[0].s0 - .08, s1: out[0].s0 + .02, face: 'tccab' + lc, faceN: 'tccab' + lc + 'N', faceW: 300, faceH: 366, faceFront: 1 }));   // 先頭の顔
+  return out;
+}
 function B(L, s, w, d, y0, y1, c, glow, pat) { return { l0: L - w / 2, l1: L + w / 2, s0: s, s1: s + d, y0, y1, c, glow, pat }; }
 // Each builder gets (sd = -1|1, s) and returns {bx, spr, ln, w}: w = length used along s
 const PROPS = {
@@ -423,7 +454,13 @@ const PROPS = {
   rickshawP: (sd, s) => ({ w: 2.6, bx: [B(sd * 3.6, s + .4, .1, 1.0, 0, 1.0, '#2B2B2B'), B(sd * 4.2, s + .4, .1, 1.0, 0, 1.0, '#2B2B2B'), B(sd * 3.9, s + .3, 1.0, 1.0, .7, 1.05, '#B5302A'), B(sd * 3.9, s + .9, 1.0, .2, 1.05, 1.7, '#2B2B2B')] }),
   kiosk: (sd, s) => ({ w: 3, bx: [B(sd * 4.0, s, 1.0, 2.6, 0, 2.2, '#4E77A0'), B(sd * 3.49, s + .2, .02, 2.2, .9, 1.6, '#FBF6EE', 1)] }),
   pillarS: (sd, s) => ({ w: 6, bx: [B(sd * 3.6, s, .5, .5, 0, 3.6, '#D6D6D0'), B(sd * 3.34, s + .05, .02, .4, 1.5, 2.3, '#2F5579')] }),
-  seat: (sd, s) => ({ w: 3.4, bx: [B(sd * 4.0, s, 1.0, 3.2, .45, .62, '#2F6E8E'), B(sd * 4.0, s, 1.0, 3.2, 0, .45, '#9AA9B6'), B(sd * 4.45, s, .2, 3.2, .62, 1.2, '#2F6E8E'), B(sd * 3.5, s, .08, .08, 0, 2.6, '#C9CDD2'), B(sd * 3.5, s + 3.12, .08, .08, 0, 2.6, '#C9CDD2')] }),
+  /* 電車のロングシート（2026-11-16）：7 人がけの座面と背（1 人ずつのふくらみ）・下の暖房の格子・両はしの仕切り板・手すりの柱・網棚。5 つに 1 つは色のちがう優先席 */
+  seat: (sd, s) => { const pr = Math.random() < .2, c = pr ? '#8E5A62' : '#2F6E8E', t = pr ? 'P' : '';
+    return { w: 3.4, bx: [Object.assign(B(sd * 4.0, s, 1.0, 3.2, .42, .6, c), { face: 'tsC' + t, faceW: 300, faceH: 40 }), Object.assign(B(sd * 4.05, s + .05, .9, 3.1, 0, .42, '#8E98A2'), { face: 'tsbase', faceW: 300, faceH: 50 }),
+      Object.assign(B(sd * 4.45, s, .2, 3.2, .6, 1.18, c), { face: 'tsB' + t, faceW: 300, faceH: 70 }),
+      Object.assign(B(sd * 3.98, s - .07, 1.04, .06, .42, 1.3, '#D9DEE2'), { face: 'tspart', faceW: 160, faceH: 140, faceFront: 1, noEdge: 1 }), Object.assign(B(sd * 3.98, s + 3.21, 1.04, .06, .42, 1.3, '#D9DEE2'), { face: 'tspart', faceW: 160, faceH: 140, faceFront: 1, noEdge: 1 }),
+      B(sd * 3.47, s - .04, .07, .07, 0, 2.6, '#D9DEE2'), B(sd * 3.47, s + 3.2, .07, .07, 0, 2.6, '#D9DEE2'),
+      B(sd * 4.25, s, .5, 3.2, 1.92, 1.95, '#B9C0C7'), B(sd * 4.0, s, .04, 3.2, 1.9, 1.96, '#D9DEE2')] }; },
   nakazuri: (sd, s) => ({ w: 3.2, spr: [{ lat: 0, s: s + .4, y: 2.28, h: .56, w: 1.0, img: artKey('ad', ((Math.random() * 10) | 0) + adSeason()), keep: 1 }, { lat: 0, s: s + 1.6, y: 2.28, h: .56, w: 1.0, img: artKey('ad', ((Math.random() * 10) | 0) + adSeason()), keep: 1 }], ln: [{ a: [s + .4, 0, 2.62], b: [s + .4, 0, 2.86], c: '#9AA0A6', w: .03 }, { a: [s + 1.6, 0, 2.62], b: [s + 1.6, 0, 2.86], c: '#9AA0A6', w: .03 }] }),
   strapS: (sd, s) => ({ w: 3, ln: [{ a: [s, sd * 3.0, 2.55], b: [s + 3, sd * 3.0, 2.55], c: '#C9CDD2', w: .05 }], spr: [0, 1, 2].map(k => ({ lat: sd * 3.0, s: s + .5 + k, y: 2.05, h: .5, w: .22, img: 'strap' })) }),
   desk: (sd, s) => ({ w: 2.4, bx: [B(sd * 3.8, s, 1.4, 1.6, .7, .76, '#E9E4DA'), B(sd * 3.8, s + .1, 1.3, .08, 0, .7, '#9AA9B6'), B(sd * 3.8, s + 1.42, 1.3, .08, 0, .7, '#9AA9B6'), B(sd * 4.2, s + .4, .1, .8, .76, 1.28, '#1C1919'), B(sd * 4.14, s + .45, .02, .7, .82, 1.24, '#6FC3E8', 1), B(sd * 3.0, s + .5, .6, .6, .4, .52, '#3B4A5A'), B(sd * 2.72, s + .5, .1, .6, .52, 1.0, '#3B4A5A')] }),
@@ -453,7 +490,7 @@ const PROPS = {
 };
 // which box of each wall piece carries a painted front: [box index, painting, texture width, height]
 const FACE_OF = { tansu: [0, 'tansu', 160, 200], shelf: [0, 'shelf', 220, 220], sofa: [0, 'sofa', 280, 90], tvstand: [0, 'tv', 220, 60], counter: [0, 'counter', 300, 90], fridge: [0, 'fridge', 120, 220], rack: [0, 'rack', 140, 170],
-  getabako: [0, 'getabako', 260, 100], cabinet: [0, 'cabinet', 160, 200], sofaO: [0, 'sofaO', 240, 70], kiosk: [0, 'kiosk', 260, 220], seat: [1, 'seat', 300, 60], hedge: [1, 'hedge', 300, 60] , kuroita: [0, 'kuroita', 600, 430], bamboo: [0, 'bamboo', 600, 260], gateS: [0, 'gateS', 220, 210] };
+  getabako: [0, 'getabako', 260, 100], cabinet: [0, 'cabinet', 160, 200], sofaO: [0, 'sofaO', 240, 70], kiosk: [0, 'kiosk', 260, 220], hedge: [1, 'hedge', 300, 60] , kuroita: [0, 'kuroita', 600, 430], bamboo: [0, 'bamboo', 600, 260], gateS: [0, 'gateS', 220, 210] };
 // passers-by on the pavements: a few people walking either way, each a two-frame painted sprite
 function buildWalkers(seg) {
   const th = seg.th; if (th.kind !== 'street' || th.noWalk) return; seg.walkers = [];

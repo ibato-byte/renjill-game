@@ -437,7 +437,7 @@ let perfAcc = 0, perfN = 0, lowQ = 0, FT_AVG = 0, FT_DEBT = 0;
 // the loop must never die: an error in one frame is reported once and the next frame goes on
 let FRAME_ERRS = 0, FRAME_BAD = 0;
 function frame(now) {
-  try { frameBody(now); FRAME_BAD = 0; } catch (e) { FRAME_ERRS++; window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (FRAME_ERRS < 4) console.error('frame error', e); try { for (let i = 0; i < 12; i++) ctx.restore(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none'; } catch (e2) { } frameTrouble(); }
+  try { frameBody(now); FRAME_BAD = 0; } catch (e) { FRAME_ERRS++; window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); window.__frameErrAt = String(e && e.stack || '').split('\n').slice(1, 3).map(x => x.trim().replace(/^at /, '').replace(/\(?(?:https?|file):\/\/\S*\/([^/\s)]*:\d+:\d+)\)?/, '$1').replace(/\(eval at [^)]*\)\S*\)?,?\s*/, '')).join(' < '); if (FRAME_ERRS < 4) console.error('frame error', e); try { for (let i = 0; i < 12; i++) ctx.restore(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none'; } catch (e2) { } frameTrouble(); }
   requestAnimationFrame(frame);
 }
 // the picture breaks off frame after frame (on a phone: usually out of picture memory): free the kept pictures, then draw more simply;
@@ -446,7 +446,7 @@ function frameTrouble() {
   FRAME_BAD++;
   if (FRAME_BAD === 3 || FRAME_BAD % 60 === 0) { try { freePictures(); sprTrim(0); } catch (e) { } }
   if (FRAME_BAD === 30 && !lowQ) { lowQ = 1; DPR = 1; try { resizeKeep(); } catch (e) { } }
-  if (FRAME_BAD >= 150 && G.mode === 'play') { FRAME_BAD = 0; errLog('draw trouble ' + (G.drawRetry || 0)); G.drawRetry = (G.drawRetry || 0) + 1; try { freePictures(); sprTrim(0); } catch (e) { } lowQ = 2; DPR = 1; try { resizeKeep(); } catch (e) { } if (G.drawRetry % 3 === 0) { try { picRepairAll(); } catch (e) { } } if (G.drawRetry < 8) return; finishRun('draw'); } // 絵が描けないときも、軽くして手放して描き直し、何度もやり直す（2026-11-14「一区切りが起きないように」：すぐ終わらせない）
+  if (FRAME_BAD >= 150 && G.mode === 'play') { FRAME_BAD = 0; errLog('draw trouble ' + (G.drawRetry || 0) + ': ' + (window.__frameErrMsg || '?') + ' @ ' + (window.__frameErrAt || '?')); G.drawRetry = (G.drawRetry || 0) + 1; try { freePictures(); sprTrim(0); } catch (e) { } lowQ = 2; DPR = 1; try { resizeKeep(); } catch (e) { } if (G.drawRetry % 3 === 0) { try { picRepairAll(); } catch (e) { } } if (G.drawRetry < 8) return; finishRun('draw'); } // 絵が描けないときも、軽くして手放して描き直し、何度もやり直す（2026-11-14「一区切りが起きないように」：すぐ終わらせない）
 }
 function frameBody(now) {
   const raw = (now - last) / 1000; let dt = Math.min(.05, Math.max(0, raw)); last = now;

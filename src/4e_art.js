@@ -673,7 +673,54 @@ const PROP_ART = {
 
 /* ---- painted fronts for furniture that stands against a wall (the side you see from the corridor) ---- */
 
+/* 走る電車の横の面（5m ぶん）と先頭の顔（2026-11-16）。kind：'tc' + head/led/mid/cab + 帯の色 + 夜なら 'N' */
+function paintTrainSide(g, W, H, kind) {
+  const night = kind.endsWith('N'), part = kind.slice(2, kind.indexOf('#')), lc = kind.slice(kind.indexOf('#'), kind.indexOf('#') + 7);
+  // ステンレスの車体：上は空を映して明るく、下へ少し暗く。細い横すじ（ヘアライン）
+  g.fillStyle = vgrad(g, 0, H, [[0, '#E3E7EB'], [.45, '#CDD3D9'], [.8, '#BCC3CA'], [1, '#9FA7AF']]); g.fillRect(0, 0, W, H);
+  g.globalAlpha = .12; for (let y = 4; y < H; y += 5) { g.fillStyle = y % 10 ? '#FFFFFF' : '#8A939C'; g.fillRect(0, y, W, 1); } g.globalAlpha = 1;
+  if (part === 'cab') { // 先頭：大きな前の窓・行き先・前照灯・帯・連結器のまわり
+    g.fillStyle = vgrad(g, 0, H, [[0, '#E9EDF0'], [1, '#B4BCC4']]); rrect(g, 0, 0, W, H, 18); g.fill();
+    g.fillStyle = '#1F252C'; rrect(g, W * .08, H * .12, W * .84, H * .4, 14); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.beginPath(); g.moveTo(W * .14, H * .5); g.lineTo(W * .42, H * .14); g.lineTo(W * .55, H * .14); g.lineTo(W * .27, H * .5); g.fill();
+    g.fillStyle = '#111'; g.fillRect(W * .3, H * .15, W * .4, H * .08); g.fillStyle = '#FFB23C'; g.font = `700 ${Math.round(H * .055)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('各駅停車', W * .5, H * .19);
+    g.fillStyle = lc; g.fillRect(0, H * .55, W, H * .09);
+    for (const x of [.2, .8]) { g.fillStyle = night ? '#FFF8D8' : '#F2F4F6'; g.beginPath(); g.ellipse(W * x, H * .72, W * .07, H * .035, 0, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#5E6A76'; g.lineWidth = 2; g.stroke(); }
+    g.fillStyle = '#3A3F45'; g.fillRect(W * .4, H * .86, W * .2, H * .14); g.fillStyle = '#2B2E33'; g.fillRect(0, H * .93, W, H * .07);
+    return; }
+  const win = (x, w) => { // 窓：黒い枠・ガラス（昼は空と映りこみ、夜は車内の明かりとつり革のかげ）
+    const y = H * .2, h = H * .4; g.fillStyle = '#4A525A'; rrect(g, x - 3, y - 3, w + 6, h + 6, 9); g.fill();
+    if (night) { g.fillStyle = vgrad(g, y, y + h, [[0, '#FFF3CF'], [1, '#F2D9A0']]); rrect(g, x, y, w, h, 7); g.fill(); g.fillStyle = 'rgba(70,60,50,.45)';
+      for (let k = 0; k < 4; k++) { const sx = x + w * (.12 + k * .25); g.fillRect(sx, y, 2, h * .2); g.beginPath(); g.arc(sx + 1, y + h * .24, 5, 0, Math.PI * 2); g.fill(); } }
+    else { g.fillStyle = vgrad(g, y, y + h, [[0, '#6F8597'], [.55, '#3E4E5C'], [1, '#2C3843']]); rrect(g, x, y, w, h, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.22)'; g.beginPath(); g.moveTo(x + w * .1, y + h); g.lineTo(x + w * .45, y); g.lineTo(x + w * .62, y); g.lineTo(x + w * .27, y + h); g.fill(); }
+    g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x + w / 2 - 1, y, 2, h); };
+  const door = (x, w) => { // 両開きのドア：すき間・ゴムのふち・細長い窓・ドアの帯
+    g.fillStyle = '#2B2E33'; g.fillRect(x - 4, H * .1, w + 8, H * .82);
+    for (const k of [0, 1]) { const dx = x + k * (w / 2 + 1), dw = w / 2 - 1; g.fillStyle = vgrad(g, 0, H, [[0, '#D6DBE0'], [1, '#AEB6BE']]); g.fillRect(dx, H * .11, dw, H * .8);
+      g.fillStyle = lc; g.fillRect(dx, H * .11, dw, H * .05); g.fillRect(dx, H * .62, dw, H * .07);
+      g.fillStyle = night ? '#F7E6B6' : '#34424F'; rrect(g, dx + dw * .2, H * .2, dw * .6, H * .36, 6); g.fill();
+      if (!night) { g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(dx + dw * .24, H * .22, dw * .12, H * .32); } }
+    g.fillStyle = '#1E2024'; g.fillRect(x + w / 2 - 1, H * .11, 2, H * .8); };
+  // 窓の下の帯（うぐいす色）と、屋根のふちの細い帯
+  g.fillStyle = lc; g.fillRect(0, H * .66, W, H * .07); g.fillRect(0, H * .03, W, H * .03);
+  const u = W / 5; // 5m: 窓 1.6m・ドア 1.3m・窓 1.6m（両はしに柱）
+  win(u * .25, u * 1.55); door(u * 1.95, u * 1.3); win(u * 3.45, u * 1.4);
+  if (part === 'head') { g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(0, 0, 6, H); }
+  if (part === 'led') { g.fillStyle = '#111'; g.fillRect(u * 2.05, H * .02, u * 1.1, H * .07); g.fillStyle = '#FFB23C'; g.font = `700 ${Math.round(H * .045)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('各駅停車', u * 2.6, H * .056); }
+  g.fillStyle = vgrad(g, H * .9, H, [[0, '#7E868E'], [1, '#4A5057']]); g.fillRect(0, H * .9, W, H * .1); // すそ
+  g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(0, H * .9, W, 1);
+}
 function paintFace(kind, W, H) {
+  if (kind.startsWith('tc')) return artCanvas('face|' + kind, W, H, (g) => paintTrainSide(g, W, H, kind));
+  if (kind.startsWith('ts')) return artCanvas('face|' + kind, W, H, (g) => { // 電車の座席：座面・背は 7 人ぶんのふくらみと縫い目、下は暖房の格子
+    const pr = kind.endsWith('P'), c0 = pr ? '#A96E76' : '#3A7FA0', c1 = pr ? '#7A4A52' : '#215A78';
+    if (kind === 'tspart') { g.fillStyle = vgrad(g, 0, H, [[0, '#EEF1F3'], [1, '#C3CAD1']]); rrect(g, 0, 0, W, H, 14); g.fill(); g.fillStyle = 'rgba(200,215,225,.75)'; rrect(g, W * .1, H * .08, W * .8, H * .6, 10); g.fill(); // 座席のはしの仕切り板：ステンレスの枠と、すりガラス
+      g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(W * .16, H * .12, W * .1, H * .5); g.strokeStyle = 'rgba(90,100,110,.6)'; g.lineWidth = 3; rrect(g, 1.5, 1.5, W - 3, H - 3, 13); g.stroke(); return; }
+    if (kind === 'tsbase') { g.fillStyle = vgrad(g, 0, H, [[0, '#9AA4AD'], [1, '#7E8892']]); g.fillRect(0, 0, W, H); g.fillStyle = 'rgba(40,48,56,.55)'; for (let x = 8; x < W - 8; x += 7) g.fillRect(x, H * .3, 3, H * .4); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, 0, W, 3); return; }
+    g.fillStyle = vgrad(g, 0, H, [[0, c0], [1, c1]]); g.fillRect(0, 0, W, H);
+    for (let k = 0; k < 7; k++) { const x = W * (.005 + k * .142); g.fillStyle = vgrad(g, 0, H, [[0, 'rgba(255,255,255,.16)'], [.5, 'rgba(255,255,255,.04)'], [1, 'rgba(0,0,0,.12)']]); rrect(g, x + 2, H * .08, W * .136, H * .84, Math.min(10, H * .3)); g.fill();
+      g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(x + W * .139, H * .12, 2, H * .76); }
+    g.globalAlpha = .08; for (let y = 2; y < H; y += 3) { g.fillStyle = y % 6 ? '#FFFFFF' : '#000000'; g.fillRect(0, y, W, 1); } g.globalAlpha = 1; });
   return artCanvas('face|' + kind, W, H, (g) => {
     const knob = (x, y, r) => { g.fillStyle = '#C9962F'; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(255,255,255,.5)'; g.beginPath(); g.arc(x - r * .3, y - r * .3, r * .35, 0, Math.PI * 2); g.fill(); };
     const panel = (x, y, w, h, c) => { g.fillStyle = vgrad(g, y, y + h, [[0, shadeHex(c, 1.12)], [1, shadeHex(c, .86)]]); g.fillRect(x, y, w, h); g.strokeStyle = 'rgba(0,0,0,.28)'; g.lineWidth = 2; g.strokeRect(x + 1, y + 1, w - 2, h - 2); g.strokeStyle = 'rgba(255,255,255,.18)'; g.beginPath(); g.moveTo(x + 2, y + 2); g.lineTo(x + w - 2, y + 2); g.stroke(); };

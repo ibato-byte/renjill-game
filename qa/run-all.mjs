@@ -111,6 +111,7 @@ const T = [
   { n: 'jumppose', why: 'ジャンプの絵が のぼり → くだり → 走る の順に変わる・3 匹とも落ちてくる絵がある（2026-11-15）', ok: has('JUMPPOSE OK'), timeout: 90 },
   { n: 'memlong', why: '長く走っても絵のメモリが増え続けない（8日目に「ここで一区切り」で終わった報告）・また来た場所の絵は描き直される', ok: has('MEM LONG OK'), timeout: 200 },
   { n: 'keeprun', why: '「ここで一区切り」で勝手に終わらない（直せないときはほかの道から同じ時刻で続ける・死んだのに画面が出ないときはふつうの画面）', ok: has('KEEP RUN OK'), timeout: 120 },
+  { n: 'drawlog', why: '絵が描けない時、エラーの記録に何がどこでこわれたかを残す（走りは続く）', ok: has('DRAW LOG OK'), timeout: 120 },
   { n: 'viewclear', why: '道の先が見える（帯・おしごとのカード・ナイスの文字が道の先にかからない、8つの画面の大きさ。スマホ縦長は頭の上に道が見える。鳥居のトンネルではカメラが下がる）', ok: has('VIEW CLEAR OK'), timeout: 200 },
   { n: 'featureguard', why: '入れた機能が消えていない（古い版のファイルで上書きして、機能が気づかずに消えた事故の再発防止）', ok: has('FEATURE OK'), timeout: 60 },
   { n: 'cgfresh', why: 'CrazyGames ではじめて開いた人は、キャラクターとスタートだけの題名（1 回走ると、ふだんの題名）。自社サイト版は今までどおり（2026-11-16）', ok: has('CGFRESH OK'), timeout: 200 },
