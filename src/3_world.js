@@ -41,7 +41,7 @@ function newSeg(prev, step, opts) {
   const dir = first ? 0 : (prev.dir + turnIn + 4) % 4;
   let sx = 0, sz = 0; if (!first) { const p = segPos(prev, prev.len, 0); sx = p[0]; sz = p[1]; }
   const len = first ? (opts.len || 92) : Math.round(rand(th.len[0], th.len[1]));
-  const seg = { id: ++SEGN, turnIn: first ? 0 : turnIn, prevFork: !!(prev && prev.fork), tid: step.t, th, step, t0: opts.t0 ?? 480, t1: (opts.t0 ?? 480) + step.d, dir, sx, sz, f: DIRS[dir], r: DIRS[(dir + 1) % 4], first, day: opts.day || 1,
+  const seg = { id: ++SEGN, turnIn: first ? 0 : turnIn, prevFork: !!(prev && prev.fork), prevIn: !!(prev && prev.th && ['room', 'train', 'glass'].includes(prev.th.kind)), tid: step.t, th, step, t0: opts.t0 ?? 480, t1: (opts.t0 ?? 480) + step.d, dir, sx, sz, f: DIRS[dir], r: DIRS[(dir + 1) % 4], first, day: opts.day || 1,
     len, turn: opts.fork ? 0 : (turnIn ? -turnIn : (Math.random() < .5 ? -1 : 1)), fork: opts.fork || null,
     floor: [], walls: [], decos: [], obs: [], items: [], props: [], lines: [], spr: [] };
   seg.wallH = th.wallH || 3; { const k0 = th.kind; if (k0 === 'room' || k0 === 'glass') seg.wallH = Math.max(seg.wallH, CEIL_ROOM); else if (k0 === 'train') seg.wallH = Math.max(seg.wallH, CEIL_TRAIN); } /* 2026-11-15 オーナー：天井そのものを高く（空港のロビーのように）。低い天井だと、縦長のスマホで天井のすぐ下をはうように見え、ジャンプでつきぬけた */
@@ -703,6 +703,10 @@ function populate(seg) {
   seg.rows = rows;
   // moving obstacles must have a clear lane in front of them
   for (const o of seg.obs) if (o.mv) { if (seg.obs.some(p => p !== o && p.lane === o.lane && p.s0 < o.s0 && p.s0 > o.s0 - 40)) o.mv = 0; }
+  /* 建物から出てすぐの所では、動く物（人力車・自転車・車など）を動かさない（2026-11-16 オーナー：「室内で人力車にぶつかるのはおかしい」。
+     前の場所が室内だと、外に出た直後はまだ建物の壁が見えている。そこへ通りの人力車が走ってきて、建物の中でぶつかったように見えた）。
+     止まっている物は前から見えているので、よけられる。動く物が建物の側（通りの入り口から 30m より手前）へ入ってくることもない（6_game.js） */
+  if (seg.prevIn) for (const o of seg.obs) if (o.mv && o.s0 < 70) o.mv = 0;
   // hay lines that weave through the rows
   const rowAt = q => rows.find(rw => Math.abs(rw.s - q) < 1.6);
   let lane = 1, q = seg.first ? 22 : HW + 8, on = true, runLeft = rand(14, 30), lineN = ++LINE_ID;

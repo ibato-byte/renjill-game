@@ -1025,6 +1025,11 @@
       "name": "カチューシャを頭の丸みにしずめる",
       "file": "src/2b_bunny.js",
       "has": "const HAT_BAND = "
+    },
+    {
+      "name": "建物から出てすぐは動く物を動かさない（室内で人力車にぶつかって見えた）",
+      "file": "src/3_world.js",
+      "has": "if (seg.prevIn) for (const o of seg.obs) if (o.mv && o.s0 < 70) o.mv = 0;"
     }
   ]
 }
