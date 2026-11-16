@@ -255,8 +255,13 @@ function buildStreet(seg, s0, lEnd, rEnd) {
   if (seg.hp && seg.hp.shape === 'underpass') { // a railway bridge across the bottom of the dip, painted whole (deck, railing, piers, the height sign)
     const mid = (seg.hp.a + seg.hp.b) / 2, a0 = mid - 4, a1 = mid + 4;
     seg.spr.push({ lat: 0, s: a0, y: 0, w: (HW + 1.2) * 2, h: 7.6, img: artKey('overpass', 'rail'), far: 1, keep: 1 });
-    seg.props.push(mkProp(seg, [{ l0: -HW - 8, l1: HW + 8, s0: a0 + .05, s1: a1, y0: 4.6, y1: 5.6, c: '#8E949A' }], { big: 1 })); // the deck's underside, so it reads as a bridge from below too
-    seg.movers = seg.movers || []; seg.movers.push({ ds: rand(-30, 30), v: -22, cross: 1, bx: trainCars({ cross: 1, l0: -40, l1: -10, s0: a0 + 1, s1: a1 - 1, y0: 6.2, lc: th.lc || '#80C241' }) });
+    /* 2026-11-17 オーナー：「電車が上を通過する時に、電車の下側が見えてしまうのはおかしい。線路のはずなのに」。
+       前は、橋げたが道の上（はば ±(HW+8)m）しか無く、電車はその外（±80m まで）も走るので、下から台車・床下の機器が丸見えだった。車輪も橋げたの上の面より下にめりこんでいた。
+       本物の鉄道の高架橋：コンクリートの厚い橋げたが、電車の走る所ぜんぶの下にある。両側に、電車のすそをかくす高さの壁（かべ高欄）。電車はレールの上に乗る。
+       → 橋げたを電車の走る範囲（±95m）までのばし、両側にかべ高欄、電車をレールの上（橋げたの上の面＋レール）に乗せた */
+    seg.props.push(mkProp(seg, [{ l0: -95, l1: 95, s0: a0 + .05, s1: a1, y0: 4.6, y1: 5.6, c: '#8E949A' }, // 橋げた（電車の走る所ぜんぶの下）
+      { l0: -95, l1: 95, s0: a0 + .05, s1: a0 + .35, y0: 5.6, y1: 7.0, c: '#A3A9AE' }, { l0: -95, l1: 95, s0: a1 - .3, s1: a1, y0: 5.6, y1: 7.0, c: '#A3A9AE' }], { big: 1 })); // かべ高欄（両側）：下から電車のすそ・台車は見えない
+    seg.movers = seg.movers || []; seg.movers.push({ ds: rand(-30, 30), v: -22, cross: 1, bx: trainCars({ cross: 1, l0: -40, l1: -10, s0: a0 + 1, s1: a1 - 1, y0: 6.75, lc: th.lc || '#80C241' }) }); // 車輪の下＝6.75-.95=5.8：橋げた（5.6）＋レール
   }
   if (th.overpass) { const a0 = L * .3, a1 = Math.min(L - HW - 6, a0 + 34); // an expressway passing overhead
     seg.spr.push({ lat: 0, s: a0, y: 0, w: (HW + 6) * 2, h: 14.6, img: artKey('overpass', 'road'), far: 1, keep: 1 });

@@ -368,7 +368,7 @@ function drawObjects(sg, isCur, oc) {
     const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d < -3 || d > FAR) continue;
     DRAW.push([d, 3, o]);
   }
-  if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) DRAW.push([d, 8, m]); }
+  if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) DRAW.push([m.cross ? d + 8 : d, 8, m]); } // 橋の上の電車は、橋げた・かべ高欄より先に描く（下から見上げても、電車の床下は橋げたにかくれる。2026-11-17）
   for (const p of sg.props) { if (p.nodraw) continue; const mid = segPos(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d < -3 || d > (p.big ? FAR : lowQ ? 60 : 85)) continue; DRAW.push([d, 6, p]); }
   for (const s of sg.spr) { if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const p = segPos(sg, s.s, s.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > (s.far ? FAR : 80)) continue; DRAW.push([d, 7, s]); }
   // pigeons on the street: they peck about and fly off as you run up (2026-11-08)
@@ -499,7 +499,8 @@ function objShadows(sg) {
   const one = (s0, s1, l0, l1) => {
     const p = segPos(sg, (s0 + s1) / 2, (l0 + l1) / 2), sp = spriteAt(p[0], p[2], p[1]); if (!sp || sp.z > 55) return;
     const rx = Math.min(3, (l1 - l0) / 2 + .15) * sp.k, ry = Math.min(2, (s1 - s0) / 2 + .1) * sp.k * .35;
-    ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, Math.max(1, ry), 0, 0, Math.PI * 2); ctx.fill();
+    const fill = () => { ctx.fillStyle = 'rgba(30,22,16,.16)'; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, Math.max(1, ry), 0, 0, Math.PI * 2); ctx.fill(); };
+    if (sg === G.segs[G.ci] && OCC.on) occDraw(sp.z, fill); else fill(); // 坂の頂上の向こうの物のかげは、手前の坂に重ねない
   };
   for (const o of sg.obs) if (!o.dead && !o.full && o.k !== 'high' && o.top < 3.5) one(o.s0 + (o.ds || 0), o.s1 + (o.ds || 0), o.l0, o.l1);
   for (const p of sg.props) if (!p.big && p.bx[0] && p.bx[0].y0 <= .05) one(p.s0, p.s1, p.l0, p.l1);
@@ -564,6 +565,7 @@ function drawBunnyWorld(b) {
   // しゃがむ・跳ぶが、ふり返り（look）より先（ふり返っている間に下スワイプしても、しゃがまなかった：2026-11-09 の報告）
   if (b.view === 'front') pose = 'front_' + (b.mood || 'open');
   else if (b.hawk) pose = 'air'; /* オオタカにつかまれて、足をのばしてぶら下がる */
+  else if (b.fly) pose = 'run0'; /* 紙飛行機に乗っている間は、足を止めて座る（2026-11-17 オーナー：「紙飛行機に乗ってる時も走り続けてる動作をしてる」）。下半分は紙飛行機にかくれる */
   else if (b.slide) pose = 'slide'; else if (b.air) pose = !b.fly && (b === G.player ? G.vy : b.vy) < -2.5 ? 'fall' : 'air'; /* くだりは「落ちてくる絵」 */
   else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
   else pose = 'run' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES;

@@ -110,9 +110,14 @@ function drawClouds2(hz) {
 
 /* ---- the street's own shade: buildings block the sun, wall bases stay dark ---- */
 const SHQ = new Float64Array(12);
+/* 2026-11-17 オーナー：「坂を走る時に地面が透けて先が見えてしまう」。原因：建物のかげ・壁ぎわのかげは、床を描いたあとに上から重ねていた。
+   坂の頂上の向こう（本当は見えない所）のかげまで、手前の上り坂の上に重なり、「向こうの道がうす黒く透けて見える」形になっていた。
+   いまいる道に坂がある時は、頂上の線より上だけに描く（障害物・人と同じ「坂のかくし」occDraw を使う） */
 function shadeQuad(sg, a, b, l0, l1) {
+  if (sg === G.segs[G.ci] && OCC.on && b - a > 3.01) { for (let x = a; x < b - .01; x += 3) shadeQuad(sg, x, Math.min(b, x + 3), l0, l1); return; } // 坂では 3m ずつ（頂上の手前の分は消さない）
   const p = [[a, l0], [b, l0], [b, l1], [a, l1]]; const v = []; for (const [s, l] of p) { const q = segPos(sg, s, l); v.push(q[0], q[2] + .012, q[1]); }
-  const m = project(v); if (!m) return; pathPoly(Math.abs(m)); ctx.fill();
+  const draw = () => { const m = project(v); if (!m) return; pathPoly(Math.abs(m)); ctx.fill(); };
+  if (sg === G.segs[G.ci] && OCC.on) { const fs = ctx.fillStyle; occDraw(depthOf(v), () => { ctx.fillStyle = fs; draw(); }); } else draw();
 }
 function streetShade(sg) {
   const th = sg.th, k = th.kind, room = k === 'room' || k === 'train' || k === 'glass';
