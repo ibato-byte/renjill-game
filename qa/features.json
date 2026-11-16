@@ -929,7 +929,7 @@
     {
       "name": "走る時の後ろ足の裏（指・光）",
       "file": "src/2b_bunny.js",
-      "has": "function soleC(g, who, x, y, rx, ry, sd)"
+      "has": "function soleC(g, who, x, y, rx, ry, sd"
     },
     {
       "name": "最後の手：ほかの道から同じ時刻で続ける",
@@ -990,6 +990,11 @@
       "name": "自己ベストまでの棒は太く金色、あと少しで光る",
       "file": "src/6e_keep.js",
       "has": "'kpg-best'"
+    },
+    {
+      "name": "走りはうさぎ跳び（12 コマ：ため・けり・空中・着地・引きよせ）",
+      "file": "src/2b_bunny.js",
+      "has": "function hopPose(u) {"
     }
   ]
 }
