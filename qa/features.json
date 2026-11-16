@@ -1125,6 +1125,21 @@
       "name": "浅草寺の本堂の絵",
       "file": "src/4b_patterns.js",
       "has": "function drawHondo("
+    },
+    {
+      "name": "坂の頂上の向こうのかげを手前に重ねない",
+      "file": "src/4c_atmos.js",
+      "has": "OCC.on && b - a > 3.01"
+    },
+    {
+      "name": "鉄道の橋：電車の走る所ぜんぶに橋げたとかべ高欄",
+      "file": "src/3_world.js",
+      "has": "l0: -95, l1: 95, s0: a0 + .05"
+    },
+    {
+      "name": "紙飛行機の間は足を止める",
+      "file": "src/4_render.js",
+      "has": "else if (b.fly) pose ="
     }
   ]
 }
