@@ -970,6 +970,16 @@
       "name": "ホーム画面で顔を切りかえない（点滅に見えた）",
       "file": "src/6_game.js",
       "has": "const renMood = 'open', jillMood = 'open', pomMood = 'open';"
+    },
+    {
+      "name": "絵が描けない時のエラーの記録（何が・どこで）",
+      "file": "src/7_ui.js",
+      "has": "window.__frameErrAt"
+    },
+    {
+      "name": "drawlog テスト",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'drawlog'"
     }
   ]
 }
