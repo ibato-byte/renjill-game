@@ -980,6 +980,51 @@
       "name": "走り始めの45秒はやさしく（BUMP!で続く）",
       "file": "src/6_game.js",
       "has": "function softHit()"
+    },
+    {
+      "name": "絵が描けない時のエラーの記録（何が・どこで）",
+      "file": "src/7_ui.js",
+      "has": "window.__frameErrAt"
+    },
+    {
+      "name": "drawlog テスト",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'drawlog'"
+    },
+    {
+      "name": "電車：本物の通勤電車のつくり（車体の絵・屋根・床下・台車・先頭の顔）",
+      "file": "src/3_world.js",
+      "has": "function trainCars("
+    },
+    {
+      "name": "電車：横の面の絵（窓・両開きのドア・帯・夜の明かり）",
+      "file": "src/4e_art.js",
+      "has": "function paintTrainSide("
+    },
+    {
+      "name": "電車の中：ロングシート・仕切り板・網棚・優先席",
+      "file": "src/3_world.js",
+      "has": "face: 'tspart'"
+    },
+    {
+      "name": "電車の中：ドアの上の画面（つぎの駅）",
+      "file": "src/4b_patterns.js",
+      "has": "'つぎは ' + nx.st"
+    },
+    {
+      "name": "電車の中：天井の冷房の帯と明かりのカバー",
+      "file": "src/4b_patterns.js",
+      "has": "li === 'strip' && w.train"
+    },
+    {
+      "name": "ポムの帽子：頭の幅いっぱいに、はちまきの上にかぶせる",
+      "file": "src/2b_bunny.js",
+      "has": "function pomHatFit("
+    },
+    {
+      "name": "カチューシャを頭の丸みにしずめる",
+      "file": "src/2b_bunny.js",
+      "has": "const HAT_BAND = "
     }
   ]
 }
