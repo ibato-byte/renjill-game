@@ -546,7 +546,7 @@ function update(dt) {
   const pl0 = G.lat - .3, pl1 = G.lat + .3, flying = G.pow.fly > 0;
   for (const o of seg.obs) {
     if (o.dead) { o.dead += dt * 2.4; continue; }
-    if (o.mv) { if (o.s0 + (o.ds || 0) - G.s < 42) { o.ds = (o.ds || 0) - o.mv * dt; if (o.roar && !o.roared) { o.roared = 1; SFX.roar(); } } }
+    if (o.mv) { if (o.s0 + (o.ds || 0) - G.s < 42 && (!seg.prevIn || o.s0 + (o.ds || 0) > 30)) { o.ds = (o.ds || 0) - o.mv * dt; if (o.roar && !o.roared) { o.roared = 1; SFX.roar(); } } }
     if (o.k === 'deco' || (o.k === 'high' && !lowTop(o))) continue; // a low table top can be landed on, like a cushion
     const os0 = o.s0 + (o.ds || 0), os1 = o.s1 + (o.ds || 0);
     if (!o.car && G.s + .3 > os0 && G.s - .3 < os1 && pl1 > o.l0 && pl0 < o.l1 && prevY >= o.top - .22) ground = Math.max(ground, o.top);
