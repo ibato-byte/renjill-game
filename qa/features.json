@@ -1054,7 +1054,7 @@
     {
       "name": "ポムの走り：足を交互に・ほとんど跳ねない（ハムスター）",
       "file": "src/2b_bunny.js",
-      "has": "const upOf = sd => run ?"
+      "has": "const upOf = sd => { if (!run) return 0;"
     },
     {
       "name": "走りはうさぎ跳び（12 コマ：ため・けり・空中・着地・引きよせ）",
@@ -1140,6 +1140,26 @@
       "name": "紙飛行機の間は足を止める",
       "file": "src/4_render.js",
       "has": "else if (b.fly) pose ="
+    },
+    {
+      "name": "ポムの走り：3 つの場面の足・けり出した足の裏",
+      "file": "src/2b_bunny.js",
+      "has": "const legS = sd =>"
+    },
+    {
+      "name": "車のナンバー（日本の色の決まり）",
+      "file": "src/4e_art.js",
+      "has": "function carPlate("
+    },
+    {
+      "name": "スポーツカーの作り込み（夜の絵）",
+      "file": "src/4e_art.js",
+      "has": "function paintSupercar(g, W, H, col, night)"
+    },
+    {
+      "name": "車の夜の絵",
+      "file": "src/4e_art.js",
+      "has": "`car|${o.av.t}|${o.av.c}|${night ? 'n' : 'd'}`"
     }
   ]
 }
