@@ -10,7 +10,11 @@ const { chromium } = require('playwright'); const path = require('path'); const 
     'M180 105 C 252 105 292 150 292 202 C 292 258 246 292 180 292 C 114 292 68 258 68 202 C 68 150 108 105 180 105 Z',
     'M134 112 C 100 102 56 126 40 180 C 26 230 28 286 52 306 C 74 324 106 306 112 272 C 118 238 110 204 106 172 C 102 146 114 124 134 112 Z',
     'M188 130 C 248 130 284 166 284 210 C 284 260 240 290 188 290 C 136 290 92 260 92 210 C 92 166 128 130 188 130 Z',
-    'M158 240 Q122 230 92 229 M158 246 Q124 247 96 254', 'M166 240 Q130 230 98 226 M166 246 Q132 248 102 256', '[0, hy, 64, 55]', '[240, 304, 148, 90]', '[222, 322, 112, 74]', '[0, -60, 76, 62]'];
+    'M158 240 Q122 230 92 229 M158 246 Q124 247 96 254', 'M166 240 Q130 230 98 226 M166 246 Q132 248 102 256', '[0, hy, 64, 55]', '[240, 304, 148, 90]', '[222, 322, 112, 74]', '[0, -60, 76, 62]',
+    // 足（2026-11-16）：rig.js の frontPaw・hindFoot・haunch と、その呼び出しの数字・色
+    "paw: ['#FCF5EA', '#F0E3D1', '#D3BC9F'], foot: ['#E4CBA6', '#CFB08B', '#A88662']", "paw: ['#FEF8EF', '#F3E8DA', '#D8C4AA'], foot: ['#E6CDA8', '#D3B48F', '#AC8A66']",
+    'C${cx - w * 1.06} ${cy - h * 0.35} ${cx - w * 0.62} ${t} ${cx} ${t}', 'C${tx + d * h * 0.55} ${y - h * 0.32} ${tx + d * h * 0.5} ${y + h * 0.75}',
+    "[[150, 390], [204, 392]]", "frontPawC(g, 'ren', x, y, 24, 13", "[[164, 390], [206, 391]]", "frontPawC(g, 'jil', x, y, 19, 11", "hindFootC(g, 'ren', 318, Math.min(386, 304 + 90 * Math.sqrt(1 - k * k) - 4), 70, 16, 1)", "hindFootC(g, 'jil', 284, Math.min(386, 322 + 74 * Math.sqrt(1 - k * k) - 4), 54, 13, 1)", 'haunchC(g, 314, 334, 59.2, 50.4, c)', 'haunchC(g, 278, 350, 44.8, 41.4, c)'];
   for (const m of must) if (!src.includes(m)) bad.push('① アニメと同じ数字が消えた: ' + m.slice(0, 60));
   const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined });
   const p = await b.newPage({ viewport: { width: 390, height: 844 } }); p.on('pageerror', e => bad.push('エラー: ' + e.message)); await p.route('**/fonts.googleapis.com/**', r => r.abort());
