@@ -915,6 +915,21 @@
       "name": "PC では走っている間のヒントも矢印キー",
       "file": "src/1_data.js",
       "has": "if (KB_PC) Object.assign(STR, {"
+    },
+    {
+      "name": "レン・ジルの前足（指の分かれ目・光・かげ。アニメと同じ数字）",
+      "file": "src/2b_bunny.js",
+      "has": "function frontPawC(g, who, cx, cy, w, h, cream, top)"
+    },
+    {
+      "name": "レン・ジルの後ろ足とももの丸み",
+      "file": "src/2b_bunny.js",
+      "has": "function hindFootC(g, who, hx, y, L, h, d)"
+    },
+    {
+      "name": "走る時の後ろ足の裏（指・光）",
+      "file": "src/2b_bunny.js",
+      "has": "function soleC(g, who, x, y, rx, ry, sd)"
     }
   ]
 }
