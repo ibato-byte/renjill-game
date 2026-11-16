@@ -445,7 +445,7 @@ function frameTrouble() {
   FRAME_BAD++;
   if (FRAME_BAD === 3 || FRAME_BAD % 60 === 0) { try { freePictures(); sprTrim(0); } catch (e) { } }
   if (FRAME_BAD === 30 && !lowQ) { lowQ = 1; DPR = 1; try { resizeKeep(); } catch (e) { } }
-  if (FRAME_BAD >= 150 && G.mode === 'play') { FRAME_BAD = 0; errLog('draw trouble ' + (G.drawRetry || 0)); if ((G.drawRetry || 0) < 2) { G.drawRetry = (G.drawRetry || 0) + 1; try { freePictures(); } catch (e) { } lowQ = 2; DPR = 1; try { resizeKeep(); } catch (e) { } return; } finishRun('draw'); } // 絵が描けないときも、まずは軽くして2回までやり直す（すぐ終わらせない）
+  if (FRAME_BAD >= 150 && G.mode === 'play') { FRAME_BAD = 0; errLog('draw trouble ' + (G.drawRetry || 0)); G.drawRetry = (G.drawRetry || 0) + 1; try { freePictures(); sprTrim(0); } catch (e) { } lowQ = 2; DPR = 1; try { resizeKeep(); } catch (e) { } if (G.drawRetry % 3 === 0) { try { picRepairAll(); } catch (e) { } } if (G.drawRetry < 8) return; finishRun('draw'); } // 絵が描けないときも、軽くして手放して描き直し、何度もやり直す（2026-11-14「一区切りが起きないように」：すぐ終わらせない）
 }
 function frameBody(now) {
   const raw = (now - last) / 1000; let dt = Math.min(.05, Math.max(0, raw)); last = now;
