@@ -12,6 +12,7 @@ function terrainFor(seg, prev) {
   const a = HW + 6, b = L - HW - 8; if (b - a < 30) return;
   /* 2026-11-17 オーナー：「タワーを登る時に高低差がないのがおかしい。ちゃんと階段を何回か登るルートに」。前は、高さの数字（展望の景色）だけが上がり、足もとは平らなままだった。
      本物の外階段は、ひと続きの階段（約 3m 上がる）→ 平らな踊り場 → また階段…のくり返し。flights＝{ 最初の踊り場の位置, 間かく, 踊り場の長さ, 1 回に上がる高さ, 上がる回数 } */
+  if (th.ramp) { seg.hp = { a: HW + 4, b: L - 14, d: th.ramp, hump: 0, w2: 0, shape: 'slope' }; return; } /* 展望回廊：ガラスの筒の中を、ゆるい坂で 445m → 450m へ */
   if (th.flights) { const f = th.flights, A = (seg.first ? 0 : HW) + f.a, n = Math.max(1, Math.min(f.n || 99, Math.floor((L - 12 - A) / f.P))); seg.hp = { shape: 'flights', a: A, P: f.P, F: f.F, R: f.R, n, b: A + n * f.P }; return; }
   if (G.testHump) { seg.hp = { a, b, d: 0, hump: G.testHump, w2: G.testW2 || 0 }; if (G.testShape) seg.hp = Object.assign({ a, b, d: 0, hump: 0, w2: 0 }, G.testShape); return; }
   if (th.bridge) { seg.hp = { a, b, d: 0, hump: 7 }; return; }
@@ -237,7 +238,7 @@ function buildRoom(seg, s0, lEnd, rEnd) {
     }
   }
 }
-const DECO_SIZE = { ticketbooth: [2.8, .1, 2.7], towerposter: [1.5, .8, 2.9], infodesk: [2.6, .1, 2.6], quizpanel: [1.4, 1.0, 2.0], stepsign500: [1.2, 1.2, 1.9], tansuW: [1.5, 0, 1.65], hanger: [.9, 1.0, 2.5], elevator: [2.0, 0, 2.6], bookshelf: [2.8, 0, 2.6], mirror: [1.6, .8, 2.0], menuboard: [1.8, 1.1, 2.4], woodpanel: [2.4, 0, 2.8], portrait: [1.1, 1.3, 2.3], shoji: [2.4, .2, 2.6], fusuma: [2.6, .15, 2.6], tokonoma: [2.2, .35, 2.5], window: [2.2, .9, 2.3], calendar: [1.0, 1.2, 2.2], frame: [1.4, 1.2, 2.1],
+const DECO_SIZE = { selev: [2.4, 0, 3.0], ticketbooth: [2.8, .1, 2.7], towerposter: [1.5, .8, 2.9], infodesk: [2.6, .1, 2.6], quizpanel: [1.4, 1.0, 2.0], stepsign500: [1.2, 1.2, 1.9], tansuW: [1.5, 0, 1.65], hanger: [.9, 1.0, 2.5], elevator: [2.0, 0, 2.6], bookshelf: [2.8, 0, 2.6], mirror: [1.6, .8, 2.0], menuboard: [1.8, 1.1, 2.4], woodpanel: [2.4, 0, 2.8], portrait: [1.1, 1.3, 2.3], shoji: [2.4, .2, 2.6], fusuma: [2.6, .15, 2.6], tokonoma: [2.2, .35, 2.5], window: [2.2, .9, 2.3], calendar: [1.0, 1.2, 2.2], frame: [1.4, 1.2, 2.1],
   seatwin: [3.6, .0, 2.4], door: [1.5, 0, 2.3], trainmap: [1.1, 1.4, 2.3], stationsign: [3.0, 1.6, 2.8], poster: [1.2, 1.0, 2.3], timetable: [2.4, 1.4, 2.6],
   citywin: [3.6, .5, 2.7], plantwall: [2.4, .3, 2.8], whiteboard: [2.6, .9, 2.2], clock: [1.0, 2.0, 2.8], screen: [3.0, .9, 2.6], izakaya: [3.4, 0, 2.9], menu: [1.2, 1.0, 2.2] };
 

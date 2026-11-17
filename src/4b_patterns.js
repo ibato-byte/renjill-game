@@ -486,6 +486,12 @@ const DECO_DRAW = {
   bigscreen(e) { bquad(0, 0, 1, 1, '#1C1919'); const k = Math.floor(G.t * .7 + (e.seed % 5)) % 4;
     if (k === 0) { bquad(.03, .05, .97, .95, '#F6EBDC'); qtext('REN & JILL', .1, .45, .9, .85, '#3B2A20'); qtext('レンとジル', .25, .15, .75, .42, '#A97A1E'); }
     else { const C2 = [['#E86A75', '#F2C230'], ['#4E77A0', '#7FD06A'], ['#9C7BD0', '#6FC3E8'], ['#F08A2E', '#FBF6EE']][k]; bquad(.03, .05, .97, .95, C2[0]); bquad(.12, .2, .55, .8, C2[1]); bquad(.62, .55, .9, .7, '#FBF6EE'); bquad(.62, .3, .82, .42, '#FBF6EE'); } },
+  selev(e) { /* [S1] 押上の電波塔のエレベーター：四季の絵（春＝桜・夏＝花火・秋＝紅葉・冬＝雪）の扉の上の板 [S2] 銀の扉と合わせ目 [S3] 行き先「天望デッキ 350」の表示 [S4] 上り下りの矢印のランプ */
+    const k = (e.v2 || 0) % 4, BG = ['#F6DCE4', '#1C2340', '#F2D9B8', '#DCE8F2'][k];
+    bquad(0, 0, 1, 1, tint('#C9CED3')); bquad(.12, 0, .88, .7, tint('#E3E6E9')); ctx.strokeStyle = tint('#8A949E'); ctx.lineWidth = 2; ctx.beginPath(); bline(.5, 0, .5, .7); ctx.stroke();
+    bquad(.08, .74, .92, .98, tint(BG)); const r = rnd((e.seed || 3) + k);
+    for (let i = 0; i < 14; i++) { const u = .12 + r() * .76, v = .77 + r() * .18; if (k === 0) bquad(u, v, u + .025, v + .02, tint('#F4A6BA')); else if (k === 1) { const c = ['#FFD27A', '#FF7A9A', '#7AD8FF'][i % 3]; bquad(u, v, u + .012, v + .03, c); bquad(u - .01, v + .012, u + .022, v + .018, c); } else if (k === 2) bquad(u, v, u + .025, v + .02, tint(i % 2 ? '#D9452B' : '#E8A030')); else bquad(u, v, u + .015, v + .015, '#FFFFFF'); }
+    qtext(tr('天望デッキ 350', 'DECK 350'), .3, .705, .7, .735, '#2B2B2B'); bquad(.9, .35, .96, .42, tint('#E9EDF0')); bquad(.915, .37, .945, .4, LT.night > .4 ? '#FFD27A' : tint('#9AA4AD')); },
   elevator(e) { bquad(0, 0, 1, 1, tint('#B9C2CA')); bquad(.12, 0, .88, .86, tint('#D9DEE2')); ctx.strokeStyle = tint('#8A949E'); ctx.lineWidth = 2; ctx.beginPath(); bline(.5, 0, .5, .86); ctx.stroke();
     bquad(.3, .9, .7, .98, '#1C1919'); qtext(String(1 + ((e.v2 || 0) + Math.floor(G.t * .5)) % 9), .42, .9, .58, .98, '#FFB13B'); bquad(.92, .4, .98, .5, tint('#E9EDF0')); },
   bookshelf(e) { bquad(0, 0, 1, 1, tint('#6B4631')); const r = rnd((e.seed || 3) + (e.v2 || 0)); for (let row = 0; row < 5; row++) { const v0 = .05 + row * .19; let u = .03; while (u < .97) { const w = .02 + r() * .035; bquad(u, v0, Math.min(.97, u + w), v0 + .13 + r() * .03, tint(['#C8463C', '#355F86', '#F2C230', '#5F9E5A', '#E9E2D5', '#8A5530', '#46525E'][(r() * 7) | 0])); u += w + .004; } bquad(0, v0 - .02, 1, v0, tint('#4A2F20')); } },

@@ -54,8 +54,9 @@ const THEMES = {
   river:    { ja: '隅田川・水上バス', en: 'Sumida River water bus', kind: 'deck', len: [104, 116], road: ['#EDEAE3', '#E2DED5'], rpat: 'planks', side: ['#2E6E99', '#2A6690'], spat: 'water', view: 'river', rail: '#F3F3F3',
     props: [['buoyS', 1]], obs: ['bridge', 'ring', 'bench', 'bridge', 'rope'], lm: [{ t: 'skytree', sc: 1.4, off: .15 }, { t: 'kokugikan', sc: 1, off: -.28 }],
     stamp: { k: '隅田', ja: '隅田川', en: 'Sumida River', note: { ja: '水上バスで、色とりどりの橋をくぐって進む。', en: 'The water bus glides under a series of colorful bridges.' } } },
-  skytree:  { ja: '押上の電波塔・展望回廊', lbl: '押上の電波塔', lblEn: 'Oshiage tower', en: 'Oshiage tower, sky walkway', kind: 'glass', len: [108, 118], road: ['#E3E7EB', '#D9DEE3'], rpat: 'grid', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [445, 451], view: 'city', face: 236,
+  skytree:  { ja: '押上の電波塔・展望回廊', lbl: '押上の電波塔', lblEn: 'Oshiage tower', en: 'Oshiage tower, sky walkway', kind: 'glass', len: [108, 118], road: ['#E3E7EB', '#D9DEE3'], rpat: 'grid', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [445, 451], ramp: 5, view: 'city', face: 236,
     props: [['scopeS', 1]], obs: ['telescope', 'bench', 'rope', 'suitcase'], lm: [{ t: 'fuji', sc: 1, brg: 248 }, { t: 'tower', sc: .5, brg: 226 }, { t: 'tocho', sc: .55, brg: 258 }],
+    arrive: { ja: '2台目のエレベーターで445m。ガラスの筒のゆるい坂を、450mへ', en: 'A second elevator to 445 m, then a gentle glass-tube ramp to 450 m' },
     stamp: { k: '634', ja: '押上の電波塔', en: 'Oshiage tower', note: { ja: '高さ634mの電波塔。展望回廊は地上約450m。', en: 'A 634 m broadcasting tower. Its sky walkway is about 450 m up.' } } },
   /* ---- evening, west ---- */
   shibuya:  { ja: '渋谷スクランブル交差点', lbl: '渋谷', lblEn: 'Shibuya', en: 'Shibuya Scramble Crossing', kind: 'street', len: [100, 112], road: ['#5E5E63', '#59595E'], rpat: 'scramble', side: ['#A8A49C', '#A09C94'], spat: 'walk', curb: '#D9D6CE',
@@ -409,6 +410,11 @@ Object.assign(THEMES, {
   sfoot:  { ja: '押上・北十間川のほとり', lbl: '押上の川べり', lblEn: 'Oshiage riverside', en: 'Oshiage, by the Kitajukken River', kind: 'street', len: [100, 110], road: ['#C9C2B6', '#BFB8AB'], rpat: 'plaza', side: ['#A8A49C', '#A09C94'], spat: 'walk', curb: '#D9D6CE',
     fac: { style: 'park' }, moat: -1, props: [['tree', 3], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'suitcase', 'bike'], tree: 'green', flat: 1, course: 'skytree', face: 60,
     lm: [{ t: 'skytree', brg: 60, sc: 1.5, grow: 1.6 }], arrive: { ja: '川の向こうに、空までのびる白い塔', en: 'Across the river, a white tower reaching for the sky' } },
+  /* 2026-11-17 オーナー「押上の電波塔のルートも本物どおりに」。調べた本物の順：4 階の入口（チケット売り場・列）→ 4 台のエレベーター（四季の絵の内装、約 50 秒）→ 350m の展望デッキ（3 階建て。いちばん下の 340 にガラスの床）
+     → 2 台目のエレベーター（窓のあるかご）→ 445m の展望回廊（ガラスの筒の中を、ゆるい坂で回りながら 450m まで上がる）→ いちばん高い所 451.2m（番号は docs/SKYTREE-2026-11-17.md） */
+  slobby: { ja: '押上の電波塔・4階の入口', lbl: '塔の4階', lblEn: 'Tower 4F', en: 'Oshiage tower, 4F entrance', kind: 'room', len: [62, 70], road: ['#E6E8EA', '#DDE0E3'], rpat: 'grid', side: ['#DDE0E3', '#D3D7DB'], spat: 'grid',
+    wall: '#F2F3F4', base: '#5E6A76', wallH: 4.8, ceil: '#E9ECEF', cpat: 'plain', light: 'panel', wdeco: ['ticketbooth', 'selev', 'towerposter', 'infodesk', 'selev', 'selev'], props: [['plant', 1], ['benchS', 1]], obs: ['suitcase', 'rope', 'sign', 'bag'], course: 'skytree',
+    arrive: { ja: '4階の入口。チケットを買って、四季の絵のエレベーターへ', en: 'The 4F entrance: tickets, then the season-themed elevators' } },
   sdeck:  { ja: '押上の電波塔・展望デッキ（地上350m）', lbl: '350mのデッキ', lblEn: '350 m deck', en: 'Oshiage tower, 350 m deck', kind: 'glass', len: [100, 108], road: ['#6E757D', '#687078'], rpat: 'lookdown', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [350, 350], view: 'city',
     wall: '#EEF1F4', ceil: '#2F343B', wallH: 5.6, props: [['scopeS', 1]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'skytree', face: 226, /* PDCA 113：本物は 5m をこえる大きなガラスが 360 度（天井の高い部屋） */
     lm: [{ t: 'tower', brg: 226, sc: .55 }, { t: 'kokugikan', brg: 227, sc: .8 }, { t: 'clock', brg: 231, sc: .55 }, { t: 'fuji', brg: 248, sc: 1 }, { t: 'tocho', brg: 258, sc: .6 }, { t: 'pagoda', brg: 292, sc: .7 }],
@@ -445,7 +451,7 @@ for (const k in THEMES) { const th = THEMES[k]; if (th.kind !== 'street' || !th.
 const COURSES = {
   tower: { at: 100000, steps: [{ t: 'tfoot', d: 8 }, { t: 'tlobby', d: 5 }, { t: 'troof', d: 4 }, { t: 'tstair', d: 12 }, { t: 'tpass', d: 4 }, { t: 'tdeck', d: 10 }, { t: 'hawk', d: 3 }, { t: 'tland', d: 8 }], ja: '赤い電波塔へ！', en: 'To the red tower!' },
   asakusa: { at: 500000, steps: [{ t: 'asakusa', d: 8 }, { t: 'nakamise', d: 10 }, { t: 'hozomon', d: 8 }, { t: 'hondo', d: 10 }, { t: 'denboin', d: 8 }], ja: '浅草寺へ！', en: 'To Senso-ji!' },
-  skytree: { at: 300000, steps: [{ t: 'sfoot', d: 8 }, { t: 'sdeck', d: 10 }, { t: 'skytree', d: 10 }, { t: 'hawk2', d: 4 }, { t: 'sland', d: 8 }], ja: '押上の電波塔へ！', en: 'To the Oshiage tower!' },
+  skytree: { at: 300000, steps: [{ t: 'sfoot', d: 8 }, { t: 'slobby', d: 5 }, { t: 'sdeck', d: 10 }, { t: 'skytree', d: 10 }, { t: 'hawk2', d: 4 }, { t: 'sland', d: 8 }], ja: '押上の電波塔へ！', en: 'To the Oshiage tower!' },
 };
 
 Object.assign(THEMES, {
