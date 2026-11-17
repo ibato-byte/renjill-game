@@ -1004,7 +1004,7 @@
     {
       "name": "電車の中：ドアの上の画面（つぎの駅）",
       "file": "src/4b_patterns.js",
-      "has": "'つぎは ' + nx.st"
+      "has": "tr('つぎは ', 'Next: ') + nx.st"
     },
     {
       "name": "電車の中：天井の冷房の帯と明かりのカバー",
@@ -1270,6 +1270,91 @@
       "name": "赤い電波塔：入口の建物・屋上・踊り場のある外階段・500 段からの通路",
       "file": "src/1b_places.js",
       "has": "{ t: 'tlobby', d: 5 }, { t: 'troof', d: 4 }, { t: 'tstair', d: 12 }, { t: 'tpass', d: 4 }"
+    },
+    {
+      "name": "ポムは四つ足で低く走る（二足歩行に見えた）",
+      "file": "src/2b_bunny.js",
+      "has": "const runLow = run ||"
+    },
+    {
+      "name": "スタート画面を下へ動かすと、暗い層を消す",
+      "file": "src/7_ui.js",
+      "has": "body.classList.toggle('tscroll', on)"
+    },
+    {
+      "name": "ポムのあいさつは並んで走りながら",
+      "file": "src/6_game.js",
+      "has": "function peekStep(seg, dt, P)"
+    },
+    {
+      "name": "走りながらふり向くポムの絵",
+      "file": "src/2b_bunny.js",
+      "has": "BUN[who]['rlook' + k]"
+    },
+    {
+      "name": "電車は本物の 20m・4 ドアの並び",
+      "file": "src/3_world.js",
+      "has": "function trainLay(seg)"
+    },
+    {
+      "name": "となりの車両への通路（ほろ）",
+      "file": "src/3_world.js",
+      "has": "function gangway(seg, c, noA, noB)"
+    },
+    {
+      "name": "ホームドア",
+      "file": "src/3_world.js",
+      "has": "function platformDoors(seg, s0, end)"
+    },
+    {
+      "name": "電車のつり革のゆれと継ぎ目のガタン",
+      "file": "src/6_game.js",
+      "has": "function trainTick(sg, dt)"
+    },
+    {
+      "name": "建物の段（1 階が奥まる・基壇と塔）",
+      "file": "src/3_world.js",
+      "has": "function massTiers(style, h, w, seed)"
+    },
+    {
+      "name": "建物の立体の部品（屋上のふち・柱・テント・路地）",
+      "file": "src/3_world.js",
+      "has": "function massDetail(seg, sd, a, b, h, tiers, c, style, seed, prevH, prevOff)"
+    },
+    {
+      "name": "遠くの壁の絵が消えない（もやでうすく）・小さくした絵",
+      "file": "src/4d_facade.js",
+      "has": "function facMip(img, ppx)"
+    },
+    {
+      "name": "夕方の昼と夜の絵の入れかえ",
+      "file": "src/4d_facade.js",
+      "has": "function drawFacImg(w, dist, night, aMul)"
+    },
+    {
+      "name": "塔の階段は本当に上がる（踊り場と階段のくり返し）",
+      "file": "src/3_world.js",
+      "has": "h.shape === 'flights'"
+    },
+    {
+      "name": "車は立体（面ごとの絵・タイヤのホイール）",
+      "file": "src/4e_art.js",
+      "has": "if (kind === 'whl')"
+    },
+    {
+      "name": "オオタカで降りる先に公園・地面の近くで足をはなす",
+      "file": "src/4g_aerial.js",
+      "has": "D13] 公園の中・おりる道の上には"
+    },
+    {
+      "name": "立体にした障害物も、結果の画面では絵で見せる",
+      "file": "src/7_ui.js",
+      "has": "const an = o && (o.art || o.picArt)"
+    },
+    {
+      "name": "押上の電波塔：4 階の入口と四季のエレベーター・展望回廊の坂",
+      "file": "src/1b_places.js",
+      "has": "{ t: 'slobby', d: 5 }"
     },
     {
       "name": "やわらかい布団・座布団（角の丸い、ふくらんだ形）",
