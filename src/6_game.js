@@ -545,6 +545,7 @@ function tutorialScale(seg, dt) {
 /* ---------- per-frame update ---------- */
 function update(dt) {
   if (G.segDue > 0 && G.mode !== 'title' && (G.segDue -= dt) <= 0) { G.segDue = 0; ensureSegs(1); if (!G.fork && G.segs.length - G.ci < 4 && !G.segDue) G.segDue = .05; } // one street per step, never a pile in one frame
+  { const sg = G.segs[G.ci]; if (sg && sg.th.kind === 'train') trainTick(sg, dt); else G.jolt = 0; }
   for (const sg of [G.segs[G.ci], G.segs[G.ci + 1]]) if (sg && sg.walkers) for (const w of sg.walkers) { w.s += w.vs * dt; if (w.s > w.a1) w.s = w.a0; else if (w.s < w.a0) w.s = w.a1; }
   G.t += dt; G.dtFX = dt;
   if (G.mode === 'title') { titleFrame(dt); return; }
@@ -676,7 +677,7 @@ function update(dt) {
   if (G.hint > 0) G.hint -= dt;
   G.clock = seg.t0 + (seg.t1 - seg.t0) * clamp(G.s / seg.len, 0, 1);
   // animation
-  P.ph += dt * (P.who === 'pom' ? 9 + G.speed * .7 : 6 + G.speed * .55); /* ポムは足が短いので、同じ速さでも足の回転が速い */
+  P.ph += dt * (P.who === 'pom' ? 10 + G.speed * .75 : 6 + G.speed * .55); /* [46] ポムは足が短いので、もう少し速く足を回す（2026-11-17） */ /* ポムは足が短いので、同じ速さでも足の回転が速い */
   { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1, seg.th.kind); if (G.weather === 'snow' && seg.th.kind !== 'room' && seg.th.kind !== 'train') { const fw = segPos(seg, G.s, G.lat + ((c & 1) ? .12 : -.12)); (G.prints = G.prints || []).push({ x: fw[0], z: fw[1], y: fw[2], t: G.t, a: G.player.wy }); if (G.prints.length > 40) G.prints.shift(); } } } // footprints in the snow (2026-11-08) // a soft footstep on every stride
   { const sky = !!seg.th.sky; P.hawk = sky; G.follow.hawk = sky; G.pom.hawk = sky; }
   P.air = G.air && !flying; P.slide = sliding; P.fly = flying; P.flash = G.invT > 0 && G.invT < 2.4 && !flying; P.glow = G.shield ? '#5FB05A' : G.pow.dash > 0 ? '#F08A2E' : null;
@@ -708,7 +709,7 @@ function placeCamera(dt) {
   G.camYaw += dy * Math.min(1, dt * 9);
   { const want = H / W > 1.6 && !seg.th.toriiTunnel ? 1 : 0; G.camTall = G.camTall == null ? want : lerp(G.camTall, want, Math.min(1, dt * 2.5)); } // under the rows of small gates the higher camera looked straight into their beams (2026-11-14「鳥居のゾーンで前が見えない」): there it comes back down, smoothly
   const tk = G.camTall, dist = 3.9 + .3 * tk, fx = Math.sin(G.camYaw), fz = Math.cos(G.camYaw); // tall phones: the camera sits a little higher and further back, so the road ahead shows above the runners' heads (2026-11-14; measured: 108 → 133 px of road above their heads; the first, higher try (153 px) looked down too steeply and ran into overhead gates, so it was eased)
-  const sh = G.shake > 0 ? Math.sin(G.t * 60) * .09 * G.shake : 0, sway = seg.th.kind === 'train' ? Math.sin(G.t * 1.7) * .05 : 0;
+  const sh = G.shake > 0 ? Math.sin(G.t * 60) * .09 * G.shake : 0, sway = seg.th.kind === 'train' && !OPT().calm ? Math.sin(G.t * 1.7) * .05 + Math.sin(G.t * .63 + 1) * .025 + (G.jolt || 0) * Math.sin(G.t * 38) * .35 : 0; /* [85] 2 つの周期の重なった横ゆれ ＋ 継ぎ目の小さなガタン */
   CAM.x = G.rx - fx * dist + Math.cos(G.camYaw) * (sh + sway); CAM.z = G.rz - fz * dist - Math.sin(G.camYaw) * (sh + sway);
   G.fovK = lerp(G.fovK || 0, (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0, Math.min(1, dt * 4)); FOCAL = BASEF * (1 - .09 * G.fovK);
   const eC = segE(seg, G.s - 2.5), slope = clamp((segE(seg, Math.min(seg.len, G.s + 14)) - eP) / 14, -.3, .3);
@@ -725,17 +726,60 @@ function placeCamera(dt) {
   camPrep();
   P.depth = (P.wx - CAM.x) * CAM.s + (P.wz - CAM.z) * CAM.c; F.depth = (F.wx - CAM.x) * CAM.s + (F.wz - CAM.z) * CAM.c;
   if (F.tuck) F.depth = P.depth + .3;
-  if (G.pomPeek && G.pomPeek.seg === seg) { // the teaser: a hamster trots into the road, runs alongside staring at you for a moment, then dashes off
-    const k = G.pomPeek, B = k.b; G.peekSlow = 0;
-    if (!k.ph && G.s > k.s - 32) { k.ph = 'in'; k.stop = LANES[G.lane === 1 ? (G.follow.side > 0 ? 0 : 2) : G.lane === 0 ? 2 : 0]; bannerNow(SV.pomMet ? (tr('あっ、ポム！', 'POM!')) : (tr('！？', '!?')), t(SV.pomMet ? 'pomPeek2' : 'pomPeek'), 'room'); tone(784, .08, 'pluck', .045); tone(1047, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .09); }
-    let ps = k.s, lat = 0, look = 0; const side = -k.dir * (HW + .4);
-    if (k.ph === 'in') { const q = clamp((G.s - (k.s - 32)) / 20, 0, 1); lat = lerp(side, k.stop, Math.min(1, q * 1.4)); if (G.s > k.s - 1.8) { k.ph = 'look'; k.t = 1.7; } }
-    if (k.ph === 'look') { ps = G.s + 1.8; lat = k.stop; look = 1; G.peekSlow = 1; k.t -= dt; if (k.t <= 0) { k.ph = 'out'; k.t = .45; } }
-    if (k.ph === 'out') { k.t -= dt; ps = G.s + 1.8 + (.45 - k.t) * 10; lat = lerp(-side, k.stop, clamp(k.t / .45, 0, 1)); if (k.t <= 0) k.ph = 'gone'; }
-    if (k.ph && k.ph !== 'gone' && ps < seg.len - 4) { const mp = segPos(seg, ps, lat); B.wx = mp[0]; B.wz = mp[1]; B.wy = mp[2] + (look ? Math.abs(Math.sin(G.t * 9)) * .08 : 0); B.ph += dt * 30;
-      B.look = look ? .6 : 0; B.mood = look ? (k.t < 1.1 ? 'sparkle' : 'open') : 'open'; B.say = look && k.t < 1.4 ? (SV.pomMet ? t('pomPeekSay') : '？') : ''; B.big = 1.45;
-      B.depth = (mp[0] - CAM.x) * CAM.s + (mp[1] - CAM.z) * CAM.c; B.show = true; } else B.show = false; }
+  if (G.pomPeek && G.pomPeek.seg === seg) peekStep(seg, dt, P);
   { const M = G.pom; if (M.on) { M.depth = (M.wx - CAM.x) * CAM.s + (M.wz - CAM.z) * CAM.c; if (M.tuck) M.depth = P.depth + .5; } }
+}
+/* ポムのあいさつ（「先輩、お先っす！」）。2026-11-17 オーナー：「並走して走りながら言うように。いまは空中浮遊しながら物理的におかしく進んでる」。
+   前の作り：ポムは道の上の 1 点に止まったまま（走る絵なのに、こちらへすべって近づく）→ 急に自分と同じ速さで前に張りつき、ふり向いた止め絵のまま上下にふわふわ → 横へ消える。
+   作り直し（番号は docs/POM-PEEK-2026-11-17.md）：歩道から走って出てきて、自分より少しおそい速さで前を走る（追いつく）→ となりの車線に入って並んで走る →
+   走りながら肩ごしにふり向いて言う → 前を向き直し、ぐっと加速して歩道へぬける。足の動きはポム自身の速さに合わせる */
+function peekStep(seg, dt, P) {
+  const k = G.pomPeek, B = k.b; G.peekSlow = 0;
+  const laneFor = () => LANES[G.lane === 1 ? (G.follow.side > 0 ? 0 : 2) : G.lane === 0 ? 2 : 0]; // [9] 自分と相棒のいない車線
+  const side = -k.dir * (HW + .5), AHEAD = 1.3; // [1] 歩道（道のはし）から出てくる [10] 自分の少し前（ななめ前）に並ぶ
+  if (!k.ph && G.s > k.s - 34 && G.turnT <= 0) { k.ph = 'in'; k.ps = G.s + 15; k.lat = side; k.v = G.speed * .55; k.vl = 0; k.hy = 0; k.hv = 0; k.stop = laneFor(); k.t = 0; k.dust = 0; B.ph = Math.random() * 6;
+    bannerNow(SV.pomMet ? (tr('あっ、ポム！', 'POM!')) : (tr('！？', '!?')), t(SV.pomMet ? 'pomPeek2' : 'pomPeek'), 'room'); tone(784, .08, 'pluck', .045); tone(1047, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .09); }
+  if (!k.ph || k.ph === 'gone') { B.show = false; return; }
+  const gs = G.speed || 0; let want;
+  if (k.ph === 'in' || k.ph === 'side') { k.stop = lerp(k.stop, laneFor(), Math.min(1, dt * 2.5)); /* [11] 自分が車線を変えたら、ポムも横へよける */
+    want = gs + clamp((G.s + AHEAD - k.ps) * 2.6, -gs * .45, 5); } /* [2] はじめは自分よりおそく（追いつく） [3] 近づくと速さをそろえる（ばねのように、ゆっくり） */
+  else want = gs + 4 + k.t * 9; /* [20] 走りぬける時は、ぐっと加速 */
+  const acc = k.ph === 'out' ? 16 : 11; k.v += clamp(want - k.v, -acc * dt, acc * dt); k.v = Math.max(0, k.v); k.ps += k.v * dt; /* [4] 速さは急に変わらない（加速の上限） */
+  // 横の動き：走りながらななめに車線へ入る（横へすべらない。前へ進む速さがある時だけ横へ動ける）
+  const tl = k.ph === 'out' ? side * 1.15 : k.lat === side && k.v < gs * .5 ? side : k.stop; /* [5] 前へ走り出してから、車線へ入る */
+  const vlMax = Math.min(k.ph === 'out' ? 1.5 : 3.2, k.v * .22); /* [6] 横へ動く速さは、前へ進む速さの 2 割まで（ななめに走る） */
+  k.vl += clamp(clamp((tl - k.lat) * 3, -vlMax, vlMax) - k.vl, -9 * dt, 9 * dt); k.lat += k.vl * dt; /* [7] 横の動きも、なめらかに始まり・止まる */
+  // 段差・低い物はぴょんと越える。高い物が来たら、先に歩道へぬける
+  if (k.ph !== 'out') { const o = seg.obs.find(o => !o.dead && o.k !== 'deco' && o.s0 > k.ps && o.s0 < k.ps + 2.4 && o.l0 < k.lat + .35 && o.l1 > k.lat - .35);
+    if (o && (o.y1 || 0) > .7) { k.ph = 'out'; k.t = 0; } else if (o && k.hy <= 0) k.hv = 3.2; } /* [12] 低い物は小さく跳ぶ [13] 高い物の前では、ぶつからずに走りぬけて退場 */
+  if (k.hv || k.hy > 0) { k.hv -= 14 * dt; k.hy = Math.max(0, k.hy + k.hv * dt); if (k.hy <= 0 && k.hv < 0) { k.hv = 0; k.land = .12; } }
+  if (k.land) k.land = Math.max(0, k.land - dt);
+  if (k.ph === 'in' && Math.abs(k.ps - (G.s + AHEAD)) < .9 && Math.abs(k.lat - k.stop) < .2) { k.ph = 'side'; k.t = 0; } /* [8] 並んでから、ふり向く */
+  if (k.ph === 'side') { k.t += dt; if (k.t > 2.25) { k.ph = 'out'; k.t = 0; k.dust = 1; } }
+  else if (k.ph === 'out') { k.t += dt; if (k.ps - G.s > 34 || (Math.abs(k.lat) > HW + .9 && k.ps - G.s > 18)) k.ph = 'gone'; /* [24] すぐ横で消えない：十分に遠くへ走ってから */ }
+  if (k.ph !== 'out' && k.ps > seg.len - 16) { k.ph = 'out'; k.t = 0; } /* [14] 道の終わり（曲がり角）の手前で、先に退場 */
+  if (k.ph === 'gone' || k.ps > seg.len - 3) { k.ph = 'gone'; B.show = false; return; }
+  // 体：足の動きは、ポム自身の速さに合わせる。上下のふわふわはやめる（体の上下は絵の中の足の動きだけ）
+  B.ph += dt * (10 + k.v * .75); /* [15] 足の回転＝ポムの速さ（止まり気味なら足もゆっくり） [16] 前の「上下にふわふわ」をやめた */
+  const lookOn = k.ph === 'side' && k.t > .25 && k.t < 2.05; /* [17] 並んで少したってから、ふり向く [18] 言い終わってから、前を向き直す */
+  B.look = 0; B.runLook = lookOn ? 1 : 0; B.mood = k.t < 1.2 ? 'sparkle' : 'open';
+  B.say = lookOn && k.t > .35 ? (SV.pomMet ? t('pomPeekSay') : '？') : ''; B.sayA = lookOn ? Math.min(1, (k.t - .35) * 5, (2.05 - k.t) * 5) : 0; /* [19] ふきだしは、ふり向いてから出て、前を向く前に消える */
+  B.tilt = clamp(k.vl * .045, -.12, .12); /* [21] 横へ動く時は、そちらへ体をかたむける */
+  B.lean = k.ph === 'out' ? Math.min(1, k.t * 3) : 0; B.big = 1.45; B.hop = k.hy; B.land = k.land || 0; B.speedK = clamp((k.v - gs) / 6, 0, 1);
+  const mp = segPos(seg, k.ps, k.lat); B.wx = mp[0]; B.wz = mp[1]; B.wy = mp[2] + k.hy; /* [22] 体は地面の上（足が地面に着く）。跳ぶ時だけ上へ */
+  B.depth = (mp[0] - CAM.x) * CAM.s + (mp[1] - CAM.z) * CAM.c; B.show = true;
+  if (k.dust) { k.dust = 0; const sp = spriteAt(mp[0], mp[2], mp[1]); if (sp && !OPT().calm) { burst(sp.sx, sp.sy - 4, '#D8C8A6', 7); tone(523, .05, 'pluck', .03); } } /* [23] けり出しの一瞬、足もとに土ぼこりと小さな足音 */
+}
+
+/* 電車の中のうごき（2026-11-17）：[83] レールの継ぎ目（25m ごと）を、電車の速さで通る。[84] 通るたびに車体が小さくガタン（カメラ）
+   [93] つり革は車体のゆれにおくれて横にゆれ、速さが変わると前後にふれる [95] 立っている人も、ゆれに合わせて少し体がゆれる */
+function trainTick(sg, dt) {
+  G.jointD = (G.jointD || 0) + G.speed * dt; if (G.jointD > 25) { G.jointD -= 25; G.jolt = .045; G.joltN = (G.joltN || 0) + 1; }
+  G.jolt = Math.max(0, (G.jolt || 0) - dt * .3);
+  const acc = (G.speed - (G.tSpd0 == null ? G.speed : G.tSpd0)) / Math.max(dt, .001); G.tSpd0 = G.speed; G.tAcc = lerp(G.tAcc || 0, clamp(acc, -6, 6), Math.min(1, dt * 3));
+  if (OPT().calm) return; const sw = Math.sin(G.t * 1.7 - .7) * .05 + (G.jolt || 0) * Math.sin(G.t * 30) * .6, fw = -(G.tAcc || 0) * .012;
+  for (const q of sg.spr) { if (q.img !== 'strap' && q.img !== 'strapP' && !q.rider) continue; if (q.s0 == null) { q.s0 = q.s; q.l0 = q.lat; }
+    const k = q.rider ? .35 : 1; q.lat = q.l0 - sw * k; q.s = q.s0 + fw * k + (q.rider ? 0 : Math.sin(G.t * 2.3 + q.s0) * .006); }
 }
 /* ---------- safety net ----------
    Whatever goes wrong in a frame (a street that could not be built, a picture the phone had no memory for, a number gone bad),
@@ -864,7 +908,7 @@ function buddyMove(F, dt, seg, tlat0, back0) {
   if (F.air) { F.vy -= GRAV * dt * (F.vy < 0 ? 1.25 : 1) * (F.vault ? VAULT_G : 1); F.y += F.vy * dt; if (F.y <= 0) { F.y = 0; F.vy = 0; F.air = false; } }
   if (F.slideT > 0) F.slideT -= dt;
   F.slide = F.slideT > 0 && !F.air;
-  F.ph += dt * (F.who === 'pom' ? 9 + G.speed * .7 : 6.4 + G.speed * .55);
+  F.ph += dt * (F.who === 'pom' ? 10 + G.speed * .75 : 6.4 + G.speed * .55);
 }
 function collect(it, seg) {
   it.got = 1; const def = ITEMS[it.type]; const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);

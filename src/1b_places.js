@@ -388,15 +388,15 @@ Object.assign(THEMES, {
      本物の順：塔の真下の建物の 1 階（正面入口・チケット売り場・エレベーター）→ 屋上（外階段の入口。係員が扉を開ける）→ 金網に囲まれた赤い外階段（踊り場・白い字の段数・クイズの板）
      → 500 段からは建物の中のようなうす暗い通路（白い壁）→ 展望台の 1 階（145m） */
   tlobby: { ja: '赤い電波塔・入口の建物', lbl: '塔の入口', lblEn: 'Tower entrance', en: 'Red tower, entrance hall', kind: 'room', len: [62, 70], road: ['#D9D2C6', '#CFC7BA'], rpat: 'grid', side: ['#CFC7BA', '#C5BDB0'], spat: 'grid',
-    wall: '#F4EFE6', base: '#7A5A48', wallH: 4.6, ceil: '#EFE9DD', cpat: 'plain', light: 'round', wdeco: ['ticketbooth', 'elevator', 'towerposter', 'infodesk', 'elevator', 'towerposter'], props: [['plant', 1], ['benchS', 1]], obs: ['suitcase', 'rope', 'sign', 'bag'], course: 'tower',
+    wall: '#F4EFE6', base: '#7A5A48', wallH: 4.6, ceil: '#EFE9DD', cpat: 'plain', light: 'round', wdeco: ['ticketbooth', 'elevator', 'towerposter', 'infodesk', 'elevator', 'towerposter'], flights: { a: 30, P: 12, F: 4.5, R: 3, n: 2 }, props: [['plant', 1], ['benchS', 1]], obs: ['suitcase', 'rope', 'sign', 'bag'], course: 'tower',
     arrive: { ja: '正面入口から中へ。チケット売り場とエレベーター', en: 'In through the front doors: tickets and elevators' } },
   troof:  { ja: '赤い電波塔・入口の建物の屋上', lbl: '外階段の入口', lblEn: 'Stair gate', en: 'Red tower, rooftop stair gate', kind: 'deck', len: [58, 64], road: ['#B9B4AA', '#B0ABA0'], rpat: 'plaza', side: ['#A9A49A', '#A09B90'], spat: 'plaza', climb: [20, 20], view: 'city', rail: '#E6E8EA', roofLegs: 1, face: 250,
     props: [], obs: ['bench', 'cone', 'rope'], course: 'tower', lm: [{ t: 'hills', sc: 1.2, brg: 282 }, { t: 'tocho', sc: .6, brg: 305 }],
     arrive: { ja: '屋上。真上に塔の脚。外階段の入口は右手', en: 'The rooftop, under the tower legs. The stair gate is on the right' } },
-  tstair: { ja: '赤い電波塔・外階段', lbl: '外階段', lblEn: 'Outdoor stairs', en: 'Red tower, outdoor stairs', kind: 'deck', len: [112, 120], road: ['#B4563E', '#AC4F38'], rpat: 'stairs', side: ['#9A4632', '#92402D'], spat: 'stairs', climb: [20, 125], view: 'city', rail: '#D9452B', beams: '#D9452B', mesh: 1, landings: 1, face: 250,
+  tstair: { ja: '赤い電波塔・外階段', lbl: '外階段', lblEn: 'Outdoor stairs', en: 'Red tower, outdoor stairs', kind: 'deck', len: [112, 120], road: ['#B4563E', '#AC4F38'], rpat: 'stairs', side: ['#9A4632', '#92402D'], spat: 'stairs', climb: [20, 125], view: 'city', rail: '#D9452B', beams: '#D9452B', mesh: 1, landings: 1, flights: { a: 16, P: 15, F: 4.4, R: 2.8, n: 5 }, face: 250,
     props: [], obs: ['cone', 'rope'], course: 'tower', lm: [{ t: 'fuji', sc: .9, brg: 250 }, { t: 'hills', sc: 1.3, brg: 282 }, { t: 'tocho', sc: .7, brg: 305 }],
     arrive: { ja: '金網の中の赤い階段。約600段', en: 'Red stairs inside wire mesh: about 600 steps' } },
-  tpass:  { ja: '赤い電波塔・500段からの通路', lbl: '500段から', lblEn: 'Past step 500', en: 'Red tower, past step 500', kind: 'room', len: [44, 50], road: ['#D9DCDF', '#CFD3D6'], rpat: 'stairs', side: ['#CFD3D6', '#C5C9CD'], spat: 'stairs', climb: [125, 145],
+  tpass:  { ja: '赤い電波塔・500段からの通路', lbl: '500段から', lblEn: 'Past step 500', en: 'Red tower, past step 500', kind: 'room', len: [44, 50], road: ['#D9DCDF', '#CFD3D6'], rpat: 'stairs', side: ['#CFD3D6', '#C5C9CD'], spat: 'stairs', climb: [125, 145], flights: { a: 8, P: 12, F: 4, R: 2.4, n: 2 },
     wall: '#EEF0F1', base: '#B9BDC2', wallH: 3.0, ceil: '#8E949A', cpat: 'plain', light: 'slim', face: 250, wdeco: ['stepsign500', 'quizpanel', 'stepsign500'], props: [], obs: ['cone'], course: 'tower',
     arrive: { ja: 'うす暗い通路。あと少しで展望台', en: 'A dim passage. The deck is just above' } },
   hawk:   { ja: 'オオタカにつかまって空の上', lbl: 'オオタカと空の上', lblEn: 'Carried by a goshawk', en: 'Over Tokyo with a goshawk', kind: 'deck', sky: 1, len: [200, 210], road: ['#9AA0A6', '#90969C'], rpat: 'road', side: ['#8A9096', '#80868C'], spat: 'road', climb: [150, 0], view: 'city',

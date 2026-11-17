@@ -233,7 +233,7 @@ function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
     if (fd < 30 && !b.noEdge) { ctx.strokeStyle = 'rgba(40,30,24,.08)'; ctx.lineWidth = 1; ctx.stroke(); }
     if (fc.top && m === 4 && fd < 22 && !glow) { ctx.strokeStyle = `rgba(255,250,240,${(.22 * (1 - fd / 22)).toFixed(3)})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(SCR[0], SCR[1]); ctx.lineTo(SCR[2], SCR[3]); ctx.stroke(); }
     if (b.face && m === 4 && fd < (b.faceN ? 120 : 50) && (b.faceAll ? (fc.front || fc.back || fc.sideL || fc.sideR) : b.faceFront ? fc.front : b.faceSide ? (b.faceSide === 'L' ? fc.sideL : fc.sideR) : (fc.sideL || fc.sideR))) faceImage(paintFace(b.faceN && LT.night > .4 ? b.faceN : b.face, b.faceW, b.faceH), fc.sideL, fc.v); // 電車（faceN）は遠くからも絵で。先頭の顔は前の面（faceFront）
-    if (b.face2 && m === 4 && fd < 50 && !fc.top && !(b.faceSide === 'L' ? fc.sideL : fc.sideR) && (fc.front || fc.back || fc.sideL || fc.sideR)) faceImage(paintFace(b.face2, b.face2W || 200, b.face2H || 200), fc.sideL, fc.v); // 2026-11-17：主な面とちがう絵を、ほかの横の面に（たんすの横の板）
+    if (b.face2 && m === 4 && fd < 50 && !fc.top && (b.face2F ? (fc.front || fc.back) : !(b.faceSide === 'L' ? fc.sideL : fc.sideR) && (fc.front || fc.back || fc.sideL || fc.sideR))) faceImage(paintFace(b.face2, b.face2W || 200, b.face2H || 200), fc.sideL, fc.v); // 2026-11-17：主な面とちがう絵を、ほかの横の面に（たんすの横の板）
     if (m === 4 && fd < 45) {
       if (b.pat === 'vend' && (fc.sideL || fc.sideR || fc.front)) vendFace(b);
       if (b.txt && (fc.front || (b.vert && (fc.sideL || fc.sideR)))) qtext(b.txt, .08, .06, .92, .94, b.tc || (hexRgb(b.c)[0] + hexRgb(b.c)[1] < 260 ? '#FBF6EE' : '#2B1A12'), { vert: b.vert });
@@ -339,7 +339,7 @@ function drawSegment(sg, isCur) {
   const wing = wingOn(sg), cap = wing || capOn(sg);
   for (const w of sg.walls) { if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; DRAW.push([d, 1, w]); }
   const behind = G.segs.indexOf(sg) >= 0 && G.segs.indexOf(sg) < G.ci; // 曲がり終えた角の矢印の看板は描かない（横に浮いた板に見えていた）
-  for (const e of sg.decos) { if (e.sign && behind) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (lowQ ? 70 : 90)) continue; DRAW.push([d - 1.6, 2, e]); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
+  for (const e of sg.decos) { if (e.sign && behind) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (e.glow || e.pat === 'bigscreen' ? FAR : lowQ ? 70 : 90)) continue; /* [R14] 光る大画面は遠くでも見える */ DRAW.push([d - 1.6, 2, e]); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
   DRAW.sort((a, b) => b[0] - a[0]);
   for (const [d, t, w] of DRAW) {
     if (oc && occAt(d - 2) !== Infinity) { occDraw(d - 2, () => drawWallItem(d, t, w)); continue; }
@@ -581,10 +581,12 @@ function drawBunnyWorld(b) {
   else if (b.fly) pose = 'run0'; /* 紙飛行機に乗っている間は、足を止めて座る（2026-11-17 オーナー：「紙飛行機に乗ってる時も走り続けてる動作をしてる」）。下半分は紙飛行機にかくれる */
   else if (b.slide) pose = 'slide'; else if (b.air) pose = !b.fly && (b === G.player ? G.vy : b.vy) < -2.5 ? 'fall' : 'air'; /* くだりは「落ちてくる絵」 */
   else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
+  else if (b.runLook) pose = 'rlook' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES; /* 走りながらふり向く（ポムのあいさつ） */
   else pose = 'run' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES;
   b.pose = pose; const img = bunFrame(b.who, pose, SV.mugOn);
   ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc);
   if (b.tilt) ctx.rotate(b.tilt);
+  if (b.land > 0) ctx.scale(1 + b.land * .9, 1 - b.land * .9); /* ポムのあいさつ：小さく跳んだあとの着地で、体がつぶれる */ if (b.lean) ctx.scale(1 + .05 * b.lean, 1 - .05 * b.lean); /* 走りぬける時は、体を低く長く */
   if (b === G.player && G.mode === 'play' && !OPT().calm && !b.fly) { const lc = G.laneT > 0 ? Math.sign(G.lane - G.prevLane) * Math.sin(G.laneT / .35 * Math.PI) * .09 : 0, tc = G.turnT > 0 && G.turnDir ? G.turnDir * Math.sin(G.turnT / .8 * Math.PI) * .12 : 0; if (lc || tc) ctx.rotate(lc + tc); } // lean into a lane change and a corner (2026-11-08)
   if (b === G.player && G.mode === 'play' && !OPT().calm) { // squash on landing, a touch of stretch at the top of a jump
     if (G.landT > 0 && !b.air && !b.slide) { const q = Math.sin(G.landT / .14 * Math.PI) * .2 * (G.landK || 1); ctx.scale(1 + q, 1 - q); }
@@ -614,8 +616,8 @@ function drawBunnyWorld(b) {
  }
   else if (b.look > 0) { ctx.globalAlpha = Math.min(1, b.look * 3); ctx.fillStyle = '#E86A75'; heart(ctx, 120, -250 - (1 - b.look) * 40, 22); ctx.fillStyle = '#F2C230'; star(ctx, -130, -230 - (1 - b.look) * 30, 18); }
   ctx.restore();
-  if (b.say && b.look > 0) { // a speech bubble in screen space, kept on screen
-    ctx.save(); ctx.globalAlpha = Math.min(1, b.look * 3); ctx.font = '900 15px "Zen Maru Gothic","Hiragino Sans",sans-serif';
+  if (b.say && (b.look > 0 || b.runLook)) { // a speech bubble in screen space, kept on screen
+    ctx.save(); ctx.globalAlpha = b.runLook ? (b.sayA || 0) : Math.min(1, b.look * 3); ctx.font = '900 15px "Zen Maru Gothic","Hiragino Sans",sans-serif';
     const tw = ctx.measureText(b.say).width, bw = tw + 22, bh = 30, tipX = sp.sx, bx = clamp(sp.sx - bw / 2, 8, W - bw - 8); let by = Math.max(70, sp.sy - 230 * sc - bh - 16); { const now = performance.now(); if (now - BUBT > 8) BUBS = []; BUBT = now; }
     for (let k = 0; k < 4 && BUBS.some(r => bx < r[0] + r[2] + 4 && r[0] < bx + bw + 4 && by < r[1] + r[3] + 4 && r[1] < by + bh + 4); k++) by -= bh + 8; /* ふきだし同士が重ならないよう、上にずらす */
     BUBS.push([bx, by, bw, bh]); G.bubN = BUBS.length;

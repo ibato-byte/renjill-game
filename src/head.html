@@ -87,6 +87,7 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 .pow:has(.ring){padding:3px}
 #pauseBtn{pointer-events:auto;position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:50%;border:0;background:rgba(251,246,238,.9);font-family:var(--f-display);font-size:14px;box-shadow:0 2px 0 rgba(59,42,32,.3)}
 #toasts{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 132px);display:flex;flex-direction:column;align-items:center;gap:8px}
+.ttoast{transition:opacity .2s} body.tscroll .ttoast{opacity:0!important}
 .toast{background:var(--paper);border-radius:16px;padding:8px 16px;text-align:center;box-shadow:0 3px 0 rgba(59,42,32,.3);animation:pop .35s cubic-bezier(.2,1.6,.4,1) both, fade .4s ease-in 1.9s forwards;max-width:86vw}
 .toast .en{font-family:var(--f-display);font-size:clamp(18px,5vw,26px);display:block;letter-spacing:.02em}
 .toast .ja{font-size:13px;font-weight:700;color:var(--ink-soft)}
@@ -530,7 +531,7 @@ html.calm .howanim .ha-cap span:first-child{opacity:1}
 }
 #sTitle{isolation:isolate} /* 中の重なり順を、ほかの画面（設定・言語えらび）の上に出さない（2026-11-15：言語えらびが押せなくなった。qa/langbtn.js が見つけた） */
 /* 題名の上に、うすい影のグラデーション（部屋が明るくても題名が読める）。たて長だけ */
-@media (max-aspect-ratio:4/5){ #sTitle::before{content:"";position:absolute;left:0;right:0;top:0;height:230px;pointer-events:none;background:linear-gradient(180deg,rgba(43,29,18,.42),rgba(43,29,18,.16) 60%,rgba(43,29,18,0));z-index:0} #sTitle>*:not(.langtop){position:relative;z-index:1} #sTitle .langtop{z-index:3} #sTitle .card{z-index:2} }
+@media (max-aspect-ratio:4/5){ #sTitle::before{content:"";position:sticky;align-self:stretch;flex:0 0 230px;margin-bottom:-230px;top:0;height:230px;pointer-events:none;transition:opacity .25s;background:linear-gradient(180deg,rgba(43,29,18,.42),rgba(43,29,18,.16) 60%,rgba(43,29,18,0));z-index:0} #sTitle>*:not(.langtop){position:relative;z-index:1} #sTitle .langtop{z-index:3} #sTitle .card{z-index:2} #sTitle.scrolled::before{opacity:0} } /* 2026-11-17 オーナー「スマホでスタート画面を下にスクロールすると、暗い層ごとずれて、上の方の色が変わって何かカバーされてる感じが変」：上の暗いぼかしが、中身といっしょに上へずれていた。画面に止めておき、スクロールしたら消す（下から上がってきた札の上に、暗い帯がかぶらない） */
 /* 横長の画面（PC・タブレット横）：メニューの札は右に寄せ、部屋と 3 人を左に大きく見せる（前は札が画面のまん中で 3 人を隠していた） */
 @media (min-aspect-ratio:5/4) and (min-width:900px){
   #sTitle{align-items:flex-start;padding-left:max(4vw,24px);overflow:hidden}
