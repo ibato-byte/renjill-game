@@ -1340,6 +1340,16 @@
       "name": "車は立体（面ごとの絵・タイヤのホイール）",
       "file": "src/4e_art.js",
       "has": "if (kind === 'whl')"
+    },
+    {
+      "name": "オオタカで降りる先に公園・地面の近くで足をはなす",
+      "file": "src/4g_aerial.js",
+      "has": "D13] 公園の中・おりる道の上には"
+    },
+    {
+      "name": "立体にした障害物も、結果の画面では絵で見せる",
+      "file": "src/7_ui.js",
+      "has": "const an = o && (o.art || o.picArt)"
     }
   ]
 }

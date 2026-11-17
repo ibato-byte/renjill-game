@@ -6,7 +6,7 @@ const { chromium } = require('playwright'); const path = require('path');
     const p = await b.newPage({ viewport: { width: 390, height: 844 } }); p.on('pageerror', e => errs.push(e.message)); await p.route('**/fonts.googleapis.com/**', r => r.abort());
     await p.addInitScript(l => { localStorage.setItem('renjill-hay-dash-v1', JSON.stringify({ tutDone: 1, nickAsked: 1, runs: 9, lang: l })); }, lang);
     await p.goto('file://' + path.resolve(__dirname, '../dist') + '/test.html'); await p.waitForTimeout(800); await p.click('#btnStart'); await p.waitForTimeout(1000);
-    await p.evaluate(() => { const D = window.__hayDash, G = D.G; G.jumpTo('shinjuku', 600, 1); const sg = D.ev('curSeg()'); G.lastHit = sg.obs.find(x => x.art) || null; D.ev("die('obstacle')"); });
+    await p.evaluate(() => { const D = window.__hayDash, G = D.G; G.jumpTo('shinjuku', 600, 1); const sg = D.ev('curSeg()'); G.lastHit = sg.obs.find(x => x.art || x.picArt) || null; /* 立体の障害物（picArt）も対象 */ D.ev("die('obstacle')"); });
     await p.waitForTimeout(2400);
     out[lang] = await p.evaluate(() => { const v = id => { const e = document.getElementById(id); return e && !e.hidden && e.offsetParent !== null; }; const any = v('rvHit') || v('resHit');
       const txt = (v('rvHit') ? document.getElementById('rvHitTxt') : document.getElementById('resHitTxt')).textContent; const img = (v('rvHit') ? document.getElementById('rvHitImg') : document.getElementById('resHitImg')).src;
