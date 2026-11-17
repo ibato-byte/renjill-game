@@ -523,6 +523,7 @@ function boot() {
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren'; missionsFix();
   goTitle(); document.documentElement.classList.remove('booting'); // the page shows only once its words are in the player's language
+  maintShow();
   try { kpComeback(); } catch (e) { reportErr(e); }
   dailyBonus(); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && G.mode === 'title') dailyBonus(); }); // a phone that keeps the app open past midnight gets the next day's bonus when it comes back
   { // an event has ended: whoever still wears its gift goes back to their usual look once (the gift stays in the Shop and can be worn again)
@@ -639,3 +640,37 @@ G.testFork = () => { // test helper: put the player just before the lunch fork
 };
 /*END-TEST-ONLY*/
 boot();
+
+/* ---- メンテナンス中の表示（2026-11-17 オーナー：「これまで指示した作業が全て終わるまで、ゲームにアクセスしたらメンテナンス中の可愛い表示が出るように」） ----
+   公開しているアプリ（HAYDASH_APP）だけに出す。自動チェック（navigator.webdriver）と、オーナーの確かめ用の ?preview=1 では出さない。
+   終わったら、下の MAINT を 0 にする（関数の中に置く：起動の途中で呼ぶので、ファイルの後ろの const はまだ使えない） */
+function maintShow() {
+  const MAINT = 1;
+  try { if (!MAINT || !window.HAYDASH_APP || navigator.webdriver || /[?&]preview=1/.test(location.search)) return; } catch (e) { return; }
+  const T = { ja: ['ただいまメンテナンス中', 'レンとジルとポムが、東京の町をもっと本物みたいにお手入れしています。', 'もうすぐもどります。また遊びに来てね！'],
+    en: ['Under maintenance', 'Ren, Jill and Pom are making Tokyo look even more real.', 'We will be back soon. Please come again!'],
+    zh: ['維護中', 'Ren、Jill 和 Pom 正在把東京的街道整理得更逼真。', '很快就回來，請再來玩！'], ko: ['점검 중', '렌과 질과 폼이 도쿄 거리를 더 진짜처럼 손보고 있어요.', '곧 돌아올게요. 또 놀러 와 주세요!'] }[LANG] || null;
+  const tx = T || ['ただいまメンテナンス中', 'レンとジルとポムが、東京の町をもっと本物みたいにお手入れしています。', 'もうすぐもどります。また遊びに来てね！'];
+  const d = document.createElement('div'); d.id = 'maint'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-live', 'polite');
+  d.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 30% 20%,#FFF6E4 0,#FCE9D8 40%,#F3DCCB 100%);font-family:"Zen Maru Gothic","Hiragino Sans",sans-serif;color:#3B2A20;text-align:center;overflow:hidden';
+  d.innerHTML = '<div style="max-width:420px;width:100%;background:rgba(255,253,248,.92);border-radius:28px;box-shadow:0 10px 30px rgba(120,80,40,.18);padding:22px 20px 26px;position:relative">'
+    + '<canvas id="maintCv" width="360" height="200" style="width:100%;max-width:360px;height:auto;display:block;margin:0 auto 6px"></canvas>'
+    + '<div style="display:inline-block;background:#F2C230;color:#3B2A20;border-radius:999px;padding:4px 14px;font-weight:900;font-size:13px;letter-spacing:.08em;margin-bottom:10px">🛠 MAINTENANCE</div>'
+    + '<h1 style="margin:0 0 10px;font-size:24px;font-weight:900;line-height:1.3">' + tx[0] + '</h1>'
+    + '<p style="margin:0 0 8px;font-size:15px;line-height:1.7">' + tx[1] + '</p><p style="margin:0;font-size:15px;line-height:1.7;font-weight:700;color:#A0522D">' + tx[2] + '</p></div>';
+  document.body.appendChild(d);
+  for (const ev of ['keydown', 'keyup', 'pointerdown', 'touchstart', 'wheel']) d.addEventListener(ev, e => e.stopPropagation(), { capture: true });
+  addEventListener('keydown', e => { if (document.getElementById('maint')) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+  try { G.mode = 'maint'; } catch (e) { }
+  const cv = d.querySelector('#maintCv'), g = cv.getContext('2d'); if (!g) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = 360 * dpr; cv.height = 200 * dpr; g.scale(dpr, dpr);
+  const pics = [['ren', 'front_sleepy', 70], ['jill', 'front_happy', 180], ['pom', 'front_cheer', 290]].map(([w, f, x]) => { let im = null; try { im = bunFrame(w, f, 0); } catch (e) { } return { w, im, x }; });
+  const t0 = performance.now();
+  const draw = () => { if (!document.getElementById('maint')) return; const t = (performance.now() - t0) / 1000; g.clearRect(0, 0, 360, 200);
+    g.fillStyle = 'rgba(160,120,80,.12)'; g.beginPath(); g.ellipse(180, 178, 160, 14, 0, 0, Math.PI * 2); g.fill();
+    for (const p of pics) { if (!p.im || !p.im.width) continue; const k = (p.w === 'pom' ? 112 : 128) / p.im.width, bob = p.w === 'ren' ? Math.sin(t * 1.4) * 1.5 : -Math.abs(Math.sin(t * 2.6 + p.x)) * 6, w = p.im.width * k, h = p.im.height * k; g.drawImage(p.im, p.x - w / 2, 178 - h + bob, w, h); }
+    g.fillStyle = '#7A8EA4'; g.font = '900 16px sans-serif'; for (let k = 0; k < 3; k++) { const q = (t * .5 + k / 3) % 1; g.globalAlpha = Math.sin(q * Math.PI); g.fillText('z', 92 + q * 26 + k * 4, 70 - q * 46); } g.globalAlpha = 1; // ねているレンの Zz
+    for (let k = 0; k < 6; k++) { const q = (t * .25 + k / 6) % 1, x = 30 + ((k * 97) % 300); g.globalAlpha = Math.sin(q * Math.PI) * .8; g.fillStyle = k % 2 ? '#E86A75' : '#F2C230'; g.beginPath(); g.arc(x, 150 - q * 130, 3 + (k % 3), 0, Math.PI * 2); g.fill(); } g.globalAlpha = 1; // ふわふわ上がる光のつぶ
+    requestAnimationFrame(draw); };
+  requestAnimationFrame(draw);
+}
