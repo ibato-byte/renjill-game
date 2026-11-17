@@ -84,8 +84,15 @@ function newSeg(prev, step, opts) {
   buildGeometry(seg);
   if ((seg.tid === 'tlobby' || seg.tid === 'slobby') && seg.hp && seg.hp.shape === 'flights') { const h = seg.hp, sd = 1, l2 = sd * (HW - .06), nS = [-sd * seg.r[0], -sd * seg.r[1]]; for (let k = 0; k <= h.n; k++) { const s1 = h.a + k * h.P + .6; if (s1 > seg.len - 3) break; const e = segE(seg, s1) - (seg.e0 || 0), fl = k === h.n && seg.tid === 'tlobby' ? 'RF' : (k + 1) + 'F', a2 = segPos(seg, s1 + .9, l2), b2 = segPos(seg, s1, l2), E = segE(seg, s1); seg.decos.push({ v: [a2[0], E + 1.5, a2[1], b2[0], E + 1.5, b2[1], b2[0], E + 2.2, b2[1], a2[0], E + 2.2, a2[1]], n: nS, pat: 'stepsign', seg, w: .9, txt: fl, txt2: Math.round(segE(seg, s1) - (seg.base != null ? seg.base : 0)) + 'm' }); } } /* [H24] 入口の建物の階段：踊り場ごとに階の札（1F・2F…屋上）と、その高さ */
   if (th.truss) { const red = th.truss === 'red', c1 = red ? '#D9452B' : '#E6EAEE', c2 = red ? '#F2F0EC' : '#C9D1D9', L = seg.len, Hh = red ? (seg.wallH || 5) + 3 : (seg.wallH || 5) - .4; /* [T8][S4] 展望台のガラスの外に、塔の鉄骨（赤い電波塔は赤と白、押上は白いトラス）。窓の外が、塔の中にいるとわかる */
-    for (const sd of [-1, 1]) { const lt = sd * (HW + (red ? 2.2 : 1.6)); for (let a = 2; a < L - 2; a += red ? 9 : 14) { const b = Math.min(a + (red ? 9 : 14), L - 2); seg.lines.push({ a: [a, lt, -6], b: [b, lt, Hh], c: c1, w: red ? .16 : .08 }); seg.lines.push({ a: [a, lt, Hh], b: [b, lt, -6], c: c1, w: red ? .16 : .08 }); seg.lines.push({ a: [a, lt, -6], b: [a, lt, Hh], c: c2, w: red ? .22 : .16 }); }
+    for (const sd of [-1, 1]) { if (th.core === sd) continue; const lt = sd * (HW + (red ? 2.2 : 1.6)); for (let a = 2; a < L - 2; a += red ? 9 : 14) { const b = Math.min(a + (red ? 9 : 14), L - 2); seg.lines.push({ a: [a, lt, -6], b: [b, lt, Hh], c: c1, w: red ? .16 : .08 }); seg.lines.push({ a: [a, lt, Hh], b: [b, lt, -6], c: c1, w: red ? .16 : .08 }); seg.lines.push({ a: [a, lt, -6], b: [a, lt, Hh], c: c2, w: red ? .22 : .16 }); }
       seg.lines.push({ a: [2, lt, -.3], b: [L - 2, lt, -.3], c: c2, w: .14 }); seg.lines.push({ a: [2, lt, Hh - 1], b: [L - 2, lt, Hh - 1], c: c2, w: .14 }); } }
+  if (th.esc && seg.hp && seg.hp.shape === 'flights') { const h = seg.hp, sd = th.esc, c = sd * 3.7, nIn = [-sd * seg.r[0], -sd * seg.r[1]]; /* [H27] 4 階の入口：階段の横に、本物どおりのエスカレーター（銀の段・黒い手すり・ガラスのらんかん） */
+    for (let k = 0; k < h.n; k++) { const s1 = h.a + k * h.P + h.F - 1.2, s2 = h.a + (k + 1) * h.P + 1.2;
+      for (let a = s1; a < s2 - .01; a += .5) { const b = Math.min(a + .5, s2);
+        seg.floor.push({ v: quad(seg, [[a, c - .55, .03], [b, c - .55, .03], [b, c + .55, .03], [a, c + .55, .03]]), c: C('#9AA0A6'), pat: 'stairs' });
+        seg.walls.push({ v: quad(seg, sd > 0 ? [[b, c - .6, .05], [a, c - .6, .05], [a, c - .6, .95], [b, c - .6, .95]] : [[a, c + .6, .05], [b, c + .6, .05], [b, c + .6, .95], [a, c + .6, .95]]), c: C('#DCE6EC'), n: nIn, sh: 1, glass: 1 });
+        for (const q of [c - .62, c + .62]) seg.lines.push({ a: [a, q, 1.0], b: [b, q, 1.0], c: '#1E2126', w: .08 }); }
+      for (const q of [c - .62, c + .62]) seg.walls.push({ v: quad(seg, [[s1 - .02, q - .06, 0], [s1 - .02, q + .06, 0], [s1 - .02, q + .06, 1.0], [s1 - .02, q - .06, 1.0]]), c: C('#B9C0C6'), n: [-seg.f[0], -seg.f[1]], sh: .9 }); } } /* 乗り口の、手すりの銀の柱 */
   if (th.rpat === 'lookdown' && seg.hp && seg.hp.shape === 'flights') { const lowE = (seg.e0 || 0) + Math.min(0, seg.hp.R * seg.hp.n); for (const f of seg.floor) if (f.pat === 'lookdown') { f.lowOnly = 1; f.low = Math.abs(segE(seg, (f.a + f.b) / 2) - lowE) < .5 ? 1 : 0; } }
   if (th.ramp && th.climb && seg.base != null) { let last = th.climb[0]; const sd = 1, l2 = sd * (HW - .06), nS = [-sd * seg.r[0], -sd * seg.r[1]]; for (let s = 6; s < seg.len - 6; s += .5) { const h = segE(seg, s) - seg.base, n = Math.floor(h + .001); if (n > last) { last = n; const top = n >= Math.floor(th.climb[0] + th.ramp), txt = (top ? (th.climb[0] + th.ramp).toFixed(1) : n) + 'm', e = segE(seg, s); seg.decos.push({ v: [...segPos(seg, s + .9, l2).slice(0, 2)].length ? (() => { const a = segPos(seg, s + .9, l2), b = segPos(seg, s, l2); return [a[0], e + 1.2, a[1], b[0], e + 1.2, b[1], b[0], e + 1.75, b[1], a[0], e + 1.75, a[1]]; })() : null, n: nS, pat: 'stepsign', seg, w: .9, txt, txt2: '' }); } } } /* [H21] 展望回廊：1m 上がるごとに、ガラスのわきに今の高さの札（446m・447m…451.2m） */
   buildProps(seg); buildWalkers(seg);
@@ -193,8 +200,9 @@ function addDecals(seg, fS, fE) {
     for (let s = fS + 12 + rand(0, 10); s < fE - 14; s += rand(18, 32)) { const l = pick([-1.5, 0, 1.5]) + rand(-.3, .3); out(s, s + .7, l - .35, l + .35, 'manhole'); }
     for (let s = fS + 6 + rand(0, 6); s < fE - 16; s += rand(10, 18)) { const l = pick([-1.5, 0, 1.5]); out(s, s + .5, l - .5, l + .5, 'patch', { pc: pick(['#5A5A5E', '#6E6E72', '#646468']) }); }
     if (!seg.first && th.kind === 'street' && L > 60) { const z = L - HW - 6.5; out(z, z + 3.6, -ROAD, ROAD, 'zebra'); if (Math.random() < .6) out(z - 4.2, z - 2.4, -ROAD + .3, -.15, 'stop'); if (seg.forkY) { for (const sd of [-1, 1]) { const L0 = sd * (ROAD + .15), L1 = sd * (ROAD + .95); seg.floor.push({ v: quad(seg, [[z + .2, Math.min(L0, L1), .03], [z + 3.4, Math.min(L0, L1), .03], [z + 3.4, Math.max(L0, L1), .03], [z + .2, Math.max(L0, L1), .03]]), c: [0, 0, 0], dec: 'tactile', ti: 0, a: z + .2, b: z + 3.4 }); /* [Y8] 横断歩道の両はしの歩道：黄色い点字ブロック（とまれの点） */
+        { const gl = sd * (ROAD + .55), bx = []; for (let a = z - 18; a < z - 1; a += 2) bx.push({ l0: gl - .04, l1: gl + .04, s0: a, s1: a + .08, y0: 0, y1: .8, c: '#E9EDF0' }); bx.push({ l0: gl - .05, l1: gl + .05, s0: z - 18, s1: z - 1, y0: .74, y1: .82, c: '#E9EDF0' }, { l0: gl - .04, l1: gl + .04, s0: z - 18, s1: z - 1, y0: .4, y1: .46, c: '#E9EDF0' }); seg.props.push(mkProp(seg, bx)); } /* [Y12] 交差点の手前の歩道のふちに、白い歩行者用の柵（車道へ出ないように） */
         seg.props.push(mkProp(seg, [{ l0: sd * (ROAD + 1.1) - .06, l1: sd * (ROAD + 1.1) + .06, s0: z - .5, s1: z - .38, y0: 0, y1: 2.9, c: '#8A9098' }, { l0: sd * (ROAD + 1.1) - .2, l1: sd * (ROAD + 1.1) + .2, s0: z - .62, s1: z - .5, y0: 2.1, y1: 2.85, c: '#2B2F36' }, { l0: sd * (ROAD + 1.1) - .14, l1: sd * (ROAD + 1.1) + .14, s0: z - .64, s1: z - .62, y0: 2.5, y1: 2.78, c: '#C8463C' }, { l0: sd * (ROAD + 1.1) - .14, l1: sd * (ROAD + 1.1) + .14, s0: z - .64, s1: z - .62, y0: 2.17, y1: 2.45, c: '#3E5A48' }])); } /* [Y7] 横断歩道の手前の、歩行者の信号（赤・青の 2 つの箱） */
-      out(z + 3.9, z + 7.4, -.7, .7, 'yGore'); out(z - 26, z - .3, -.08, .08, 'yLine'); out(z - 12, z - 9.5, -ROAD + .35, -.35, 'yArrowL'); out(z - 12, z - 9.5, .35, ROAD - .35, 'yArrowR'); out(z - 21, z - 18.5, -ROAD + .35, -.35, 'yArrowL'); out(z - 21, z - 18.5, .35, ROAD - .35, 'yArrowR'); } else out(z - 12, z - 9.5, .35, ROAD - .35, 'arrow'); } /* [Y1] Y 字路の手前：左の車線に「ななめ左」、右の車線に「ななめ右」の矢印（本物の道の矢印。2 回） */
+      out(z + 3.9, z + 7.4, -.7, .7, 'yGore'); out(z - 26, z - .3, -.08, .08, 'yLine'); for (let a = z - 24; a < z - 1; a += 3) out(a, a + .2, -.14, .14, 'stud'); out(z - 12, z - 9.5, -ROAD + .35, -.35, 'yArrowL'); out(z - 12, z - 9.5, .35, ROAD - .35, 'yArrowR'); out(z - 21, z - 18.5, -ROAD + .35, -.35, 'yArrowL'); out(z - 21, z - 18.5, .35, ROAD - .35, 'yArrowR'); } else out(z - 12, z - 9.5, .35, ROAD - .35, 'arrow'); } /* [Y1] Y 字路の手前：左の車線に「ななめ左」、右の車線に「ななめ右」の矢印（本物の道の矢印。2 回） */
   }
   if (stone || road) for (let s = fS + 8; s < fE - 8; s += rand(14, 22)) for (const sd of [-1, 1]) if (Math.random() < .55) out(s, s + .5, sd * (ROAD - .38), sd * (ROAD - .05), 'grate');
   if (stone) for (let s = fS + 4; s < fE - 6; s += rand(4, 9)) { const l = rand(-ROAD + .4, ROAD - 1.2); out(s, s + rand(.6, 1.2), l, l + rand(.6, 1.1), 'patch', { pc: pick(['#8A8478', '#A09A8E', '#77716A']) }); }
@@ -205,7 +213,8 @@ function buildRoom(seg, s0, lEnd, rEnd) {
   const wallRun = (side, a0, a1) => {
     for (let a = a0; a < a1 - .01; a += 3) {
       const b = Math.min(a + 3, a1);
-      if (glass) addWallQuad(seg, side, a, b, 0, H, wc, { glass: 1, gf: th.gframe });
+      if (glass && th.core === side) { addWallQuad(seg, side, a, b, 0, H, C(th.coreC || '#DCD8D0'), {}); addWallQuad(seg, side, a, b, 0, .14, bc, { base: 1 }); } /* [T11] 展望台の内がわは、塔のまん中の柱（エレベーターや階段の入る、かべ）。窓は外がわだけ（本物の展望台は、ぐるりと 1 周する通路） */
+      else if (glass) addWallQuad(seg, side, a, b, 0, H, wc, { glass: 1, gf: th.gframe });
       else if (side < 0 && th.leftWall === 'trainside') addWallQuad(seg, side, a, b, 0, H, C('#C9CDD2'), { pat: 'trainside', ta: a, tw: b - a });
       else { addWallQuad(seg, side, a, b, 0, H, wc, { pat: th.wpat || null }); addWallQuad(seg, side, a, b, 0, .14, bc, { base: 1 }); }
       if (th.kind === 'train') addWallQuad(seg, side, a, b, .02, .3, C(th.lc || '#80C241'), { base: 1 });
@@ -219,13 +228,15 @@ function buildRoom(seg, s0, lEnd, rEnd) {
   if (!seg.first && !seg.prevFork && !seg.prevIn && seg.turnIn) { const out = -seg.turnIn; wallRun(out, -HW, s0);
     seg.walls.push({ v: quad(seg, [[-HW, HW, 0], [-HW, -HW, 0], [-HW, -HW, H], [-HW, HW, H]]), c: wc, n: [seg.f[0], seg.f[1]], sh: .95, glass: glass ? 1 : 0, gf: th.gframe, pat: th.wpat || null }); }
   const e = L + HW;
-  if (terr) { const nF = [-seg.f[0], -seg.f[1]], rail = C('#C9CDD2');
-    seg.walls.push({ v: quad(seg, [[T0, -HW, H - .7], [T0, HW, H - .7], [T0, HW, H], [T0, -HW, H]]), c: C(th.base || '#7D8B97'), n: nF, sh: .9 }); /* [F2] 屋内とテラスの境：上のはり（ここから先は屋根が無い） */
+  if (terr) { const nF = [-seg.f[0], -seg.f[1]], rail = '#C9CDD2';
+    seg.walls.push({ v: quad(seg, [[T0, -HW, H - .7], [T0, HW, H - .7], [T0, HW, H], [T0, -HW, H]]), c: C(th.base || '#7D8B97'), n: nF, sh: .9 }); for (const x of [-HW + .35, -1.9, 1.9, HW - .35]) seg.props.push(mkProp(seg, [{ l0: x - .05, l1: x + .05, s0: T0 - .05, s1: T0 + .05, y0: 0, y1: H - .7, c: '#AEB6BE' }])); /* [T12] 屋内とテラスの境：あいた自動ドアの銀のわく（たての柱） */ /* [F2] 屋内とテラスの境：上のはり（ここから先は屋根が無い） */
     for (const sd of [-1, 1]) { seg.walls.push({ v: quad(seg, sd < 0 ? [[T0, -HW, 0], [T0, -HW + .35, 0], [T0, -HW + .35, H], [T0, -HW, H]] : [[T0, HW - .35, 0], [T0, HW, 0], [T0, HW, H], [T0, HW - .35, H]]), c: C(th.base || '#7D8B97'), n: nF, sh: .9 });
       for (let a = T0; a < L - .01; a += 2) addWallQuad(seg, sd, a, Math.min(a + 2, L), 0, 1.1, wc, { glass: 1, gf: th.gframe }); /* [F3] 左右：高さ 1.1m のガラスの手すり（上の景色はさえぎらない） */
       seg.lines.push({ a: [T0, sd * (HW - .05), 1.12], b: [L, sd * (HW - .05), 1.12], c: rail, w: .07 }); }
     for (let x = -HW; x < HW - .01; x += 2) seg.walls.push({ v: quad(seg, [[L, x, 0], [L, x + 2, 0], [L, x + 2, 1.1], [L, x, 1.1]]), c: wc, n: nF, sh: 1, glass: 1, gf: th.gframe }); /* 正面のはしも、低いガラスの手すり。その先は空 */
-    seg.lines.push({ a: [L, -HW, 1.12], b: [L, HW, 1.12], c: rail, w: .07 }); }
+    seg.lines.push({ a: [L, -HW, 1.12], b: [L, HW, 1.12], c: rail, w: .07 });
+    seg.floor.push({ v: quad(seg, [[L - 1.6, -HW + .4, .015], [L - 1.2, -HW + .4, .015], [L - 1.2, HW - .4, .015], [L - 1.6, HW - .4, .015]]), c: [0, 0, 0], dec: 'tactile', ti: 0, a: L - 1.6, b: L - 1.2 }); /* [T10] テラスの正面の手すりの手前に、黄色い注意の線（点字ブロック） */
+    for (const sd of [-1, 1]) { const q = sd * (HW - .55), a = T0 + 6 + (sd > 0 ? 3 : 0); seg.props.push(mkProp(seg, [{ l0: q - .09, l1: q + .09, s0: a - .09, s1: a + .09, y0: 0, y1: 1.05, c: '#4A5058' }, { l0: q - .22, l1: q + .22, s0: a - .2, s1: a + .2, y0: 0, y1: .06, c: '#3A3F46' }, { l0: q - .2, l1: q + .2, s0: a - .16, s1: a + .2, y0: 1.05, y1: 1.32, c: '#2F6C8E' }, { l0: q - .17, l1: q - .05, s0: a - .26, s1: a - .16, y0: 1.16, y1: 1.27, c: '#1E2328' }, { l0: q + .05, l1: q + .17, s0: a - .26, s1: a - .16, y0: 1.16, y1: 1.27, c: '#1E2328' }, { l0: q - .19, l1: q + .19, s0: a + .2, s1: a + .26, y0: 1.12, y1: 1.26, c: '#16191D' }])); } /* [T9] テラスの左右に、景色を見る望遠鏡（台の柱・青い本体・のぞき口・前のレンズ）。前（空の方）を向く */ }
   else seg.walls.push({ v: quad(seg, [[e, -HW, 0], [e, HW, 0], [e, HW, H], [e, -HW, H]]), c: wc, n: [-seg.f[0], -seg.f[1]], sh: 1, glass: glass ? 1 : 0, gf: th.gframe, pat: th.wpat || null });
   /* つきあたりの壁（2026-11-16 オーナー「景色や壁にブラッシュアップの余地がたくさん」）：どの部屋も、白い壁に矢印だけだった。
      はばき（床との境の板）を回し、矢印の左右に、その部屋の壁と同じ種類の物（窓・ふすま・額・ポスター・時計…）を掛ける。
@@ -238,6 +249,7 @@ function buildRoom(seg, s0, lEnd, rEnd) {
         seg.decos.push({ v: quad(seg, sd < 0 ? [[K0 + .6, -kw + .02, .4], [e - .6, -kw + .02, .4], [e - .6, -kw + .02, 2.3], [K0 + .6, -kw + .02, 2.3]] : [[e - .6, kw - .02, .4], [K0 + .6, kw - .02, .4], [K0 + .6, kw - .02, 2.3], [e - .6, kw - .02, 2.3]]), n: [-sd * seg.r[0], -sd * seg.r[1]], pat: 'liftArt', v2: 0, seg, w: 6 }); }
       for (const sd of [-1, 1]) seg.walls.push({ v: quad(seg, sd < 0 ? [[K0, -HW, 0], [K0, -kw, 0], [K0, -kw, H], [K0, -HW, H]] : [[K0, kw, 0], [K0, HW, 0], [K0, HW, H], [K0, kw, H]]), c: C('#B9C0C6'), n: nB, sh: .95 }); /* かごの入口の両わきの銀のかべ */
       seg.walls.push({ v: quad(seg, [[K0, -kw, kh], [K0, kw, kh], [K0, kw, H], [K0, -kw, H]]), c: C('#B9C0C6'), n: nB, sh: .9 });
+      for (const sd of [-1, 1]) { const q = sd * (kw - .09); seg.lines.push({ a: [K0 + .4, q, .92], b: [e - .3, q, .92], c: '#D5DADF', w: .06 }); for (const x of [K0 + .4, e - .3]) seg.lines.push({ a: [x, q, .92], b: [x, sd * (kw - .02), .92], c: '#D5DADF', w: .04 }); addWallQuadO(seg, sd, K0, e, 0, .12, kw - HW - .015, C('#2A2A2E'), { base: 1 }); } /* [S7] かごの中の左右に、銀の手すりと、足もとの黒いけり板 */
       seg.walls.push({ v: quad(seg, [[K0, kw, kh], [e, kw, kh], [e, -kw, kh], [K0, -kw, kh]]), c: C('#EFE8D8'), n3: [0, -1, 0], sh: .95 }); } /* かごの低い天井（明るい） */ /* [H12] かごの正面：銀の扉と、上がっていく高さの数字 */
     else { seg.walls.push({ v: quad(seg, [[e - .02, -HW, 0], [e - .02, HW, 0], [e - .02, HW, .14], [e - .02, -HW, .14]]), c: bc, n: nE, sh: .9, base: 1 });
       const ok = (th.wdeco || []).filter(t => !['seatwin', 'izakaya', 'stationsign', 'timetable', 'flightboard', 'planewin', 'citywin'].includes(t)), soft = th.rpat === 'tatami' || th.rpat === 'boards' || th.rpat === 'rug';
@@ -268,7 +280,7 @@ function buildRoom(seg, s0, lEnd, rEnd) {
   if (seg.tid === 'tlobby' || seg.tid === 'slobby') entryDoors(seg, s0 + 5);
   else if (th.wdeco) {
     for (const sd of [-1, 1]) {
-      if (sd < 0 && th.leftWall) continue;
+      if (sd < 0 && th.leftWall) continue; if (glass && th.core !== sd) continue;
       let s = s0 + (seg.first ? 18 : 2) + rand(0, 2);
       const end = (sd < 0 ? lEnd : rEnd) - 2;
       while (s < end - 1) {
@@ -642,14 +654,17 @@ function buildPark(seg, s0, lEnd, rEnd) {
     const end = sd < 0 ? lEnd : rEnd;
     for (let a = s0; a < end - .01; a += 3) { const b = Math.min(a + 3, end); addWallQuad(seg, sd, a, b, 0, .7, C('#8A8470'), { pat: 'stonewall' }); }
     if (th.moat === sd) { // the palace moat: water, then the far stone wall with pines on top
-      const FW = th.wide || 38, WH = th.wide ? 1.3 : 7; /* [R12] 大きな川（隅田川）：向こう岸は 100m 先の低いコンクリートの護岸と並木（お堀の高い石垣と松にしない） */
+      const FW = th.wide || 38, WH = th.wide ? 1.3 : 7; if (th.wide) { const ql = sd * (HW - .05); seg.lines.push({ a: [s0, ql, 1.15], b: [end, ql, 1.15], c: '#9AA3AB', w: .06 }); for (let a = s0 + 1; a < end - .5; a += 2) seg.lines.push({ a: [a, ql, .7], b: [a, ql, 1.15], c: '#9AA3AB', w: .045 }); } /* [L5] 隅田川の岸：低いかべの上に、金属の手すり（本物の川ぞいのテラスの柵） */ /* [R12] 大きな川（隅田川）：向こう岸は 100m 先の低いコンクリートの護岸と並木（お堀の高い石垣と松にしない） */
       for (let a = s0 - 20; a < seg.len + 40; a += 12) { const pg = terrClip(seg, [[a, sd * HW], [a + 12, sd * HW], [a + 12, sd * FW], [a, sd * FW]]); if (pg) seg.floor.push({ v: quad(seg, pg.map(q => [q[0], q[1], -.9])), c: C('#3E6E7A'), pat: 'sea', far: 1 }); }
       const [wr0, wr1] = terrRange(seg, sd * FW);
       for (let a = Math.max(s0 - 20, wr0); a < Math.min(seg.len + 40, wr1) - .5; a += 8) { const lat = sd * FW, n = [-sd * seg.r[0], -sd * seg.r[1]]; const a2 = Math.min(a + 8, wr1);
         seg.walls.push({ v: quad(seg, sd < 0 ? [[a, lat, -.9], [a2, lat, -.9], [a2, lat, WH], [a, lat, WH]] : [[a2, lat, -.9], [a, lat, -.9], [a, lat, WH], [a2, lat, WH]]), c: C(th.wide ? '#B5B0A4' : '#9A9384'), n, sh: .9, pat: th.wide ? 'stonewall' : 'ishigaki' });
-        if (th.wide) { if (((a / 8) | 0) % 2 === 0) seg.spr.push({ lat: sd * (FW + 3), s: a + 4, y: WH, h: 7, w: 8, img: 'canopy_green', far: 1 }); }
+        if (th.wide) { if (((a / 8) | 0) % 2 === 0) seg.spr.push({ lat: sd * (FW + 3), s: a + 4, y: WH, h: 7, w: 8, img: 'canopy_green', far: 1 }); if (((a / 8) | 0) % 2 === 1 && a > s0) { const w = 14, hh = Math.round(rand(14, 38)), seed = (Math.random() * 1e5) | 0, style = pick(['mixed', 'glass', 'mixed']), cc = C(pick(['#C9C4BA', '#B9C2CA', '#D6D0C4', '#A9B3BC'])); for (let x = a, k = 0; x < a + w - .01; x += 3.5, k++) addWallQuadO(seg, sd, x, Math.min(x + 3.5, a + w), WH, WH + hh, FW + 12 - HW, cc, { pat: 'fac', st: style, h: hh, w: 3.5, seed: seed + k, k, first: k === 0, fv: seed % 8, fw: w, fh: hh, fm: '', fu0: (x - a) / w, fu1: (Math.min(x + 3.5, a + w) - a) / w, fy0: 0, fy1: 1, far: 1 }); } } /* [L6] 川の向こう岸（浅草の側）の並木のうしろに、町のビル（窓のある立体の正面。夜は窓に明かり） */
         else if (th.tree === 'sakura') seg.spr.push(Object.assign(sakuraSpr(sd * 39, a + 4, -sd, 12, 11), { y: 6.4, far: 1 }));
         else seg.spr.push({ lat: sd * 40, s: a + 4, y: 7, h: 6, w: 7, img: 'canopy_pine', far: 1 }); }
+      if (th.wide) for (let k = 0; k < 2; k++) { const a = s0 + 12 + k * 45 + rand(0, 20), Lb = sd * (k ? rand(58, 75) : rand(30, 45)), bx = [B(Lb, a, 4.2, 17, -.95, .25, '#3B2F2A'), B(Lb, a + 1.5, 3.7, 14, .25, 2.0, '#EBDFC4', 2), B(Lb, a + 1.2, 4.3, 14.6, 2.0, 2.3, '#4A3A30'), B(Lb, a + 16.2, 4.0, .6, -.2, .5, '#3B2F2A')];
+        for (let m = 0; m < 7; m++) bx.push(B(Lb + (Lb > 0 ? -1 : 1) * 2.05, a + 2 + m * 2, .3, .3, 1.55, 1.95, '#D9483A', 2)); for (let m = 0; m < 6; m++) bx.push(B(Lb + (Lb > 0 ? -1 : 1) * 1.86, a + 2.4 + m * 2.2, .02, 1.6, .55, 1.7, '#8A6A4A'));
+        seg.props.push(mkProp(seg, bx, { big: 1 })); } /* [L9] 隅田川にうかぶ屋形船（黒い船体・障子の明かりの屋形・屋根・赤いちょうちん。夜は明かりがつく） */
       if (th.tree === 'sakura') { // the near bank: cherries leaning out over the water, and rowboats underneath
         for (let a = s0 + 1; a < end - 2; a += rand(7, 10)) seg.spr.push(sakuraSpr(sd * (HW + 1.2), a, sd, 11, 11.5));
         if (th.boats) for (let a = s0 + 6; a < seg.len + 20; a += rand(9, 16)) { const L = sd * rand(11, 30), hc = pick(['#F3F3F3', '#E9EEF2', '#DDE8D0']);
@@ -663,6 +678,8 @@ function buildPark(seg, s0, lEnd, rEnd) {
       continue;
     }
     for (let s = s0 + 2; s < end - 10; s += rand(3, 6)) for (const d of [1.2, 4.5]) seg.spr.push({ /* stop short of the corner so the turn sign stays visible */ lat: sd * (HW + d + rand(0, 2)), s: s + rand(-1, 1), y: 0, h: rand(7, 10), w: rand(6, 8), img: 'canopy_' + (th.tree === 'illum' ? 'green' : th.tree || 'green'), trunk: 1 });
+    if (th.town) for (let a = s0 - 6; a < end; a += 12) { const pg = terrClip(seg, [[a, sd * (HW + 4)], [a + 12, sd * (HW + 4)], [a + 12, sd * (HW + 24.3)], [a, sd * (HW + 24.3)]]); if (pg) seg.floor.push({ v: quad(seg, pg.map(q => [q[0], q[1], -.03])), c: C(((a / 12) | 0) % 2 ? '#6F9558' : '#73995B'), pat: 'lawn', far: 1 }); } /* 木のうしろの芝生を、町のビルの足もとまでつなぐ（ビルがういて見えない） */
+    if (th.town) for (let a = s0 + 4; a < end - 18; a += rand(17, 24)) { const w = rand(10, 15), hh = Math.round(rand(12, 42)), seed = (Math.random() * 1e5) | 0, style = pick(['mixed', 'glass', 'mixed', 'luxury']), cc = C(pick(['#C9C4BA', '#B9C2CA', '#D6D0C4', '#A9B3BC', '#C8BBAA'])); for (let x = a, k = 0; x < a + w - .01; x += 3.5, k++) addWallQuadO(seg, sd, x, Math.min(x + 3.5, a + w), 0, hh, 24, cc, { pat: 'fac', st: style, h: hh, w: Math.min(3.5, a + w - x), seed: seed + k, k, first: k === 0, fv: seed % 8, fw: w, fh: hh, fm: '', fu0: (x - a) / w, fu1: (Math.min(x + 3.5, a + w) - a) / w, fy0: 0, fy1: 1, far: 1 }); } /* [L7] 着地する公園：並木のうしろ（24m 先）に、まわりの町のビル。前は木のうしろが何もない灰色だった */
   }
   const e = seg.len + HW;
   for (let x = -HW; x < HW - .01; x += 3) seg.walls.push({ v: quad(seg, [[e, x, 0], [e, x + 3, 0], [e, x + 3, .7], [e, x, .7]]), c: C('#8A8470'), n: [-seg.f[0], -seg.f[1]], sh: 1, pat: 'stonewall' });
@@ -677,7 +694,11 @@ function yWedge(seg) {
   seg.walls.push({ v: quad(seg, [[fs, -half, 0], [fs, half, 0], [fs, half, h], [fs, -half, h]]), c, n: [-seg.f[0], -seg.f[1]], sh: 1, pat: 'fac', st: fac.style === 'station' ? 'glass' : fac.style, h, w: 1.3, seed: (Math.random() * 1e5) | 0, yFront: 1 });
   seg.yFront = { s: fs, half, h };
   /* [Y2] 分かれ目の島：とがった建物の前に、低い縁石の三角の島（植え込み）。先に黄色と黒のポール [Y3] 信号の柱と、こちらを向いた信号（赤・黄・青）[Y4] 島の両わきの白い柵 */
+  seg.props.push(mkProp(seg, [{ l0: -half - .25, l1: half + .25, s0: fs - .9, s1: fs - .02, y0: 2.7, y1: 2.84, c: '#3B3F46' }, { l0: -half - .25, l1: half + .25, s0: fs - .92, s1: fs - .86, y0: 2.5, y1: 2.84, c: pick(['#B5302A', '#2F5579', '#3E5A48']) }], { big: 1 })); /* [Y10] とがった角の建物の、1 階の上のひさし（色のついた前だれ） */
+  if (h > 14) { const cy = Math.min(h - 2, 9.5); seg.props.push(mkProp(seg, [{ l0: -.55, l1: .55, s0: fs - .25, s1: fs - .05, y0: cy - .55, y1: cy + .55, c: '#2B2F36' }, { l0: -.46, l1: .46, s0: fs - .27, s1: fs - .25, y0: cy - .46, y1: cy + .46, c: '#F6F2E8' }, { l0: -.03, l1: .03, s0: fs - .29, s1: fs - .27, y0: cy - .02, y1: cy + .32, c: '#2B2B2B' }, { l0: -.02, l1: .24, s0: fs - .29, s1: fs - .27, y0: cy - .02, y1: cy + .02, c: '#2B2B2B' }], { big: 1 })); } /* [Y11] 角の建物の正面の、四角いわくの大きな時計（分かれ道の角の目印） */
+  if (h > 8) seg.props.push(mkProp(seg, [{ l0: -half - .05, l1: half + .05, s0: fs - .05, s1: fs + .25, y0: h, y1: h + .9, c: '#A7ACB2' }, { l0: -half - .08, l1: half + .08, s0: fs - .08, s1: fs + .28, y0: h + .9, y1: h + 1, c: '#7E858C' }], { big: 1 })); /* [Y14] とがった角の建物の屋上のへり（手すりの立ち上がりと、笠木） */
   const tip = fs - 5.4, G0 = '#B9B4A8';
+  { const t2 = fs - 5.4, bx = []; for (const l of [-.55, .55]) bx.push({ l0: l - .07, l1: l + .07, s0: t2 - .9, s1: t2 - .76, y0: 0, y1: .8, c: '#F2F2EE' }, { l0: l - .075, l1: l + .075, s0: t2 - .905, s1: t2 - .755, y0: .58, y1: .66, c: '#E06A2A' }); seg.props.push(mkProp(seg, bx, { big: 1 })); } /* [Y15] 島の先の手前に、白い車止めのポール 2 本（オレンジの反射の帯） */
   seg.props.push(mkProp(seg, [{ l0: -.3, l1: .3, s0: tip, s1: tip + 1.8, y0: 0, y1: .16, c: G0 }, { l0: -.48, l1: .48, s0: tip + 1.8, s1: tip + 3.6, y0: 0, y1: .16, c: G0 }, { l0: -.62, l1: .62, s0: tip + 3.6, s1: fs - .05, y0: 0, y1: .16, c: G0 },
     { l0: -.38, l1: .38, s0: tip + 2, s1: fs - .2, y0: .16, y1: .32, c: '#6F9A52' }, { l0: -.1, l1: .1, s0: tip + .2, s1: tip + .4, y0: 0, y1: .85, c: '#E8C23A' }, { l0: -.1, l1: .1, s0: tip + .2, s1: tip + .4, y0: .5, y1: .62, c: '#2B2B2B' },
     { l0: -.07, l1: .07, s0: fs - 1.1, s1: fs - .96, y0: 0, y1: 4.6, c: '#8A9098' }, { l0: -.48, l1: .48, s0: fs - 1.3, s1: fs - 1.05, y0: 3.75, y1: 4.15, c: '#3B3F46' },
@@ -707,6 +728,7 @@ function buildDeck(seg, s0, lEnd, rEnd) {
   }
   if (th.landings) { /* コース 15〜22（2026-11-17・本物を調べて）：[15] ところどころの踊り場（小さなテラス。段がなく平ら） [16] 踊り場のクイズの板（全 7 問） [17] 白い字で階段に書いた段数 [18] 333 段・500 段の節目の表示 */
     let q = 0; for (let a = s0 + 16; a < L - 12; a += 15) { for (const f of seg.floor) if (f.mid && f.a >= a - .1 && f.a < a + 4.4) f.land = 1; q++;
+      for (const sd of [-1, 1]) { const ql = sd * (railLat - .12); seg.props.push(mkProp(seg, [{ l0: ql - .05, l1: ql + .05, s0: a + 2, s1: a + 2.1, y0: 0, y1: 1.3, c: '#5A5F66' }, { l0: ql - .1, l1: ql + .1, s0: a + 1.95, s1: a + 2.15, y0: 1.3, y1: 1.48, c: '#FFE6B0', glow: 2 }])); } /* [H29] 踊り場ごとに、手すりの角に小さな足もと灯（夜は明かりがつく） */
       const l2 = -(railLat - .05), nS = [seg.r[0], seg.r[1]]; if (q <= 7) seg.decos.push({ v: quad(seg, [[a + 1.2, l2, 1.0], [a + 2.6, l2, 1.0], [a + 2.6, l2, 2.0], [a + 1.2, l2, 2.0]]), n: nS, pat: 'quizpanel', seg, w: 1.4, txt: 'Q' + q }); }
     const stepAt = a => { const up = segE(seg, a) - segE(seg, 0), tot = Math.max(1, segE(seg, L) - segE(seg, 0)); return Math.round(up / tot * 600); }; /* [H19] 段の数は、本当に登った高さから（20 段＝3.5m ごと）。前は道の長さの割合で数えていて、踊り場でも数がふえた */
     for (const f of seg.floor) if (f.mid && !f.land && f.ti % 6 === 3) { const n = stepAt(f.a); if (n > 0 && n < 600) f.stepN = n; }
@@ -821,6 +843,7 @@ const PROPS = {
   gomi: (sd, s) => ({ w: 2.4, bx: [B(sd * 4.0, s, .9, 1.6, 0, .9, '#3E8A4A')] }),
   bollard: (sd, s) => ({ w: 2.4, bx: [B(sd * 3.0, s, .15, 1.6, 0, .85, '#B9BEC4')] }),
   areamap: (sd, s) => ({ w: 2.2, bx: [B(sd * 4.0, s, .2, 1.3, 0, 2.0, '#3A4048')] }),
+  fountainS: (sd, s) => ({ w: 1.4, bx: [B(sd * 3.7, s, .42, .42, 0, .82, '#B9B4A8'), B(sd * 3.7, s - .12, .72, .66, .82, .92, '#9A958C'), B(sd * 3.7, s + .12, .07, .07, .92, 1.05, '#C9CDD2')] }), /* [L11] 公園の水のみ場（石の柱・受け皿・じゃ口） */
   noki: (sd, s) => ({ w: 2.4, bx: [B(sd * 4.15, s, .6, 1.7, 0, .7, '#C9C7BF')] }),
   signal: (sd, s) => ({ w: 5, bx: [B(sd * 3.0, s, .2, .2, 0, 5.2, '#9AA0A6'), B(sd * 2.2, s, 1.7, .15, 5.0, 5.12, '#9AA0A6'), B(sd * 1.6, s - .1, 1.2, .35, 4.8, 5.2, '#46525E'), B(sd * 1.2, s - .12, .26, .02, 4.88, 5.12, '#7FD06A', 1), B(sd * 1.6, s - .12, .26, .02, 4.88, 5.12, '#3B3B3B'), B(sd * 2.0, s - .12, .26, .02, 4.88, 5.12, '#3B3B3B')] }),
   guard: (sd, s) => ({ w: 6, ln: [{ a: [s, sd * 2.8, .7], b: [s + 6, sd * 2.8, .7], c: '#F3F3F3', w: .12 }, { a: [s, sd * 2.8, .45], b: [s + 6, sd * 2.8, .45], c: '#F3F3F3', w: .08 }, { a: [s, sd * 2.8, 0], b: [s, sd * 2.8, .75], c: '#D9DEE3', w: .07 }] }),
@@ -886,6 +909,7 @@ function buildProps(seg) {
   const { s0, lEnd, rEnd } = sideEnds(seg);
   if (th.leftWall === 'trainside') platformDoors(seg, s0, lEnd);
   for (const sd of [-1, 1]) {
+    if (th.core === sd || th.esc === sd) continue; /* 望遠鏡は窓の側だけ。エスカレーターの側には物を置かない */
     if (sd < 0 && th.leftWall === 'trainside') continue; // ホームドアの前（電車の側）には、ベンチや柱を置かない
     let s = s0 + (seg.first ? 4 : 2) + rand(0, 2); const end = (sd < 0 ? lEnd : rEnd) - 1.5;
     let lastPole = null;

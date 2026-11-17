@@ -22,16 +22,19 @@ const RM_TOWER = { // 赤い電波塔のまわり（芝公園・浜松町・汐�
     [1.3, -1.25, 35, 35, 140, 4], [1.95, -1.55, 35, 35, 150, 0], [1.05, -1.75, 35, 35, 130, 4], [1.6, -2.05, 35, 35, 145, 1], // 芝浦のマンション（運河の両岸。水の上には置かない）
     [-0.3, -3.35, 55, 45, 150, 1], [0.1, -3.45, 50, 45, 145, 0], [-0.5, -3.55, 45, 40, 130, 4], [0.25, -3.2, 45, 40, 120, 2], [-0.1, -3.7, 40, 40, 140, 1], // 品川
     [1.95, -0.6, 90, 30, 22, 2], [2.05, -0.9, 110, 34, 18, 4], [1.85, -1.3, 80, 30, 24, 2], [1.7, -1.75, 120, 36, 16, 4], [1.55, -2.1, 90, 30, 20, 2], // [M34] 海ぞいの倉庫・ふ頭の長くひくい建物（芝浦・竹芝）
-    [2.86, 0.05, 40, 40, 190, 4], [3.0, -0.2, 40, 40, 175, 0], [2.7, 0.3, 40, 40, 160, 4], // 勝どき・月島のタワーマンション（35.6588, 139.7770 から計算）
+    [2.86, 0.05, 40, 40, 190, 4], [3.0, -0.2, 40, 40, 175, 0], [2.98, 0.28, 40, 40, 160, 4], // 勝どき・月島のタワーマンション（35.6588, 139.7770 から計算）
     [-4.87, 3.44, 70, 50, 243, 2], [-4.6, 3.2, 55, 50, 223, 1], [-4.75, 3.75, 55, 50, 210, 0], [-5.1, 3.1, 50, 50, 200, 3], [-4.4, 3.55, 50, 45, 204, 1], [-5.0, 3.9, 45, 45, 190, 4], [-4.45, 2.95, 45, 45, 180, 0], // [M28] 新宿の高層ビル街（都庁と 6 本）
   ],
   rail: [[1.17, 0.86], [1.12, 0.3], [1.04, -0.37], [0.75, -0.95], [0.2, -1.43], [-0.25, -2.4], [-0.62, -3.34]], railW: 46, // 新橋 → 浜松町 → 田町 → 品川（山手線・京浜東北線・東海道線…何本も並ぶ）
   hwy: [[[1.6, 1.1], [1.48, 0.2], [1.38, -0.45], [0.95, -1.5], [0.6, -2.5], [0.4, -3.3]], [[1.48, 0.2], [0.9, 0.35], [0.3, 0.55], [-0.3, 0.6], [-1.0, 0.45], [-1.8, 0.3]], [[0.3, 0.55], [0.15, 1.2], [0.25, 2.2]]], // 首都高：海ぞいの 1 号線・六本木へ行く 3 号線・都心環状線
   water: [[[1.95, 1.0], [1.9, 0.2], [1.75, -0.6], [1.5, -1.2], [1.2, -2.2], [0.9, -3.0]], 70], // 運河（芝浦）
+  water2: [[[3.72, 2.04], [3.2, 1.23], [2.75, 0.5], [2.6, 0.0], [2.5, -0.5], [2.45, -1.0]], 200], // [M54] 隅田川の河口（築地・勝どきのあいだ。はば約 200m）
+  bridges: [[2.7, 0.36], [3.2, 1.23]], // [M55] 勝どき橋・佃大橋
   moat: [[0.12, 3.63], [1.33, 3.67], [1.38, 2.45], [0.97, 2.17], [0.25, 2.33], [-0.03, 2.97], [0.12, 3.63]], // [M48] 皇居のお堀（森のまわりを一周。皇居の中心は北緯 35.6852・東経 139.7528 → 赤い電波塔から北へ約 2.95km）
   temple: [[0.23, -0.12, 52, 40, 22]], // 増上寺の本堂（芝公園の中）
   brick: [[1.96, 2.51, 330, 30, 28, 0.25]], // [M47] 東京駅の赤れんがの駅舎（北緯 35.6812・東経 139.7671 から計算）（長さ 330m、南北にのびる。ドームの屋根）
   ponds: [[1.68, 0.17, .09], [1.12, -0.12, .03]],
+  piers: [[2.05, -0.34, 0], [2.1, -0.85, 0]], // [M53] 竹芝・日の出のさん橋（海につき出た長い台と、とまっている船）
   roads: [[[0.5, 2.0], [0.45, 0.5], [0.35, -0.6], [0.1, -1.5], [-0.3, -3.2]], [[-0.2, 2.0], [-0.05, 0.6], [-0.25, -0.5], [-0.6, -1.5]], [[1.5, 0.6], [1.35, -0.6], [1.0, -1.8], [0.7, -3.0]], [[-1.8, 0.35], [-0.6, 0.45], [0.45, 0.5], [1.5, 0.6]]], // [M31] 大通り（日比谷通り・桜田通り・海岸通り・外堀・六本木への道）
   stations: [[0, .02, .1], [0, .33, .4], [0, .58, .65], [0, .93, 1]], // [M27] 駅のホームの屋根（新橋・浜松町・田町・品川）
   bridge: [[1.28, -2.3], [2.25, -2.62], 126, 52], // [M18] 海の上の吊り橋（2 本の白い塔・高さ 126m、道は海の上 52m）
@@ -103,9 +106,16 @@ function realMapLayer(seg, o) {
   if (M.moat) ribbon(M.moat, 40, night ? '#0C1630' : 'rgba(78,112,128,.95)');
   // [M2] 川・運河：本物の位置の水の帯（岸の白いコンクリート）
   if (M.water) { const [line, w] = M.water; ribbon(line, w + 10, night ? '#2A2E3A' : 'rgba(196,192,182,.95)'); ribbon(line, w, night ? '#0C1630' : 'rgba(84,118,144,.98)'); }
-  if (M.water2) { const [line, w] = M.water2; ribbon(line, w + 16, night ? '#2A2E3A' : 'rgba(196,192,182,.95)'); ribbon(line, w, night ? '#0C1630' : 'rgba(78,112,140,.98)'); if (!lowq && !night) ribbon(line, w * .25, 'rgba(190,215,230,.18)'); }
+  const riverAll = () => { /* [M66] 川・水面の明かり・橋をまとめて描く（着地の公園の上に川を描きなおす時も、橋と明かりが消えない） */
+  if (M.water2) { const [line, w] = M.water2; ribbon(line, w + 16, night ? '#2A2E3A' : 'rgba(196,192,182,.95)'); ribbon(line, w, night ? '#1A2842' : 'rgba(78,112,140,.98)'); /* [M63] 夜の隅田川を、真っ黒にせず少し明るい紺に */ if (!lowq && !night) ribbon(line, w * .25, 'rgba(190,215,230,.18)'); if (night && !lowq) for (let i = 0; i + 1 < line.length; i++) { const a = Wk(...line[i]), b = Wk(...line[i + 1]), L = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / L, uz = (b[1] - a[1]) / L; for (let u = 10; u < L; u += 28) for (const sd of [-1, 1]) { const off = sd * (w / 2 - 6 - ((u * 7) % 13)), q = P(a[0] + ux * u - uz * off, a[1] + uz * u + ux * off, 0); if (!q || q[1] < yb) continue; const r = clamp(3 * F / q[2], .5, 4), fl = .55 + .45 * Math.sin(G.t * 2.3 + u * .7 + i); ctx.fillStyle = `rgba(255,${(200 + (u % 3) * 18) | 0},140,${(.42 * fl).toFixed(3)})`; ctx.fillRect(q[0] - r / 2, q[1], r, r * 4.5); } } } /* [M65] 夜の隅田川：両岸の町の明かりが水面にうつって、ゆらゆらゆれる（たての光のすじ） */
   for (let k = 0; k < (M.bridges || []).length; k++) { const [x, y] = M.bridges[k], [cx, cz] = Wk(x, y), w2 = M.water2[1] * .75, L2 = 9, a = rot + Math.PI / 2, ux = Math.cos(a), uz = -Math.sin(a), vx = Math.sin(a), vz = Math.cos(a);
-    polyW([[cx - ux * w2 - vx * L2, cz - uz * w2 - vz * L2], [cx + ux * w2 - vx * L2, cz + uz * w2 - vz * L2], [cx + ux * w2 + vx * L2, cz + uz * w2 + vz * L2], [cx - ux * w2 + vx * L2, cz - uz * w2 + vz * L2]], night ? 'rgba(255,214,150,.55)' : ['#C8463C', '#4E8FC4', '#E9E4D8', '#6FA36A', '#D9A030', '#9AA6B2'][k % 6], 6); } /* 橋：川をまたぐ帯（はば 18m、色はそれぞれ） */
+    const bc = ['#C8463C', '#4E8FC4', '#E9E4D8', '#6FA36A', '#D9A030', '#9AA6B2'][k % 6], E = (sl, sv) => [cx + ux * w2 * sl + vx * L2 * sv, cz + uz * w2 * sl + vz * L2 * sv];
+    for (const sv of [-1, 1]) { const A = P(...E(-1, sv), 7), B = P(...E(1, sv), 7), A2 = P(...E(-1, sv), 3.2), B2 = P(...E(1, sv), 3.2); if (A && B && A2 && B2) { ctx.fillStyle = night ? '#1A1C26' : bc; ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.lineTo(B2[0], B2[1]); ctx.lineTo(A2[0], A2[1]); ctx.closePath(); ctx.fill(); } } /* [M59] 橋の横の面（けた。高さ 3〜7m。昼は橋の色） */
+    for (const sl of [-.5, 0, .5]) { const t0 = P(...E(sl, 0), 3.2), t1 = P(...E(sl, 0), 0); if (t0 && t1) { ctx.strokeStyle = night ? '#14161E' : '#8A8C90'; ctx.lineWidth = Math.max(1, 8 * F / t0[2]); ctx.beginPath(); ctx.moveTo(t0[0], t0[1]); ctx.lineTo(t1[0], t1[1]); ctx.stroke(); } } /* [M60] 川の中の橋脚（3 本） */
+    polyW([E(-1, -1), E(1, -1), E(1, 1), E(-1, 1)], night ? '#2E3040' : '#8E9096', 7); /* 橋の上の道（アスファルト） */
+    for (const sv of [-.86, .86]) polyW([E(-1, sv - .1), E(1, sv - .1), E(1, sv + .1), E(-1, sv + .1)], night ? '#3A3C4C' : bc, 7.9); /* [M61] 両はしのらんかん（橋の色） */
+    if (night) for (let m = 0; m <= 8; m++) for (const sv of [-.9, .9]) { const q = P(...E(-1 + m / 4, sv), 9); if (!q) continue; ctx.fillStyle = 'rgba(255,214,150,.95)'; ctx.beginPath(); ctx.arc(q[0], q[1], Math.max(.8, 4 * F / q[2]), 0, 7); ctx.fill(); } } /* [M62] 夜は、らんかんにそって街灯の点の列（前は橋ぜんぶが光る板だった） */
+  }; riverAll();
   for (const [line, w, nb] of [[M.water2 && M.water2[0], M.water2 && M.water2[1], 5], [M.water && M.water[0], M.water && M.water[1], 2]]) { if (!line || lowq) continue;
     for (let n = 0; n < nb; n++) { const dir = n % 2 ? 1 : -1, p = along(line, G.t * .0025 * dir + n / nb), lat = dir * w * .2, cx = p[0] - p[3] * lat, cz = p[1] + p[2] * lat, Lb = n === 0 && nb > 2 ? 34 : 16, hb = 3;
       const fx = p[2] * dir, fz = p[3] * dir, nx = -fz * hb, nz = fx * hb; polyW([[cx + fx * Lb / 2 + nx * .3, cz + fz * Lb / 2 + nz * .3], [cx + nx, cz + nz], [cx - fx * Lb / 2 + nx, cz - fz * Lb / 2 + nz], [cx - fx * Lb / 2 - nx, cz - fz * Lb / 2 - nz], [cx - nx, cz - nz], [cx + fx * Lb / 2 - nx * .3, cz + fz * Lb / 2 - nz * .3]], night ? 'rgba(255,230,170,.8)' : (n === 0 && nb > 2 ? '#DDE6EE' : '#F2F2EE'), 1.2); /* [M42] 川をゆく船（いちばん長いのは水上バス。銀色の平たい屋根） */
@@ -118,6 +128,7 @@ function realMapLayer(seg, o) {
       const box = [[px + nx, pz + nz], [px - nx, pz - nz], [bx - nx, bz - nz], [bx + nx, bz + nz]]; polyW(box, night ? 'rgba(255,230,170,.85)' : `rgb(${col.map((v, q) => (v * amb[q]) | 0)})`, 3.6); polyW(box, night ? 'rgba(0,0,0,0)' : 'rgba(20,20,24,.25)', 3.0); } }
   for (const [ri, t0, t1] of M.stations || []) { const line = ri ? M.rail2 : M.rail; if (!line) continue; const pts = []; for (let k = 0; k <= 6; k++) { const p = along(line, lerp(t0, t1, k / 6)); pts.push(p); } const w = (ri ? 24 : M.railW || 30) * .85;
     for (let k = 0; k + 1 < pts.length; k++) { const a = pts[k], b = pts[k + 1], nx = -a[3] * w / 2, nz = a[2] * w / 2; polyW([[a[0] + nx, a[1] + nz], [b[0] + nx, b[1] + nz], [b[0] - nx, b[1] - nz], [a[0] - nx, a[1] - nz]], night ? 'rgba(255,240,210,.55)' : mix([226, 228, 226].map((v, q) => v * amb[q]), 1, 1500), 9); } } /* 駅：線路の上に、長いホームの屋根（夜は明るい） */
+  if (night && !lowq) for (const line of [...(M.roads || []), ...(M.hwy || [])]) for (let i = 0; i + 1 < line.length; i++) { const a = Wk(...line[i]), b = Wk(...line[i + 1]), L = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / L, uz = (b[1] - a[1]) / L; for (let u = 0; u < L; u += 35) for (const sd of [-1, 1]) { const q = P(a[0] + ux * u - uz * sd * 14, a[1] + uz * u + ux * sd * 14, 8); if (!q || q[1] < yb) continue; const r = clamp(2.2 * F / q[2], .5, 3); ctx.fillStyle = 'rgba(255,222,160,.9)'; ctx.fillRect(q[0] - r / 2, q[1] - r / 2, r, r); } } /* [M56] 夜：大通りと首都高の両わきの街灯の光の列 */
   for (const line of M.roads || []) { ribbon(line, 30, night ? '#1A1C26' : mix([120, 122, 126].map((v, q) => v * amb[q]), 1, 1500)); if (!lowq) { ribbon(line, .8, night ? 'rgba(255,214,150,.35)' : 'rgba(240,240,236,.7)'); for (const off of [-.32, .32]) ribbon(line.map(q => q), .5, night ? 'rgba(255,214,150,.2)' : 'rgba(230,230,226,.45)'); }
     for (let n = 0; n < (lowq ? 4 : 10); n++) { const dir = n % 2 ? 1 : -1, p = along(line, G.t * .006 * dir + n / 10), lat2 = dir * 5, q = P(p[0] - p[3] * lat2, p[1] + p[2] * lat2, 1.6); if (!q || q[1] < yb) continue; const sz = clamp(4.5 * F / q[2], .6, 7); ctx.fillStyle = night ? (dir > 0 ? 'rgba(255,90,70,.95)' : 'rgba(255,246,220,.95)') : ['#E9EDF0', '#2B2F36', '#C8463C', '#F2F2EE', '#4E77A0', '#D9A030'][n % 6]; ctx.fillRect(q[0] - sz / 2, q[1] - sz / 3, sz, sz * .6); } } /* [M32] 大通りを走る車（夜は前と後ろの明かり） */
   // [M5] 首都高：高さ 12m の高架。下にかげ、柱、上の白い線、走る車（夜は赤と白の光の列）
@@ -132,8 +143,9 @@ function realMapLayer(seg, o) {
   for (const [x, y, kind] of M.far || []) { const [wx, wz] = Wk(x, y); stand.push({ wx, wz, tower: 1, kind, hd: dirA }); }
   if (M.bridge) { const [A, B, th2, dk] = M.bridge, a = Wk(A[0], A[1]), b = Wk(B[0], B[1]), mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; stand.push({ wx: mid[0], wz: mid[1], bridge: { a, b, th: th2, dk } }); }
   for (const b of M.brick || []) { const [x, y, len, w, h] = b, [wx, wz] = Wk(x, y); stand.push({ wx, wz, brick: { len, w, h }, rot: rot }); }
+  for (const [x, y] of M.piers || []) { const [wx, wz] = Wk(x, y); stand.push({ wx, wz, pier: 1, rot: rot }); }
   for (const pg of M.pagoda || []) { const [wx, wz] = Wk(pg[0], pg[1]); stand.push({ wx, wz, pagoda: pg[2], rot }); }
-  const water = () => { if (M.water2) { const [line, w] = M.water2; ribbon(line, w + 16, night ? '#2A2E3A' : 'rgba(196,192,182,.95)'); ribbon(line, w, night ? '#0C1630' : 'rgba(78,112,140,.98)'); } }; /* 着地の公園の森の上にも、川を描きなおす（公園の形が川にかぶっていた） */
+  const water = () => { riverAll(); }; /* 着地の公園の森の上にも、川を描きなおす（公園の形が川にかぶっていた） */
   const planes = (M.planes || []).map(([x, y]) => Wk(x, y));
   if (!lowq) { const r = rnd(4242); for (let k = 0; k < (night ? 0 : 14); k++) { const x = (r() - .5) * 6, y = (r() - .5) * 6, [wx, wz] = Wk(x, y); if (M.bld.some(b => Math.hypot(b[0] - x, b[1] - y) < .15)) continue; stand.push({ wx, wz, crane: 1, rot: rot + r() * 3, h: 60 + r() * 50, t: r() }); } } /* [M38] 工事中のビルの上のクレーン（東京は、いつもどこかで工事をしている） */
   const segD = (px, pz, a, b) => { const dx = b[0] - a[0], dz = b[1] - a[1], t = clamp(((px - a[0]) * dx + (pz - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1); return Math.hypot(px - a[0] - dx * t, pz - a[1] - dz * t); };
@@ -211,3 +223,10 @@ function rmBrick(o, s, night, mixC) { const { P } = o, { len, w, h } = s.brick, 
   const red = night ? [120, 70, 50] : [176, 84, 60], roof = night ? [50, 54, 62] : [96, 100, 108];
   box(-w / 2, w / 2, -len / 2, len / 2, 0, h, red, roof);
   for (const z of [-len / 2 + 20, 0, len / 2 - 20]) { box(-w / 2 - 4, w / 2 + 4, z - 18, z + 18, 0, h + 4, red, roof); const top = at(0, z), q = P(top[0], top[1], h + 4), q2 = P(top[0], top[1], h + 20); if (q && q2) { const r = Math.abs(q2[1] - q[1]); ctx.fillStyle = mixC(night ? [40, 46, 56] : [70, 78, 86], 1); ctx.beginPath(); ctx.ellipse(q[0], q[1], r * 1.1, r, 0, Math.PI, 0); ctx.fill(); } } }
+
+/* [M53] さん橋：海につき出た長い台（灰色）と、横にとまる白い船（2 階建ての客席・青い帯） */
+function rmPier(o, s, night, mixC) { const { P } = o, cr = Math.cos(s.rot), sr = Math.sin(s.rot), at = (x, z) => [s.wx + x * cr + z * sr, s.wz - x * sr + z * cr];
+  const quadAt = (pts, y, col) => { const q = pts.map(p => at(p[0], p[1])).map(p => P(p[0], p[1], y)); if (q.some(v => !v)) return; ctx.fillStyle = col; ctx.beginPath(); q.forEach((v, i) => i ? ctx.lineTo(v[0], v[1]) : ctx.moveTo(v[0], v[1])); ctx.closePath(); ctx.fill(); };
+  quadAt([[0, -12], [160, -12], [160, 12], [0, 12]], 2, mixC(night ? [60, 64, 72] : [178, 178, 172], 1));
+  quadAt([[30, 14], [110, 14], [110, 30], [30, 30]], 4, mixC(night ? [200, 190, 160] : [246, 246, 244], 1)); quadAt([[40, 17], [100, 17], [100, 27], [40, 27]], 8, mixC(night ? [230, 220, 180] : [236, 238, 240], 1));
+  quadAt([[30, 14], [110, 14], [110, 15.5], [30, 15.5]], 4.2, mixC([60, 110, 170], 1)); }
