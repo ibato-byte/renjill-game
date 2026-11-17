@@ -366,6 +366,7 @@ function doTurn() {
     if (!G.fork && !G.segs[G.ci + 1]) ensureSegs(); // its two streets are normally built long before: if that failed, once more now
     if (G.fork) {
       const pickL = dir < 0, chosen = pickL ? G.fork[0] : G.fork[1];
+      G.forkGhost = { seg: pickL ? G.fork[1] : G.fork[0], of: chosen }; /* 2026-11-17 オーナー「通り過ぎた景色が消えていく」：分かれ道で選ばなかったほうの道が、選んだ瞬間にまるごと消えていた（Y 字路ではななめ前に見えているのに）。選んだ道を 60m 進むまで、そのまま描く */
       G.segs.push(chosen); G.planClock = chosen.t1; G.plan = (pickL ? G.forkRest.L : G.forkRest.R).concat(G.plan); G.fork = null; G.forkRest = null; next = chosen;
     } else if (!G.segs[G.ci + 1]) { // still no fork: just the chosen side, so the run goes on
       const step = G.plan[0];

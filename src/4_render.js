@@ -252,7 +252,7 @@ function prevHidden() { const cur = G.segs[G.ci], pv = G.segs[G.ci - 1]; if (!cu
   let d = (G.camYaw || 0) - cur.dir * Math.PI / 2; d = Math.atan2(Math.sin(d), Math.cos(d)); return Math.abs(d) < Math.PI / 4; }
 // 空の上の先（着地する公園）は地面の高さにある。塔の上・展望台にいる間は、空の先は描かない（150m の窓の外に、目の高さの公園が浮いて見えないように）
 function skyCut() { const cur = G.segs[G.ci]; if (!cur || cur.th.sky) return 1e9; for (let i = G.ci + 1; i < G.segs.length; i++) if (G.segs[i].th.sky) return i; return 1e9; }
-function segOrder() { const out = [], cut = skyCut(); for (let i = G.segs.length - 1; i > G.ci; i--) if (i <= cut) out.push(G.segs[i]); if (G.fork) out.push(...G.fork); if (G.segs[G.ci - 1] && !prevHidden()) out.push(G.segs[G.ci - 1]); out.push(G.segs[G.ci]); return out.filter(Boolean); }
+function segOrder() { const out = [], cut = skyCut(); { const gh = G.forkGhost; if (gh) { const cur = G.segs[G.ci]; if (G.mode === 'play' && ((cur === gh.of && G.s < 60) || G.segs[G.ci + 1] === gh.of)) out.push(gh.seg); else if (cur !== gh.of && G.segs[G.ci + 1] !== gh.of || G.s >= 60) G.forkGhost = null; } } for (let i = G.segs.length - 1; i > G.ci; i--) if (i <= cut) out.push(G.segs[i]); if (G.fork) out.push(...G.fork); if (G.segs[G.ci - 1] && !prevHidden()) out.push(G.segs[G.ci - 1]); out.push(G.segs[G.ci]); return out.filter(Boolean); }
 // つきあたりの壁の上（cap）：先が、天井のもっと高い部屋のときも描く
 function capOn(sg) { if (sg !== G.segs[G.ci] || G.mode === 'title') return false; const nx = G.fork && G.fork.length ? G.fork : [G.segs[G.ci + 1]]; return nx.some(n => n && (n.wallH || 0) > (sg.wallH || 0) + .05); }
 // のばした奥の壁（3_world.js の wing）を描くか：その建物の中にいる間と、外へ曲がり始めた一瞬だけ。先が建物の中なら描かない
@@ -404,7 +404,7 @@ function drawObjects(sg, isCur, oc) {
 function drawObj(e, sg) {
   {
     if (e[1] === 3) { drawObstacle(e[2], sg, e[0]); pm('obs'); }
-    else if (e[1] === 6) { const p = e[2]; if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], passFade(e[0]), 0, 0, 0, p.fc); pm('props'); }
+    else if (e[1] === 6) { const p = e[2]; if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], (p.l0 < ROAD && p.l1 > -ROAD) ? passFade(e[0]) : 1, 0, 0, 0, p.fc); pm('props'); } // 道のわきの家具・箱は、通りすぎてもうすくしない（2026-11-17）
     else if (e[1] === 7) { drawSpr(e[2], sg, e[0]); pm('spr'); }
     else if (e[1] === 8) drawBoxes(moverBoxes(e[2]), sg, e[0], 1, e[2].cross ? 0 : e[2].ds, e[2].cross ? e[2].dl || 0 : 0, 0);
     else if (e[1] === 4) { drawItem(e[2], sg, e[0]); pm('items'); }
@@ -454,9 +454,12 @@ function drawSpr(s, sg, d) {
   if (!s.glow && s.img !== 'glow' && nm === s.img) img = litSprite(img, LT.amb); // trees and signs darken with the evening light
   const w = s.w * sp.k, h = s.h * sp.k;
   ctx.globalAlpha = 1 - fogK(d) * .9;
-  if (s.nv && d < 9) ctx.globalAlpha *= clamp((d - 1.5) / 7.5, 0, 1); // big crowns fade as you pass under them, so the way ahead stays clear
+  /* 2026-11-17 オーナー「走ってると通り過ぎた景色が消えていく（特に街を走る時）。現実味のないバグ」：道のわきの木・看板・自動販売機などが、横を通る手前でうすくなって消えていた
+     （走る人をかくさないための仕組みが、道の外の物にもかかっていた）。うすくするのは、走る 3 レーンの真上・まん中にある物だけにする。道のわきの物は、画面の外へ出るまで、はっきり見えたまま */
+  const overRoad = Math.abs(s.lat) < 1.6;
+  if (s.nv && d < 9 && overRoad) ctx.globalAlpha *= clamp((d - 1.5) / 7.5, 0, 1); // crowns right over the lanes fade as you pass under them, so the way ahead stays clear
   else if (s.beamY && d < 3.6) { ctx.globalAlpha *= clamp((d - 1.3) / 2.3, 0, 1); G.gateFadeN = (G.gateFadeN || 0) + 1; } /* くぐる鳥居は、カメラの横を通りすぎる手前ですっと消える（上の数字の後ろを赤い横木がちらちら横切らない）（2026-11-15） */
-  else if (s.y > 1.9 && !s.trunk && d < 6) { ctx.globalAlpha *= clamp((d - 1) / 5, 0, 1); G.sprFadeN = (G.sprFadeN || 0) + 1; } /* 頭の上の吊り広告・看板は近づくと消える（画面の上半分とHUDをふさがない） */
+  else if (s.y > 1.9 && !s.trunk && d < 6 && Math.abs(s.lat) < ROAD) { ctx.globalAlpha *= clamp((d - 1) / 5, 0, 1); G.sprFadeN = (G.sprFadeN || 0) + 1; } /* 頭の上の吊り広告・看板は近づくと消える（画面の上半分とHUDをふさがない） */
   if (s.img === 'glow') { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha *= LT.indoor ? .35 : .55 * LT.night; }
   if (s.trunk) { // one piece: a tapered trunk with a little root flare, and the crown sitting on it
     const tw = w * .055, top = sp.sy - h * .52; const gr = ctx.createLinearGradient(sp.sx - tw, 0, sp.sx + tw, 0); gr.addColorStop(0, tint('#4E3A2E')); gr.addColorStop(.4, tint('#7A5E48')); gr.addColorStop(1, tint('#3E2E24'));
@@ -474,7 +477,7 @@ function drawPuddle(q, sg, d) { const p = segPos(sg, q.s, q.lat), sp = spriteAt(
   ctx.save(); ctx.globalAlpha = (1 - fogK(d) * .9) * .85; ctx.fillStyle = LT.night > .5 ? 'rgba(70,90,130,.55)' : 'rgba(150,170,195,.5)'; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = Math.max(1, sp.k * .015); const r = (G.t * .9 + q.s) % 1; ctx.beginPath(); ctx.ellipse(sp.sx + rx * .2, sp.sy, rx * .5 * r, ry * .5 * r, 0, 0, Math.PI * 2); ctx.globalAlpha *= 1 - r; ctx.stroke();
   ctx.restore(); }
-function birdsFor(sg) { const k = sg.th && sg.th.kind; if (!k || k === 'room' || k === 'train' || sg.fork || Math.random() > .4 || !(sg.len > 50)) return null;
+function birdsFor(sg) { const k = sg.th && sg.th.kind; if (!k || k === 'room' || k === 'train' || k === 'glass' || (sg.th.climb && sg.th.climb[1] > 30) || sg.fork /* 電波塔コース PDCA 107（2026-11-17）：地上 350m の展望デッキの中や外階段の上に、ハトが歩いていた */ || Math.random() > .4 || !(sg.len > 50)) return null;
   const s0 = 25 + Math.random() * (sg.len - 45), lane = (Math.random() * 3) | 0, out = [], n = 3 + ((Math.random() * 3) | 0);
   for (let i = 0; i < n; i++) out.push({ s: s0 + Math.random() * 3, lat: LANES[lane] + (Math.random() - .5) * 1.2, ph: Math.random() * 6, dir: Math.random() < .5 ? -1 : 1, flip: Math.random() < .5, fly: 0 });
   return out; }

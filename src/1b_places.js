@@ -61,7 +61,7 @@ const THEMES = {
   shibuya:  { ja: '渋谷スクランブル交差点', lbl: '渋谷', lblEn: 'Shibuya', en: 'Shibuya Scramble Crossing', kind: 'street', len: [100, 112], road: ['#5E5E63', '#59595E'], rpat: 'scramble', side: ['#A8A49C', '#A09C94'], spat: 'walk', curb: '#D9D6CE',
     fac: { style: 'neon', mood: 'shibuya', h: [16, 30], pal: ['#8A8F99', '#6E7480', '#9AA0AA', '#7A7F88', '#B0B4BA'], screen: .8, vsign: .5 }, props: [['signal', 2], ['pole', 1], ['guard', 2]], obs: ['cone', 'kick', 'sign', 'barrier', 'car'], lm: [{ t: 'cyl', sc: 1, off: .22 }],
     stamp: { k: '渋谷', ja: '渋谷スクランブル交差点', en: 'Shibuya Crossing', note: { ja: '青信号で、四方八方から人がいっせいに渡る。', en: 'When the lights turn green, people cross from every direction at once.' } } },
-  tower:    { ja: '芝公園の赤い電波塔・外階段', lbl: '赤い電波塔', lblEn: 'Red tower', en: 'Red tower in Shiba, outdoor stairs', kind: 'deck', len: [108, 118], road: ['#9AA0A6', '#90969C'], rpat: 'stairs', side: ['#8A9096', '#80868C'], spat: 'stairs', climb: [0, 150], view: 'city', rail: '#D9452B', beams: '#D9452B', face: 250,
+  tower:    { ja: '芝公園の赤い電波塔・外階段', lbl: '赤い電波塔', lblEn: 'Red tower', en: 'Red tower in Shiba, outdoor stairs', kind: 'deck', len: [108, 118], road: ['#9AA0A6', '#90969C'], rpat: 'stairs', side: ['#8A9096', '#80868C'], spat: 'stairs', climb: [0, 150], view: 'city', rail: '#D9452B', beams: '#D9452B', mesh: 1, face: 250,
     props: [], obs: ['cone', 'bench', 'suitcase', 'rope'], lm: [{ t: 'fuji', sc: .9, brg: 250 }, { t: 'hills', sc: 1.3, brg: 282 }, { t: 'tocho', sc: .7, brg: 305 }],
     stamp: { k: '333', ja: '芝公園の赤い電波塔', en: 'Red tower in Shiba', note: { ja: '高さ333mの電波塔。外階段は約600段で、地上150mの展望台まで続く。', en: 'A 333 m broadcasting tower. About 600 outdoor steps lead up to the deck at 150 m.' } } },
   /* ---- evening, day 2+ ---- */
@@ -384,6 +384,21 @@ Object.assign(THEMES, {
     wall: '#F2F3F4', ceil: '#E9ECEF', props: [['scopeS', 2]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'tower', face: 46, grab: 1,
     lm: [{ t: 'skytree', brg: 46, sc: .9 }, { t: 'clock', brg: 38, sc: .7 }, { t: 'yagura', brg: 13, sc: .8 }, { t: 'tocho', brg: 305, sc: .7 }, { t: 'hills', brg: 282, sc: 1.2 }],
     arrive: { ja: '足もとはガラス。真下に町が見える', en: 'A glass floor, with the city straight below' } },
+  /* 2026-11-17 オーナー「ちゃんと入り口から入って階段を登るような演出が欲しい。現実の建物の構造や階段をしっかり調べて」：docs/COURSE-500-2026-11-17.md
+     本物の順：塔の真下の建物の 1 階（正面入口・チケット売り場・エレベーター）→ 屋上（外階段の入口。係員が扉を開ける）→ 金網に囲まれた赤い外階段（踊り場・白い字の段数・クイズの板）
+     → 500 段からは建物の中のようなうす暗い通路（白い壁）→ 展望台の 1 階（145m） */
+  tlobby: { ja: '赤い電波塔・入口の建物', lbl: '塔の入口', lblEn: 'Tower entrance', en: 'Red tower, entrance hall', kind: 'room', len: [62, 70], road: ['#D9D2C6', '#CFC7BA'], rpat: 'grid', side: ['#CFC7BA', '#C5BDB0'], spat: 'grid',
+    wall: '#F4EFE6', base: '#7A5A48', wallH: 4.6, ceil: '#EFE9DD', cpat: 'plain', light: 'round', wdeco: ['ticketbooth', 'elevator', 'towerposter', 'infodesk', 'elevator', 'towerposter'], props: [['plant', 1], ['benchS', 1]], obs: ['suitcase', 'rope', 'sign', 'bag'], course: 'tower',
+    arrive: { ja: '正面入口から中へ。チケット売り場とエレベーター', en: 'In through the front doors: tickets and elevators' } },
+  troof:  { ja: '赤い電波塔・入口の建物の屋上', lbl: '外階段の入口', lblEn: 'Stair gate', en: 'Red tower, rooftop stair gate', kind: 'deck', len: [58, 64], road: ['#B9B4AA', '#B0ABA0'], rpat: 'plaza', side: ['#A9A49A', '#A09B90'], spat: 'plaza', climb: [20, 20], view: 'city', rail: '#E6E8EA', roofLegs: 1, face: 250,
+    props: [], obs: ['bench', 'cone', 'rope'], course: 'tower', lm: [{ t: 'hills', sc: 1.2, brg: 282 }, { t: 'tocho', sc: .6, brg: 305 }],
+    arrive: { ja: '屋上。真上に塔の脚。外階段の入口は右手', en: 'The rooftop, under the tower legs. The stair gate is on the right' } },
+  tstair: { ja: '赤い電波塔・外階段', lbl: '外階段', lblEn: 'Outdoor stairs', en: 'Red tower, outdoor stairs', kind: 'deck', len: [112, 120], road: ['#B4563E', '#AC4F38'], rpat: 'stairs', side: ['#9A4632', '#92402D'], spat: 'stairs', climb: [20, 125], view: 'city', rail: '#D9452B', beams: '#D9452B', mesh: 1, landings: 1, face: 250,
+    props: [], obs: ['cone', 'rope'], course: 'tower', lm: [{ t: 'fuji', sc: .9, brg: 250 }, { t: 'hills', sc: 1.3, brg: 282 }, { t: 'tocho', sc: .7, brg: 305 }],
+    arrive: { ja: '金網の中の赤い階段。約600段', en: 'Red stairs inside wire mesh: about 600 steps' } },
+  tpass:  { ja: '赤い電波塔・500段からの通路', lbl: '500段から', lblEn: 'Past step 500', en: 'Red tower, past step 500', kind: 'room', len: [44, 50], road: ['#D9DCDF', '#CFD3D6'], rpat: 'stairs', side: ['#CFD3D6', '#C5C9CD'], spat: 'stairs', climb: [125, 145],
+    wall: '#EEF0F1', base: '#B9BDC2', wallH: 3.0, ceil: '#8E949A', cpat: 'plain', light: 'slim', face: 250, wdeco: ['stepsign500', 'quizpanel', 'stepsign500'], props: [], obs: ['cone'], course: 'tower',
+    arrive: { ja: 'うす暗い通路。あと少しで展望台', en: 'A dim passage. The deck is just above' } },
   hawk:   { ja: 'オオタカにつかまって空の上', lbl: 'オオタカと空の上', lblEn: 'Carried by a goshawk', en: 'Over Tokyo with a goshawk', kind: 'deck', sky: 1, len: [200, 210], road: ['#9AA0A6', '#90969C'], rpat: 'road', side: ['#8A9096', '#80868C'], spat: 'road', climb: [150, 0], view: 'city',
     props: [], obs: [], course: 'tower', face: 250, rail: '#9AA0A6',
     lm: [{ t: 'fuji', brg: 250, sc: 1 }, { t: 'hills', brg: 282, sc: 1.4 }, { t: 'tocho', brg: 305, sc: .8 }, { t: 'yagura', brg: 13, sc: .7 }, { t: 'clock', brg: 38, sc: .6 }, { t: 'skytree', brg: 46, sc: .9 }, { t: 'rbridge', brg: 146, sc: .9 }, { t: 'airport', brg: 165, sc: .35 }],
@@ -395,7 +410,7 @@ Object.assign(THEMES, {
     fac: { style: 'park' }, moat: -1, props: [['tree', 3], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'suitcase', 'bike'], tree: 'green', flat: 1, course: 'skytree', face: 60,
     lm: [{ t: 'skytree', brg: 60, sc: 1.5, grow: 1.6 }], arrive: { ja: '川の向こうに、空までのびる白い塔', en: 'Across the river, a white tower reaching for the sky' } },
   sdeck:  { ja: '押上の電波塔・展望デッキ（地上350m）', lbl: '350mのデッキ', lblEn: '350 m deck', en: 'Oshiage tower, 350 m deck', kind: 'glass', len: [100, 108], road: ['#6E757D', '#687078'], rpat: 'lookdown', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [350, 350], view: 'city',
-    wall: '#EEF1F4', ceil: '#2F343B', props: [['scopeS', 1]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'skytree', face: 226,
+    wall: '#EEF1F4', ceil: '#2F343B', wallH: 5.6, props: [['scopeS', 1]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'skytree', face: 226, /* PDCA 113：本物は 5m をこえる大きなガラスが 360 度（天井の高い部屋） */
     lm: [{ t: 'tower', brg: 226, sc: .55 }, { t: 'kokugikan', brg: 227, sc: .8 }, { t: 'clock', brg: 231, sc: .55 }, { t: 'fuji', brg: 248, sc: 1 }, { t: 'tocho', brg: 258, sc: .6 }, { t: 'pagoda', brg: 292, sc: .7 }],
     arrive: { ja: 'エレベーターで約50秒。地上350m', en: 'About 50 seconds by elevator: 350 m up' } },
   hawk2:  { ja: 'オオタカにつかまって空の上', lbl: 'オオタカと空の上', lblEn: 'Carried by a goshawk', en: 'Over Tokyo with a goshawk', kind: 'deck', sky: 1, len: [220, 230], road: ['#9AA0A6', '#90969C'], rpat: 'road', side: ['#8A9096', '#80868C'], spat: 'road', climb: [451, 0], view: 'city',
@@ -428,7 +443,7 @@ for (const k in THEMES) { const th = THEMES[k]; if (th.kind !== 'street' || !th.
   else if (['neon', 'luxury', 'glass', 'station'].includes(st)) th.props = th.props.concat([['busstop', 1], ['hydrant', 1]], ['glass', 'station', 'luxury'].includes(st) ? [['bollard', 2], ['areamap', 1]] : []); /* 131〜135 車止め・案内地図 */ }
 // 点数で 1 回ずつ（1 回の遊びで）。赤い電波塔は外階段（約600段）を自分の足で。押上の電波塔の階段は一般には開いていないので、エレベーター（約50秒）で 350m へ
 const COURSES = {
-  tower: { at: 100000, steps: [{ t: 'tfoot', d: 8 }, { t: 'tower', d: 13 }, { t: 'tdeck', d: 10 }, { t: 'hawk', d: 3 }, { t: 'tland', d: 8 }], ja: '赤い電波塔へ！', en: 'To the red tower!' },
+  tower: { at: 100000, steps: [{ t: 'tfoot', d: 8 }, { t: 'tlobby', d: 5 }, { t: 'troof', d: 4 }, { t: 'tstair', d: 12 }, { t: 'tpass', d: 4 }, { t: 'tdeck', d: 10 }, { t: 'hawk', d: 3 }, { t: 'tland', d: 8 }], ja: '赤い電波塔へ！', en: 'To the red tower!' },
   asakusa: { at: 500000, steps: [{ t: 'asakusa', d: 8 }, { t: 'nakamise', d: 10 }, { t: 'hozomon', d: 8 }, { t: 'hondo', d: 10 }, { t: 'denboin', d: 8 }], ja: '浅草寺へ！', en: 'To Senso-ji!' },
   skytree: { at: 300000, steps: [{ t: 'sfoot', d: 8 }, { t: 'sdeck', d: 10 }, { t: 'skytree', d: 10 }, { t: 'hawk2', d: 4 }, { t: 'sland', d: 8 }], ja: '押上の電波塔へ！', en: 'To the Oshiage tower!' },
 };
@@ -559,7 +574,14 @@ function dayPlan(day) {
   // the afternoon errand: two stops in one part of town on each side
   const sides = Math.random() < .5 ? ['east', 'west'] : ['west', 'east'];
   const [a1] = pk(AREA[sides[0]], 1, null, NB[sides[0]]), [a2] = pk(AREA[sides[1]], 1, null, NB[sides[1]]);
-  const office = [{ t: door, d: 20 }, { t: one(['desk', 'freeaddr']), d: 100 }, { t: am, d: 90 }, fk('lunch', lunch[0], lunch[1]), { t: pm, d: 40 }, fk('errand', a1, a2), { t: one(['kyuto', 'copy', 'shiryo'].filter(x => x !== pm && x !== am)) || 'kyuto', d: 40 }, { t: one(['deadline', 'present']), d: 170 }];
+  /* 2026-11-17 オーナー「Y 字路のリリースもまだされてない」：Y 字路は「外の道で、先の 2 本も外の道」の時だけ出る作りだったが、昼ごはん・おつかいの分かれ道は必ず会社の部屋の中で起きていたので、
+     実際の遊びでは一度も出なかった。分かれ道の手前に、会社の前の通り（外の道）を短くはさむ＝会社を出てから、外の Y 字路で行き先を選ぶ */
+  const yStreet = x => { const h = THEMES[x]; return !!(h && h.kind === 'street' && !(h.fac && h.fac.style === 'park') && !h.toriiTunnel && !h.torii && !h.gate && !h.overpass); };
+  const yFit = (x, area, other) => { if (yStreet(x) || Math.random() > .7) return x; const c = area.filter(z => yStreet(z) && z !== other && okSeason(z) && !today.includes(z) && !ROUTE.used.has(z)); if (!c.length) return x; const z = c.sort((p, q) => seenAt(p) - seenAt(q))[(Math.random() * Math.min(3, c.length)) | 0]; ROUTE.used.add(z); return z; }; // 分かれ道の行き先は、7 割は「外の道」どうしに（Y 字路にできる）
+  lunch[0] = yFit(lunch[0], AREA.central, lunch[1]); lunch[1] = yFit(lunch[1], AREA.central, lunch[0]);
+  const b1 = yFit(a1, AREA[sides[0]], a2), b2 = yFit(a2, AREA[sides[1]], b1);
+  const outA = one(['nakadori', 'otemachi', 'gyoko']), outB = one(['nakadori', 'otemachi', 'gyoko'].filter(x => x !== outA));
+  const office = [{ t: door, d: 20 }, { t: one(['desk', 'freeaddr']), d: 100 }, { t: am, d: 82 }, { t: outA || 'nakadori', d: 8, pre: 1 }, fk('lunch', lunch[0], lunch[1]), { t: pm, d: 32 }, { t: outB || outA || 'otemachi', d: 8, pre: 1 }, fk('errand', b1, b2), { t: one(['kyuto', 'copy', 'shiryo'].filter(x => x !== pm && x !== am)) || 'kyuto', d: 40 }, { t: one(['deadline', 'present']), d: 170 }];
   /* ---- after six: two of three ways home (east by the Yamanote Line, south to Shiba, or out to the bay) ---- */
   const tmpl = {
     east: () => { const e = pk(AREA.east, 2, null, NB.east), boat = (Math.random() < .6 && fresh(['river', 'yakata'])) || null, hi = notRecent('skytree', 280) && !today.includes('skytree'); const n1 = night(NIGHT.east, [NIGHT.bay, NIGHT.west]);
