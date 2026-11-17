@@ -1230,6 +1230,26 @@
       "name": "銀座・表参道の店のビル（景色 136〜148）",
       "file": "src/4d_facade.js",
       "has": "景色 136〜148"
+    },
+    {
+      "name": "市場・町家・古書店・仲見世の店（景色 153〜188）",
+      "file": "src/4d_facade.js",
+      "has": "景色 184〜188"
+    },
+    {
+      "name": "土の遊歩道・水面（景色 189〜201）",
+      "file": "src/4b_patterns.js",
+      "has": "景色 194〜201"
+    },
+    {
+      "name": "箱の面の絵をます目の三角で貼る（ホーム画面のたんすがごわごわして見えた）",
+      "file": "src/4_render.js",
+      "has": "while (N * M > 48)"
+    },
+    {
+      "name": "ホーム画面の第 2 段（座布団の厚み・桐たんす・じゅらく壁）",
+      "file": "src/4b_patterns.js",
+      "has": "function zabuTopTex("
     }
   ]
 }
