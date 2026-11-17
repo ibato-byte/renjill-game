@@ -1365,6 +1365,21 @@
       "name": "メンテナンス中の表示（公開版だけ・自動チェックと ?preview=1 では出さない）",
       "file": "src/7_ui.js",
       "has": "function maintShow()"
+    },
+    {
+      "name": "展望台 → 空 → 着地を、角で曲がらずにまっすぐつなぐ",
+      "file": "src/6_game.js",
+      "has": "function goStraight()"
+    },
+    {
+      "name": "本物の地図の東京（ビル・線路・首都高・川・お寺）",
+      "file": "src/4i_realmap.js",
+      "has": "function realMapLayer(seg, o)"
+    },
+    {
+      "name": "押上の四季のエレベーター（本当の高さへ）",
+      "file": "src/1b_places.js",
+      "has": "selev:  { ja: '四季のエレベーター（天望デッキへ）'"
     }
   ]
 }
