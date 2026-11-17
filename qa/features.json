@@ -1365,6 +1365,11 @@
       "name": "メンテナンス中の表示（公開版だけ・自動チェックと ?preview=1 では出さない）",
       "file": "src/7_ui.js",
       "has": "function maintShow()"
+    },
+    {
+      "name": "メンテナンスの終了予定の時刻（予定を過ぎたら出さない）",
+      "file": "src/7_ui.js",
+      "has": "id=\"maintEnd\""
     }
   ]
 }
