@@ -54,7 +54,7 @@ const THEMES = {
   river:    { ja: '隅田川・水上バス', en: 'Sumida River water bus', kind: 'deck', len: [104, 116], road: ['#EDEAE3', '#E2DED5'], rpat: 'planks', side: ['#2E6E99', '#2A6690'], spat: 'water', view: 'river', rail: '#F3F3F3',
     props: [['buoyS', 1]], obs: ['bridge', 'ring', 'bench', 'bridge', 'rope'], lm: [{ t: 'skytree', sc: 1.4, off: .15 }, { t: 'kokugikan', sc: 1, off: -.28 }],
     stamp: { k: '隅田', ja: '隅田川', en: 'Sumida River', note: { ja: '水上バスで、色とりどりの橋をくぐって進む。', en: 'The water bus glides under a series of colorful bridges.' } } },
-  skytree:  { ja: '押上の電波塔・展望回廊', lbl: '押上の電波塔', lblEn: 'Oshiage tower', en: 'Oshiage tower, sky walkway', kind: 'glass', len: [108, 118], road: ['#E3E7EB', '#D9DEE3'], rpat: 'grid', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [445, 451], ramp: 5, view: 'city', face: 236,
+  skytree:  { ja: '押上の電波塔・展望回廊', lbl: '押上の電波塔', lblEn: 'Oshiage tower', en: 'Oshiage tower, sky walkway', kind: 'glass', len: [108, 118], road: ['#E3E7EB', '#D9DEE3'], rpat: 'grid', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [445, 451], ramp: 6.2 /* [H10] 445m → 451.2m（本物の回廊の最高点） */, view: 'city', face: 330,
     props: [['scopeS', 1]], obs: ['telescope', 'bench', 'rope', 'suitcase'], lm: [{ t: 'fuji', sc: 1, brg: 248 }, { t: 'tower', sc: .5, brg: 226 }, { t: 'tocho', sc: .55, brg: 258 }],
     arrive: { ja: '2台目のエレベーターで445m。ガラスの筒のゆるい坂を、450mへ', en: 'A second elevator to 445 m, then a gentle glass-tube ramp to 450 m' },
     stamp: { k: '634', ja: '押上の電波塔', en: 'Oshiage tower', note: { ja: '高さ634mの電波塔。展望回廊は地上約450m。', en: 'A 634 m broadcasting tower. Its sky walkway is about 450 m up.' } } },
@@ -382,49 +382,57 @@ Object.assign(THEMES, {
     fac: { style: 'park' }, props: [['tree', 3], ['pinetree', 1], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'suitcase'], tree: 'green', flat: 1, course: 'tower', face: 20,
     lm: [{ t: 'tower', brg: 20, sc: 1.25, grow: 1.7 }], arrive: { ja: '見上げると、赤と白の鉄の塔', en: 'Look up: a tower of red and white steel' } },
   tdeck:  { ja: '赤い電波塔・展望台（地上150m）', lbl: '150mの展望台', lblEn: '150 m deck', en: 'Red tower, 150 m deck', kind: 'glass', len: [100, 108], road: ['#8C939A', '#858C93'], rpat: 'lookdown', side: ['#C9CDD2', '#C1C5CA'], spat: 'tile', climb: [150, 150], view: 'city',
-    wall: '#F2F3F4', ceil: '#E9ECEF', props: [['scopeS', 2]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'tower', face: 46, grab: 1,
+    wall: '#F2F3F4', ceil: '#E9ECEF', props: [['scopeS', 2]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'tower', face: 135, grab: 1,
     lm: [{ t: 'skytree', brg: 46, sc: .9 }, { t: 'clock', brg: 38, sc: .7 }, { t: 'yagura', brg: 13, sc: .8 }, { t: 'tocho', brg: 305, sc: .7 }, { t: 'hills', brg: 282, sc: 1.2 }],
     arrive: { ja: '足もとはガラス。真下に町が見える', en: 'A glass floor, with the city straight below' } },
   /* 2026-11-17 オーナー「ちゃんと入り口から入って階段を登るような演出が欲しい。現実の建物の構造や階段をしっかり調べて」：docs/COURSE-500-2026-11-17.md
      本物の順：塔の真下の建物の 1 階（正面入口・チケット売り場・エレベーター）→ 屋上（外階段の入口。係員が扉を開ける）→ 金網に囲まれた赤い外階段（踊り場・白い字の段数・クイズの板）
      → 500 段からは建物の中のようなうす暗い通路（白い壁）→ 展望台の 1 階（145m） */
-  tlobby: { ja: '赤い電波塔・入口の建物', lbl: '塔の入口', lblEn: 'Tower entrance', en: 'Red tower, entrance hall', kind: 'room', len: [62, 70], road: ['#D9D2C6', '#CFC7BA'], rpat: 'grid', side: ['#CFC7BA', '#C5BDB0'], spat: 'grid',
-    wall: '#F4EFE6', base: '#7A5A48', wallH: 4.6, ceil: '#EFE9DD', cpat: 'plain', light: 'round', wdeco: ['ticketbooth', 'elevator', 'towerposter', 'infodesk', 'elevator', 'towerposter'], flights: { a: 30, P: 12, F: 4.5, R: 3, n: 2 }, props: [['plant', 1], ['benchS', 1]], obs: ['suitcase', 'rope', 'sign', 'bag'], course: 'tower',
+  tlobby: { ja: '赤い電波塔・入口の建物', lbl: '塔の入口', lblEn: 'Tower entrance', en: 'Red tower, entrance hall', kind: 'room', len: [80, 86], road: ['#D9D2C6', '#CFC7BA'], rpat: 'grid', side: ['#CFC7BA', '#C5BDB0'], spat: 'grid',
+    wall: '#F4EFE6', base: '#7A5A48', wallH: 4.6, ceil: '#EFE9DD', cpat: 'plain', light: 'round', wdeco: ['ticketbooth', 'elevator', 'towerposter', 'infodesk', 'elevator', 'towerposter'], flights: { a: 8, P: 11.5, F: 3.5, R: 5, n: 4 } /* [H1] 高さを本物に：入口の建物の屋上は地上 20m（5m の階段を 4 回） */, props: [['plant', 1], ['benchS', 1]], obs: ['suitcase', 'rope', 'sign', 'bag'], course: 'tower',
     arrive: { ja: '正面入口から中へ。チケット売り場とエレベーター', en: 'In through the front doors: tickets and elevators' } },
   troof:  { ja: '赤い電波塔・入口の建物の屋上', lbl: '外階段の入口', lblEn: 'Stair gate', en: 'Red tower, rooftop stair gate', kind: 'deck', len: [58, 64], road: ['#B9B4AA', '#B0ABA0'], rpat: 'plaza', side: ['#A9A49A', '#A09B90'], spat: 'plaza', climb: [20, 20], view: 'city', rail: '#E6E8EA', roofLegs: 1, face: 250,
     props: [], obs: ['bench', 'cone', 'rope'], course: 'tower', lm: [{ t: 'hills', sc: 1.2, brg: 282 }, { t: 'tocho', sc: .6, brg: 305 }],
     arrive: { ja: '屋上。真上に塔の脚。外階段の入口は右手', en: 'The rooftop, under the tower legs. The stair gate is on the right' } },
-  tstair: { ja: '赤い電波塔・外階段', lbl: '外階段', lblEn: 'Outdoor stairs', en: 'Red tower, outdoor stairs', kind: 'deck', len: [112, 120], road: ['#B4563E', '#AC4F38'], rpat: 'stairs', side: ['#9A4632', '#92402D'], spat: 'stairs', climb: [20, 125], view: 'city', rail: '#D9452B', beams: '#D9452B', mesh: 1, landings: 1, flights: { a: 16, P: 15, F: 4.4, R: 2.8, n: 5 }, face: 250,
+  tstair: { ja: '赤い電波塔・外階段', lbl: '外階段', lblEn: 'Outdoor stairs', en: 'Red tower, outdoor stairs', kind: 'deck', len: [262, 270], road: ['#B4563E', '#AC4F38'], rpat: 'stairs', side: ['#9A4632', '#92402D'], spat: 'stairs', climb: [20, 125], view: 'city', rail: '#D9452B', beams: '#D9452B', mesh: 1, landings: 1, flights: { a: 12, P: 7.6, F: 2.2, R: 3.5, n: 30 } /* [H2] 外階段 約600段：20 段（3.5m）ごとに踊り場、30 回で地上 20m → 125m（本当に 105m 登る） */, face: 250,
     props: [], obs: ['cone', 'rope'], course: 'tower', lm: [{ t: 'fuji', sc: .9, brg: 250 }, { t: 'hills', sc: 1.3, brg: 282 }, { t: 'tocho', sc: .7, brg: 305 }],
     arrive: { ja: '金網の中の赤い階段。約600段', en: 'Red stairs inside wire mesh: about 600 steps' } },
-  tpass:  { ja: '赤い電波塔・500段からの通路', lbl: '500段から', lblEn: 'Past step 500', en: 'Red tower, past step 500', kind: 'room', len: [44, 50], road: ['#D9DCDF', '#CFD3D6'], rpat: 'stairs', side: ['#CFD3D6', '#C5C9CD'], spat: 'stairs', climb: [125, 145], flights: { a: 8, P: 12, F: 4, R: 2.4, n: 2 },
+  tpass:  { ja: '赤い電波塔・500段からの通路', lbl: '500段から', lblEn: 'Past step 500', en: 'Red tower, past step 500', kind: 'room', len: [70, 76], road: ['#D9DCDF', '#CFD3D6'], rpat: 'stairs', side: ['#CFD3D6', '#C5C9CD'], spat: 'stairs', climb: [125, 145], flights: { a: 6, P: 9, F: 3, R: 5, n: 5 } /* [H3] 500段からの通路と階段：125m → 150m（5m を 5 回） */,
     wall: '#EEF0F1', base: '#B9BDC2', wallH: 3.0, ceil: '#8E949A', cpat: 'plain', light: 'slim', face: 250, wdeco: ['stepsign500', 'quizpanel', 'stepsign500'], props: [], obs: ['cone'], course: 'tower',
     arrive: { ja: 'うす暗い通路。あと少しで展望台', en: 'A dim passage. The deck is just above' } },
   hawk:   { ja: 'オオタカにつかまって空の上', lbl: 'オオタカと空の上', lblEn: 'Carried by a goshawk', en: 'Over Tokyo with a goshawk', kind: 'deck', sky: 1, len: [200, 210], road: ['#9AA0A6', '#90969C'], rpat: 'road', side: ['#8A9096', '#80868C'], spat: 'road', climb: [150, 0], view: 'city',
-    props: [], obs: [], course: 'tower', face: 250, rail: '#9AA0A6',
-    lm: [{ t: 'fuji', brg: 250, sc: 1 }, { t: 'hills', brg: 282, sc: 1.4 }, { t: 'tocho', brg: 305, sc: .8 }, { t: 'yagura', brg: 13, sc: .7 }, { t: 'clock', brg: 38, sc: .6 }, { t: 'skytree', brg: 46, sc: .9 }, { t: 'rbridge', brg: 146, sc: .9 }, { t: 'airport', brg: 165, sc: .35 }],
+    props: [], obs: [], course: 'tower', face: 135, rail: '#9AA0A6',
+    lm: [{ t: 'fuji', brg: 250, sc: 1 }, { t: 'yagura', brg: 13, sc: .7 }, { t: 'clock', brg: 38, sc: .6 }, { t: 'airport', brg: 165, sc: .35 }],
     bay: [95, 205, 2300], arrive: { ja: '東京をぐるっと見わたしながら、地上へ', en: 'A full turn over Tokyo on the way down' } },
   tland:  { ja: '芝公園（着地）', lbl: '芝公園', lblEn: 'Shiba Park', en: 'Shiba Park (landing)', kind: 'street', len: [100, 110], road: ['#D9CBA8', '#D1C29E'], rpat: 'gravel', side: ['#7FA35E', '#77995A'], spat: 'lawn', curb: '#B9B2A5',
-    fac: { style: 'park' }, props: [['tree', 4], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'leafpile'], tree: 'green', flat: 1, course: 'tower', face: 20,
+    fac: { style: 'park' }, props: [['tree', 4], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'leafpile'], tree: 'green', flat: 1, course: 'tower', face: 135,
     lm: [{ t: 'tower', brg: 20, sc: 1.5 }], arrive: { ja: 'ぶじに着地。ふり返ると、さっきまでいた塔', en: 'Safe landing, under the tower you just climbed' } },
   sfoot:  { ja: '押上・北十間川のほとり', lbl: '押上の川べり', lblEn: 'Oshiage riverside', en: 'Oshiage, by the Kitajukken River', kind: 'street', len: [100, 110], road: ['#C9C2B6', '#BFB8AB'], rpat: 'plaza', side: ['#A8A49C', '#A09C94'], spat: 'walk', curb: '#D9D6CE',
     fac: { style: 'park' }, moat: -1, props: [['tree', 3], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'suitcase', 'bike'], tree: 'green', flat: 1, course: 'skytree', face: 60,
     lm: [{ t: 'skytree', brg: 60, sc: 1.5, grow: 1.6 }], arrive: { ja: '川の向こうに、空までのびる白い塔', en: 'Across the river, a white tower reaching for the sky' } },
   /* 2026-11-17 オーナー「押上の電波塔のルートも本物どおりに」。調べた本物の順：4 階の入口（チケット売り場・列）→ 4 台のエレベーター（四季の絵の内装、約 50 秒）→ 350m の展望デッキ（3 階建て。いちばん下の 340 にガラスの床）
      → 2 台目のエレベーター（窓のあるかご）→ 445m の展望回廊（ガラスの筒の中を、ゆるい坂で回りながら 450m まで上がる）→ いちばん高い所 451.2m（番号は docs/SKYTREE-2026-11-17.md） */
-  slobby: { ja: '押上の電波塔・4階の入口', lbl: '塔の4階', lblEn: 'Tower 4F', en: 'Oshiage tower, 4F entrance', kind: 'room', len: [62, 70], road: ['#E6E8EA', '#DDE0E3'], rpat: 'grid', side: ['#DDE0E3', '#D3D7DB'], spat: 'grid',
+  slobby: { ja: '押上の電波塔・4階の入口', lbl: '塔の4階', lblEn: 'Tower 4F', en: 'Oshiage tower, 4F entrance', kind: 'room', len: [74, 80], flights: { a: 8, P: 11, F: 3.5, R: 5, n: 3 } /* [H8] 川べりから 4 階の入口へ：エスカレーターの横の階段で 15m 上がる */, road: ['#E6E8EA', '#DDE0E3'], rpat: 'grid', side: ['#DDE0E3', '#D3D7DB'], spat: 'grid',
     wall: '#F2F3F4', base: '#5E6A76', wallH: 4.8, ceil: '#E9ECEF', cpat: 'plain', light: 'panel', wdeco: ['ticketbooth', 'selev', 'towerposter', 'infodesk', 'selev', 'selev'], props: [['plant', 1], ['benchS', 1]], obs: ['suitcase', 'rope', 'sign', 'bag'], course: 'skytree',
     arrive: { ja: '4階の入口。チケットを買って、四季の絵のエレベーターへ', en: 'The 4F entrance: tickets, then the season-themed elevators' } },
-  sdeck:  { ja: '押上の電波塔・展望デッキ（地上350m）', lbl: '350mのデッキ', lblEn: '350 m deck', en: 'Oshiage tower, 350 m deck', kind: 'glass', len: [100, 108], road: ['#6E757D', '#687078'], rpat: 'lookdown', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [350, 350], view: 'city',
+  /* [H7] 2026-11-17 夜 オーナー「スカイツリーも本物の構造どおり高低差を」：本物は 4 階の入口から、四季の絵のエレベーター（約 50 秒）で 350m、そこからもう 1 台で 445m。
+     エレベーターのかごの中を走りぬける短い道。かごは閉じた箱なので、上がっていく間は外が見えない。扉の上の数字が上がり、着くと扉の先が本当の 350m（445m）の床 */
+  selev:  { ja: '四季のエレベーター（天望デッキへ）', lbl: 'エレベーター', lblEn: 'Elevator', en: 'Season elevator to the deck', kind: 'room', len: [24, 26], road: ['#3A3330', '#352F2C'], rpat: 'grid', side: ['#3A3330', '#352F2C'], spat: 'grid',
+    wall: '#2B2522', base: '#8A7A5A', wallH: 3.2, ceil: '#E9E2D2', cpat: 'plain', light: 'panel', wdeco: ['liftArt', 'liftArt', 'liftArt'], props: [], obs: [], noObs: 1, course: 'skytree', lift: 1, liftTo: 350, liftFrom: 15, climb: [15, 350], face: 226,
+    arrive: { ja: '分速600m。約50秒で地上350mへ', en: '600 m a minute: 350 m up in about 50 seconds' } },
+  selev2: { ja: '天望回廊へのエレベーター', lbl: 'エレベーター', lblEn: 'Elevator', en: 'Elevator to the sky walkway', kind: 'room', len: [24, 26], road: ['#E9EDF0', '#E1E6EA'], rpat: 'grid', side: ['#E9EDF0', '#E1E6EA'], spat: 'grid',
+    wall: '#EEF1F4', base: '#9AA4AD', wallH: 3.2, ceil: '#F4F6F8', cpat: 'plain', light: 'panel', wdeco: ['liftGlass', 'liftGlass'], props: [], obs: [], noObs: 1, course: 'skytree', lift: 1, liftTo: 445, liftFrom: 340, climb: [340, 445], face: 330,
+    arrive: { ja: '天井がガラスのエレベーター。地上445mの天望回廊へ', en: 'A glass-roofed elevator up to the 445 m walkway' } },
+  sdeck:  { ja: '押上の電波塔・展望デッキ（地上350m）', gframe: 'dark', solidCeil: 1, lbl: '350mのデッキ', lblEn: '350 m deck', en: 'Oshiage tower, 350 m deck', kind: 'glass', len: [100, 108], road: ['#6E757D', '#687078'], rpat: 'lookdown', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [350, 340], flights: { a: 34, P: 16, F: 6, R: -5, n: 2 } /* [H9] 本物の天望デッキは 3 階建て（フロア 350 → 345 → 340。340 にガラスの床）。階段で 2 回おりる */, view: 'city',
     wall: '#EEF1F4', ceil: '#2F343B', wallH: 5.6, props: [['scopeS', 1]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'skytree', face: 226, /* PDCA 113：本物は 5m をこえる大きなガラスが 360 度（天井の高い部屋） */
     lm: [{ t: 'tower', brg: 226, sc: .55 }, { t: 'kokugikan', brg: 227, sc: .8 }, { t: 'clock', brg: 231, sc: .55 }, { t: 'fuji', brg: 248, sc: 1 }, { t: 'tocho', brg: 258, sc: .6 }, { t: 'pagoda', brg: 292, sc: .7 }],
     arrive: { ja: 'エレベーターで約50秒。地上350m', en: 'About 50 seconds by elevator: 350 m up' } },
-  hawk2:  { ja: 'オオタカにつかまって空の上', lbl: 'オオタカと空の上', lblEn: 'Carried by a goshawk', en: 'Over Tokyo with a goshawk', kind: 'deck', sky: 1, len: [220, 230], road: ['#9AA0A6', '#90969C'], rpat: 'road', side: ['#8A9096', '#80868C'], spat: 'road', climb: [451, 0], view: 'city',
-    props: [], obs: [], course: 'skytree', face: 248, rail: '#9AA0A6',
-    lm: [{ t: 'fuji', brg: 248, sc: 1.1 }, { t: 'tocho', brg: 258, sc: .6 }, { t: 'pagoda', brg: 292, sc: .8 }, { t: 'tsukuba', brg: 25, sc: 1 }, { t: 'rbridge', brg: 208, sc: .6 }, { t: 'clock', brg: 231, sc: .5 }, { t: 'tower', brg: 226, sc: .5 }, { t: 'kokugikan', brg: 227, sc: .9 }],
+  hawk2:  { ja: 'オオタカにつかまって空の上', riv: -1, lbl: 'オオタカと空の上', lblEn: 'Carried by a goshawk', en: 'Over Tokyo with a goshawk', kind: 'deck', sky: 1, len: [220, 230], road: ['#9AA0A6', '#90969C'], rpat: 'road', side: ['#8A9096', '#80868C'], spat: 'road', climb: [451, 0], view: 'city',
+    props: [], obs: [], course: 'skytree', face: 330, rail: '#9AA0A6',
+    lm: [{ t: 'fuji', brg: 248, sc: 1.1 }, { t: 'tocho', brg: 258, sc: .6 }, { t: 'pagoda', brg: 292, sc: .8 }, { t: 'tsukuba', brg: 25, sc: 1 }, { t: 'rbridge', brg: 208, sc: .6 }, { t: 'clock', brg: 231, sc: .5 }, { t: 'kokugikan', brg: 227, sc: .9 }],
     bay: [165, 220, 7000], arrive: { ja: '451mから、東京をぐるっと見わたして地上へ', en: 'From 451 m, a full turn over Tokyo on the way down' } },
-  sland:  { ja: '隅田公園（着地）', lbl: '隅田公園', lblEn: 'Sumida Park', en: 'Sumida Park (landing)', kind: 'street', len: [100, 110], road: ['#C8B58F', '#BFAC86'], rpat: 'gravel', side: ['#7FA35E', '#77995A'], spat: 'lawn', curb: '#8A7A5A',
-    fac: { style: 'park' }, moat: -1, props: [['tree', 4], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'leafpile'], tree: 'green', flat: 1, course: 'skytree', face: 80,
+  sland:  { ja: '隅田公園（着地）', wide: 100, lbl: '隅田公園', lblEn: 'Sumida Park', en: 'Sumida Park (landing)', kind: 'street', len: [100, 110], road: ['#C8B58F', '#BFAC86'], rpat: 'gravel', side: ['#7FA35E', '#77995A'], spat: 'lawn', curb: '#8A7A5A',
+    fac: { style: 'park' }, moat: -1, props: [['tree', 4], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'leafpile'], tree: 'green', flat: 1, course: 'skytree', face: 330,
     lm: [{ t: 'skytree', brg: 80, sc: 1.2 }], arrive: { ja: 'ぶじに着地。川の向こうに、さっきの塔', en: 'Safe landing, the tower across the river' } },
 });
 /* 50万点：浅草寺（2026-11-17 オーナー「東京の最も人気で有名なスポット」）。本物と同じ順に、南から北へまっすぐ：
@@ -451,7 +459,7 @@ for (const k in THEMES) { const th = THEMES[k]; if (th.kind !== 'street' || !th.
 const COURSES = {
   tower: { at: 100000, steps: [{ t: 'tfoot', d: 8 }, { t: 'tlobby', d: 5 }, { t: 'troof', d: 4 }, { t: 'tstair', d: 12 }, { t: 'tpass', d: 4 }, { t: 'tdeck', d: 10 }, { t: 'hawk', d: 3 }, { t: 'tland', d: 8 }], ja: '赤い電波塔へ！', en: 'To the red tower!' },
   asakusa: { at: 500000, steps: [{ t: 'asakusa', d: 8 }, { t: 'nakamise', d: 10 }, { t: 'hozomon', d: 8 }, { t: 'hondo', d: 10 }, { t: 'denboin', d: 8 }], ja: '浅草寺へ！', en: 'To Senso-ji!' },
-  skytree: { at: 300000, steps: [{ t: 'sfoot', d: 8 }, { t: 'slobby', d: 5 }, { t: 'sdeck', d: 10 }, { t: 'skytree', d: 10 }, { t: 'hawk2', d: 4 }, { t: 'sland', d: 8 }], ja: '押上の電波塔へ！', en: 'To the Oshiage tower!' },
+  skytree: { at: 300000, steps: [{ t: 'sfoot', d: 8 }, { t: 'slobby', d: 5 }, { t: 'selev', d: 2 }, { t: 'sdeck', d: 10 }, { t: 'selev2', d: 2 }, { t: 'skytree', d: 10 }, { t: 'hawk2', d: 4 }, { t: 'sland', d: 8 }], ja: '押上の電波塔へ！', en: 'To the Oshiage tower!' },
 };
 
 Object.assign(THEMES, {
@@ -569,14 +577,14 @@ function dayPlan(day) {
   if (ride === 'ride_sub') start.push({ t: 'subwayst', d: 5, st: '千駄木' }, { t: 'subway', d: 20, line: ['根津', '湯島', '新御茶ノ水', '大手町', '二重橋前'] });
   else if (ride === 'ride_tram') start.push({ t: 'toden', d: 14, line: ['荒川車庫前', '王子駅前', '飛鳥山', '庚申塚', '大塚駅前'] }, { t: 'station', d: 4, st: '大塚' }, { t: 'yamanote', d: 12, line: ['巣鴨', '田端', '日暮里', '上野', '秋葉原', '東京'] });
   else start.push({ t: 'station', d: 5, st: day === 1 ? '日暮里' : '田端' }, { t: 'yamanote', d: 20, line: day === 1 ? ['鶯谷', '上野', '御徒町', '秋葉原', '神田', '東京'] : ['西日暮里', '日暮里', '上野', '秋葉原', '神田', '東京'] });
-  start.push({ t: ride === 'ride_sub' ? one(['otemachi', 'gyoko']) : one(['tokyoeki', 'gyoko', 'otemachi']), d: Math.max(6, 60 - start.reduce((a, x) => a + x.d, 0)) });
+  start.push({ t: ride === 'ride_sub' ? (one(['otemachi', 'gyoko']) || 'otemachi') : (one(['tokyoeki', 'gyoko', 'otemachi']) || 'tokyoeki'), d: Math.max(6, 60 - start.reduce((a, x) => a + x.d, 0)) });
   const fk = (label, x, y) => ({ fork: { label, L: { t: x, d: 40 }, R: { t: y, d: 40 }, lbl: { L: lblOf(x), R: lblOf(y) } } });
   const two = (a, b) => ({ ja: lblOf(a).ja + '・' + lblOf(b).ja, en: lblOf(a).en + ' & ' + lblOf(b).en, zh: lblOf(a).zh + '・' + lblOf(b).zh, ko: lblOf(a).ko + ' & ' + lblOf(b).ko });
   /* ---- the office ---- */
-  const door = one(['lobby', 'ehall']), am = one(['meeting', 'shiryo', 'yakuin', 'copy']);
+  const door = one(['lobby', 'ehall']) || 'lobby', am = one(['meeting', 'shiryo', 'yakuin', 'copy']) || 'meeting';
   // lunch: two places near the office (the canteen and the rooftop count); spring always offers the cherry blossoms
   const lunch = pk([...AREA.central, 'shokudo', 'rooftop'], 2, null, NB.central);
-  const pm = one(['kyuto', 'copy', 'shiryo', 'meeting'].filter(x => x !== am));
+  const pm = one(['kyuto', 'copy', 'shiryo', 'meeting'].filter(x => x !== am)) || (am === 'kyuto' ? 'copy' : 'kyuto');
   // the afternoon errand: two stops in one part of town on each side
   const sides = Math.random() < .5 ? ['east', 'west'] : ['west', 'east'];
   const [a1] = pk(AREA[sides[0]], 1, null, NB[sides[0]]), [a2] = pk(AREA[sides[1]], 1, null, NB[sides[1]]);
@@ -587,7 +595,7 @@ function dayPlan(day) {
   lunch[0] = yFit(lunch[0], AREA.central, lunch[1]); lunch[1] = yFit(lunch[1], AREA.central, lunch[0]);
   const b1 = yFit(a1, AREA[sides[0]], a2), b2 = yFit(a2, AREA[sides[1]], b1);
   const outA = one(['nakadori', 'otemachi', 'gyoko']), outB = one(['nakadori', 'otemachi', 'gyoko'].filter(x => x !== outA));
-  const office = [{ t: door, d: 20 }, { t: one(['desk', 'freeaddr']), d: 100 }, { t: am, d: 82 }, { t: outA || 'nakadori', d: 8, pre: 1 }, fk('lunch', lunch[0], lunch[1]), { t: pm, d: 32 }, { t: outB || outA || 'otemachi', d: 8, pre: 1 }, fk('errand', b1, b2), { t: one(['kyuto', 'copy', 'shiryo'].filter(x => x !== pm && x !== am)) || 'kyuto', d: 40 }, { t: one(['deadline', 'present']), d: 170 }];
+  const office = [{ t: door, d: 20 }, { t: one(['desk', 'freeaddr']) || 'desk', d: 100 }, { t: am, d: 82 }, { t: outA || 'nakadori', d: 8, pre: 1 }, fk('lunch', lunch[0], lunch[1]), { t: pm, d: 32 }, { t: outB || outA || 'otemachi', d: 8, pre: 1 }, fk('errand', b1, b2), { t: one(['kyuto', 'copy', 'shiryo'].filter(x => x !== pm && x !== am)) || 'kyuto', d: 40 }, { t: one(['deadline', 'present']) || 'deadline', d: 170 }];
   /* ---- after six: two of three ways home (east by the Yamanote Line, south to Shiba, or out to the bay) ---- */
   const tmpl = {
     east: () => { const e = pk(AREA.east, 2, null, NB.east), boat = (Math.random() < .6 && fresh(['river', 'yakata'])) || null, hi = notRecent('skytree', 280) && !today.includes('skytree'); const n1 = night(NIGHT.east, [NIGHT.bay, NIGHT.west]);
@@ -609,7 +617,7 @@ function dayPlan(day) {
   if (Math.random() < .5) ways.reverse();
   ways.forEach(k => markSeen('way_' + k));
   const W1 = tmpl[ways[0]](), W2 = tmpl[ways[1]]();
-  const evening = [{ t: one(['tokyoeki', 'gyoko', 'otemachi']), d: 10, eve: 1 }, { fork: { label: 'detour', L: W1.steps, R: W2.steps, lbl: { L: W1.lbl, R: W2.lbl } } }];
+  const evening = [{ t: one(['tokyoeki', 'gyoko', 'otemachi']) || 'tokyoeki', d: 10, eve: 1 } /* 2026-11-18：3 つとも今日もう通っていると、行き先の無い道（undefined）になり、道が作れずに走りが止まった（自動チェックで時々落ちていた） */, { fork: { label: 'detour', L: W1.steps, R: W2.steps, lbl: { L: W1.lbl, R: W2.lbl } } }];
   markSeen(ride);
   // a sightseeing spot lasts two stretches (round one corner and you are still there), which also spreads the places out
   const isSight = t => !!(THEMES[t] && THEMES[t].stamp && THEMES[t].kind !== 'train' && !THEMES[t].climb && !['tokyoeki', 'shokudo', 'rooftop'].includes(t));

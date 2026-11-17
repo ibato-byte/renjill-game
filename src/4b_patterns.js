@@ -14,6 +14,10 @@ function decalDraw(p, d) {
     case 'zebra': for (let v = .06; v < .94; v += .16) bquad(.0, v, 1, v + .09, T('#EEEDE8')); break;
     case 'stop': bquad(.05, .2, .95, .8, 'rgba(0,0,0,0)'); if (d < 40) qtext(tr('とまれ', 'STOP'), .1, .15, .9, .85, T('#F2F1EC')); break;
     case 'arrow': { const P = [[.2, .4], [.6, .4], [.6, .25], [.95, .5], [.6, .75], [.6, .6], [.2, .6]]; ctx.beginPath(); P.forEach(([u, v], i) => { const q = bil(u, v); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }); ctx.closePath(); ctx.fillStyle = T('#EEEDE8'); ctx.fill(); break; }
+    case 'yLine': bquad(0, 0, 1, 1, T('#EEEDE8')); break; /* [Y5] 分かれ道の手前 26m は、まん中の線が白い実線（車線をまたがない） */
+    case 'yGore': { ctx.strokeStyle = T('#EEEDE8'); ctx.lineWidth = Math.max(1, 30 / Math.max(d, 4)); ctx.beginPath(); bline(0, .5, 1, 0); bline(0, .5, 1, 1); for (let k = 1; k < 5; k++) { const u = k / 5, h = .5 * u; bline(u, .5 - h, u, .5 + h); } ctx.stroke(); break; } /* 島へ向かって広がる三角（外のわく）と、中のしま */ /* [Y6] 分かれ目の島の手前の路面：白いななめのしま（ゼブラ）の三角 */
+    case 'yArrowL': case 'yArrowR': { const L2 = p.dec === 'yArrowL', vv = v => L2 ? v : 1 - v; /* [Y1] ななめの矢印：まっすぐ進んで、とちゅうからななめに曲がる。先は三角 */ ctx.strokeStyle = T('#EEEDE8'); ctx.lineWidth = Math.max(1.2, 70 / Math.max(d, 4)); ctx.lineCap = 'butt'; ctx.beginPath(); let q = bil(.08, vv(.62)); ctx.moveTo(q[0], q[1]); q = bil(.5, vv(.62)); ctx.lineTo(q[0], q[1]); q = bil(.78, vv(.3)); ctx.lineTo(q[0], q[1]); ctx.stroke();
+      const P2 = [[.7, .18], [.95, .08], [.84, .4]]; ctx.beginPath(); P2.forEach(([u, v], i) => { const q2 = bil(u, vv(v)); i ? ctx.lineTo(q2[0], q2[1]) : ctx.moveTo(q2[0], q2[1]); }); ctx.closePath(); ctx.fillStyle = T('#EEEDE8'); ctx.fill(); break; }
     case 'grate': bquad(0, 0, 1, 1, T('#3E3C39')); if (d < 25) { ctx.beginPath(); for (let k = 1; k < 8; k++) bline(k / 8, .1, k / 8, .9); ctx.strokeStyle = T('#26241F'); ctx.lineWidth = Math.max(.6, 12 / d); ctx.stroke(); } break;
     case 'tdoor': { const w0 = p.sd < 0 ? 0 : 1, vv = v => p.sd < 0 ? v : 1 - v; /* [65] ドアのしきい：溝のある金属 [66] 黄色い注意の帯（点の出っぱり） [67] しきいのかげ */
       ctx.globalAlpha = a; bquad(0, Math.min(vv(0), vv(.22)), 1, Math.max(vv(0), vv(.22)), T('#A9B1B8')); if (d < 22) { ctx.strokeStyle = T('#6E7881'); ctx.lineWidth = 1; ctx.beginPath(); for (let k = 1; k < 4; k++) bline(0, vv(k * .055), 1, vv(k * .055)); ctx.stroke(); }
@@ -164,7 +168,7 @@ function floorPattern(p, d) {
       ctx.globalAlpha = Math.min(1, a * 1.6); for (let k = 0; k < 14; k++) { const u = (k * .37 + p.ti * .19) % .95, v = (k * .61 + p.ti * .07) % .95; bquad(u, v, u + .035, v + .045, k % 3 ? T('#F7D3DE') : T('#FBE9EF')); } break;
     case 'lookdown': { /* 展望台のガラスの床（2026-11-17）：床の一部が、ステンレスの細い枠で区切った正方形のガラス。真下の町（屋根・道・緑）が小さく見える。ななめの映りこみ。
       4 枚に 1 枚だけ（全部ガラスだと、暗い横じまが階段に見えた） */
-      if (p.ti % 4 !== 1) { ctx.globalAlpha = a * .25; ctx.strokeStyle = T('#8F8676'); for (let k = 0; k <= 2; k++) bline(0, k / 2, 1, k / 2); bline(0, 0, 0, 1); break; }
+      if (p.ti % 16 !== 5 && p.ti % 16 !== 6) { /* [T5] ガラスの床は 4 か所だけ（24m ごとに 3m。本物も、展望台の床のガラスは数か所） */ ctx.globalAlpha = a * .25; ctx.strokeStyle = T('#8F8676'); for (let k = 0; k <= 2; k++) bline(0, k / 2, 1, k / 2); bline(0, 0, 0, 1); if (d < 30) { ctx.stroke(); ctx.beginPath(); ctx.globalAlpha = a * .16; ctx.strokeStyle = T('#5E636A'); for (let k = -3; k <= 3; k++) { const c = k / 4; bline(Math.max(0, c), Math.max(0, -c), Math.min(1, 1 + c), Math.min(1, 1 - c)); const e = .5 + k / 4 + .5; bline(Math.max(0, e - 1), Math.min(1, e), Math.min(1, e), Math.max(0, e - 1)); } ctx.stroke(); ctx.beginPath(); ctx.globalAlpha = a * .1; bquad(0, 0, 1, .5, p.ti % 2 ? '#FFFFFF' : '#000000'); } break; } /* [T4] ガラスでない所：網目の柄のじゅうたん（ななめの細い線）と、1 枚ごとの毛並みのむら */
       ctx.globalAlpha = a * .95; const r2 = rnd(p.ti * 13 + 5), roof = ['#8E8C86', '#A7A49C', '#7E7C78', '#9C968A', '#B5B2AA', '#6F8A5E'];
       for (const [u0, u1] of [[.22, .5], [.5, .78]]) { bquad(u0, .08, u1, .92, T(LT.night > .4 ? '#1E2433' : '#56626E'));
         for (let k = 0; k < (d < 20 ? 6 : 3); k++) { const u = u0 + .03 + r2() * (u1 - u0 - .12), v = .12 + r2() * .66; bquad(u, v, u + .03 + r2() * .06, v + .06 + r2() * .12, T(LT.night > .4 ? (k % 3 ? '#2A3044' : '#C9A15A') : roof[k % roof.length])); }
@@ -236,6 +240,7 @@ function wallPattern(w, d) {
   if (pat === 'stonewall') { ctx.globalAlpha = .4; ctx.strokeStyle = tint('#5C574C'); ctx.lineWidth = 1; ctx.beginPath(); bline(0, .5, 1, .5); for (let k = 0; k < 4; k++) bline(k / 4 + .1, 0, k / 4 + .1, .5); ctx.stroke(); ctx.globalAlpha = 1; return; }
   if (pat === 'bricks') { ctx.globalAlpha = .35; ctx.strokeStyle = tint('#E9D9BF'); ctx.lineWidth = Math.max(.5, 18 / d); ctx.beginPath(); for (let k = 1; k < 12; k++) bline(0, k / 12, 1, k / 12); ctx.stroke(); ctx.globalAlpha = 1;
     bpath(.1, 0, .9, .78); ctx.fillStyle = N > .3 || w.c ? tint('#3A2016') : '#3A2016'; ctx.fill(); return; }
+  if (pat === 'doorhead') { bquad(0, 0, 1, .12, tint('#8A949E')); if (d < 40) { bquad(.44, .3, .56, .6, tint('#2F5579')); qtext(tr('入口', 'ENTRANCE'), .45, .33, .55, .57, '#FBF6EE'); } return; } // [T3] ドアの上の枠と「入口」の案内
   if (pat === 'reveal') { /* [G15] 奥まった 1 階の、となりとの境の壁：石の板の目地・下のけこみ・上のかげ */ ctx.globalAlpha = .22; ctx.strokeStyle = tint('#5A554E'); ctx.lineWidth = 1; ctx.beginPath(); for (let k = 1; k < 4; k++) bline(0, k / 4, 1, k / 4); bline(.5, 0, .5, 1); ctx.stroke(); ctx.globalAlpha = .35; bquad(0, 0, 1, .06, '#3B3631'); bquad(0, .85, 1, 1, '#2B2622'); ctx.globalAlpha = 1; return; }
   if (pat === 'soffit') { /* [G16] のき天井：板の目地と、ダウンライト（夜は明るく、まわりに光） */ ctx.globalAlpha = .25; ctx.strokeStyle = tint('#5A554E'); ctx.lineWidth = 1; ctx.beginPath(); for (let k = 1; k < 6; k++) bline(k / 6, 0, k / 6, 1); ctx.stroke(); ctx.globalAlpha = 1;
     const nL = Math.max(1, Math.round((w.w || 6) / 2.2)); for (let k = 0; k < nL; k++) { const u = (k + .5) / nL, c = bil(u, .5), q = bil(Math.min(1, u + .02), .5), rr = Math.max(1.2, Math.hypot(q[0] - c[0], q[1] - c[1])); if (LT.night > .35) { ctx.globalAlpha = .35; ctx.beginPath(); ctx.ellipse(c[0], c[1], rr * 4, rr * 2, 0, 0, Math.PI * 2); ctx.fillStyle = '#FFE2A0'; ctx.fill(); ctx.globalAlpha = 1; } ctx.beginPath(); ctx.ellipse(c[0], c[1], rr, rr * .5, 0, 0, Math.PI * 2); ctx.fillStyle = LT.night > .35 ? '#FFF6DA' : tint('#E9E6DF'); ctx.fill(); } return; }
@@ -300,7 +305,7 @@ function ceiling(w, d) {
   else if (li === 'round' && w.ti % 3 === 1) { const c = bil(.5, .5), r = Math.abs(bil(.62, .5)[0] - c[0]) + Math.abs(bil(.5, .62)[1] - c[1]); ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(3, r * 1.9), Math.max(1.5, r * .68), 0, 0, Math.PI * 2); ctx.fillStyle = on.replace(/[\d.]+\)$/, m => (parseFloat(m) * .18).toFixed(3) + ')'); ctx.fill(); /* 明かりのまわりのうすい光 */ ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(2, r), Math.max(1, r * .35), 0, 0, Math.PI * 2); ctx.fillStyle = on; ctx.fill(); }
   else if (li === 'bulb') { /* 裸電球：すぐ頭の上では巨大な黄色い丸になっていた（ガード下・横丁）。大きさに上限をつけ、近づくと消え、まわりにうすい光の輪 */ const rr = Math.min(7, Math.max(1.5, 34 / d)), al = clamp((d - 2.2) / 3, 0, 1); if (al > .02) for (let k = 0; k < 3; k++) { const c = bil(.5, .2 + k * .3); ctx.globalAlpha = al * .22; ctx.beginPath(); ctx.arc(c[0], c[1], rr * 2.4, 0, Math.PI * 2); ctx.fillStyle = '#FFC860'; ctx.fill(); ctx.globalAlpha = al; ctx.beginPath(); ctx.arc(c[0], c[1], rr, 0, Math.PI * 2); ctx.fillStyle = '#FFE2A0'; ctx.fill(); } ctx.globalAlpha = 1; }
 }
-function glassFrame(w) { ctx.strokeStyle = 'rgba(240,245,250,.75)'; ctx.lineWidth = 2; ctx.beginPath(); bline(0, 0, 1, 0); bline(0, 1, 1, 1); bline(0, 0, 0, 1); if (!w.ceil) bline(0, .05, 1, .05); ctx.stroke(); }
+function glassFrame(w) { const gf = w.gf, nt = LT.night > .4; ctx.strokeStyle = gf === 'dark' ? (nt ? 'rgba(70,78,92,.85)' : 'rgba(96,104,116,.8)') : (nt ? 'rgba(190,200,215,.5)' : 'rgba(240,245,250,.75)'); ctx.lineWidth = gf === 'dark' ? 2.6 : 2; /* [S1] 窓わくの色：押上の展望デッキは、こい灰色の鉄（夜は暗く）。夜の白いわくは、うすく（光る線に見えていた） */ ctx.beginPath(); bline(0, 0, 1, 0); bline(0, 1, 1, 1); bline(0, 0, 0, 1); if (!w.ceil) bline(0, .05, 1, .05); ctx.stroke(); }
 // building fronts; w.st = style
 function facade(w, d) {
   const r = rnd(w.seed * 7 + 13), rp = a => a[(r() * a.length) | 0], N = LT.night, h = w.h, st = w.st;
@@ -475,11 +480,21 @@ const DECO_DRAW = {
   plantwall(e) { bquad(0, 0, 1, 1, tint('#4F8A4A')); for (let k = 0; k < 9; k++) bquad((k * .37) % .9, (k * .23) % .85, (k * .37) % .9 + .12, (k * .23) % .85 + .14, tint('#7DB46A')); },
   whiteboard(e) { bquad(0, 0, 1, 1, tint('#9AA9B6')); bquad(.03, .05, .97, .95, tint('#FFFFFF')); ctx.strokeStyle = '#4E77A0'; ctx.lineWidth = 2; ctx.beginPath(); bline(.1, .7, .3, .75); bline(.1, .55, .45, .58); bline(.55, .2, .65, .45); bline(.65, .45, .75, .35); bline(.75, .35, .88, .75); ctx.stroke(); },
   screen(e) { bquad(0, 0, 1, 1, tint('#FFFFFF')); [.3, .5, .42, .75].forEach((h, k) => bquad(.15 + k * .18, .12, .27 + k * .18, .12 + h * .7, k === 3 ? '#C8463C' : '#4E77A0')); },
-  clock(e) { const c = bil(.5, .5), r = Math.max(2, Math.abs(bil(1, .5)[0] - c[0]) * .9);
-    ctx.beginPath(); ctx.fillStyle = tint('#FBF6EE'); ctx.strokeStyle = tint('#3B2A20'); ctx.lineWidth = Math.max(1, r * .12); ctx.arc(c[0], c[1], r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    const m = G.clock % 60, h = (G.clock / 60) % 12; ctx.beginPath(); ctx.lineWidth = Math.max(1, r * .1);
-    ctx.moveTo(c[0], c[1]); ctx.lineTo(c[0] + Math.sin(h / 12 * Math.PI * 2) * r * .5, c[1] - Math.cos(h / 12 * Math.PI * 2) * r * .5);
-    ctx.moveTo(c[0], c[1]); ctx.lineTo(c[0] + Math.sin(m / 60 * Math.PI * 2) * r * .8, c[1] - Math.cos(m / 60 * Math.PI * 2) * r * .8); ctx.stroke(); },
+  clock(e) { /* 2026-11-17 オーナー「スタート画面の時計の向きが物理的におかしい」：前は壁の向きに関係なく、画面に正面を向いた丸と針を描いていた（横の壁にかかった時計が、こちらを向いていた）。
+      いまは壁の面の上に描く：丸は壁の向きに合わせてつぶれただ円、目もりと針も壁の面の上（12 時は真上、3 時は壁の右）。木のわくの厚みも壁から少し出る */
+    const v = e.v, wm = Math.hypot(v[3] - v[0], v[5] - v[2]) || 1, hm = Math.abs(v[7] - v[4]) || 1, rm = Math.min(wm, hm) * .46, ru = rm / wm, rv = rm / hm;
+    const u0 = bil(0, .5), u1 = bil(1, .5), v0 = bil(.5, 0), v1 = bil(.5, 1), mir = ((u1[0] - u0[0]) * (v1[1] - v0[1]) - (u1[1] - u0[1]) * (v1[0] - v0[0])) > 0 ? -1 : 1; /* 壁の面を、こちらから見て左右が逆になる向きで持っている時は、3 時の向きを逆に（針が左右反対に回らないように） */
+    const P = (a, k) => bil(.5 + mir * Math.sin(a) * ru * k, .5 + Math.cos(a) * rv * k), ring = k => { ctx.beginPath(); for (let i = 0; i <= 32; i++) { const q = P(i / 32 * Math.PI * 2, k); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); } ctx.closePath(); };
+    const c = P(0, 0), sz = Math.abs(P(Math.PI / 2, 1)[0] - c[0]) + Math.abs(P(0, 1)[1] - c[1]);
+    ring(1.06); ctx.fillStyle = tint('#6B4631'); ctx.fill(); /* 木のわく */
+    ring(.9); ctx.fillStyle = tint('#FBF6EE'); ctx.fill(); /* 文字盤 */
+    ctx.strokeStyle = tint('#3B2A20'); ctx.lineCap = 'round';
+    ctx.lineWidth = Math.max(.6, sz * .03); ctx.beginPath(); for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2, q0 = P(a, k % 3 ? .74 : .66), q1 = P(a, .82); ctx.moveTo(q0[0], q0[1]); ctx.lineTo(q1[0], q1[1]); } ctx.stroke(); /* 目もり（3・6・9・12 は長く） */
+    const m = G.clock % 60, h = (G.clock / 60) % 12, hq = P(h / 12 * Math.PI * 2, .45), mq = P(m / 60 * Math.PI * 2, .7);
+    ctx.lineWidth = Math.max(1, sz * .07); ctx.beginPath(); ctx.moveTo(c[0], c[1]); ctx.lineTo(hq[0], hq[1]); ctx.stroke();
+    ctx.lineWidth = Math.max(.8, sz * .045); ctx.beginPath(); ctx.moveTo(c[0], c[1]); ctx.lineTo(mq[0], mq[1]); ctx.stroke();
+    ctx.fillStyle = tint('#3B2A20'); ctx.beginPath(); ctx.arc(c[0], c[1], Math.max(1, sz * .04), 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha *= .25; ring(.9); ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = Math.max(.6, sz * .03); ctx.stroke(); ctx.globalAlpha /= .25; ctx.lineCap = 'butt'; }, /* ガラスのふちの光 */
   izakaya(e) { bquad(0, 0, 1, 1, '#2B1A12'); bquad(.08, .05, .92, .7, '#FFCF7A'); bquad(.08, .05, .92, .25, '#6B4631'); for (let k = 0; k < 3; k++) bquad(.12 + k * .27, .72, .34 + k * .27, .95, '#1C1919');
     for (let k = 0; k < 4; k++) bquad(.1 + k * .22, .58, .27 + k * .22, .9, k % 2 ? '#2F5579' : '#355F86'); qtext(['やきとり', '大衆酒場', 'もつ焼', 'おでん'][(e.v2 || 0) % 4], .15, .62, .85, .86, '#FBF6EE'); },
   menu(e) { bquad(0, 0, 1, 1, tint('#F6EBDC')); for (let k = 0; k < 5; k++) bquad(.15, .15 + k * .16, .85, .22 + k * .16, tint('#3B2A20')); },
@@ -492,6 +507,21 @@ const DECO_DRAW = {
     bquad(.08, .74, .92, .98, tint(BG)); const r = rnd((e.seed || 3) + k);
     for (let i = 0; i < 14; i++) { const u = .12 + r() * .76, v = .77 + r() * .18; if (k === 0) bquad(u, v, u + .025, v + .02, tint('#F4A6BA')); else if (k === 1) { const c = ['#FFD27A', '#FF7A9A', '#7AD8FF'][i % 3]; bquad(u, v, u + .012, v + .03, c); bquad(u - .01, v + .012, u + .022, v + .018, c); } else if (k === 2) bquad(u, v, u + .025, v + .02, tint(i % 2 ? '#D9452B' : '#E8A030')); else bquad(u, v, u + .015, v + .015, '#FFFFFF'); }
     qtext(tr('天望デッキ 350', 'DECK 350'), .3, .705, .7, .735, '#2B2B2B'); bquad(.9, .35, .96, .42, tint('#E9EDF0')); bquad(.915, .37, .945, .4, LT.night > .4 ? '#FFD27A' : tint('#9AA4AD')); },
+  liftArt(e) { /* [H14] 四季のエレベーターのかべ：うるし塗りの黒い板に、季節の絵（春＝桜・夏＝隅田川の花火・秋＝紅葉・冬＝雪の結晶）。金のふち */
+    const k = (e.seg && e.seg.liftK != null ? e.seg.liftK : (e.v2 || 0)) % 4, r = rnd((e.seed || 7) + k * 13);
+    bquad(0, 0, 1, 1, tint('#1E1A18')); bquad(.03, .04, .97, .96, tint(['#2A1E22', '#121A30', '#2A1A12', '#1A2230'][k]));
+    ctx.strokeStyle = tint('#C9A24A'); ctx.lineWidth = Math.max(1, ctx.lineWidth); ctx.beginPath(); bline(.03, .04, .97, .04); bline(.03, .96, .97, .96); bline(.03, .04, .03, .96); bline(.97, .04, .97, .96); ctx.stroke();
+    if (k === 0) { ctx.strokeStyle = tint('#5A3A2A'); ctx.lineWidth *= 2; ctx.beginPath(); bline(.05, .3, .5, .45); bline(.5, .45, .9, .35); bline(.3, .38, .4, .65); ctx.stroke(); for (let i = 0; i < 40; i++) { const u = .08 + r() * .84, v = .2 + r() * .6; bquad(u, v, u + .02, v + .03, tint(i % 3 ? '#F4B6C6' : '#FBE3EA')); } }
+    else if (k === 1) { for (let f = 0; f < 4; f++) { const cu = .2 + f * .2 + r() * .05, cv = .3 + r() * .3, c = ['#FFD27A', '#FF7A9A', '#7AD8FF', '#B9FF8A'][f]; ctx.strokeStyle = c; ctx.beginPath(); for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; bline(cu, cv, cu + Math.cos(a) * .08, cv + Math.sin(a) * .12); } ctx.stroke(); } bquad(0.03, .82, .97, .96, tint('#1C2A44')); }
+    else if (k === 2) { for (let i = 0; i < 34; i++) { const u = .08 + r() * .84, v = .15 + r() * .7; bquad(u, v, u + .035, v + .045, tint(['#D9452B', '#E8A030', '#C23A22'][i % 3])); } }
+    else { ctx.strokeStyle = '#E9F2FF'; ctx.beginPath(); for (let i = 0; i < 9; i++) { const cu = .1 + r() * .8, cv = .15 + r() * .7, rr = .03 + r() * .03; for (let a = 0; a < 6; a++) { const t2 = a / 6 * Math.PI * 2; bline(cu, cv, cu + Math.cos(t2) * rr, cv + Math.sin(t2) * rr * 1.4); } } ctx.stroke(); } },
+  liftGlass(e) { bquad(0, 0, 1, 1, tint('#D5DBE0')); for (let i = 0; i < 3; i++) bquad(.05 + i * .32, .08, .3 + i * .32, .92, tint('#E9EDF0')); ctx.strokeStyle = tint('#9AA4AD'); ctx.beginPath(); bline(0, .5, 1, .5); ctx.stroke(); }, /* [H15] 445m へのエレベーター：明るい銀の板 */
+  liftDoor(e) { /* [H16] かごの正面：銀の 2 枚の扉と、上がっていく高さの数字（扉の上の表示）。着く直前に「ポーン」 */
+    const th = e.lift || {}, sg = e.seg, cur = G.segs[G.ci] === sg ? G.s : 0, h = Math.round(lerp(th.liftFrom || 0, th.liftTo || 0, sstep(clamp((cur - 4) / Math.max(1, (sg ? sg.len : 30) - 10), 0, 1))));
+    const open = sg && G.segs[G.ci] === sg ? clamp((cur - (sg.len - 5)) / 3.5, 0, 1) : 0; /* [H18] 着く直前に扉がひらく：2 枚が左右へ引きこまれ、すき間から、明るい外（デッキ）の光 */
+    bquad(0, 0, 1, 1, tint('#7E868E')); if (open > 0) { bquad(.18, 0, .82, .8, LT.night > .4 ? '#FFE7B0' : '#F4F7FA'); } bquad(.18, 0, .5 - .32 * open, .8, tint('#C9CED3')); bquad(.5 + .32 * open, 0, .82, .8, tint('#C9CED3')); ctx.strokeStyle = tint('#8A949E'); ctx.lineWidth = Math.max(1, ctx.lineWidth * 1.6); if (!open) { ctx.beginPath(); bline(.5, 0, .5, .8); ctx.stroke(); }
+    ctx.globalAlpha *= .3; bquad(.2, .05, .3 - .2 * open, .78, '#FFFFFF'); bquad(.52 + .3 * open, .05, .6 + .2 * open, .78, '#FFFFFF'); ctx.globalAlpha /= .3;
+    bquad(.3, .84, .7, .96, '#14161A'); qtext(h + ' m', .33, .855, .67, .945, '#FFB84A'); },
   elevator(e) { bquad(0, 0, 1, 1, tint('#B9C2CA')); bquad(.12, 0, .88, .86, tint('#D9DEE2')); ctx.strokeStyle = tint('#8A949E'); ctx.lineWidth = 2; ctx.beginPath(); bline(.5, 0, .5, .86); ctx.stroke();
     bquad(.3, .9, .7, .98, '#1C1919'); qtext(String(1 + ((e.v2 || 0) + Math.floor(G.t * .5)) % 9), .42, .9, .58, .98, '#FFB13B'); bquad(.92, .4, .98, .5, tint('#E9EDF0')); },
   bookshelf(e) { bquad(0, 0, 1, 1, tint('#6B4631')); const r = rnd((e.seed || 3) + (e.v2 || 0)); for (let row = 0; row < 5; row++) { const v0 = .05 + row * .19; let u = .03; while (u < .97) { const w = .02 + r() * .035; bquad(u, v0, Math.min(.97, u + w), v0 + .13 + r() * .03, tint(['#C8463C', '#355F86', '#F2C230', '#5F9E5A', '#E9E2D5', '#8A5530', '#46525E'][(r() * 7) | 0])); u += w + .004; } bquad(0, v0 - .02, 1, v0, tint('#4A2F20')); } },
@@ -522,7 +552,7 @@ function arrowSign(dir) {
 /* ================= sky, skyline, landmarks ================= */
 const SKYB = (() => { const a = []; const r = rnd(7); for (let i = 0; i < 160; i++) a.push({ a: r() * Math.PI * 2, w: .015 + r() * .05, h: .02 + Math.pow(r(), 2.2) * .17, t: r(), win: r(), ant: r() < .12, layer: r() < .45 ? 0 : 1 }); return a; })();
 function angDiff(a, b) { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; }
-function altitude(seg, s) { const c = seg.th.climb; if (c && seg.th.sky) return Math.max(0, Math.round(segE(seg, clamp(s, 0, seg.len)) - (seg.e0 - c[0]))); return c ? Math.round(lerp(c[0], c[1], clamp(s / seg.len, 0, 1))) : 0; }
+function altitude(seg, s) { const c = seg.th.climb; if (seg.th.lift) return Math.round(lerp(seg.th.liftFrom, seg.th.liftTo, sstep(clamp((s - 4) / Math.max(1, seg.len - 10), 0, 1)))); if (c && seg.base != null) return Math.max(0, Math.round(segE(seg, clamp(s, 0, seg.len)) - seg.base)); /* [H6] 高さの表示は、本当の地面からの高さ */ if (c && seg.th.sky) return Math.max(0, Math.round(segE(seg, clamp(s, 0, seg.len)) - (seg.e0 - c[0]))); return c ? Math.round(lerp(c[0], c[1], clamp(s / seg.len, 0, 1))) : 0; }
 function drawSky(seg) {
   const th = seg.th, open = th.kind !== 'room' && th.kind !== 'train';
   const horizon = HORIZON - Math.tan(CAM.pitch) * FOCAL;
@@ -544,12 +574,14 @@ function drawSky(seg) {
   const lmPass = (sg, fuji) => { for (const lm of sg.th.lm || []) if ((lm.t === 'fuji') === fuji) { landmark(sg, lm, yb); if (fuji) ranges(sg, lm, yb); } };
   if (prev && fade > .02) { ctx.globalAlpha = fade; lmPass(prev, true); ctx.globalAlpha = 1; }
   ctx.globalAlpha = 1 - fade; lmPass(seg, true); ctx.globalAlpha = 1;
-  skyline(seg, yb, 0);
+  const rmOn = climb && (th.sky || alt >= 20) && typeof rmFrame === 'function' && rmFrame(seg); /* 展望台・階段の上からも同じ（本物の場所の立体のビルを見せる） */ /* [M30] 鳥と降りる時は、地平線の平たいビルの絵を出さない（本物の場所の立体のビルがあるので、絵と立体が重なっていた） */
+  if (!rmOn) skyline(seg, yb, 0);
   if (prev && fade > .02) { ctx.globalAlpha = fade; lmPass(prev, false); ctx.globalAlpha = 1; }
   ctx.globalAlpha = 1 - fade; lmPass(seg, false); ctx.globalAlpha = 1;
-  skyline(seg, yb, 1);
+  if (!rmOn) skyline(seg, yb, 1);
   ctx.fillStyle = N > .4 ? 'rgb(36,44,74)' : `rgb(${(LT.bot[0] * .82) | 0},${(LT.bot[1] * .85) | 0},${(LT.bot[2] * .88) | 0})`; ctx.fillRect(0, yb, W, H - yb);
   if (climb && (alt >= 20 || th.sky)) { try { aerialCity(seg, yb, alt, horizon); } catch (e) { reportErr(e); } }
+  { const cur = G.segs[G.ci], nx = G.segs[G.ci + 1]; if (G.mode === 'play' && !OPT().calm && cur === seg && seg.toSky && nx && nx.th.sky && G.s > seg.len - 16) { const k = clamp((G.s - (seg.len - 16)) / 16, 0, 1); ctx.save(); ctx.strokeStyle = `rgba(255,255,255,${(.22 * k).toFixed(3)})`; ctx.lineWidth = 1; for (let i = 0; i < 6; i++) { const ph = (G.t * (1.1 + i * .17) + i * .31) % 1, x = (i * 131) % W, y = horizon - 60 + ((i * 97) % 120); ctx.beginPath(); ctx.moveTo(x - ph * 80, y); ctx.lineTo(x - ph * 80 - 26, y + 2); ctx.stroke(); } ctx.restore(); } } /* [F11] 外のテラスに出ると、横へ流れる風のすじ（飛び立つ前ぶれ） */
   if (th.sky && G.mode === 'play' && !OPT().calm) { ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1.2; for (let k = 0; k < 9; k++) { const ph = (G.t * (1.4 + k * .13) + k * .37) % 1, x = ((k * 97) % W), y = horizon + 40 + ((k * 151) % Math.max(1, H - horizon - 80)) - ph * 60; ctx.globalAlpha = Math.sin(ph * Math.PI) * .5; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (x - W / 2) * .08, y - 26); ctx.stroke(); } ctx.restore(); } /* [D14] 風のすじ（下へおりていく速さ） */ /* [D6] 空の上は、地面の近くまで町を描く（前は 20m より下で、町が消えて一色の地面になった） */
   else if (climb && N > .4) { ctx.fillStyle = 'rgba(255,214,140,.8)'; const r = rnd(5); for (let i = 0; i < 160; i++) { const x = ((r() * W * 3 - CAM.yaw * 300) % W + W) % W, y = yb + 2 + r() * (H - yb); ctx.fillRect(x, y, 1.6, 1.6); } }
 }
@@ -587,6 +619,10 @@ function skyline(seg, yb, layer) {
     const base = layer ? (N > .4 ? [26, 34, 62] : [140 + b.t * 40, 152 + b.t * 40, 170 + b.t * 36]) : (N > .4 ? [40, 50, 84] : [176 + b.t * 30, 188 + b.t * 28, 204 + b.t * 24]);
     const amb = N > .4 ? [1, 1, 1] : LT.amb; ctx.fillStyle = `rgb(${(base[0] * amb[0]) | 0},${(base[1] * amb[1]) | 0},${(base[2] * amb[2]) | 0})`;
     ctx.fillRect(x - w / 2, yb - h, w, h + 2);
+    { const sw = w * (.18 + .4 * Math.min(1, Math.abs(dx) / 1.1)), sd = dx > 0 ? -1 : 1, sx0 = sd > 0 ? x + w / 2 : x - w / 2 - sw, dep = sw * .35; /* [V1] 遠くのビルも立体：画面のまん中がわに、かげになった横の面（はなれた方角ほど広く見える）と、上へ少し見える屋上の面 */
+      ctx.fillStyle = `rgb(${(base[0] * amb[0] * .78) | 0},${(base[1] * amb[1] * .8) | 0},${(base[2] * amb[2] * .84) | 0})`; ctx.beginPath(); ctx.moveTo(sd > 0 ? x + w / 2 : x - w / 2, yb - h); ctx.lineTo(sd > 0 ? x + w / 2 + sw : x - w / 2 - sw, yb - h + dep); ctx.lineTo(sd > 0 ? x + w / 2 + sw : x - w / 2 - sw, yb + 2); ctx.lineTo(sd > 0 ? x + w / 2 : x - w / 2, yb + 2); ctx.closePath(); ctx.fill();
+      if (h > 10) { ctx.fillStyle = N > .4 ? 'rgba(80,90,130,.5)' : `rgba(255,255,255,${layer ? .28 : .18})`; ctx.fillRect(x - w / 2, yb - h, w, Math.max(1, h * .025)); } /* 屋上のへりの明るい線 */
+      if (b.t > .6 && h > 30 && !b.ant) { const cw = w * .55; ctx.fillStyle = `rgb(${(base[0] * amb[0] * .95) | 0},${(base[1] * amb[1] * .95) | 0},${(base[2] * amb[2] * .97) | 0})`; ctx.fillRect(x - cw / 2, yb - h - h * .08, cw, h * .08 + 1); } } /* [V2] 背の高いビルの屋上の機械室（一段せまい箱） */
     if (b.ant) { ctx.fillRect(x - 1, yb - h - h * .25, 2, h * .25); if (N > .4 && Math.floor(G.t * 1.5 + b.t * 5) % 2) { ctx.fillStyle = '#FF4A3D'; ctx.fillRect(x - 2, yb - h - h * .25 - 2, 4, 4); } }
     if (layer && h > 12) { ctx.fillStyle = N > .4 ? 'rgba(247,213,138,.85)' : 'rgba(255,255,255,.22)'; const cols = Math.max(1, (w / 6) | 0), rows = Math.max(1, (h / 7) | 0);
       for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) if (!N || ((i * 7 + j * 13 + (b.win * 100 | 0)) % 3)) ctx.fillRect(x - w / 2 + 2 + i * (w - 3) / cols, yb - h + 3 + j * (h - 4) / rows, Math.max(1, (w - 3) / cols - 2), 2.4); }
