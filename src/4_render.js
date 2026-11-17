@@ -593,7 +593,7 @@ function drawBunnyWorld(b) {
   ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc);
   if (b.tilt) ctx.rotate(b.tilt);
   if (b.land > 0) ctx.scale(1 + b.land * .9, 1 - b.land * .9); /* ポムのあいさつ：小さく跳んだあとの着地で、体がつぶれる */ if (b.lean) ctx.scale(1 + .05 * b.lean, 1 - .05 * b.lean); /* 走りぬける時は、体を低く長く */
-  if (b === G.player && G.mode === 'play' && !OPT().calm && !b.fly) { const lc = G.laneT > 0 ? Math.sign(G.lane - G.prevLane) * Math.sin(G.laneT / .35 * Math.PI) * .09 : 0, tc = G.turnT > 0 && G.turnDir ? G.turnDir * Math.sin(G.turnT / .8 * Math.PI) * .12 : 0; if (lc || tc) ctx.rotate(lc + tc); } // lean into a lane change and a corner (2026-11-08)
+  if (b === G.player && G.mode === 'play' && !OPT().calm && !b.fly) { const lc = G.laneT > 0 ? Math.sign(G.lane - G.prevLane) * Math.sin(G.laneT / .35 * Math.PI) * .09 : 0, tc = G.turnT > 0 && G.turnDir ? G.turnDir * Math.sin(G.turnT / .8 * Math.PI) * .12 : 0; if (lc || tc) ctx.rotate(lc + tc); if (G.laneT > 0 && !b.air && !b.slide) ctx.translate(0, -Math.sin(G.laneT / .35 * Math.PI) * 12); } // lean into a lane change and a corner (2026-11-08)。車線を変える時は、小さく横へ跳ぶ（本物のうさぎは向きを変える時に横へぴょんと跳ぶ。2026-11-18）
   if (b === G.player && G.mode === 'play' && !OPT().calm) { // squash on landing, a touch of stretch at the top of a jump
     if (G.landT > 0 && !b.air && !b.slide) { const q = Math.sin(G.landT / .14 * Math.PI) * .2 * (G.landK || 1); ctx.scale(1 + q, 1 - q); }
     else if (b.air && !b.fly && G.takeT > 0) { const q = Math.sin(clamp(G.takeT / .09, 0, 1) * Math.PI) * .11; ctx.scale(1 + q, 1 - q); G.takeN = (G.takeN || 0) + 1; } /* ふみ切り：跳ぶ瞬間だけ、ぐっと沈む（アニメの「予備動作」。跳び始めるのは今までどおり押した瞬間） */
