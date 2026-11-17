@@ -8,7 +8,8 @@
    ・お寺・公園：屋根のある本堂、森 */
 const RM_TOWER = { // 赤い電波塔のまわり（芝公園・浜松町・汐留・虎ノ門・麻布台・六本木・品川）
   land: [0.14, -0.14], // オオタカが着地する所（芝公園）
-  far: [[5.9, 5.7, 'white']], // [M29] 8.2km 先の押上の電波塔（立体）
+  far: [[5.9, 5.7, 'white']],
+  planes: [[3.5, -9.5]], // [M35] 南の空港へおりていく飛行機（海の上） // [M29] 8.2km 先の押上の電波塔（立体）
   bld: [
     // [x, y, 幅, 奥行き, 高さ, 色 0〜4] 本物の高いビル
     [-0.49, 0.21, 70, 70, 325, 1], [-0.42, 0.14, 45, 40, 237, 0], [-0.58, 0.28, 40, 40, 220, 4], // 麻布台（いちばん高いビルと 2 本）
@@ -20,6 +21,7 @@ const RM_TOWER = { // 赤い電波塔のまわり（芝公園・浜松町・汐�
     [0.62, 1.8, 50, 45, 150, 4], [0.85, 1.65, 45, 40, 140, 0], [0.4, 1.95, 40, 40, 130, 1], // 霞が関
     [1.45, -1.35, 35, 35, 140, 4], [1.7, -1.6, 35, 35, 150, 0], [1.25, -1.75, 35, 35, 130, 4], [1.85, -1.95, 35, 35, 145, 1], // 芝浦のマンション
     [-0.3, -3.35, 55, 45, 150, 1], [0.1, -3.45, 50, 45, 145, 0], [-0.5, -3.55, 45, 40, 130, 4], [0.25, -3.2, 45, 40, 120, 2], [-0.1, -3.7, 40, 40, 140, 1], // 品川
+    [1.95, -0.6, 90, 30, 22, 2], [2.05, -0.9, 110, 34, 18, 4], [1.85, -1.3, 80, 30, 24, 2], [1.7, -1.75, 120, 36, 16, 4], [1.55, -2.1, 90, 30, 20, 2], // [M34] 海ぞいの倉庫・ふ頭の長くひくい建物（芝浦・竹芝）
     [3.5, 0.8, 40, 40, 190, 4], [3.7, 0.55, 40, 40, 175, 0], [3.3, 1.05, 40, 40, 160, 4], // 勝どき・月島のタワーマンション（海の向こう）
     [-4.87, 3.44, 70, 50, 243, 2], [-4.6, 3.2, 55, 50, 223, 1], [-4.75, 3.75, 55, 50, 210, 0], [-5.1, 3.1, 50, 50, 200, 3], [-4.4, 3.55, 50, 45, 204, 1], [-5.0, 3.9, 45, 45, 190, 4], [-4.45, 2.95, 45, 45, 180, 0], // [M28] 新宿の高層ビル街（都庁と 6 本）
   ],
@@ -37,8 +39,9 @@ const RM_TOWER = { // 赤い電波塔のまわり（芝公園・浜松町・汐�
     [[-0.95, 0.25], [-0.75, 0.3], [-0.72, 0.1], [-0.92, 0.05]]], // [M22] 麻布の大きなお寺と墓地の森
 };
 const RM_SKY = { // 押上の電波塔のまわり（隅田川・浅草・錦糸町・両国・上野・大手町）
-  land: [-0.85, 0.45], // 隅田公園
-  far: [[-5.9, -5.7, 'red']], // [M29] 8.2km 先の赤い電波塔（立体）
+  land: [-0.94, 0.45], // 隅田公園（隅田川の東の岸。川のはしから約 15m）
+  far: [[-5.9, -5.7, 'red']],
+  planes: [[2.0, -14.0]], // [M29] 8.2km 先の赤い電波塔（立体）
   bld: [
     [0.39, -1.5, 55, 50, 130, 1], [0.2, -1.6, 45, 40, 110, 0], [0.55, -1.35, 40, 40, 100, 4], [0.3, -1.75, 40, 40, 95, 2], // 錦糸町
     [-1.25, -1.85, 70, 60, 40, 5], // 両国の国技館（ひくく大きい・緑の屋根）
@@ -53,6 +56,8 @@ const RM_SKY = { // 押上の電波塔のまわり（隅田川・浅草・錦糸
   rail2: [[-3.8, -2.4], [-1.8, -2.15], [0.39, -1.6], [2.0, -1.4], [3.5, -1.2]], // 総武線（秋葉原 → 両国 → 錦糸町）
   hwy: [[[-0.6, 3.0], [-0.85, 1.6], [-1.0, 0.6], [-1.1, -0.4], [-1.45, -1.3], [-1.6, -2.3]], [[-1.45, -1.3], [-0.5, -1.15], [0.8, -1.0], [2.5, -0.9]]], // 首都高：川ぞいの 6 号向島線・東へ行く 7 号線
   water: [[[-0.5, 0.0], [0.4, -0.08], [1.4, -0.06], [2.5, -0.04]], 26], // 北十間川（塔のすぐ南）
+  water2: [[[-0.95, 3.0], [-1.0, 1.6], [-1.05, 0.6], [-1.15, -0.4], [-1.4, -1.4], [-1.6, -2.6], [-1.8, -4.0]], 170], // [M40] 隅田川（はば約 170m。浅草・両国の西）
+  bridges: [[-1.05, 0.45], [-1.1, 0.1], [-1.15, -0.4], [-1.3, -1.0], [-1.45, -1.55], [-1.6, -2.4]], // [M41] 隅田川の橋（吾妻橋など、色のちがう 6 本）
   temple: [[-1.35, 0.3, 40, 30, 18]], // 浅草寺の本堂
   pagoda: [[-1.3, 0.52, 53]],
   ponds: [[-3.55, -0.45, .12]], // 上野の池
@@ -87,6 +92,9 @@ function realMapLayer(seg, o) {
   for (const [x, y, r] of M.ponds || []) { const pts = []; for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2; pts.push(Wk(x + Math.cos(a) * r * (1 + .15 * Math.sin(a * 3)), y + Math.sin(a) * r * .7)); } polyW(pts, night ? '#0C1630' : 'rgba(84,118,144,.95)'); } /* [M26] 庭園・公園の池 */
   // [M2] 川・運河：本物の位置の水の帯（岸の白いコンクリート）
   if (M.water) { const [line, w] = M.water; ribbon(line, w + 10, night ? '#2A2E3A' : 'rgba(196,192,182,.95)'); ribbon(line, w, night ? '#0C1630' : 'rgba(84,118,144,.98)'); }
+  if (M.water2) { const [line, w] = M.water2; ribbon(line, w + 16, night ? '#2A2E3A' : 'rgba(196,192,182,.95)'); ribbon(line, w, night ? '#0C1630' : 'rgba(78,112,140,.98)'); if (!lowq && !night) ribbon(line, w * .25, 'rgba(190,215,230,.18)'); }
+  for (let k = 0; k < (M.bridges || []).length; k++) { const [x, y] = M.bridges[k], [cx, cz] = Wk(x, y), w2 = M.water2[1] * .75, L2 = 9, a = rot + Math.PI / 2, ux = Math.cos(a), uz = -Math.sin(a), vx = Math.sin(a), vz = Math.cos(a);
+    polyW([[cx - ux * w2 - vx * L2, cz - uz * w2 - vz * L2], [cx + ux * w2 - vx * L2, cz + uz * w2 - vz * L2], [cx + ux * w2 + vx * L2, cz + uz * w2 + vz * L2], [cx - ux * w2 + vx * L2, cz - uz * w2 + vz * L2]], night ? 'rgba(255,214,150,.55)' : ['#C8463C', '#4E8FC4', '#E9E4D8', '#6FA36A', '#D9A030', '#9AA6B2'][k % 6], 6); } /* 橋：川をまたぐ帯（はば 18m、色はそれぞれ） */
   // [M3] 線路の帯（バラストの茶色・レールの光る線）と [M4] 走る電車（立体の長い箱）
   for (const [line, w, kind] of [[M.rail, M.railW || 30, 0], [M.rail2, 24, 1]]) { if (!line) continue;
     ribbon(line, w, night ? '#1E2230' : 'rgba(132,120,104,.96)'); if (!lowq) for (let k = -2; k <= 2; k++) ribbon(line.map(q => q), 1.2, night ? 'rgba(160,170,200,.25)' : 'rgba(210,210,214,.5)');
@@ -109,7 +117,10 @@ function realMapLayer(seg, o) {
   for (const [x, y, kind] of M.far || []) { const [wx, wz] = Wk(x, y); stand.push({ wx, wz, tower: 1, kind, hd: dirA }); }
   if (M.bridge) { const [A, B, th2, dk] = M.bridge, a = Wk(A[0], A[1]), b = Wk(B[0], B[1]), mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; stand.push({ wx: mid[0], wz: mid[1], bridge: { a, b, th: th2, dk } }); }
   for (const pg of M.pagoda || []) { const [wx, wz] = Wk(pg[0], pg[1]); stand.push({ wx, wz, pagoda: pg[2], rot }); }
-  return { stand, near: (wx, wz) => M.bld.some(b => { const [x, z] = Wk(b[0], b[1]); return Math.hypot(wx - x, wz - z) < 120; }) || (M.park || []).some(pk => { const c = pk.reduce((a, q) => [a[0] + q[0] / pk.length, a[1] + q[1] / pk.length], [0, 0]); const [x, z] = Wk(c[0], c[1]); return Math.hypot(wx - x, wz - z) < 260; }) };
+  const water = () => { if (M.water2) { const [line, w] = M.water2; ribbon(line, w + 16, night ? '#2A2E3A' : 'rgba(196,192,182,.95)'); ribbon(line, w, night ? '#0C1630' : 'rgba(78,112,140,.98)'); } }; /* 着地の公園の森の上にも、川を描きなおす（公園の形が川にかぶっていた） */
+  const planes = (M.planes || []).map(([x, y]) => Wk(x, y));
+  if (!lowq) { const r = rnd(4242); for (let k = 0; k < (night ? 0 : 14); k++) { const x = (r() - .5) * 6, y = (r() - .5) * 6, [wx, wz] = Wk(x, y); if (M.bld.some(b => Math.hypot(b[0] - x, b[1] - y) < .15)) continue; stand.push({ wx, wz, crane: 1, rot: rot + r() * 3, h: 60 + r() * 50, t: r() }); } } /* [M38] 工事中のビルの上のクレーン（東京は、いつもどこかで工事をしている） */
+  return { water, planes, stand, near: (wx, wz) => M.bld.some(b => { const [x, z] = Wk(b[0], b[1]); return Math.hypot(wx - x, wz - z) < 120; }) || (M.park || []).some(pk => { const c = pk.reduce((a, q) => [a[0] + q[0] / pk.length, a[1] + q[1] / pk.length], [0, 0]); const [x, z] = Wk(c[0], c[1]); return Math.hypot(wx - x, wz - z) < 260; }) };
 }
 /* [M7] お寺の本堂：低い基壇・白いかべ・大きな黒い瓦の屋根（四方へ下がる形） */
 function rmTemple(o, s, night, mixC) { const { P, yb } = o, { wx, wz, bw, bd, tall, rot } = s, cr = Math.cos(rot), sr = Math.sin(rot), at = (x, z) => [wx + x * cr + z * sr, wz - x * sr + z * cr];
@@ -159,3 +170,16 @@ function rmPagoda(o, s, night, mixC) { const { P } = o, Ht = s.pagoda, cr = Math
     const b0 = body.map(q => P(q[0], q[1], y0)), b1 = body.map(q => P(q[0], q[1], y0 + 4.5)); if ([...b0, ...b1].some(q => !q)) return; ctx.fillStyle = mixC(night ? [120, 40, 30] : [178, 52, 40], 1); ctx.beginPath(); b0.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); b1.slice().reverse().forEach(q => ctx.lineTo(q[0], q[1])); ctx.closePath(); ctx.fill();
     const e = eave.map(q => P(q[0], q[1], y0 + 4.5)), top = P(at(0, 0)[0], at(0, 0)[1], y0 + 7); if (e.some(q => !q) || !top) return; ctx.fillStyle = mixC(night ? [30, 32, 36] : [58, 60, 66], 1); for (let i = 0; i < 4; i++) { const j = (i + 1) % 4; ctx.beginPath(); ctx.moveTo(e[i][0], e[i][1]); ctx.lineTo(e[j][0], e[j][1]); ctx.lineTo(top[0], top[1]); ctx.closePath(); ctx.fill(); } }
   const s0 = P(at(0, 0)[0], at(0, 0)[1], 40), s1 = P(at(0, 0)[0], at(0, 0)[1], Ht); if (s0 && s1) { ctx.strokeStyle = mixC(night ? [160, 140, 90] : [190, 160, 80], 1); ctx.lineWidth = Math.max(1, 1.6 * FOCAL / s0[2]); ctx.beginPath(); ctx.moveTo(s0[0], s0[1]); ctx.lineTo(s1[0], s1[1]); ctx.stroke(); } }
+
+/* [M35] 空港へおりていく飛行機：海の上を、高さ 900m → 300m へゆっくりおりていく（白い胴・つばさ・しっぽ。夜は赤と白の光） */
+function rmPlanes(o, list, night) { const { P, yb } = o; for (let i = 0; i < list.length; i++) for (let n = 0; n < 2; n++) { const t = ((G.t * .012 + n * .5 + i * .3) % 1), [tx, tz] = list[i], sx = tx + 4200 * (1 - t), sz = tz - 2600 * (1 - t), y = 300 + 600 * (1 - t), dx = tx - sx, dz = tz - sz, L = Math.hypot(dx, dz) || 1, fx = dx / L, fz = dz / L;
+  const nose = P(sx + fx * 30, sz + fz * 30, y), tail = P(sx - fx * 30, sz - fz * 30, y + 2), wl = P(sx - fz * 30, sz + fx * 30, y), wr = P(sx + fz * 30, sz - fx * 30, y), fin = P(sx - fx * 28, sz - fz * 28, y + 10);
+  if (!nose || !tail || !wl || !wr || !fin) continue; if (nose[1] > yb + 40) continue; ctx.strokeStyle = night ? 'rgba(60,64,80,.9)' : 'rgba(246,246,246,.95)'; ctx.lineCap = 'round';
+  ctx.lineWidth = Math.max(1, 5 * FOCAL / nose[2]); ctx.beginPath(); ctx.moveTo(nose[0], nose[1]); ctx.lineTo(tail[0], tail[1]); ctx.stroke(); ctx.lineWidth = Math.max(.6, 2.5 * FOCAL / nose[2]); ctx.beginPath(); ctx.moveTo(wl[0], wl[1]); ctx.lineTo(wr[0], wr[1]); ctx.moveTo(tail[0], tail[1]); ctx.lineTo(fin[0], fin[1]); ctx.stroke(); ctx.lineCap = 'butt';
+  if (night || Math.floor(G.t * 1.6 + n) % 2) { ctx.fillStyle = night ? 'rgba(255,90,80,.95)' : 'rgba(255,90,80,.7)'; ctx.beginPath(); ctx.arc(wl[0], wl[1], 1.4, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.beginPath(); ctx.arc(tail[0], tail[1], 1.2, 0, 7); ctx.fill(); } } }
+
+/* [M38] タワークレーン：たての細い柱（黄色と白）、横にのびる腕と、反対の重り、ゆっくり回る */
+function rmCrane(o, c, night, mixC) { const { P } = o, a = c.rot + Math.sin(G.t * .05 + c.t * 9) * .6, base = P(c.wx, c.wz, 0), top = P(c.wx, c.wz, c.h); if (!base || !top) return; const col = mixC([226, 184, 60], 1);
+  ctx.strokeStyle = col; ctx.lineWidth = Math.max(.8, 2.4 * FOCAL / base[2]); ctx.beginPath(); ctx.moveTo(base[0], base[1]); ctx.lineTo(top[0], top[1]); ctx.stroke();
+  const j1 = P(c.wx + Math.sin(a) * 50, c.wz + Math.cos(a) * 50, c.h), j0 = P(c.wx - Math.sin(a) * 14, c.wz - Math.cos(a) * 14, c.h); if (!j1 || !j0) return; ctx.lineWidth = Math.max(.6, 1.6 * FOCAL / base[2]); ctx.beginPath(); ctx.moveTo(j0[0], j0[1]); ctx.lineTo(j1[0], j1[1]); ctx.stroke();
+  ctx.fillStyle = mixC([120, 124, 130], 1); ctx.fillRect(j0[0] - 1.5, j0[1] - 1, 3, 2.2); const hook = P(c.wx + Math.sin(a) * 34, c.wz + Math.cos(a) * 34, c.h - 18), hk0 = P(c.wx + Math.sin(a) * 34, c.wz + Math.cos(a) * 34, c.h); if (hook && hk0) { ctx.strokeStyle = 'rgba(60,60,60,.5)'; ctx.lineWidth = .5; ctx.beginPath(); ctx.moveTo(hk0[0], hk0[1]); ctx.lineTo(hook[0], hook[1]); ctx.stroke(); } }

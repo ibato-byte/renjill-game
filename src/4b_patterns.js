@@ -516,8 +516,9 @@ const DECO_DRAW = {
   liftGlass(e) { bquad(0, 0, 1, 1, tint('#D5DBE0')); for (let i = 0; i < 3; i++) bquad(.05 + i * .32, .08, .3 + i * .32, .92, tint('#E9EDF0')); ctx.strokeStyle = tint('#9AA4AD'); ctx.beginPath(); bline(0, .5, 1, .5); ctx.stroke(); }, /* [H15] 445m へのエレベーター：明るい銀の板 */
   liftDoor(e) { /* [H16] かごの正面：銀の 2 枚の扉と、上がっていく高さの数字（扉の上の表示）。着く直前に「ポーン」 */
     const th = e.lift || {}, sg = e.seg, cur = G.segs[G.ci] === sg ? G.s : 0, h = Math.round(lerp(th.liftFrom || 0, th.liftTo || 0, sstep(clamp((cur - 4) / Math.max(1, (sg ? sg.len : 30) - 10), 0, 1))));
-    bquad(0, 0, 1, 1, tint('#7E868E')); bquad(.18, 0, .82, .8, tint('#C9CED3')); ctx.strokeStyle = tint('#8A949E'); ctx.lineWidth = Math.max(1, ctx.lineWidth * 1.6); ctx.beginPath(); bline(.5, 0, .5, .8); ctx.stroke();
-    ctx.globalAlpha *= .3; bquad(.2, .05, .3, .78, '#FFFFFF'); bquad(.52, .05, .6, .78, '#FFFFFF'); ctx.globalAlpha /= .3;
+    const open = sg && G.segs[G.ci] === sg ? clamp((cur - (sg.len - 5)) / 3.5, 0, 1) : 0; /* [H18] 着く直前に扉がひらく：2 枚が左右へ引きこまれ、すき間から、明るい外（デッキ）の光 */
+    bquad(0, 0, 1, 1, tint('#7E868E')); if (open > 0) { bquad(.18, 0, .82, .8, LT.night > .4 ? '#FFE7B0' : '#F4F7FA'); } bquad(.18, 0, .5 - .32 * open, .8, tint('#C9CED3')); bquad(.5 + .32 * open, 0, .82, .8, tint('#C9CED3')); ctx.strokeStyle = tint('#8A949E'); ctx.lineWidth = Math.max(1, ctx.lineWidth * 1.6); if (!open) { ctx.beginPath(); bline(.5, 0, .5, .8); ctx.stroke(); }
+    ctx.globalAlpha *= .3; bquad(.2, .05, .3 - .2 * open, .78, '#FFFFFF'); bquad(.52 + .3 * open, .05, .6 + .2 * open, .78, '#FFFFFF'); ctx.globalAlpha /= .3;
     bquad(.3, .84, .7, .96, '#14161A'); qtext(h + ' m', .33, .855, .67, .945, '#FFB84A'); },
   elevator(e) { bquad(0, 0, 1, 1, tint('#B9C2CA')); bquad(.12, 0, .88, .86, tint('#D9DEE2')); ctx.strokeStyle = tint('#8A949E'); ctx.lineWidth = 2; ctx.beginPath(); bline(.5, 0, .5, .86); ctx.stroke();
     bquad(.3, .9, .7, .98, '#1C1919'); qtext(String(1 + ((e.v2 || 0) + Math.floor(G.t * .5)) % 9), .42, .9, .58, .98, '#FFB13B'); bquad(.92, .4, .98, .5, tint('#E9EDF0')); },
