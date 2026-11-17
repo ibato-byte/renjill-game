@@ -1350,6 +1350,11 @@
       "name": "立体にした障害物も、結果の画面では絵で見せる",
       "file": "src/7_ui.js",
       "has": "const an = o && (o.art || o.picArt)"
+    },
+    {
+      "name": "押上の電波塔：4 階の入口と四季のエレベーター・展望回廊の坂",
+      "file": "src/1b_places.js",
+      "has": "{ t: 'slobby', d: 5 }"
     }
   ]
 }
