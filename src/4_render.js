@@ -594,7 +594,7 @@ function drawBunnyWorld(b) {
   ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc);
   if (b.tilt) ctx.rotate(b.tilt);
   if (b.land > 0) ctx.scale(1 + b.land * .9, 1 - b.land * .9); /* ポムのあいさつ：小さく跳んだあとの着地で、体がつぶれる */ if (b.lean) ctx.scale(1 + .05 * b.lean, 1 - .05 * b.lean); /* 走りぬける時は、体を低く長く */
-  if (b === G.player && G.mode === 'play' && !OPT().calm && !b.fly) { const lc = G.laneT > 0 ? Math.sign(G.lane - G.prevLane) * Math.sin(G.laneT / .35 * Math.PI) * .09 : 0, tc = G.turnT > 0 && G.turnDir ? G.turnDir * Math.sin(G.turnT / .8 * Math.PI) * .12 : 0; if (lc || tc) ctx.rotate(lc + tc); } // lean into a lane change and a corner (2026-11-08)
+  if (b === G.player && G.mode === 'play' && !OPT().calm && !b.fly) { const lc = G.laneT > 0 ? Math.sign(G.lane - G.prevLane) * Math.sin(G.laneT / .35 * Math.PI) * .09 : 0, tc = G.turnT > 0 && G.turnDir ? G.turnDir * Math.sin(G.turnT / .8 * Math.PI) * .12 : 0; if (lc || tc) ctx.rotate(lc + tc); if (G.laneT > 0 && !b.air && !b.slide) ctx.translate(0, -Math.sin(G.laneT / .35 * Math.PI) * 12); } // lean into a lane change and a corner (2026-11-08)。車線を変える時は、小さく横へ跳ぶ（本物のうさぎは向きを変える時に横へぴょんと跳ぶ。2026-11-18）
   if (b === G.player && G.mode === 'play' && !OPT().calm) { // squash on landing, a touch of stretch at the top of a jump
     if (G.landT > 0 && !b.air && !b.slide) { const q = Math.sin(G.landT / .14 * Math.PI) * .2 * (G.landK || 1); ctx.scale(1 + q, 1 - q); }
     else if (b.air && !b.fly && G.takeT > 0) { const q = Math.sin(clamp(G.takeT / .09, 0, 1) * Math.PI) * .11; ctx.scale(1 + q, 1 - q); G.takeN = (G.takeN || 0) + 1; } /* ふみ切り：跳ぶ瞬間だけ、ぐっと沈む（アニメの「予備動作」。跳び始めるのは今までどおり押した瞬間） */
@@ -668,10 +668,10 @@ function titleFX() {
 }
 // 足もとの土ぼこり（C-33）：地面の種類で色が変わる（砂・雪・草・道）。屋内・板の上は出さない。「動きを減らす」設定でも出さない
 function groundDust(seg) {
-  if (G.mode !== 'play' || OPT().calm || G.air || G.player.slide || G.pow.fly > 0 || LT.indoor) return; G.dustT = (G.dustT || 0) - (G.dtFX || .016); if (G.dustT > 0) return; G.dustT = .09;
+  if (G.mode !== 'play' || OPT().calm || G.air || G.player.slide || G.pow.fly > 0 || LT.indoor) return; const u = ((G.player.ph / (Math.PI * 2)) % 1 + 1) % 1, kick = G.dustU != null && G.dustU < .14 && u >= .14; G.dustU = u; const ld = G.landDust; G.landDust = 0; if (!kick && !ld) return; // 土ぼこりは、後ろ足でけった瞬間（1 歩に 1 回）と、ジャンプの着地に出す（前は 0.09 秒ごとに出していた。2026-11-18）
   const rp = seg.th.rpat, c = G.weather === 'snow' ? 'rgba(244,247,250,.9)' : rp === 'sand' ? 'rgba(226,212,182,.85)' : rp === 'grass' || rp === 'lawn' ? 'rgba(150,180,100,.75)' : rp === 'gravel' ? 'rgba(196,182,156,.8)' : rp === 'planks' || rp === 'boards' ? '' : 'rgba(170,160,150,.55)'; if (!c) return;
   const sp = spriteAt(G.player.wx, G.player.wy, G.player.wz); if (!sp) return; G.dustC = c;
-  for (let i = 0; i < 2; i++) FX.push({ x: sp.sx + rand(-14, 14) * sp.k * .01, y: sp.sy - 4, vx: rand(-50, 50), vy: rand(-70, -30), life: rand(.25, .4), t: 0, c, r: rand(2.5, 5) });
+  const land = !!ld; for (let i = 0; i < (land ? 7 : 3); i++) FX.push({ x: sp.sx + rand(-14, 14) * sp.k * .01, y: sp.sy - 4, vx: land ? rand(-120, 120) : rand(-50, 50), vy: land ? rand(-50, -15) : rand(-75, -30), life: rand(.25, .45), t: 0, c, r: rand(2.5, land ? 6 : 5) }); // 着地は横へ広がる
 }
 function drawFX() {
   const dt = G.dtFX || .016;
