@@ -321,7 +321,7 @@ function drawSegment(sg, isCur) {
   const near = d => d > -8 && d < FAR + 8; if (PROF.on) PT = performance.now();
   // floor
   DRAW.length = 0;
-  for (const p of sg.floor) { const d = depthOf(p.v); if (d >= FAR + 8 || depthMax(p.v) < -.5) continue; DRAW.push([p.dec ? d - (p.dec === 'futonD' ? 4 : .8) : d, p]); }
+  for (const p of sg.floor) { const d = depthOf(p.v); if (d >= FAR + 8 || depthMax(p.v) < -.5) continue; DRAW.push([p.dec ? d - (p.dec === 'futonD' || p.dec === 'zabuTop' ? 4.6 : .8) : p.soft ? d - 4 - (p.sb || 0) : d, p]); } // やわらかい物（soft）とその上の絵は、まわりの畳より後に描く（畳にかくれない）
   const patFar = typeof lowQ !== 'undefined' && lowQ > 1 ? 55 : 999;
   DRAW.sort((a, b) => b[0] - a[0]);
   const isW = p => p.pat === 'sea' || p.pat === 'water';
@@ -330,7 +330,7 @@ function drawSegment(sg, isCur) {
     if (sg === G.segs[G.ci]) { const n = Math.abs(m), pts = []; for (let i = 0; i < n; i++) pts.push(SCR[i * 2], SCR[i * 2 + 1]); (wPolys || (wPolys = [])).push(pts); } }
   if (wPolys) { // the sun's glitter only on this stretch's own water
     ctx.save(); ctx.beginPath(); for (const pts of wPolys) { ctx.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]); ctx.closePath(); } ctx.clip(); waterGlitter(sg); ctx.restore(); }
-  for (const [d, p] of DRAW) { if (isW(p)) continue; const m = project(p.v); if (!m) continue; if (p.dec) { if (m === 4) decalDraw(p, d); else clippedPattern(p, () => decalDraw(p, d)); continue; } pathPoly(Math.abs(m)); ctx.fillStyle = fogged(p.c, 1, d); ctx.fill(); if (!lowQ || d < 14) { floorTexture(p, d, m, sg); project(p.v); } if (m === 4 && d < patFar) floorPattern(p, d); else if (m < 0) clippedPattern(p, () => floorPattern(p, d)); }
+  for (const [d, p] of DRAW) { if (isW(p)) continue; const m = project(p.v); if (!m) continue; if (p.dec) { if (m === 4) decalDraw(p, d); else clippedPattern(p, () => decalDraw(p, d)); continue; } pathPoly(Math.abs(m)); ctx.fillStyle = fogged(p.c, 1, d); ctx.fill(); if (p.soft) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1; ctx.stroke(); continue; } if (!lowQ || d < 14) { floorTexture(p, d, m, sg); project(p.v); } if (m === 4 && d < patFar) floorPattern(p, d); else if (m < 0) clippedPattern(p, () => floorPattern(p, d)); }
   pm('floor'); streetShade(sg);
   objShadows(sg);
   if (isCur) drawShadows(sg); pm('shade');

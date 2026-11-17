@@ -94,16 +94,17 @@ function buildTitleRoom(seg) {
   const FT = .11;
   seg.floor.push({ v: quad(seg, [[1.3, 1.3, FT + .004], [4.1, 1.3, FT + .004], [4.1, 3.3, FT + .004], [1.3, 3.3, FT + .004]]), c: [0, 0, 0], dec: 'futonD', ti: 0, a: 1.3, b: 4.1 });
   seg.floor.push({ v: quad(seg, [[1.18, 1.2, .006], [4.22, 1.2, .006], [4.22, 3.42, .006], [1.18, 3.42, .006]]), c: [0, 0, 0], dec: 'futonShadow', ti: 0, a: 1.18, b: 4.22 }); // [2] 畳に落ちるやわらかいかげ
-  seg.props.push(mkProp(seg, [{ l0: 1.3, l1: 3.3, s0: 1.3, s1: 4.1, y0: 0, y1: FT, c: '#EFE8D8', noTop: 1, face: 'futonSide', faceW: 600, faceH: 40, faceAll: 1 }, // [1] 敷きぶとんの厚み（11cm）
-    { l0: 1.27, l1: 3.33, s0: 1.27, s1: 4.13, y0: FT - .012, y1: FT + .002, c: '#D9CFBC', noTop: 1 }, // [3] 上のふちの丸み（パイピング）
-    { l0: 1.32, l1: 3.28, s0: 1.32, s1: 4.08, y0: 0, y1: .012, c: '#B9AE98', noTop: 1 }], { big: 1 })); // [4] 下のふち（畳に押されてつぶれた所）
+  // [1][3][4] 敷きぶとんの厚み（11cm）：角の立った箱ではなく、綿でふくらんだやわらかい横（softSlab）。上はシーツの白、下へいくほど少しかげる（2026-11-17）
+  softSlab(seg, { s0: 1.3, s1: 4.1, l0: 1.3, l1: 3.3, h: FT + .004, r: .07, rc: .05, col: [239, 232, 216], colAt: (q) => q < .5 ? [244, 238, 224] : [226, 216, 196] });
   // [5] まくらは上の面の絵の中（立てた絵にすると、レンの足の前にういて見えた）。上の面は、マットのふちまでいっぱいに切り出した絵（すみのすき間なし）
   // [6] 掛けぶとんの折り返しの厚みは、上の面の絵の中のかげとふくらみで出す（箱にすると、白い棒に見えた）
   seg.spr.push({ lat: 0, s: 3.4, y: 2.05, w: .9, h: .95, img: artKey('pendant', ''), keep: 1 });
   sp('lowtable', '', 2.4, -2.5, 1.5, .62); // the low round table, his mug and the morning paper on it (one picture, so nothing floats)
   { const ZT = .17, l = -1.58, sa = 3.4; seg.floor.push({ v: quad(seg, [[3.0, -2.0, .004], [3.85, -2.0, .004], [3.85, -1.15, .004], [3.0, -1.15, .004]]), c: [0, 0, 0], dec: 'zabuShadow', ti: 0, a: 3.0, b: 3.85 }); // [77] 畳に落ちるやわらかいかげ
-    seg.floor.push({ v: quad(seg, [[sa - .3, l - .28, ZT + .003], [sa + .3, l - .28, ZT + .003], [sa + .3, l + .28, ZT + .003], [sa - .3, l + .28, ZT + .003]]), c: [0, 0, 0], dec: 'zabuTop', zc: '#B4572E', ti: 1, a: sa - .3, b: sa + .3 });
-    seg.props.push(mkProp(seg, [{ l0: l - .28, l1: l + .28, s0: sa - .3, s1: sa + .3, y0: 0, y1: ZT, c: '#8A5A4A', noTop: 1, face: 'zabuSide|2', faceW: 220, faceH: 52, faceAll: 1 }], { big: 1 })); } // 2026-11-17 ホーム画面の第 2 段：座布団 2 枚を本当の厚みの箱で（前は横にのびた 1 枚の絵）。横の面に 2 枚分の厚みを描く { const k = .6 + .2 * plantLv(); sp('plant', '', 5.6, 3.7, 1.0 * k, 1.75 * k); } /* 牧草で育つ観葉植物（B-12）：これまでに集めた牧草で 5 段階 */ sp('futon', '', 5.3, -3.8, 1.5, 1.1);
+    seg.floor.push({ v: quad(seg, [[sa - .26, l - .24, ZT + .002], [sa + .25, l - .24, ZT + .002], [sa + .25, l + .25, ZT + .002], [sa - .26, l + .25, ZT + .002]]), c: [0, 0, 0], dec: 'zabuTop', zc: '#B4572E', ti: 1, a: sa - .26, b: sa + .25 }); // 上の絵は、上の座布団の平らな所だけに
+    // 座布団 2 枚（下は藍、上は朱）。綿でまるくふくらみ、角は丸い。上の 1 枚は少し小さく、少しずらして重ねる（2026-11-17：前は角の立った箱で、本を重ねたように見えた）
+    softSlab(seg, { s0: sa - .29, s1: sa + .29, l0: l - .27, l1: l + .27, h: ZT / 2, r: .05, rc: .08, col: [94, 110, 158] });
+    softSlab(seg, { s0: sa - .28, s1: sa + .27, l0: l - .26, l1: l + .27, h: ZT / 2 - .002, y0: ZT / 2 + .001, r: .05, rc: .08, col: [180, 87, 46], sb: .3 }); } // 上の 1 枚は、下の 1 枚より後に描く // 2026-11-17 ホーム画面の第 2 段：座布団 2 枚を本当の厚みの箱で（前は横にのびた 1 枚の絵）。横の面に 2 枚分の厚みを描く { const k = .6 + .2 * plantLv(); sp('plant', '', 5.6, 3.7, 1.0 * k, 1.75 * k); } /* 牧草で育つ観葉植物（B-12）：これまでに集めた牧草で 5 段階 */ sp('futon', '', 5.3, -3.8, 1.5, 1.1);
   if (EVENT) { const dk = EV_KITS[EVENT].deco; sp(dk, '', 3.9, -2.15, .46, .43); sp(dk, '', 2.75, -2.55, .36, .34); } // the season's decorations by the table
   /* 2026-11-17 オーナー：「タンスは紙切れみたいになってる」。前は壁に貼った絵だった。本物のきりのたんすは奥行き 45cm。
      奥行きのある箱にして、正面に引き出しの絵（4e_art.js の paintFace 'tansu2'）、上の面と横の面は木。上に小物（写真立て・一輪ざし） */
@@ -820,7 +821,7 @@ function freshRoad() {
     try {
       const s0 = newSeg(null, { t: tid, d: 30 }, { t0: clock, day }); if (!s0 || !(s0.len > 0)) continue;
       G.segs = [s0]; G.ci = 0; G.s = 0; G.lane = 1; G.lat = 0; G.fork = null; G.forkRest = null; G.planDay = day; G.planClock = s0.t1;
-      { let c = 480; G.plan = dayPlan(day).filter(x => { if (x.fork) return false; c += (+x.d || 30); return c > clock; }); } // the rest of today's places (not this morning's again) if (!G.plan.length) G.plan = [{ t: tid, d: 30 }, { t: tid, d: 30 }];
+      { let c = 480; G.plan = dayPlan(day).filter(x => { if (x.fork) return false; c += (+x.d || 30); return c > clock; }); } if (!G.plan.length) G.plan = [{ t: tid, d: 30 }, { t: tid, d: 30 }]; // the rest of today's places (not this morning's again)
       ensureSegs(); if (!G.segs[1] && !s0.fork) continue;
       const p = segPos(s0, 0, 0); G.rx = p[0]; G.rz = p[1]; G.camYaw = s0.dir * Math.PI / 2; G.ey = G.camE = null; G.camSl = 0;
       G.y = 0; G.vy = 0; G.air = false; G.slideT = 0; G.turnQueued = 0; G.turnAuto = 0; G.turnT = 0; G.invT = Math.max(G.invT, 3);
