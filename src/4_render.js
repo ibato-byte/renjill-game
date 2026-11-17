@@ -321,7 +321,8 @@ function drawSegment(sg, isCur) {
   const near = d => d > -8 && d < FAR + 8; if (PROF.on) PT = performance.now();
   // floor
   DRAW.length = 0;
-  for (const p of sg.floor) { const d = depthOf(p.v); if (d >= FAR + 8 || depthMax(p.v) < -.5) continue; DRAW.push([p.dec ? d - (p.dec === 'futonD' || p.dec === 'zabuTop' ? 4.6 : .8) : p.soft ? d - 4 - (p.sb || 0) : d, p]); } // やわらかい物（soft）とその上の絵は、まわりの畳より後に描く（畳にかくれない）
+  const skyRM = curSeg().th.sky && rmFrame(curSeg()); /* [M64] 空を飛んでいる間は、本物の地図の川があるので、着地する公園の手前の立体の水面は描かない（色がちがい、川の上に板がういて見えた） */
+  for (const p of sg.floor) { if (skyRM && p.far && p.pat === 'sea') continue; const d = depthOf(p.v); if (d >= FAR + 8 || depthMax(p.v) < -.5) continue; DRAW.push([p.dec ? d - (p.dec === 'futonD' || p.dec === 'zabuTop' ? 4.6 : .8) : p.soft ? d - 4 - (p.sb || 0) : d, p]); } // やわらかい物（soft）とその上の絵は、まわりの畳より後に描く（畳にかくれない）
   const patFar = typeof lowQ !== 'undefined' && lowQ > 1 ? 55 : 999;
   DRAW.sort((a, b) => b[0] - a[0]);
   const isW = p => p.pat === 'sea' || p.pat === 'water';
@@ -610,6 +611,7 @@ function drawBunnyWorld(b) {
   /* レーンを移る一瞬の残像は、やめた（2026-11-17 オーナー：「キャラクターが左右に移動した時の残像はうざったいのでいらない」）。qa/motion.js が、出ないことを見張る */
   if (b.flash && G.mode === 'play' && Math.floor(G.t * 16) % 2) ctx.globalAlpha = .45; // 点滅は走っている時だけ（ホーム画面・結果の画面では出さない）
   ctx.drawImage(LT.indoor ? img : litSprite(img, bunnyAmb(), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
+  if (b.hawk && b.hawkIn != null && b.hawkIn > 0 && b.hawkIn < 1 && b === G.player) { const sp2 = spriteAt(b.wx, segE(curSeg(), G.s), b.wz); if (sp2) { const q = 1 - b.hawkIn; ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = `rgba(20,24,30,${(.22 * b.hawkIn).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(sp2.sx - q * 90, sp2.sy, sp2.k * (1.3 + q * 1.6), sp2.k * (.32 + q * .3), 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } } /* [F12] テラスの床に、おりてくるオオタカの大きなかげ（近づくほどこく、小さく） */
   if (b.hawk && !(b.hawkRel >= 1)) drawHawk(b); /* [D1] はなしたあとは、上へ飛び去って消える */
   if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; const pl = planePic(); if (pl) ctx.drawImage(pl, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Pom rides his own)
   if (G.weather === 'rain' && !LT.indoor && G.mode !== 'title' && !b.fly) { ctx.globalAlpha = .55; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 5; ctx.lineCap = 'round'; for (const [x, y, a] of [[-60, -190, 0], [55, -150, .6], [-20, -120, 1.2]]) { const k = .5 + .5 * Math.sin(G.t * 3 + a * 3); ctx.globalAlpha = .25 + .3 * k; ctx.beginPath(); ctx.arc(x, y, 14, -2.4, -1.3); ctx.stroke(); } ctx.globalAlpha = 1; G.wetN = (G.wetN || 0) + 1; } // 雨の日はうっすらぬれて光る（C-34）
