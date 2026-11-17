@@ -679,7 +679,8 @@ function update(dt) {
   // animation
   P.ph += dt * (P.who === 'pom' ? 10 + G.speed * .75 : 6 + G.speed * .55); /* [46] ポムは足が短いので、もう少し速く足を回す（2026-11-17） */ /* ポムは足が短いので、同じ速さでも足の回転が速い */
   { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1, seg.th.kind); if (G.weather === 'snow' && seg.th.kind !== 'room' && seg.th.kind !== 'train') { const fw = segPos(seg, G.s, G.lat + ((c & 1) ? .12 : -.12)); (G.prints = G.prints || []).push({ x: fw[0], z: fw[1], y: fw[2], t: G.t, a: G.player.wy }); if (G.prints.length > 40) G.prints.shift(); } } } // footprints in the snow (2026-11-08) // a soft footstep on every stride
-  { const sky = !!seg.th.sky; P.hawk = sky; G.follow.hawk = sky; G.pom.hawk = sky; }
+  { const sky = !!seg.th.sky, rel = sky ? clamp((G.s - (seg.len - 30)) / 16, 0, 1) : 0; P.hawk = sky; G.follow.hawk = sky; G.pom.hawk = sky; P.hawkRel = G.follow.hawkRel = G.pom.hawkRel = rel; /* [D1] 地面の近くで、オオタカが足をはなす（0→1：はなして、空へもどっていく） */
+    if (rel > 0 && !G.hawkLet) { G.hawkLet = 1; tone(880, .12, 'bell', .03); tone(660, .16, 'bell', .025, AU.ctx && AU.ctx.currentTime + .1); } if (!sky) G.hawkLet = 0; }
   P.air = G.air && !flying; P.slide = sliding; P.fly = flying; P.flash = G.invT > 0 && G.invT < 2.4 && !flying; P.glow = G.shield ? '#5FB05A' : G.pow.dash > 0 ? '#F08A2E' : null;
   if (P.look > 0) P.look = Math.max(0, P.look - dt);
   if (G.follow.look > 0) G.follow.look = Math.max(0, G.follow.look - dt);
@@ -704,7 +705,7 @@ function placeCamera(dt) {
   F.fly = P.fly; if (P.fly) { F.wy = G.ey + G.y - .3; }
   F.show = !F.off && G.s - F.back > (seg.first ? -14 : HW + .3);
   { const M = G.pom; if (M.on) { const mp = segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * (M.who === 'pom' ? .012 : .05)); if (M.who === 'pom' && !M.air && !P.fly) M.lat += Math.sin(M.ph * .5) * .0035; /* ちょこまか：走りながら、ごく小さく左右にゆれる */ if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
-  if (P.hawk) { const sw = k => .3 + Math.sin(G.t * 2.1 + k) * .07; P.wy = G.ey + G.y + sw(0); F.wy = fp[2] + sw(1.3); if (G.pom.on) G.pom.wy += sw(2.1) - (G.pom.air ? 0 : Math.abs(Math.sin(G.pom.ph)) * .012); } // オオタカの羽ばたきで、ゆっくり上下
+  if (P.hawk && !(P.hawkRel > .2)) { const sw = k => .3 + Math.sin(G.t * 2.1 + k) * .07 * (1 + (P.hawkRel || 0) * 3); /* [D2] 着地の前は羽ばたきが強くなり、少し上下が大きい */ P.wy = G.ey + G.y + sw(0); F.wy = fp[2] + sw(1.3); if (G.pom.on) G.pom.wy += sw(2.1) - (G.pom.air ? 0 : Math.abs(Math.sin(G.pom.ph)) * .012); } // オオタカの羽ばたきで、ゆっくり上下
   const ty = seg.dir * Math.PI / 2 + skySpin(seg); let dy = ty - G.camYaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
   G.camYaw += dy * Math.min(1, dt * 9);
   { const want = H / W > 1.6 && !seg.th.toriiTunnel ? 1 : 0; G.camTall = G.camTall == null ? want : lerp(G.camTall, want, Math.min(1, dt * 2.5)); } // under the rows of small gates the higher camera looked straight into their beams (2026-11-14「鳥居のゾーンで前が見えない」): there it comes back down, smoothly

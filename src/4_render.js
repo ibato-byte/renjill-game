@@ -544,7 +544,8 @@ function bunnyAmb() { const a = LT.amb.map(x => x + (1 - x) * .45), m = (a[0] + 
    尾は長く、こい横帯が 4 本・先が白い。頭は黒っぽく、目の上に白いまゆ（白い眉斑）。足は黄色。
    ふだんは翼を広げてすべるように飛び（滑空）、ときどき重そうに 2〜3 回はばたく。かぎづめで背中の上（首のうしろ）をそっとつかむ */
 function drawHawk(b) {
-  const k = b === G.player ? 0 : b === G.follow ? 1.7 : 3.1, t = G.t + k, cyc = (t * .55) % 1, flapping = cyc > .62, fl = flapping ? Math.sin((cyc - .62) / .38 * Math.PI * 3) : Math.sin(t * 1.3) * .08;
+  const k = b === G.player ? 0 : b === G.follow ? 1.7 : 3.1, t = G.t + k, rel = b.hawkRel || 0, cyc = (t * (.55 + rel * 1.6)) % 1, flapping = rel > 0 || cyc > .62, fl = rel > 0 ? Math.sin(t * 14) : flapping ? Math.sin((cyc - .62) / .38 * Math.PI * 3) : Math.sin(t * 1.3) * .08; /* [D4] はなす時は速く羽ばたく */
+  if (rel > .2) { const q = (rel - .2) / .8; ctx.translate(Math.sin(k * 2) * q * 220, -q * q * 900); ctx.globalAlpha *= 1 - q * .6; ctx.scale(1 - q * .45, 1 - q * .45); } /* [D5] 足をはなしたオオタカは、ななめ上へ飛び去って小さくなる */
   const T = c => tint(c), up = -fl * 70, x0 = Math.sin(t * .9) * 6;
   ctx.save(); ctx.translate(x0, -335 + fl * 8);
   // 足：黄色いすね・白い羽毛の「ズボン」・黒いかぎづめ。首のうしろ（両肩）をつかむ
@@ -577,7 +578,7 @@ function drawBunnyWorld(b) {
   let pose;
   // しゃがむ・跳ぶが、ふり返り（look）より先（ふり返っている間に下スワイプしても、しゃがまなかった：2026-11-09 の報告）
   if (b.view === 'front') pose = 'front_' + (b.mood || 'open');
-  else if (b.hawk) pose = 'air'; /* オオタカにつかまれて、足をのばしてぶら下がる */
+  else if (b.hawk && !(b.hawkRel > .2)) pose = b.hawkRel > .02 ? 'fall' : 'air'; /* オオタカにつかまれて、足をのばしてぶら下がる。[D3] 地面が近づくと、足を下へのばして着地の用意 */
   else if (b.fly) pose = 'run0'; /* 紙飛行機に乗っている間は、足を止めて座る（2026-11-17 オーナー：「紙飛行機に乗ってる時も走り続けてる動作をしてる」）。下半分は紙飛行機にかくれる */
   else if (b.slide) pose = 'slide'; else if (b.air) pose = !b.fly && (b === G.player ? G.vy : b.vy) < -2.5 ? 'fall' : 'air'; /* くだりは「落ちてくる絵」 */
   else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
@@ -604,7 +605,7 @@ function drawBunnyWorld(b) {
   /* レーンを移る一瞬の残像は、やめた（2026-11-17 オーナー：「キャラクターが左右に移動した時の残像はうざったいのでいらない」）。qa/motion.js が、出ないことを見張る */
   if (b.flash && G.mode === 'play' && Math.floor(G.t * 16) % 2) ctx.globalAlpha = .45; // 点滅は走っている時だけ（ホーム画面・結果の画面では出さない）
   ctx.drawImage(LT.indoor ? img : litSprite(img, bunnyAmb(), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
-  if (b.hawk) drawHawk(b);
+  if (b.hawk && !(b.hawkRel >= 1)) drawHawk(b); /* [D1] はなしたあとは、上へ飛び去って消える */
   if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; const pl = planePic(); if (pl) ctx.drawImage(pl, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Pom rides his own)
   if (G.weather === 'rain' && !LT.indoor && G.mode !== 'title' && !b.fly) { ctx.globalAlpha = .55; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 5; ctx.lineCap = 'round'; for (const [x, y, a] of [[-60, -190, 0], [55, -150, .6], [-20, -120, 1.2]]) { const k = .5 + .5 * Math.sin(G.t * 3 + a * 3); ctx.globalAlpha = .25 + .3 * k; ctx.beginPath(); ctx.arc(x, y, 14, -2.4, -1.3); ctx.stroke(); } ctx.globalAlpha = 1; G.wetN = (G.wetN || 0) + 1; } // 雨の日はうっすらぬれて光る（C-34）
   if (b.glow) { ctx.globalAlpha = .9; ctx.strokeStyle = b.glow; ctx.lineWidth = 7; ctx.beginPath(); ctx.ellipse(0, -110, 130, 120, 0, 0, Math.PI * 2); ctx.stroke(); }

@@ -543,7 +543,8 @@ function drawSky(seg) {
   ctx.globalAlpha = 1 - fade; lmPass(seg, false); ctx.globalAlpha = 1;
   skyline(seg, yb, 1);
   ctx.fillStyle = N > .4 ? 'rgb(36,44,74)' : `rgb(${(LT.bot[0] * .82) | 0},${(LT.bot[1] * .85) | 0},${(LT.bot[2] * .88) | 0})`; ctx.fillRect(0, yb, W, H - yb);
-  if (climb && alt >= 20) { try { aerialCity(seg, yb, alt, horizon); } catch (e) { reportErr(e); } }
+  if (climb && (alt >= 20 || th.sky)) { try { aerialCity(seg, yb, alt, horizon); } catch (e) { reportErr(e); } }
+  if (th.sky && G.mode === 'play' && !OPT().calm) { ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1.2; for (let k = 0; k < 9; k++) { const ph = (G.t * (1.4 + k * .13) + k * .37) % 1, x = ((k * 97) % W), y = horizon + 40 + ((k * 151) % Math.max(1, H - horizon - 80)) - ph * 60; ctx.globalAlpha = Math.sin(ph * Math.PI) * .5; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (x - W / 2) * .08, y - 26); ctx.stroke(); } ctx.restore(); } /* [D14] 風のすじ（下へおりていく速さ） */ /* [D6] 空の上は、地面の近くまで町を描く（前は 20m より下で、町が消えて一色の地面になった） */
   else if (climb && N > .4) { ctx.fillStyle = 'rgba(255,214,140,.8)'; const r = rnd(5); for (let i = 0; i < 160; i++) { const x = ((r() * W * 3 - CAM.yaw * 300) % W + W) % W, y = yb + 2 + r() * (H - yb); ctx.fillRect(x, y, 1.6, 1.6); } }
 }
 // summer nights: fireworks far away over the city (2026-11-08)
