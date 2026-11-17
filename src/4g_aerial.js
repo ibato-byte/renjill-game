@@ -230,11 +230,12 @@ function aerialCity(seg, yb, alt, hz) {
       if (Math.hypot(wx - ox, wz - oz) < 70) continue; // 塔の真下には立てない
       if (park && Math.hypot(wx - park.x, wz - park.z) < 330) continue; if (RM && RM.near(wx, wz)) continue; /* [M10] 本物のビル・公園の所に、作り物のビルを重ねない */ // [D13] 公園の中・おりる道の上には、高いビルを立てない
       list.push([d, wx, wz, h, i, j]); }
-    if (RM) for (const o of RM.stand) { const dx = o.wx - cx0, dz = o.wz - cz0, d = dx * cs + dz * cc; if (!o.tower && (d < 20 || d > 9000)) continue; if (!o.tower && Math.abs(dx * cc - dz * cs) > d * (W / 2 / F + .3) + 200) continue; list.push([d, o.wx, o.wz, .9, 0, 0, o]); } /* [M11] 本物の高いビル（6km 先まで） */
+    if (RM) for (const o of RM.stand) { const dx = o.wx - cx0, dz = o.wz - cz0, d = dx * cs + dz * cc; if (!o.tower && (d < 20 || d > (o.tall >= 180 || o.bridge ? 13000 : 9000))) continue; if (!o.tower && Math.abs(dx * cc - dz * cs) > d * (W / 2 / F + .3) + 200) continue; list.push([d, o.wx, o.wz, .9, 0, 0, o]); } /* [M11] 本物の高いビル（6km 先まで） */
     list.sort((a, b) => b[0] - a[0]);
     for (const [d, wx, wz, h, i, j, ro] of list) { const fk = clamp(1 - Math.exp(-d / (4200 + camH * 8)), 0, .85);
       if (ro && ro.tower) { rmTowerBody({ P, cx0, cz0, cs, cc, yb }, ro, night, fog, dd => clamp(1 - Math.exp(-dd / (4200 + camH * 8)), 0, .85)); continue; }
       if (ro && ro.crane) { if (d < 3500) rmCrane({ P }, ro, night, (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * LT.amb[q], fog[q], fk)) | 0)})`); continue; }
+      if (ro && ro.brick) { rmBrick({ P }, ro, night, (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * (night ? 1 : LT.amb[q]), fog[q], fk)) | 0)})`); continue; }
       if (ro && (ro.bridge || ro.pagoda)) { const mc = (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * (night ? 1 : LT.amb[q]), fog[q], fk)) | 0)})`; if (ro.bridge) rmBridge({ P, yb }, ro.bridge, night, mc); else rmPagoda({ P, yb }, ro, night, mc); continue; }
       if (ro && ro.temple) { rmTemple({ P, yb }, ro, night, (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * (night ? 1 : LT.amb[q]), fog[q], fk)) | 0)})`); continue; }
       const hh = ro ? (ro.col + .5) / 5 : acHash(i, j, 9), tall = ro ? ro.tall : Math.min(RM ? 55 : camH * 1.15 + 40, 34 + (h - .8) / .2 * (hh > .8 ? 190 : 90)), bw = ro ? ro.bw : 16 + hh * 22, bd = ro ? ro.bd : 14 + acHash(i, j, 10) * 20; /* [M12] 本物の地図がある所の作り物のビルは、高さ 55m まで（東京の、ふつうの町の高さ） */

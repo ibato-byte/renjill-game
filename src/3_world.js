@@ -3,7 +3,7 @@
 function segPos(seg, s, lat) { return [seg.sx + seg.f[0] * s + seg.r[0] * lat, seg.sz + seg.f[1] * s + seg.r[1] * lat, segE(seg, s)]; }
 /* ---------- terrain: streets rise and fall (hills, slopes, bridges); flat near both corners so stretches meet cleanly ---------- */
 const sstep = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
-function segE(seg, s) { const h = seg.hp, e0 = seg.e0 || 0; if (!h) return e0; if (h.shape === 'flights') { const u0 = s - h.a; if (u0 <= 0) return e0; const k = Math.floor(u0 / h.P); if (k >= h.n) return e0 + h.R * h.n; const u = u0 - k * h.P; return e0 + h.R * (k + sstep(clamp((u - h.F) / (h.P - h.F), 0, 1))); } const t = (s - h.a) / (h.b - h.a); if (t <= 0) return e0; if (t >= 1) return e0 + h.d;
+function segE(seg, s) { const h = seg.hp, e0 = seg.e0 || 0; if (!h) return e0; if (h.shape === 'flights') { const u0 = s - h.a; if (u0 <= 0) return e0; const k = Math.floor(u0 / h.P); if (h.back && k >= h.n) { if (k >= 2 * h.n) return e0; const u = u0 - k * h.P; return e0 + h.R * h.n - h.R * (k - h.n + sstep(clamp((u - h.F) / (h.P - h.F), 0, 1))); } /* [H26] おりて、また上がる（押上のデッキ：350 → 340 → 350） */ if (k >= h.n) return e0 + h.R * h.n; const u = u0 - k * h.P; return e0 + h.R * (k + sstep(clamp((u - h.F) / (h.P - h.F), 0, 1))); } const t = (s - h.a) / (h.b - h.a); if (t <= 0) return e0; if (t >= 1) return e0 + h.d;
   const sn = Math.sin(Math.PI * t), s2 = Math.sin(2 * Math.PI * t); return e0 + h.d * sstep(t) + h.hump * sn * sn + (h.w2 || 0) * s2 * s2 + (h.lift ? h.lift * sstep(clamp((s - h.a) / 9, 0, 1)) * (1 - sstep(t)) : 0); }
 /* road shapes: a hill, a slope up or down, rolling double hills, a long climb with a crest, or a dip under a railway bridge */
 function terrainFor(seg, prev) {
@@ -14,7 +14,7 @@ function terrainFor(seg, prev) {
   /* 2026-11-17 オーナー：「タワーを登る時に高低差がないのがおかしい。ちゃんと階段を何回か登るルートに」。前は、高さの数字（展望の景色）だけが上がり、足もとは平らなままだった。
      本物の外階段は、ひと続きの階段（約 3m 上がる）→ 平らな踊り場 → また階段…のくり返し。flights＝{ 最初の踊り場の位置, 間かく, 踊り場の長さ, 1 回に上がる高さ, 上がる回数 } */
   if (th.ramp) { seg.hp = { a: HW + 4, b: L - 14, d: th.ramp, hump: 0, w2: 0, shape: 'slope' }; return; } /* 展望回廊：ガラスの筒の中を、ゆるい坂で 445m → 450m へ */
-  if (th.flights) { const f = th.flights, A = (seg.first ? 0 : HW) + f.a, n = Math.max(1, Math.min(f.n || 99, Math.floor((L - 12 - A) / f.P))); seg.hp = { shape: 'flights', a: A, P: f.P, F: f.F, R: f.R, n, b: A + n * f.P }; return; }
+  if (th.flights) { const f = th.flights, A = (seg.first ? 0 : HW) + f.a, n = Math.max(1, Math.min(f.n || 99, Math.floor((L - 12 - A) / f.P / (f.back ? 2 : 1)))); seg.hp = { shape: 'flights', a: A, P: f.P, F: f.F, R: f.R, n, back: f.back ? 1 : 0, b: A + n * f.P * (f.back ? 2 : 1) }; return; }
   if (G.testHump) { seg.hp = { a, b, d: 0, hump: G.testHump, w2: G.testW2 || 0 }; if (G.testShape) seg.hp = Object.assign({ a, b, d: 0, hump: 0, w2: 0 }, G.testShape); return; }
   if (th.bridge) { seg.hp = { a, b, d: 0, hump: 7 }; return; }
   if (th.kind !== 'street' || th.moat || th.flat) return;
@@ -72,7 +72,7 @@ function newSeg(prev, step, opts) {
   let sx = 0, sz = 0; if (!first) { const p = segPos(prev, prev.len, 0); sx = p[0]; sz = p[1]; }
   const len = first ? (opts.len || 92) : Math.round(rand(th.len[0], th.len[1]));
   const seg = { id: ++SEGN, turnIn: first ? 0 : turnIn, prevFork: !!(prev && prev.fork), prevIn: !!(prev && prev.th && ['room', 'train', 'glass'].includes(prev.th.kind)), tid: step.t, th, step, t0: opts.t0 ?? 480, t1: (opts.t0 ?? 480) + step.d, dir, sx, sz, f: dirVec(dir), r: dirVec(dir + 1), first, day: opts.day || 1,
-    len, straight: !!opts.straight && !opts.fork, toSky: !!opts.toSky, turn: opts.fork || opts.straight ? 0 : (turnIn ? -Math.sign(turnIn) : (Math.random() < .5 ? -1 : 1)), fork: opts.fork || null, prevForkY: !!(prev && prev.forkY), halfIn: Math.abs(turnIn) === .5 ? Math.sign(turnIn) : 0,
+    len, straight: !!opts.straight && !opts.fork, toSky: !!opts.toSky, parentTh: prev && prev.forkY && th.kind === 'street' && prev.th.kind === 'street' ? prev.th : null, turn: opts.fork || opts.straight ? 0 : (turnIn ? -Math.sign(turnIn) : (Math.random() < .5 ? -1 : 1)), fork: opts.fork || null, prevForkY: !!(prev && prev.forkY), halfIn: Math.abs(turnIn) === .5 ? Math.sign(turnIn) : 0,
     floor: [], walls: [], decos: [], obs: [], items: [], props: [], lines: [], spr: [] };
   if (seg.fork && yOK(th, seg.fork, opts.day) && (window.__forceY || Math.random() < .97)) seg.forkY = 1; /* 2026-11-17 夜 オーナー「Y 字路が出る確率をもう少しあげて」：.8 → .97 */ // 2026-11-17：.45 → .8（外の分かれ道は、ほとんど Y 字路に）
   seg.wallH = th.wallH || 3; { const k0 = th.kind; if (k0 === 'room' || k0 === 'glass') seg.wallH = Math.max(seg.wallH, CEIL_ROOM); else if (k0 === 'train') seg.wallH = Math.max(seg.wallH, CEIL_TRAIN); } /* 2026-11-15 オーナー：天井そのものを高く（空港のロビーのように）。低い天井だと、縦長のスマホで天井のすぐ下をはうように見え、ジャンプでつきぬけた */
@@ -82,6 +82,12 @@ function newSeg(prev, step, opts) {
   if (th.sky) { /* オオタカに運ばれる空：本当に高い所（climb[0] m）から、地面（0 m）までおりる。先の場所（着地する公園）は本当に真下の地面にある */
     seg.e0 = prev ? segE(prev, prev.len) : th.climb[0]; seg.hp = { a: 0, b: seg.len - 22, d: -th.climb[0], /* [H4] 空の道は、飛び立った展望台の本当の高さから始まる（前は、展望台が低いのに 150m から始まり、カメラが 120m 以上とんで、レンとジルが画面から消えた） */ hump: 0, w2: 0, shape: 'sky', lift: 3.4 }; } /* [F5] 飛び立ちは、テラスの手すりの上へ少し持ち上がってから、おりていく */
   buildGeometry(seg);
+  if ((seg.tid === 'tlobby' || seg.tid === 'slobby') && seg.hp && seg.hp.shape === 'flights') { const h = seg.hp, sd = 1, l2 = sd * (HW - .06), nS = [-sd * seg.r[0], -sd * seg.r[1]]; for (let k = 0; k <= h.n; k++) { const s1 = h.a + k * h.P + .6; if (s1 > seg.len - 3) break; const e = segE(seg, s1) - (seg.e0 || 0), fl = k === h.n && seg.tid === 'tlobby' ? 'RF' : (k + 1) + 'F', a2 = segPos(seg, s1 + .9, l2), b2 = segPos(seg, s1, l2), E = segE(seg, s1); seg.decos.push({ v: [a2[0], E + 1.5, a2[1], b2[0], E + 1.5, b2[1], b2[0], E + 2.2, b2[1], a2[0], E + 2.2, a2[1]], n: nS, pat: 'stepsign', seg, w: .9, txt: fl, txt2: Math.round(segE(seg, s1) - (seg.base != null ? seg.base : 0)) + 'm' }); } } /* [H24] 入口の建物の階段：踊り場ごとに階の札（1F・2F…屋上）と、その高さ */
+  if (th.truss) { const red = th.truss === 'red', c1 = red ? '#D9452B' : '#E6EAEE', c2 = red ? '#F2F0EC' : '#C9D1D9', L = seg.len, Hh = red ? (seg.wallH || 5) + 3 : (seg.wallH || 5) - .4; /* [T8][S4] 展望台のガラスの外に、塔の鉄骨（赤い電波塔は赤と白、押上は白いトラス）。窓の外が、塔の中にいるとわかる */
+    for (const sd of [-1, 1]) { const lt = sd * (HW + (red ? 2.2 : 1.6)); for (let a = 2; a < L - 2; a += red ? 9 : 14) { const b = Math.min(a + (red ? 9 : 14), L - 2); seg.lines.push({ a: [a, lt, -6], b: [b, lt, Hh], c: c1, w: red ? .16 : .08 }); seg.lines.push({ a: [a, lt, Hh], b: [b, lt, -6], c: c1, w: red ? .16 : .08 }); seg.lines.push({ a: [a, lt, -6], b: [a, lt, Hh], c: c2, w: red ? .22 : .16 }); }
+      seg.lines.push({ a: [2, lt, -.3], b: [L - 2, lt, -.3], c: c2, w: .14 }); seg.lines.push({ a: [2, lt, Hh - 1], b: [L - 2, lt, Hh - 1], c: c2, w: .14 }); } }
+  if (th.rpat === 'lookdown' && seg.hp && seg.hp.shape === 'flights') { const lowE = (seg.e0 || 0) + Math.min(0, seg.hp.R * seg.hp.n); for (const f of seg.floor) if (f.pat === 'lookdown') { f.lowOnly = 1; f.low = Math.abs(segE(seg, (f.a + f.b) / 2) - lowE) < .5 ? 1 : 0; } }
+  if (th.ramp && th.climb && seg.base != null) { let last = th.climb[0]; const sd = 1, l2 = sd * (HW - .06), nS = [-sd * seg.r[0], -sd * seg.r[1]]; for (let s = 6; s < seg.len - 6; s += .5) { const h = segE(seg, s) - seg.base, n = Math.floor(h + .001); if (n > last) { last = n; const top = n >= Math.floor(th.climb[0] + th.ramp), txt = (top ? (th.climb[0] + th.ramp).toFixed(1) : n) + 'm', e = segE(seg, s); seg.decos.push({ v: [...segPos(seg, s + .9, l2).slice(0, 2)].length ? (() => { const a = segPos(seg, s + .9, l2), b = segPos(seg, s, l2); return [a[0], e + 1.2, a[1], b[0], e + 1.2, b[1], b[0], e + 1.75, b[1], a[0], e + 1.75, a[1]]; })() : null, n: nS, pat: 'stepsign', seg, w: .9, txt, txt2: '' }); } } } /* [H21] 展望回廊：1m 上がるごとに、ガラスのわきに今の高さの札（446m・447m…451.2m） */
   buildProps(seg); buildWalkers(seg);
   // open scenery that would spill into the next or previous stretch is dropped (see terrOK)
   seg.spr = seg.spr.filter(sp => sp.keep || terrOK(seg, sp.s, sp.lat));
@@ -152,7 +158,7 @@ function buildGeometry(seg) {
     for (const sd of [-1, 1]) { const l0 = sd < 0 ? -HW : ROAD, l1 = sd < 0 ? -ROAD : HW;
       seg.floor.push({ v: quad(seg, [[a, l0, 0], [b, l0, 0], [b, l1, 0], [a, l1, 0]]), c: floorTone(th, 'side', i + (sd > 0)), pat: th.spat, ti: i, a, b, sd }); }
   }
-  if (seg.hp && seg.hp.shape === 'flights') { const h = seg.hp; for (const f of seg.floor) { if (f.a == null) continue; const u0 = f.a + 1 - h.a, k = Math.floor(u0 / h.P), u = u0 - k * h.P; if (u0 > 0 && k < h.n && u > h.F) { f.pat = 'stairs'; f.land = 0; } } } // 上がる所の床は階段の模様（段の線）
+  if (seg.hp && seg.hp.shape === 'flights') { const h = seg.hp; for (const f of seg.floor) { if (f.a == null) continue; const u0 = f.a + 1 - h.a, k = Math.floor(u0 / h.P), u = u0 - k * h.P; if (u0 > 0 && k < h.n * (h.back ? 2 : 1) && u > h.F) { f.pat = 'stairs'; f.land = 0; } } } // 上がる所の床は階段の模様（段の線）
   addDecals(seg, fS, fE);
   if (seg.forkY) { /* Y 字路の分かれ目の路面：手前の道の終わりから、2 本の道の始まりまでを 1 枚の五角形で（すき間・重なりが出ない） */
     const k = HW * Math.SQRT2, pg = [[L - YT, -HW], [L, -k], [L + k, 0], [L, k], [L - YT, HW]];
@@ -186,7 +192,9 @@ function addDecals(seg, fS, fE) {
   if (road) {
     for (let s = fS + 12 + rand(0, 10); s < fE - 14; s += rand(18, 32)) { const l = pick([-1.5, 0, 1.5]) + rand(-.3, .3); out(s, s + .7, l - .35, l + .35, 'manhole'); }
     for (let s = fS + 6 + rand(0, 6); s < fE - 16; s += rand(10, 18)) { const l = pick([-1.5, 0, 1.5]); out(s, s + .5, l - .5, l + .5, 'patch', { pc: pick(['#5A5A5E', '#6E6E72', '#646468']) }); }
-    if (!seg.first && th.kind === 'street' && L > 60) { const z = L - HW - 6.5; out(z, z + 3.6, -ROAD, ROAD, 'zebra'); if (Math.random() < .6) out(z - 4.2, z - 2.4, -ROAD + .3, -.15, 'stop'); if (seg.forkY) { out(z + 3.9, z + 7.4, -.7, .7, 'yGore'); out(z - 26, z - .3, -.08, .08, 'yLine'); out(z - 12, z - 9.5, -ROAD + .35, -.35, 'yArrowL'); out(z - 12, z - 9.5, .35, ROAD - .35, 'yArrowR'); out(z - 21, z - 18.5, -ROAD + .35, -.35, 'yArrowL'); out(z - 21, z - 18.5, .35, ROAD - .35, 'yArrowR'); } else out(z - 12, z - 9.5, .35, ROAD - .35, 'arrow'); } /* [Y1] Y 字路の手前：左の車線に「ななめ左」、右の車線に「ななめ右」の矢印（本物の道の矢印。2 回） */
+    if (!seg.first && th.kind === 'street' && L > 60) { const z = L - HW - 6.5; out(z, z + 3.6, -ROAD, ROAD, 'zebra'); if (Math.random() < .6) out(z - 4.2, z - 2.4, -ROAD + .3, -.15, 'stop'); if (seg.forkY) { for (const sd of [-1, 1]) { const L0 = sd * (ROAD + .15), L1 = sd * (ROAD + .95); seg.floor.push({ v: quad(seg, [[z + .2, Math.min(L0, L1), .03], [z + 3.4, Math.min(L0, L1), .03], [z + 3.4, Math.max(L0, L1), .03], [z + .2, Math.max(L0, L1), .03]]), c: [0, 0, 0], dec: 'tactile', ti: 0, a: z + .2, b: z + 3.4 }); /* [Y8] 横断歩道の両はしの歩道：黄色い点字ブロック（とまれの点） */
+        seg.props.push(mkProp(seg, [{ l0: sd * (ROAD + 1.1) - .06, l1: sd * (ROAD + 1.1) + .06, s0: z - .5, s1: z - .38, y0: 0, y1: 2.9, c: '#8A9098' }, { l0: sd * (ROAD + 1.1) - .2, l1: sd * (ROAD + 1.1) + .2, s0: z - .62, s1: z - .5, y0: 2.1, y1: 2.85, c: '#2B2F36' }, { l0: sd * (ROAD + 1.1) - .14, l1: sd * (ROAD + 1.1) + .14, s0: z - .64, s1: z - .62, y0: 2.5, y1: 2.78, c: '#C8463C' }, { l0: sd * (ROAD + 1.1) - .14, l1: sd * (ROAD + 1.1) + .14, s0: z - .64, s1: z - .62, y0: 2.17, y1: 2.45, c: '#3E5A48' }])); } /* [Y7] 横断歩道の手前の、歩行者の信号（赤・青の 2 つの箱） */
+      out(z + 3.9, z + 7.4, -.7, .7, 'yGore'); out(z - 26, z - .3, -.08, .08, 'yLine'); out(z - 12, z - 9.5, -ROAD + .35, -.35, 'yArrowL'); out(z - 12, z - 9.5, .35, ROAD - .35, 'yArrowR'); out(z - 21, z - 18.5, -ROAD + .35, -.35, 'yArrowL'); out(z - 21, z - 18.5, .35, ROAD - .35, 'yArrowR'); } else out(z - 12, z - 9.5, .35, ROAD - .35, 'arrow'); } /* [Y1] Y 字路の手前：左の車線に「ななめ左」、右の車線に「ななめ右」の矢印（本物の道の矢印。2 回） */
   }
   if (stone || road) for (let s = fS + 8; s < fE - 8; s += rand(14, 22)) for (const sd of [-1, 1]) if (Math.random() < .55) out(s, s + .5, sd * (ROAD - .38), sd * (ROAD - .05), 'grate');
   if (stone) for (let s = fS + 4; s < fE - 6; s += rand(4, 9)) { const l = rand(-ROAD + .4, ROAD - 1.2); out(s, s + rand(.6, 1.2), l, l + rand(.6, 1.1), 'patch', { pc: pick(['#8A8478', '#A09A8E', '#77716A']) }); }
@@ -396,7 +404,9 @@ function buildStreet(seg, s0, lEnd, rEnd) {
     seg.props.push(mkProp(seg, [{ l0: -HW - 6, l1: HW + 6, s0: a0 + .05, s1: a1, y0: 8.6, y1: 10.2, c: '#9AA0A6' }], { big: 1 }));
     for (const sd of [-1, 1]) seg.props.push(mkProp(seg, [{ l0: sd * (HW + .4) - .5, l1: sd * (HW + .4) + .5, s0: a1 - 5, s1: a1 - 3.8, y0: 0, y1: 8.6, c: '#8F949A' }], { big: 1 })); }
   if (fac.style === 'park') { buildPark(seg, s0, lEnd, rEnd); return; }
-  for (const sd of [-1, 1]) buildFacades(seg, sd, sideStart(seg, sd) ?? s0, sd < 0 ? lEnd : rEnd);
+  for (const sd of [-1, 1]) { const a0 = sideStart(seg, sd) ?? s0, a1 = sd < 0 ? lEnd : rEnd, pf = seg.parentTh && seg.parentTh.fac, blend = pf && !['park', 'viaduct'].includes(pf.style) && a1 - a0 > 50;
+    if (blend) { const keep = seg.th, cut = a0 + 22; seg.th = Object.assign({}, keep, { fac: pf }); try { buildFacades(seg, sd, a0, cut); } finally { seg.th = keep; } buildFacades(seg, sd, cut, a1); } /* [Y9] Y 字路で分かれた先の道は、はじめの約 20m は分かれる前の町なみが続き、そこから次の町に変わる（別の場所を Y 字でくっつけただけに見えないように） */
+    else buildFacades(seg, sd, a0, a1); }
   if (seg.forkY) { yWedge(seg); return; }
   // end of the street: one building across
   const e = L + HW, h = clamp(rand(fac.h[0], fac.h[1]), 8, 40), c = C(pick(fac.pal)), ev = (Math.random() * 8) | 0;
@@ -685,7 +695,7 @@ function buildDeck(seg, s0, lEnd, rEnd) {
     for (let s = s0; s < end; s += th.mesh ? 1.2 : 2) seg.lines.push({ a: [s, lat, 0], b: [s, lat, hgt], c: th.rail, w: .05 });
     if (th.mesh) { const nS = [-sd * seg.r[0], -sd * seg.r[1]], ml = sd * (railLat - .02); // PDCA 108〜112：金網と段数の表示
       for (let s = s0; s < end - .01; s += 3) { const e2 = Math.min(end, s + 3); seg.decos.push({ v: quad(seg, sd < 0 ? [[s, ml, 0], [e2, ml, 0], [e2, ml, 2.3], [s, ml, 2.3]] : [[e2, ml, 0], [s, ml, 0], [s, ml, 2.3], [e2, ml, 2.3]]), n: nS, pat: 'mesh', seg, w: e2 - s, seed: s | 0 }); }
-      if (sd > 0 && th.climb) for (let s = s0 + 14; s < end - 6; s += 30) { const alt = th.climb[0] + (th.climb[1] - th.climb[0]) * clamp(s / L, 0, 1), steps = Math.round((th.landings && seg.hp && seg.hp.shape === 'flights' ? (segE(seg, s) - segE(seg, 0)) / Math.max(1, segE(seg, L) - segE(seg, 0)) : th.landings ? (alt - 20) / 125 : alt / 150) * 600 / 10) * 10, l2 = sd * (railLat - .05); seg.decos.push({ v: quad(seg, [[s + .8, l2, 1.3], [s, l2, 1.3], [s, l2, 1.9], [s + .8, l2, 1.9]]), n: nS, pat: 'stepsign', seg, w: .8, txt: steps + '段', txt2: Math.round(alt) + 'm' }); } }
+      if (sd > 0 && th.climb) for (let s = s0 + 14; s < end - 6; s += 30) { const alt = th.climb[0] + (th.climb[1] - th.climb[0]) * clamp(s / L, 0, 1), steps = Math.round((th.landings && seg.hp && seg.hp.shape === 'flights' ? (segE(seg, s) - segE(seg, 0)) / Math.max(1, segE(seg, L) - segE(seg, 0)) : th.landings ? (alt - 20) / 125 : alt / 150) * 600 / 10) * 10, l2 = sd * (railLat - .05); seg.decos.push({ v: quad(seg, [[s + .8, l2, 1.3], [s, l2, 1.3], [s, l2, 1.9], [s + .8, l2, 1.9]]), n: nS, pat: 'stepsign', seg, w: .8, txt: steps + '段', txt2: Math.round(seg.base != null && seg.hp && seg.hp.shape === 'flights' ? segE(seg, s) - seg.base : alt) + 'm' } /* [H20] 手すりの札の高さは、その場所の本当の高さ */); } }
     if (th.mesh && th.beams) { /* [T1] 塔の骨組み（2026-11-17）：金網の 4m 外に、赤と白の帯の柱（12m ごと）と、ゆるいななめの筋交いだけ。細く・外がわだけにして、階段の前をふさがない（前の太い枠は下の if (false)） */
       const lt = sd * (HW + 4), red = th.beams, wh = '#EDEDEA';
       for (let s = s0 + 10; s < end - 1; s += 12) { for (let j = -1; j < 2; j++) seg.lines.push({ a: [s, lt, j * 5], b: [s, lt, j * 5 + 5], c: (j & 1) ? wh : red, w: .2 });
