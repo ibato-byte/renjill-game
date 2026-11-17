@@ -47,7 +47,8 @@ function ensureSegs(max) {
       const nf = G.courseQ && G.courseQ.length ? null : G.plan[0] && G.plan[0].fork; // 電波塔コースの途中では、分かれ道にしない
       G.distEst = G.dist + (G.segs.length - G.ci) * 90; G.speedEst = Math.min(MAXSPD + 1, G.speed + 1.2);
       // after a fork's own street only a fork can follow (it has no corner of its own); should a plain street ever come next, it turns
-      const sg = newSeg(last, step, { t0, day: G.planDay, fork: nf || null, turnIn: last && last.fork ? (Math.random() < .5 ? -1 : 1) : undefined });
+      const skyT = t2 => { const h = t2 && THEMES[t2.t]; return !!(h && h.sky); }, liftT = t2 => { const h = t2 && THEMES[t2.t]; return !!(h && h.lift); }, toSky = skyT(G.courseQ && G.courseQ[0]), straight = !nf && (skyT(step) || toSky || liftT(step)); /* 2026-11-17 オーナー「高い所から飛ぶ瞬間が曲がり角でおかしい・着地で道が向きに合わせて動くのもおかしい」：空へ飛び出す展望台と、空の道は、角で曲がらずにまっすぐつなぐ */
+      const sg = newSeg(last, step, { t0, day: G.planDay, fork: nf || null, straight, toSky, turnIn: last && last.fork ? (Math.random() < .5 ? -1 : 1) : undefined });
       if (nf) sg.forkLbl = forkLabels(nf, G.planDay);
       if (step.st) sg.stName = LANG === 'ja' || LANG === 'zh' ? step.st : stEn(step.st); // station names: kanji for Japanese/Chinese readers, romaji otherwise
       G.segs.push(sg); G.planClock = sg.t1; built++;
@@ -64,7 +65,7 @@ function courseStart(last) { const k = G.courseDue; if (!k || !COURSES[k] || (G.
   if (!last || last.fork || !out(last) || last.th.course) return;
   const nx = G.plan[0]; if (nx && !nx.fork && THEMES[nx.t] && ['room', 'train', 'glass'].includes(THEMES[nx.t].kind)) return; // 次が建物・電車の中なら、外に出てから
   G.courseQ = COURSES[k].steps.map((x, i) => Object.assign({ co: k, co0: i === 0 }, x)); G.courseDone[k] = 1; G.courseDue = null; G.courseGo = k; setTimeout(aerWarm, 60); }
-function reportErr(e) { window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); if (window.__frameErr < 4) console.error('frame error', e); errLog(window.__frameErrMsg); }
+function reportErr(e) { window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); window.__frameErrAt = String(e && e.stack || '').split('\n').slice(1, 4).map(x => x.trim().replace(/^at /, '').replace(/\(?(?:https?|file):\/\/\S*\/([^/\s)]*:\d+:\d+)\)?/, '$1')).join(' < '); /* どこで起きたかも残す（テストの報告に出す） */ if (window.__frameErr < 4) console.error('frame error', e); errLog(window.__frameErrMsg); }
 // エラーの記録（C-65）：最後の 10 件をこの端末に残し、設定の下で見られる（送信はしない）
 function errLog(msg) { try { const a = JSON.parse(localStorage.getItem('rjErrLog') || '[]'); const m = String(msg).slice(0, 160); if (a.length && a[a.length - 1].m === m) a[a.length - 1].n++; else a.push({ t: Date.now(), m, n: 1 }); localStorage.setItem('rjErrLog', JSON.stringify(a.slice(-10))); } catch (x) { } }
 addEventListener('error', e => { try { errLog((e && e.message) || 'error'); } catch (x) { } });
@@ -359,6 +360,13 @@ function flashChoice(seg, d) {
 // the turn itself never fails half way: the street to turn into is found (or built) first; only then does the runner move onto it.
 // (A turn that broke off after the runner had left the old street but before arriving on the new one left the run pointing at a
 // street that did not exist: the picture stopped mid-turn, with no runner, and no swipe did anything.)
+function goStraight() { /* 角の無いつなぎ目：向きも横の位置もそのまま、次の道の頭へ（カメラも回らない） */
+  const seg = curSeg(); let next = G.segs[G.ci + 1]; if (!next) { ensureSegs(1); next = G.segs[G.ci + 1]; } if (!next) { G.s = Math.min(G.s, seg.len); G.segDue = Math.max(G.segDue || 0, .2); return; }
+  try { onLeaveSeg(seg); } catch (e) { reportErr(e); }
+  if (seg.th.lift) { G.camE = null; G.ey = null; G.liftDing = 1; try { tone(988, .14, 'bell', .04); tone(784, .2, 'bell', .035, AU.ctx && AU.ctx.currentTime + .14); } catch (e) { } } /* [H13] エレベーターが着いた：カメラは新しい高さへそのまま（ゆっくり追いかけると、350m の間を飛んで見えた）・着いた音 */
+  G.ci = G.segs.indexOf(next); G.s = Math.max(0, G.s - seg.len); G.turnQueued = 0; G.turnAuto = 0; G.turnQT = 0;
+  if (G.segs.length - G.ci < 2 && !G.fork) ensureSegs(1); while (G.ci > 1) { G.segs.shift(); G.ci--; } G.segDue = .3;
+  try { onEnterSeg(next); } catch (e) { reportErr(e); } }
 function doTurn() {
   if (!G.turnAuto && G.turnQT > 0 && G.turnQT < 4.5 && !curSeg().fork) { const p3 = 80 * SV.mlevel; G.score += p3; G.stats.niceCorner = (G.stats.niceCorner || 0) + 1; floatText(W / 2, cheerY(.36), lab('NICE CORNER!') + ' +' + fmt(p3), '#F2C230'); tone(587, .1, 'bell', .04); } // a corner taken right at the last moment (2026-11-08)
   const seg = curSeg(); let dir = seg.fork ? (G.turnQueued || -1) : seg.turn; const over = clamp(G.s - seg.len, 0, 2);
@@ -401,7 +409,7 @@ function onEnterSeg(n) {
   if (n.step && n.step.cont) { /* still the same place */ }
   else if (n.t0 === 480 && n.day > 1) { banner(LANG === 'en' ? t('dayLbl') + ' ' + n.day + ' · ' + seasonOf(n.day).toUpperCase() : `${t('dayN', n.day)}・${L(SEASON_LBL[seasonOf(n.day)]).split('・')[0]}`, L(SEASON_LBL[seasonOf(n.day)]), 'room'); /* 2026-11-09：「日目」だけが出ていた（数字なしの t('dayN')） */ G.chimed = 0; }
   else if (n.step && n.step.co0 && COURSES[n.step.co]) { const cz = COURSES[n.step.co]; bannerNow(LANG === 'en' ? cz.en.toUpperCase() : L(cz), L(th.arrive || ARRIVE[n.tid] || { ja: '', en: '' }), 'good'); SFX.mission(); }
-  else if (th.sky) { bannerNow(tr('オオタカ！', 'GOSHAWK!'), L(th.arrive), 'good'); G.skyWipe = 1; tone(1175, .18, 'bell', .04); }
+  else if (th.sky) { bannerNow(tr('オオタカ！', 'GOSHAWK!'), L(th.arrive), 'good'); /* [F6] 白くぬりつぶす画面の切りかえはやめた（展望台と空の道の高さがそろったので、そのまま飛び立てる。白い間、レンとジルが見えなくなっていた） */ tone(1175, .18, 'bell', .04); }
   else if (n.tid === 'lobby' || n.tid === 'ehall') { G.stats.office = 1; const b = 500 * SV.mlevel; G.score += b; banner('9:00 ON TIME!', t('onTime', fmt(b)), 'good'); SFX.mission(); react('cheer', 1); }
   else if (n.t0 >= 1080 && !G.chimed) { G.chimed = 1; G.rush = 0; G.stats.chime = 1; const b = 1000 * SV.mlevel; G.score += b; SFX.chime(); startFever(7); bannerNow("IT'S 6 PM! FEVER", t('chime', fmt(b)), 'good'); react('sparkle', 1); }
   else if (n.step && n.step.last) banner('LAST TRAIN', t('lastTrain'), 'room');
@@ -635,6 +643,7 @@ function update(dt) {
   }
   // corners and forks
   const win = turnWindow(seg);
+  if (seg.turn === 0 && !seg.fork) { if (G.s >= seg.len) { goStraight(); return; } } else /* まっすぐつながる道（展望台 → 空 → 着地）：角が無いので、そのまま先へ */
   // invincible states turn on their own, but only at the very last moment, so a swipe always wins
   if (G.s > seg.len - .6 && !G.turnQueued && (G.pow.dash > 0 || G.fever > 0 || G.invT > 1.6 || flying || seg.fork || seg.th.sky || seg.th.grab || (G.tut && seg === G.tutSeg))) { G.turnQueued = seg.fork ? (G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || -1)) : seg.turn; G.turnAuto = 1; }
   if (G.s >= seg.len && G.turnQueued) doTurn();
@@ -648,7 +657,7 @@ function update(dt) {
     else if (!fc.hidden) fc.hidden = true;
   }
   if (G.turnQueued && !G.turnAuto && G.s < seg.len) { /* chosen: keep the locked arrow */ }
-  else if (G.s > win && G.s < seg.len && !G.turnQueued) { cue.textContent = seg.fork ? '←  →' : seg.turn > 0 ? '→' : '←'; cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + ' win' + (Math.floor(G.t * 8) % 2 ? ' show' : ''); cue.style.setProperty('--left', clamp((seg.len - G.s) / Math.max(1, seg.len - win), 0, 1).toFixed(3)); } // 曲がれる残り（C-6）：矢印の下の線が短くなっていく
+  else if (G.s > win && G.s < seg.len && !G.turnQueued && (seg.turn || seg.fork)) { cue.textContent = seg.fork ? '←  →' : seg.turn > 0 ? '→' : '←'; cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + ' win' + (Math.floor(G.t * 8) % 2 ? ' show' : ''); cue.style.setProperty('--left', clamp((seg.len - G.s) / Math.max(1, seg.len - win), 0, 1).toFixed(3)); } // 曲がれる残り（C-6）：矢印の下の線が短くなっていく
   else cue.className = '';
   // events inside a stretch
   if (seg.goldRoad && !seg.goldTold && G.s > seg.goldRoad - 34) { seg.goldTold = 1; banner('GOLDEN ROAD!', tr('金のチモシーの道！', 'A road of golden hay!'), 'good'); }
@@ -680,7 +689,7 @@ function update(dt) {
   // animation
   P.ph += dt * (P.who === 'pom' ? 10 + G.speed * .75 : 6 + G.speed * .55); /* [46] ポムは足が短いので、もう少し速く足を回す（2026-11-17） */ /* ポムは足が短いので、同じ速さでも足の回転が速い */
   { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1, seg.th.kind); if (G.weather === 'snow' && seg.th.kind !== 'room' && seg.th.kind !== 'train') { const fw = segPos(seg, G.s, G.lat + ((c & 1) ? .12 : -.12)); (G.prints = G.prints || []).push({ x: fw[0], z: fw[1], y: fw[2], t: G.t, a: G.player.wy }); if (G.prints.length > 40) G.prints.shift(); } } } // footprints in the snow (2026-11-08) // a soft footstep on every stride
-  { const sky = !!seg.th.sky, rel = sky ? clamp((G.s - (seg.len - 30)) / 16, 0, 1) : 0; P.hawk = sky; G.follow.hawk = sky; G.pom.hawk = sky; P.hawkRel = G.follow.hawkRel = G.pom.hawkRel = rel; /* [D1] 地面の近くで、オオタカが足をはなす（0→1：はなして、空へもどっていく） */
+  { const sky = !!seg.th.sky, rel = sky ? clamp((G.s - (seg.len - 30)) / 16, 0, 1) : 0, nx = G.segs[G.ci + 1], hin = sky ? 1 : (seg.turn === 0 && !seg.fork && nx && nx.th.sky) ? clamp((G.s - (seg.len - 11)) / 8, 0, 1) : 0; /* [F4] 展望台のテラスの先で、オオタカが上からおりてきて、つかむ */ P.hawk = G.follow.hawk = G.pom.hawk = hin > 0; P.hawkIn = G.follow.hawkIn = G.pom.hawkIn = hin; P.hawkRel = G.follow.hawkRel = G.pom.hawkRel = rel; if (!sky) G.hawkLand = 0; else if (rel > .2 && !G.hawkLand) { G.hawkLand = 1; G.landT = .14; G.landK = .85; try { SFX.land(); const sp = spriteAt(P.wx, G.ey || 0, P.wz); if (sp) for (let k = 0; k < 10; k++) FX.push({ x: sp.sx + rand(-34, 34), y: sp.sy, vx: rand(-130, 130), vy: rand(-80, -15), life: rand(.3, .5), t: 0, c: 'rgba(214,222,190,.85)', r: rand(2, 4) }); } catch (e) { } } /* [D18] 着地の一歩：足をはなした時、ぽんと着地（体が少しつぶれる・音・芝の小さなほこり） */ /* [D1] 地面の近くで、オオタカが足をはなす（0→1：はなして、空へもどっていく） */
     if (rel > 0 && !G.hawkLet) { G.hawkLet = 1; tone(880, .12, 'bell', .03); tone(660, .16, 'bell', .025, AU.ctx && AU.ctx.currentTime + .1); } if (!sky) G.hawkLet = 0; }
   P.air = G.air && !flying; P.slide = sliding; P.fly = flying; P.flash = G.invT > 0 && G.invT < 2.4 && !flying; P.glow = G.shield ? '#5FB05A' : G.pow.dash > 0 ? '#F08A2E' : null;
   if (P.look > 0) P.look = Math.max(0, P.look - dt);
@@ -702,10 +711,11 @@ function placeCamera(dt) {
   const eP = segE(seg, G.s); G.ey = G.ey == null || G.turnT <= 0 && Math.abs(G.ey - eP) > 3 ? eP : lerp(G.ey, eP, Math.min(1, dt * 18));
   P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * (P.who === 'pom' ? .012 : .045 + Math.min(.035, G.speed * .002))); // the run bob grows a little with speed
   if (G.aura && G.mode === 'play' && !OPT().calm && (G.auraT = (G.auraT || 0) + (G.dtFX || .016)) > .045) { G.auraT = 0; const sp = spriteAt(P.wx + rand(-.35, .35), P.wy + rand(.2, 1.1) * (P.big || 1), P.wz + .2); if (sp) FX.push({ x: sp.sx, y: sp.sy, vx: rand(-25, 25), vy: rand(-70, -20), life: rand(.35, .7), t: 0, c: Math.random() < .5 ? 'rgba(255,214,90,.95)' : 'rgba(255,246,200,.95)', r: rand(1.5, 3.2) }); } P.vy = P.who === 'pom' ? G.vy : null;
-  const fp = segPos(seg, G.s - F.back, F.lat); F.wx = fp[0]; F.wz = fp[1]; F.wy = fp[2] + (F.y || 0) + (F.air ? 0 : Math.abs(Math.sin(F.ph)) * (F.who === 'pom' ? .012 : .06)); /* ポム（ハムスター）は足がほとんど地面についているので、体は上下しない */
+  const skyF = seg.th.sky && P.hawk, fp = skyF ? segPos(seg, G.s - .5, G.lat + (G.lat > .5 ? -1.7 : 1.7)) : segPos(seg, G.s - F.back, F.lat); /* [F8] 空の上：ジルはレンの横にならんで飛ぶ（うしろにいると、カメラがぐるっと回る時にレンと重なって見えなくなった） */ F.wx = fp[0]; F.wz = fp[1]; F.wy = fp[2] + (F.y || 0) + (F.air ? 0 : Math.abs(Math.sin(F.ph)) * (F.who === 'pom' ? .012 : .06)); /* ポム（ハムスター）は足がほとんど地面についているので、体は上下しない */
   F.fly = P.fly; if (P.fly) { F.wy = G.ey + G.y - .3; }
-  F.show = !F.off && G.s - F.back > (seg.first ? -14 : HW + .3);
-  { const M = G.pom; if (M.on) { const mp = segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * (M.who === 'pom' ? .012 : .05)); if (M.who === 'pom' && !M.air && !P.fly) M.lat += Math.sin(M.ph * .5) * .0035; /* ちょこまか：走りながら、ごく小さく左右にゆれる */ if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
+  const strIn = !seg.first && seg.turnIn === 0 && !seg.prevFork; /* [F7] まっすぐつながった道（展望台 → 空 → 着地・エレベーター）：うしろの仲間は、つなぎ目の手前にいても見える（前は道の頭で消え、空へ飛び立つ時にジルが画面から消えた） */
+  F.show = !F.off && (strIn || G.s - F.back > (seg.first ? -14 : HW + .3));
+  { const M = G.pom; if (M.on) { const mp = skyF ? segPos(seg, G.s - 1.6, G.lat + (G.lat > .5 ? -.9 : .9)) : segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * (M.who === 'pom' ? .012 : .05)); if (M.who === 'pom' && !M.air && !P.fly) M.lat += Math.sin(M.ph * .5) * .0035; /* ちょこまか：走りながら、ごく小さく左右にゆれる */ if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = strIn || G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
   if (P.hawk && !(P.hawkRel > .2)) { const sw = k => .3 + Math.sin(G.t * 2.1 + k) * .07 * (1 + (P.hawkRel || 0) * 3); /* [D2] 着地の前は羽ばたきが強くなり、少し上下が大きい */ P.wy = G.ey + G.y + sw(0); F.wy = fp[2] + sw(1.3); if (G.pom.on) G.pom.wy += sw(2.1) - (G.pom.air ? 0 : Math.abs(Math.sin(G.pom.ph)) * .012); } // オオタカの羽ばたきで、ゆっくり上下
   const ty = seg.dir * Math.PI / 2 + skySpin(seg); let dy = ty - G.camYaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
   G.camYaw += dy * Math.min(1, dt * 9);
