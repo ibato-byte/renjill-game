@@ -224,7 +224,13 @@ function buildRoom(seg, s0, lEnd, rEnd) {
      事務所・駅など土足の建物は、足もとに消火器、上に非常口の明かり。電車は、車両のはしの壁（となりの車両への引き戸・窓・ステンレスの板）にする */
   if (!glass) { const nE = [-seg.f[0], -seg.f[1]], ex = e - .04, put = (pat, l0, l1, y0, y1, x) => seg.decos.push(Object.assign({ v: quad(seg, [[ex, l0, y0], [ex, l1, y0], [ex, l1, y1], [ex, l0, y1]]), n: nE, pat, v2: (Math.random() * 4) | 0, seg, w: l1 - l0, seed: (Math.random() * 1e5) | 0 }, x || {}));
     if (th.kind === 'train') put('carend', -HW, HW, 0, H);
-    else if (th.lift) { put('liftDoor', -2.4, 2.4, 0, H - .1, { lift: th }); } /* [H12] かごの正面：銀の扉と、上がっていく高さの数字 */
+    else if (th.lift) { put('liftDoor', -1.6, 1.6, 0, 2.55, { lift: th }); /* [H17] かごの中：最後の 7m は、本物の大きさのかご（はば 3.9m・高さ 2.6m）。入口の銀のわく、左右のかべは季節の絵の板、低い天井の明かり */
+      const K0 = L - 7, kw = 1.95, kh = 2.6, wc2 = C(th.wall || '#2B2522'), nB = [-seg.f[0], -seg.f[1]];
+      for (const sd of [-1, 1]) { seg.walls.push({ v: quad(seg, sd < 0 ? [[K0, -kw, 0], [e, -kw, 0], [e, -kw, kh], [K0, -kw, kh]] : [[e, kw, 0], [K0, kw, 0], [K0, kw, kh], [e, kw, kh]]), c: wc2, n: [-sd * seg.r[0], -sd * seg.r[1]], sh: sd < 0 ? .94 : .86 });
+        seg.decos.push({ v: quad(seg, sd < 0 ? [[K0 + .6, -kw + .02, .4], [e - .6, -kw + .02, .4], [e - .6, -kw + .02, 2.3], [K0 + .6, -kw + .02, 2.3]] : [[e - .6, kw - .02, .4], [K0 + .6, kw - .02, .4], [K0 + .6, kw - .02, 2.3], [e - .6, kw - .02, 2.3]]), n: [-sd * seg.r[0], -sd * seg.r[1]], pat: 'liftArt', v2: 0, seg, w: 6 }); }
+      for (const sd of [-1, 1]) seg.walls.push({ v: quad(seg, sd < 0 ? [[K0, -HW, 0], [K0, -kw, 0], [K0, -kw, H], [K0, -HW, H]] : [[K0, kw, 0], [K0, HW, 0], [K0, HW, H], [K0, kw, H]]), c: C('#B9C0C6'), n: nB, sh: .95 }); /* かごの入口の両わきの銀のかべ */
+      seg.walls.push({ v: quad(seg, [[K0, -kw, kh], [K0, kw, kh], [K0, kw, H], [K0, -kw, H]]), c: C('#B9C0C6'), n: nB, sh: .9 });
+      seg.walls.push({ v: quad(seg, [[K0, kw, kh], [e, kw, kh], [e, -kw, kh], [K0, -kw, kh]]), c: C('#EFE8D8'), n3: [0, -1, 0], sh: .95 }); } /* かごの低い天井（明るい） */ /* [H12] かごの正面：銀の扉と、上がっていく高さの数字 */
     else { seg.walls.push({ v: quad(seg, [[e - .02, -HW, 0], [e - .02, HW, 0], [e - .02, HW, .14], [e - .02, -HW, .14]]), c: bc, n: nE, sh: .9, base: 1 });
       const ok = (th.wdeco || []).filter(t => !['seatwin', 'izakaya', 'stationsign', 'timetable', 'flightboard', 'planewin', 'citywin'].includes(t)), soft = th.rpat === 'tatami' || th.rpat === 'boards' || th.rpat === 'rug';
       for (const sd of [-1, 1]) { const t = ok.length ? pick(ok) : (soft ? 'frame' : 'poster'), sz = DECO_SIZE[t] || [2, .8, 2], w = Math.min(1.9, sz[0]), c0 = sd * 3.4;

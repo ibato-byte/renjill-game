@@ -571,7 +571,7 @@ function drawSky(seg) {
   const lmPass = (sg, fuji) => { for (const lm of sg.th.lm || []) if ((lm.t === 'fuji') === fuji) { landmark(sg, lm, yb); if (fuji) ranges(sg, lm, yb); } };
   if (prev && fade > .02) { ctx.globalAlpha = fade; lmPass(prev, true); ctx.globalAlpha = 1; }
   ctx.globalAlpha = 1 - fade; lmPass(seg, true); ctx.globalAlpha = 1;
-  const rmOn = th.sky && typeof rmFrame === 'function' && rmFrame(seg); /* [M30] 鳥と降りる時は、地平線の平たいビルの絵を出さない（本物の場所の立体のビルがあるので、絵と立体が重なっていた） */
+  const rmOn = climb && (th.sky || alt >= 20) && typeof rmFrame === 'function' && rmFrame(seg); /* 展望台・階段の上からも同じ（本物の場所の立体のビルを見せる） */ /* [M30] 鳥と降りる時は、地平線の平たいビルの絵を出さない（本物の場所の立体のビルがあるので、絵と立体が重なっていた） */
   if (!rmOn) skyline(seg, yb, 0);
   if (prev && fade > .02) { ctx.globalAlpha = fade; lmPass(prev, false); ctx.globalAlpha = 1; }
   ctx.globalAlpha = 1 - fade; lmPass(seg, false); ctx.globalAlpha = 1;
