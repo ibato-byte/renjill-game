@@ -1220,6 +1220,11 @@
       "name": "ブロック塀・電柱の作り込み（景色 98〜111）",
       "file": "src/4h_artplus.js",
       "has": "function paintPolePlus("
+    },
+    {
+      "name": "オフィス街のガラスのビル・車止め・案内地図（景色 114〜135）",
+      "file": "src/4h_artplus.js",
+      "has": "function paintAreaMap("
     }
   ]
 }
