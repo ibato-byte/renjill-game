@@ -719,7 +719,7 @@ function drawBody(g, who, p) {
     { const hk = p.mug ? 'mug' : WEAR.ren.hat; if (hk) wearHat(g, hk, 150, hy - 2 - 45 * 1.12 - (p.air ? 3 : 0), 1.12, 58 * 1.12, 22 * 1.12, 'ren', (p.ear || 0) * .16); /* 走ると少しゆれ、跳ぶと少しうく */ else if (WEAR.ren.suit === 'bee') antennae(g, 150, hy - 52, 1); } // 前向きと同じ大きさ・位置
   } else {
     const jb = fn => { g.save(); g.translate(150, hy); g.scale(RK.jil, RK.jil); g.translate(-188, -210); fn(); g.restore(); }; // アニメの座標で描く
-    const ears = () => jb(() => jillEars(g, p.ear * 26, 1));
+    const ears = () => jb(() => { { const k = p.slide ? .42 : p.air && p.ear < 0 ? .7 : p.air ? 1.06 : 1; if (k !== 1) { g.translate(188, 150); g.scale(1, k); g.translate(-188, -150); } } jillEars(g, p.ear * 26, 1); }); // 伏せる時は耳を背中側へぺたっと寝かせる。跳び上がる時は耳が後ろへ流れ、落ちる時はふわっと立つ（2026-11-18）
     ears();
     jb(() => { const c = RC.jil, hb = [92, 130, 192, 160]; furP(g, 'M188 130 C 248 130 284 166 284 210 C 284 260 240 290 188 290 C 136 290 92 260 92 210 C 92 166 128 130 188 130 Z', hb, rgB(g, hb, .5, .42, .62, [[0, c.head1], [.65, c.head2], [1, c.head3]]), c.head3); soft(g, 188, 150, 50, 16, '#EED9BE', .35, 5); });
     g.strokeStyle = '#3F6E99'; g.lineWidth = 3.5; g.beginPath(); g.moveTo(106, hy + 40); g.quadraticCurveTo(150, hy + 62, 194, hy + 40); g.stroke();
@@ -799,9 +799,10 @@ function buildBunnies(only, part) {
         if (who === 'pom') BUN[who]['rlook' + k] = paint(g => drawBody(g, who, { lift: 2 + Math.abs(Math.sin(ph)) * 6, sq: 1 - .05 * Math.cos(ph * 2), feet: 0, ear: 0, tie: 0, tiePh: ph, view: 'look', run: 1, ph, mood: 'sparkle' })); /* 走りながら肩ごしにふり向く絵（2026-11-17・あいさつの並走） */ /* ポム：ほとんど跳ねず、足を交互に速く動かす（ハムスターの走り。うさぎ跳びにしない） */
         else { const h = hopPose(k / RUN_FRAMES); BUN[who]['run' + k + key] = paint(g => drawBody(g, who, { lift: h.lift, sq: h.sq, feet: 0, ear: h.ear, tie: 0, tiePh: ph, view: 'back', mug, hop: h })); }
       }
-      SEED = 3; BUN[who]['air' + key] = paint(g => drawBody(g, who, { lift: 10, sq: 1.04, feet: -.6, ear: -.3, tie: 0, tiePh: 1.2, air: 1, view: 'back', mug }));
+      /* 2026-11-18：跳び上がる時は「けり出し」の形（後ろ足の裏が見え、体がのびる）、落ちる時は「引きよせ」の形（後ろ足を体の下へ、体が丸い）。前は立っている時と同じ形だった（本物のうさぎの跳び方に合わせる） */
+      SEED = 3; { const h = hopPose(.27); BUN[who]['air' + key] = paint(g => drawBody(g, who, who === 'pom' ? { lift: 10, sq: 1.04, feet: -.6, ear: -.3, tie: 0, tiePh: 1.2, air: 1, view: 'back', mug } : { lift: 10 + h.lift * .3, sq: h.sq, feet: 0, ear: -.3, tie: 0, tiePh: 1.2, air: 1, view: 'back', mug, hop: h })); }
       /* 2026-11-15：落ちてくる時の絵（前は跳んでいる間ずっと同じ絵だった）。のぼりは耳が下に流れて足をたたむ、くだりは耳がふわっと開いて足を着地にのばす */
-      SEED = 3; BUN[who]['fall' + key] = paint(g => drawBody(g, who, { lift: 10, sq: .98, feet: .55, ear: .32, tie: 0, tiePh: 2.6, air: 1, view: 'back', mug }));
+      SEED = 3; { const h = hopPose(.8); BUN[who]['fall' + key] = paint(g => drawBody(g, who, who === 'pom' ? { lift: 10, sq: .98, feet: .55, ear: .32, tie: 0, tiePh: 2.6, air: 1, view: 'back', mug } : { lift: 10 + h.lift * .3, sq: h.sq, feet: 0, ear: .32, tie: 0, tiePh: 2.6, air: 1, view: 'back', mug, hop: h })); }
       SEED = 4; BUN[who]['slide' + key] = paint(g => drawBody(g, who, { lift: 0, sq: 1, feet: .5, ear: .35, tie: 0, tiePh: 2.4, view: 'back', slide: 1, mug }));
       for (const mood of ['happy', 'sparkle', 'wink', 'open', 'sick', 'worry', 'cheer'].concat(who === 'pom' ? ['puff'] : [])) { SEED = 5; BUN[who]['look_' + mood + key] = paint(g => drawBody(g, who, { lift: 6, sq: 1, feet: 0, ear: 0, view: 'look', mood, mug })); }
       }
