@@ -1225,6 +1225,11 @@
       "name": "オフィス街のガラスのビル・車止め・案内地図（景色 114〜135）",
       "file": "src/4h_artplus.js",
       "has": "function paintAreaMap("
+    },
+    {
+      "name": "銀座・表参道の店のビル（景色 136〜148）",
+      "file": "src/4d_facade.js",
+      "has": "景色 136〜148"
     }
   ]
 }

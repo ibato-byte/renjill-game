@@ -642,8 +642,7 @@ function titleFX() {
   ctx.restore();
   { // steam from the mug on the low table
     const base = segPos(seg, 2.4, -2.18); for (let i = 0; i < 4; i++) { const t = (G.t * .35 + i * .25) % 1, q = spriteAt(base[0] + Math.sin(G.t * 1.3 + i) * .05 * t, .6 + t * .45 + base[2], base[1]); if (!q) continue; ctx.fillStyle = `rgba(255,255,255,${(.35 * (1 - t)).toFixed(2)})`; ctx.beginPath(); ctx.arc(q.sx, q.sy, q.k * (.03 + t * .05), 0, Math.PI * 2); ctx.fill(); } }
-  { // Ren's "Zz" when he dozes
-    const tt = G.t % 9; if (tt > 7.2) { const b = G.player.who === 'ren' ? G.player : G.follow, q = spriteAt(b.wx, b.wy + 1.25, b.wz); if (q) { const k = (tt - 7.2) / 1.8; ctx.font = `900 ${Math.round(q.k * .11)}px "Zen Maru Gothic",sans-serif`; ctx.fillStyle = `rgba(90,110,180,${(.9 * (1 - k)).toFixed(2)})`; ctx.textAlign = 'center'; ctx.fillText('Zz', q.sx + q.k * .35 + k * 12, q.sy - k * 30); ctx.font = `900 ${Math.round(q.k * .07)}px "Zen Maru Gothic",sans-serif`; ctx.fillText('z', q.sx + q.k * .22 + k * 6, q.sy - k * 12 + 8); } } }
+  /* 2026-11-17 オーナー「レンが寝てないのに ZZ と出るのはおかしい」：ホーム画面では顔を切りかえない（目はあいたまま）ので、居眠りの「Zz」も出さない */
 }
 // 足もとの土ぼこり（C-33）：地面の種類で色が変わる（砂・雪・草・道）。屋内・板の上は出さない。「動きを減らす」設定でも出さない
 function groundDust(seg) {
