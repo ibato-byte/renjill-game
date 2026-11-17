@@ -192,13 +192,15 @@ function ambTick() {
   const high = seg && AMB_HIGH[seg.tid], st = seg && seg.th.fac ? seg.th.fac.style : '';
   const seaV = play && kind === 'deck' && !high ? .05 * (.55 + .45 * Math.sin(now * 1.1)) : 0;   // 寄せては返す
   const windV = play && high && !inside ? .03 * (.5 + .5 * Math.sin(now * .7) * Math.sin(now * .23 + 1)) + .012 : 0;
+  const trainV = play && kind === 'train' ? (seg.th.tunnel ? .03 : .018) * (.7 + .3 * clamp((G.speed || 0) / 16, 0, 1)) * (.9 + .1 * Math.sin(now * 1.7)) : 0; /* [87] 走る電車の低いゴーという音（速いほど大きく・地下鉄はトンネルで大きく） */
   const crowdV = play && (st === 'nakamise' || st === 'market') && G.clock < 20 * 60 && G.weather !== 'rain' ? .013 * (.75 + .25 * Math.sin(now * .9)) : 0;
-  try { ambSet(A, 'rain', rainV, 500, 7000, now); ambSet(A, 'sea', seaV, 120, 900, now); ambSet(A, 'wind', windV, 180, 620, now); ambSet(A, 'crowd', crowdV, 260, 1500, now); } catch (e) { A.off = 1; return; }
-  A.level = { rain: rainV, sea: seaV, wind: windV, crowd: crowdV };
+  try { ambSet(A, 'rain', rainV, 500, 7000, now); ambSet(A, 'sea', seaV, 120, 900, now); ambSet(A, 'wind', windV, 180, 620, now); ambSet(A, 'crowd', crowdV, 260, 1500, now); ambSet(A, 'rumble', trainV, 50, 380, now); } catch (e) { A.off = 1; return; }
+  A.level = { rain: rainV, sea: seaV, wind: windV, crowd: crowdV, rumble: trainV };
   if (!play) return;
   const park = seg && seg.th.fac && seg.th.fac.style === 'park', day = G.clock < 17 * 60 && G.weather !== 'rain';
   if (park && day && now > A.birdT) { A.birdT = now + 2.5 + Math.random() * 4; const f = 1050 + Math.random() * 200; for (let i = 0; i < 2 + (Math.random() * 2 | 0); i++) tone(f + i * 40, .08, 'sine', .015, now + i * .12, (f + i * 40) * 1.22); /* 高すぎない小鳥（1300Hz 以下から少し上がる） */ A.birds = (A.birds || 0) + 1; }
-  if (kind === 'train' && now > (A.railT || 0)) { A.railT = now + 1.75 + Math.random() * .3; thump(74, 48, .09, .03, now); noise(.03, .006, 900, null, now, 2600); thump(66, 44, .09, .026, now + .17); A.rails = (A.rails || 0) + 1; }   // 電車：レールの継ぎ目の「ガタン、ゴトン」
+  if (kind === 'train' && (G.joltN || 0) !== A.joltN) { A.joltN = G.joltN || 0; const v = Math.max(4, G.speed || 10), gap = Math.min(.6, 4.6 / v); /* [86] 継ぎ目の音を、車輪の並びどおりに：前の台車の 2 つの車輪「タタン」→ となりの車両の台車「タタン」。間は電車の速さで決まる */
+    for (const [t0, f] of [[0, 74], [.085, 70], [gap, 66], [gap + .085, 62]]) { thump(f, f * .66, .08, .028, now + t0); noise(.025, .005, 900, null, now + t0, 2600); } A.rails = (A.rails || 0) + 1; }   // 電車：レールの継ぎ目の「タタン、タタン」
   if (kind === 'train' && now > A.chimeT) { A.chimeT = now + 9 + Math.random() * 6; bell(1046.5, .5, .02, now); bell(784, .6, .018, now + .22); A.chimes = (A.chimes || 0) + 1; }
 }
 function drumHit(kind, t, lv) { // ハイハット・スネア：ノイズを通り道でけずる

@@ -292,7 +292,7 @@ function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), setting
 let rvTimer = null;
 // ぶつかった物の絵を、続ける画面と結果画面に（C-69）。絵のある物だけ。書類に追いつかれた・壁・時間切れのときも、最後にぶつかった物
 function showHit(pre) { const box = $('#' + pre + 'Hit'); if (!box) return; const o = G.lastHit; let url = '';
-  try { if (o && o.art && G.cause !== 'time' && G.cause !== 'quit' && G.cause !== 'rescue' && typeof ART !== 'undefined' && ART[o.art]) { const c = ART[o.art](o, false); url = c && c.toDataURL ? c.toDataURL() : ''; } } catch (e) { url = ''; }
+  try { const an = o && (o.art || o.picArt); /* 立体にした障害物（車など）は、結果の画面では今までの絵で見せる */ if (an && G.cause !== 'time' && G.cause !== 'quit' && G.cause !== 'rescue' && typeof ART !== 'undefined' && ART[an]) { const c = ART[an](o, false); url = c && c.toDataURL ? c.toDataURL() : ''; } } catch (e) { url = ''; }
   box.hidden = !url; if (!url) return; $('#' + pre + 'HitImg').src = url; $('#' + pre + 'HitTxt').textContent = LANG === 'ja' && typeof OBS_JA !== 'undefined' && OBS_JA[o.type] ? t('hitWhatN', OBS_JA[o.type]) : t('hitWhat'); }
 function openRevive() {
   const c = reviveCost(), cap = (CAPS[G.cause] || CAPS.obstacle)[G.char];
@@ -606,6 +606,8 @@ async function redeemCode(raw) {
 }
 const isoDay = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 const TOASTQ = [];
+/* スタート画面をスクロールした時：上の暗いぼかしを消し、上に出ている知らせ（出社ボーナスなど）もかくす（下から上がってきた札の上に、ういて重なって見えた。2026-11-17） */
+(() => { const st = document.getElementById('sTitle'); if (!st) return; st.addEventListener('scroll', () => { const on = st.scrollTop > 24; st.classList.toggle('scrolled', on); document.body.classList.toggle('tscroll', on); }, { passive: true }); })();
 function toastTitle(msg) { // one message at a time (the login bonus, a seasonal gift and a promotion used to land on top of each other)
   if (!msg) return; TOASTQ.push(msg); if (TOASTQ.length === 1) toastNext(); }
 function toastNext() { const msg = TOASTQ[0]; if (msg == null) return; const d = document.createElement('div'); d.className = 'toast ttoast'; d.style.cssText = 'pointer-events:none;position:fixed;left:0;right:0;margin:0 auto;width:max-content;max-width:min(86vw,560px);top:calc(54px + env(safe-area-inset-top,0px));z-index:5;animation:pop .35s both, fade .5s ease-in 3.5s forwards'; d.innerHTML = '<span class="ja"></span>'; d.firstChild.textContent = msg; $('#app').appendChild(d); toastPlace(d); setTimeout(() => { if (!d.isConnected) return; d.remove(); toastSubBack(); TOASTQ.shift(); toastNext(); }, 4200); }

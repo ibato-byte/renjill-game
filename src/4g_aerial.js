@@ -191,10 +191,26 @@ function aerialCity(seg, yb, alt, hz) {
   // ---- 4) 雲のかげが、町の上をゆっくり流れる（昼） ----
   if (!night && !lowq && G.weather === 'clear') { ctx.fillStyle = 'rgba(24,34,60,.13)'; for (let k = 0; k < 5; k++) { const wx = ox + ((acHash(k, 3, 1) * 5000 + G.t * 9) % 5000) - 2500 + rx * 0, wz = oz + acHash(k, 5, 2) * 5000 - 2500, a = 260 + acHash(k, 9, 4) * 340, b2 = a * .55; ctx.beginPath(); let ok = 1;
       for (let m = 0; m <= 14; m++) { const t = m / 14 * Math.PI * 2, q = P(wx + Math.cos(t) * a * (1 + .15 * Math.sin(t * 3 + k)), wz + Math.sin(t) * b2 * (1 + .2 * Math.cos(t * 2 + k))); if (!q) { ok = 0; break; } m ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); } if (ok) ctx.fill(); } }
+  // ---- 4.5) 着地する公園（空の上の時）：森・芝生・園路・池。おりていく先に、本当に公園がある ----
+  let park = null;
+  if (th.sky) { const e = segPos(seg, seg.len - 10, 0), fx = Math.sin(dirA), fz = Math.cos(dirA), ux = Math.cos(dirA), uz = -Math.sin(dirA); park = { x: e[0], z: e[1], fx, fz, ux, uz };
+    const Q = (f, l, y) => P(e[0] + fx * f + ux * l, e[1] + fz * f + uz * l, y), poly = (pts, fill) => { /* [D15] カメラの真下・うしろまで広がる形は、目の前で切って描く（前は、形の一部がカメラのうしろにあると、まるごと描かなかった＝真下の公園が消えた） */
+      const cam = pts.map(([f, l]) => { const wx = e[0] + fx * f + ux * l, wz = e[1] + fz * f + uz * l, dx = wx - cx0, dz = wz - cz0; return [dx * cs + dz * cc, dx * cc - dz * cs]; }), NR = 1.5, out = [];
+      for (let i = 0; i < cam.length; i++) { const A = cam[i], B = cam[(i + 1) % cam.length], ia = A[0] >= NR, ib = B[0] >= NR; if (ia) out.push(A); if (ia !== ib) { const t = (NR - A[0]) / (B[0] - A[0]); out.push([NR, A[1] + (B[1] - A[1]) * t]); } }
+      if (out.length < 3) return; ctx.beginPath(); out.forEach(([d, l], i) => { const x = W / 2 + l / d * F, y = hz + camH / d * F; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); };
+    const ring = (f0, l0, rf, rl, n) => Array.from({ length: n }, (_, i) => { const a = i / n * Math.PI * 2; return [f0 + Math.cos(a) * rf * (1 + .08 * Math.sin(a * 5)), l0 + Math.sin(a) * rl * (1 + .08 * Math.cos(a * 3))]; });
+    poly(ring(40, 0, 260, 190, 28), night ? '#14261C' : '#4E7A44'); // [D7] 公園の森（外がわ）
+    poly(ring(60, 0, 150, 70, 22), night ? '#1C3224' : '#7FA35E'); // [D8] まん中の芝生の広場
+    poly([[-30, -4], [230, -4], [230, 4], [-30, 4]], night ? '#3A3628' : '#D9CBA8'); poly([[100, -150], [104, -150], [104, 150], [100, 150]], night ? '#3A3628' : '#CDBF9C'); // [D9] 園路（着地する道と、横切る道）
+    poly(ring(150, 90, 34, 22, 16), night ? '#152436' : '#5F8FA8'); // [D10] 池
+    for (let k = 0; k < (lowq ? 40 : 140); k++) { const a = acHash(k, 3, 9) * Math.PI * 2, rr = .55 + acHash(k, 4, 9) * .45, f = 40 + Math.cos(a) * 250 * rr, l = Math.sin(a) * 180 * rr; if (Math.abs(l) < 9 && f > -30 && f < 230) continue; const q = Q(f, l, 0); if (!q || q[1] < yb) continue; const sz = clamp(9 * F / q[2], .6, 40); // [D11] 森の木 1 本ずつ（丸い葉のかたまりと、かげ）
+      ctx.fillStyle = 'rgba(20,30,20,.35)'; ctx.beginPath(); ctx.ellipse(q[0] + sz * .4, q[1] + sz * .2, sz, sz * .5, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = night ? '#1E3A26' : ['#5F9E5A', '#4C8A48', '#6FAE62'][k % 3]; ctx.beginPath(); ctx.ellipse(q[0], q[1] - sz * .3, sz, sz * .62, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = night ? 'rgba(80,120,90,.3)' : 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.ellipse(q[0] - sz * .3, q[1] - sz * .5, sz * .4, sz * .25, 0, 0, Math.PI * 2); ctx.fill(); }
+    if (alt < 90) { const pl = G.player; for (const b of [pl, G.follow, G.pom]) { if (!b || !b.show || b.wx == null) continue; const q = P(b.wx, b.wz, 0); if (!q || q[1] < yb) continue; const sz = clamp(.38 * F / q[2], 1.2, 26), a = clamp(1 - alt / 90, 0, 1) * .26, blur = 1 + alt / 12; ctx.fillStyle = `rgba(20,24,30,${(a / blur * 1.6).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(q[0], q[1], sz * 1.6 * blur, sz * .45 * blur, 0, 0, Math.PI * 2); ctx.fill(); /* 高いほどうすく大きくぼける */ } } } // [D12] 低くなると、地面にオオタカとうさぎのかげが落ちる
   // ---- 5) 高いビル（立っている形）：かげ・窓の列・角の明るさ・屋上 ----
   { const S = 190, rng = lowq ? 900 : 2400, list = []; const i0 = Math.floor((rx - rng) / S), i1 = Math.ceil((rx + rng) / S), j0 = Math.floor((rz - rng) / S), j1 = Math.ceil((rz + rng) / S);
     for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const h = acHash(i, j, 77); if (h < .8) continue; const wx = ox + (i + .2 + acHash(i, j, 5) * .5) * S, wz = oz + (j + .2 + acHash(i, j, 6) * .5) * S, dx = wx - cx0, dz = wz - cz0, d = dx * cs + dz * cc; if (d < 30 || d > rng) continue; if (Math.abs(dx * cc - dz * cs) > d * (W / 2 / F + .3)) continue;
       if (Math.hypot(wx - ox, wz - oz) < 70) continue; // 塔の真下には立てない
+      if (park && Math.hypot(wx - park.x, wz - park.z) < 330) continue; // [D13] 公園の中・おりる道の上には、高いビルを立てない
       list.push([d, wx, wz, h, i, j]); }
     list.sort((a, b) => b[0] - a[0]);
     for (const [d, wx, wz, h, i, j] of list) { const hh = acHash(i, j, 9), tall = Math.min(camH * 1.15 + 40, 34 + (h - .8) / .2 * (hh > .8 ? 190 : 90)), bw = 16 + hh * 22, bd = 14 + acHash(i, j, 10) * 20, fk = clamp(1 - Math.exp(-d / (4200 + camH * 8)), 0, .85);

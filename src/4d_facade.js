@@ -5,7 +5,7 @@
    handful of drawImage calls, and gives the fronts far more detail than the old per-quad painting. */
 const FAC_P = 20; // texture pixels per world unit
 const FAC_CACHE = new Map(); let FAC_N = 0, FAC_PX = 0;
-const FAC_PHONE = navigator.maxTouchPoints >= 1 && Math.min(screen.width, screen.height) < 820, FAC_MAXN = FAC_PHONE ? 140 : 190, FAC_MAXPX = FAC_PHONE ? 8e6 : 14e6; // phones run out of canvas memory first
+const FAC_PHONE = navigator.maxTouchPoints >= 1 && Math.min(screen.width, screen.height) < 820, FAC_MAXN = FAC_PHONE ? 140 : 260, /* [R21] PC は絵を多めに持っておく（描き直しで絵が一瞬かわるのを減らす） */ FAC_MAXPX = FAC_PHONE ? 8e6 : 14e6; // phones run out of canvas memory first
 const FAC_FONT = '"Zen Maru Gothic","Hiragino Sans","Noto Sans JP",sans-serif';
 const SHOP_WORDS = ['ラーメン', 'カフェ', '書店', '薬局', 'パン', '食堂', '花屋', '寿司', '居酒屋', '雑貨', '珈琲', '天ぷら', '眼鏡', '古書', 'うどん', '定食', 'クリニック', '不動産', '時計', '文具'];
 const MARKET_WORDS = ['鮮魚', '乾物', '果物', 'お菓子', '雑貨', '洋品', '海苔', '豆', 'お茶', '靴'];
@@ -38,7 +38,7 @@ function facadeTex(st, variant, w, h, night, mood, soft) {
   // a pixel budget (phones run out of canvas memory with many tall towers, and then new buildings draw blank)
   while (FAC_CACHE.size && (FAC_CACHE.size > FAC_MAXN || FAC_PX > FAC_MAXPX)) { let oldK = null, oldN = 1e18; for (const [k, v] of FAC_CACHE) if (v.n < oldN) { oldN = v.n; oldK = k; } const ev = FAC_CACHE.get(oldK); FAC_PX -= ev.px; FAC_CACHE.delete(oldK); try { ev.c.width = ev.c.height = 0; } catch (e) { } }
   const c = document.createElement('canvas'); const PW = Math.max(8, Math.round(w * FAC_P)), PH = Math.max(8, Math.round(h * FAC_P));
-  const ks = Math.min(1, 700 / PH, 320 / PW); c.width = Math.max(8, Math.round(PW * ks)); c.height = Math.max(8, Math.round(PH * ks)); // tall towers are painted at a lower resolution
+  const ks = Math.min(1, (FAC_PHONE ? 700 : 1000) / PH, (FAC_PHONE ? 320 : 460) / PW); /* [R5] PC では高いビルも細かく描く（近くでぼやけていた） */ c.width = Math.max(8, Math.round(PW * ks)); c.height = Math.max(8, Math.round(PH * ks)); // tall towers are painted at a lower resolution
   const g = c.getContext('2d') || noCtx(), r = rnd(variant * 131 + 7 + Math.round(w * 3) + Math.round(h * 5)); if (g === NOCTX) return null; g.scale(c.width / PW, c.height / PH);
   // the texture's y runs top-down, the wall's v runs bottom-up: flip so v=0 (street level) is at the bottom
   const paint = FAC_STYLE[st] || FAC_STYLE.mixed;
@@ -47,32 +47,112 @@ function facadeTex(st, variant, w, h, night, mood, soft) {
   const gr = g.createLinearGradient(0, PH, 0, PH - 1.6 * FAC_P); gr.addColorStop(0, 'rgba(40,32,28,.22)'); gr.addColorStop(1, 'rgba(40,32,28,0)'); g.fillStyle = gr; g.fillRect(0, PH - 1.6 * FAC_P, PW, 1.6 * FAC_P);
   g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(0, 0, PW, 2);
   for (let i = 0; i < 2; i++) if (r() < .5) { const x = r() * PW; const sg = g.createLinearGradient(0, 0, 0, PH * .6); sg.addColorStop(0, 'rgba(30,30,30,.16)'); sg.addColorStop(1, 'rgba(30,30,30,0)'); g.fillStyle = sg; g.fillRect(x, 0, 2 + r() * 2, PH * .6); }
+  facExtra(g, r, PW, PH, st, night, mood || '', w, h); facWear(g, r, PW, PH, st, night);
   const px = c.width * c.height; FAC_PX += px; FAC_CACHE.set(key, { c, n: ++FAC_N, px }); return c;
+}
+/* [T51〜] 建物の種類ごとの作り込み（描き終えた絵の上に足す） */
+function facExtra(g, r, PW, PH, st, night, mood, w, h) {
+  const fl = 3.2 * FAC_P, F = Math.floor(PH / fl);
+  if (st === 'mixed' || st === 'neon') {
+    if (F >= 3 && r() < .45) { const y = PH - 2 * fl, x = 10 + r() * Math.max(1, PW - 70); g.fillStyle = night ? 'rgba(255,240,200,.95)' : 'rgba(255,255,255,.9)'; g.font = `900 ${Math.round(fl * .18)}px ${FAC_FONT}`; g.textAlign = 'left'; g.textBaseline = 'middle'; const t2 = ['2F 喫茶', '2F 理容', '2F 英会話', '2F 整骨院', '2F 雀荘', '2F 歯科'][(r() * 6) | 0]; g.lineWidth = 3; g.strokeStyle = 'rgba(0,0,0,.35)'; g.strokeText(t2, x, y + fl * .5); g.fillText(t2, x, y + fl * .5); } // [T51] 2 階の窓に貼った店の文字
+    if (F >= 2) { g.strokeStyle = 'rgba(80,84,90,.85)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, 2); g.lineTo(PW, 2); for (let x = 4; x < PW; x += 9) { g.moveTo(x, 2); g.lineTo(x, 10); } g.stroke(); } // [T52] 屋上のフェンス
+    if (r() < .3 && F >= 3) { const x = r() < .5 ? 2 : PW - 18; for (let y = PH - fl; y > fl; y -= fl) { g.fillStyle = 'rgba(220,224,228,.9)'; g.fillRect(x, y - 6, 16, 4); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x, y - 2, 16, 2); } } // [T53] 外の非常階段の踊り場
+    if (r() < .25 && F >= 3) { const x = 10 + r() * (PW - 20), y = PH - fl * (2 + ((r() * (F - 2)) | 0)) - 12; g.fillStyle = '#E3E5E7'; g.beginPath(); g.ellipse(x, y, 5, 6, -.4, 0, Math.PI * 2); g.fill(); g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(x - 1, y + 5, 2, 5); } // [T54] ベランダのアンテナの皿
+    if (F >= 3 && r() < .5) { const y = 14; g.fillStyle = 'rgba(0,0,0,.08)'; g.fillRect(0, y, PW, fl * .85); } } // [T55] いちばん上の階は、軒のかげで少し暗い
+  if (st === 'neon' && night) { g.strokeStyle = 'rgba(255,240,200,.35)'; g.lineWidth = 1; g.strokeRect(1, 1, PW - 2, PH - fl - 2); // [T56] 夜：ビルのふちの小さな電球の線
+    const sx = PW * (.15 + r() * .6); g.fillStyle = 'rgba(255,236,200,.85)'; g.fillRect(sx, PH - fl * 1.95, 14, fl * .95); g.fillStyle = 'rgba(0,0,0,.25)'; for (let k = 0; k < 6; k++) g.fillRect(sx, PH - fl * 1.95 + k * fl * .16, 14, 1.5); } // [T57] 2 階の店へ上がる、明るい階段の入口
+  if (st === 'neon' && mood === 'shinbashi') { g.fillStyle = 'rgba(40,30,24,.9)'; g.fillRect(PW * .1, PH - fl * .62, 16, 22); g.fillStyle = '#FBF6EE'; for (let k = 0; k < 4; k++) g.fillRect(PW * .1 + 3, PH - fl * .62 + 4 + k * 4, 10, 1.4); } // [T58] 店先の手書きのお品書き
+  if (st === 'luxury') { const x = PW * .5 - 14, y = PH - fl * 1.3 - 18; g.fillStyle = night ? '#E8C878' : '#B08A3E'; g.fillRect(x, y, 28, 10); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x + 3, y + 4, 22, 1.4); } // [T59] 入口の上の金色の銘板（文字のない模様）
+  if (st === 'glass') { const y = PH - fl; g.fillStyle = night ? 'rgba(255,236,190,.55)' : 'rgba(40,52,64,.35)'; g.fillRect(4, y + 4, PW - 8, fl - 8); g.fillStyle = night ? 'rgba(120,90,60,.6)' : 'rgba(20,24,30,.55)'; g.fillRect(PW * .4, PH - fl * .35, PW * .2, fl * .3); // [T60] 1 階のロビー：高い天井・受付のカウンター
+    g.fillStyle = 'rgba(160,170,180,.9)'; g.fillRect(0, 0, PW, 6); g.fillStyle = 'rgba(0,0,0,.2)'; for (let x = 0; x < PW; x += 6) g.fillRect(x, 0, 2, 6); } // [T61] 屋上の機械をかくすルーバー
+  if (st === 'machiya') { g.fillStyle = 'rgba(60,40,24,.85)'; for (let x = 6; x < PW - 6; x += 3) g.fillRect(x, PH - fl * .9, 1.2, fl * .62); // [T62] 1 階の細かい格子（千本格子）
+    g.fillStyle = 'rgba(120,96,64,.9)'; g.beginPath(); for (let x = 2; x < PW; x += 6) { g.moveTo(x, PH); g.quadraticCurveTo(x + 3, PH - 16, x + 6, PH); } g.fill(); // [T63] 足もとの竹の犬矢来
+    if (night) { g.fillStyle = 'rgba(255,214,140,.25)'; g.fillRect(6, PH - fl * .9, PW - 12, fl * .62); } } // [T64] 夜：格子の向こうの明かり
+  if (st === 'market' || st === 'nakamise') { for (let x = 6; x < PW - 6; x += 9 + r() * 6) { g.fillStyle = ['#F2C230', '#FBF6EE', '#E86A75'][(r() * 3) | 0]; g.fillRect(x, PH - fl * .62, 6, 5); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(x + 1, PH - fl * .62 + 2, 4, 1); } // [T65] 品物の値札
+    g.fillStyle = 'rgba(150,150,154,.9)'; g.fillRect(0, PH - fl - 4, PW, 4); for (let x = 0; x < PW; x += 3) { g.fillStyle = 'rgba(0,0,0,.15)'; g.fillRect(x, PH - fl - 4, 1, 4); } } // [T66] 上げたシャッターの、たたまれた板の帯
+  if (st === 'books') { for (let y = PH - fl * .8; y < PH - 8; y += 9) for (let x = 8; x < PW - 8; x += 3 + r() * 2) { g.fillStyle = ['#8A5530', '#C8463C', '#355F86', '#E9E2D5', '#5F9E5A', '#3B2A20'][(r() * 6) | 0]; g.globalAlpha = night ? .85 : .55; g.fillRect(x, y, 2.2, 7 + r() * 1.5); } g.globalAlpha = 1; } // [T67] 店の中の本だなの背表紙
+  if (st === 'mixed' && F >= 3 && r() < .2) { const y = PH - fl * (2 + ((r() * Math.max(1, F - 2)) | 0)), x = 8 + r() * Math.max(1, PW - 60); g.fillStyle = 'rgba(251,246,238,.95)'; g.fillRect(x, y + fl * .3, 46, fl * .35); g.fillStyle = '#C8463C'; g.font = `900 ${Math.round(fl * .14)}px ${FAC_FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('テナント募集', x + 23, y + fl * .48, 44); } // [T100] 空いた階の窓の「テナント募集」
+  if (st === 'mixed' && F >= 4 && r() < .3) { const x = r() < .5 ? 6 : PW - 22, y = PH - fl * 3.6; g.fillStyle = 'rgba(255,255,255,.85)'; g.font = `900 ${Math.round(fl * .16)}px ${FAC_FONT}`; g.textAlign = 'center'; [...(['3F 歯科', '3F 塾', '3F 美容室'])[(r() * 3) | 0]].forEach((ch, i) => g.fillText(ch, x + 8, y + i * fl * .17)); } // [T101] 3 階の窓のたて書きの文字
+  { g.fillStyle = 'rgba(40,40,44,.55)'; if (st === 'mixed' || st === 'neon') { g.fillRect(0, PH - fl, 4, fl); g.fillRect(PW - 4, PH - fl, 4, fl); } } // [T96] 1 階の両はしのタイル張りの柱
+  if (st === 'glass' && !night) { for (let k = 0; k < 3; k++) { const x = 20 + r() * (PW - 40); g.fillStyle = 'rgba(20,24,30,.55)'; g.beginPath(); g.ellipse(x, PH - fl * .55, 2.5, 3, 0, 0, Math.PI * 2); g.fill(); g.fillRect(x - 3, PH - fl * .5, 6, fl * .45); } } // [T98] ロビーを歩く人のかげ
+  if (st === 'neon' && !night) for (let k = 0; k < 2; k++) { const x = 6 + r() * (PW - 30), y = PH - fl * (1.3 + r() * .5); g.fillStyle = 'rgba(240,236,226,.75)'; g.fillRect(x, y, 16, 22); g.fillStyle = 'rgba(80,80,90,.5)'; for (let j = 0; j < 4; j++) g.fillRect(x + 2, y + 4 + j * 4, 12 - (j % 2) * 4, 1.3); } // [T99] 色あせた貼り紙
+  if (st === 'glass' && night) for (let y = PH - fl; y > fl; y -= fl) if (r() < .25) { g.fillStyle = 'rgba(120,170,255,.25)'; g.fillRect(PW * r() * .6, y - fl * .7, PW * .3, fl * .4); } // [T102] 夜のオフィスの、画面の青い光
+  if (st === 'house') for (let k = 0; k < 2; k++) if (r() < .5) { const x = PW * (.15 + k * .5), y = PH * .52; g.strokeStyle = 'rgba(150,150,145,.95)'; g.lineWidth = 1; g.beginPath(); for (let j = 0; j <= 5; j++) { g.moveTo(x + j * 4, y); g.lineTo(x + j * 4, y + 16); } g.moveTo(x, y); g.lineTo(x + 20, y); g.moveTo(x, y + 16); g.lineTo(x + 20, y + 16); g.stroke(); } // [T103] 小さな窓の面格子
+  if (st === 'luxury' && !night) { const gy = PH - 3.4 * FAC_P * 1.3; const sh = g.createLinearGradient(0, gy, 0, gy + 18); sh.addColorStop(0, 'rgba(0,0,0,.25)'); sh.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = sh; g.fillRect(0, gy, PW, 18); } // [T104] 日よけの下に落ちるかげ
+  if (st === 'luxury' && !night) { g.fillStyle = 'rgba(255,250,230,.6)'; for (let x = 20; x < PW - 10; x += 28) { g.beginPath(); g.arc(x, PH - fl * 1.15, 1.6, 0, Math.PI * 2); g.fill(); } } // [T76] ショーウィンドウの天井のスポットライト
+  if (st === 'neon' && !night) { g.strokeStyle = 'rgba(120,120,128,.35)'; g.lineWidth = 1; for (let k = 0; k < 2; k++) { const x = 10 + r() * (PW - 40), y = PH - fl * (1.5 + r() * 2); g.beginPath(); g.moveTo(x, y); g.bezierCurveTo(x + 8, y - 6, x + 16, y + 6, x + 24, y); g.stroke(); } } // [T77] 昼は消えているネオン管の形
+  if (st === 'market' && night) { for (let x = 10; x < PW - 6; x += 18) { const y = PH - fl * .78; g.fillStyle = 'rgba(255,220,150,.35)'; g.beginPath(); g.arc(x, y, 6, 0, Math.PI * 2); g.fill(); g.fillStyle = '#FFF2CC'; g.beginPath(); g.arc(x, y, 1.8, 0, Math.PI * 2); g.fill(); } } // [T78] 夜の市場の裸電球
+  if (st === 'machiya' && PH > fl * 1.6) { g.fillStyle = 'rgba(60,40,24,.7)'; const y = PH - fl * 1.75; for (let x = 10; x < PW - 10; x += 4) g.fillRect(x, y, 1.6, fl * .4); } // [T80] 2 階のむしこ窓（たての細い格子）
+  if (st === 'books') { for (let k = 0; k < 3; k++) { const x = 10 + r() * (PW - 24); g.fillStyle = 'rgba(251,246,238,.9)'; g.fillRect(x, PH - fl * .5, 9, 6); g.fillStyle = '#C8463C'; g.fillRect(x + 1.5, PH - fl * .5 + 2, 6, 1.2); } } // [T81] 手書きの値段の札
+  if (st === 'mixed' && PW > 140 && F >= 3) { const x = r() < .5 ? PW * .08 : PW * .84; for (let y = PH - fl - fl * .6; y > fl * .3; y -= fl) { g.fillStyle = night ? 'rgba(220,235,245,.85)' : 'rgba(150,170,190,.8)'; g.fillRect(x, y, 9, fl * .3); g.strokeStyle = 'rgba(60,60,64,.8)'; g.strokeRect(x, y, 9, fl * .3); } } // [T84] 階段室のたての小窓の列
+  if (st === 'mixed' && (r() < .3)) { g.strokeStyle = 'rgba(0,0,0,.06)'; g.lineWidth = .6; g.beginPath(); for (let y = 0; y < PH - fl; y += 4) { g.moveTo(0, y); g.lineTo(PW, y); } for (let x = 0; x < PW; x += 8) { g.moveTo(x, 0); g.lineTo(x, PH - fl); } g.stroke(); } // [T85] 小さなタイル張りの外壁
+  if (st === 'house') { const ww = PW / Math.max(2, Math.round(w / 3)); for (let x = ww * .3; x < PW - 10; x += ww) { if (r() < .4) { g.fillStyle = 'rgba(150,150,145,.95)'; g.fillRect(x - 3, PH * .45, 4, PH * .2); g.fillStyle = 'rgba(0,0,0,.12)'; for (let y = PH * .45; y < PH * .65; y += 3) g.fillRect(x - 3, y, 4, 1); } } // [T68] 雨戸の戸袋
+    if (r() < .6) { g.fillStyle = '#E3E5E7'; g.fillRect(PW * (.6 + r() * .3), PH - 16, 11, 8); g.fillStyle = '#9AA0A6'; g.beginPath(); g.arc(PW * .7, PH - 12, 2.5, 0, Math.PI * 2); g.fill(); } // [T69] 家の横の室外機
+    { const dx = PW * (.35 + r() * .3); g.fillStyle = 'rgba(110,80,56,.95)'; g.fillRect(dx, PH - fl * .78, 16, fl * .78); g.fillStyle = 'rgba(190,215,230,.7)'; g.fillRect(dx + 4, PH - fl * .7, 8, fl * .25); g.fillStyle = night ? '#FFE2A0' : '#E9E6DF'; g.fillRect(dx + 18, PH - fl * .7, 4, 5); if (night) { g.fillStyle = 'rgba(255,220,150,.25)'; g.beginPath(); g.arc(dx + 20, PH - fl * .68, 12, 0, Math.PI * 2); g.fill(); } } // [T82] 家の玄関：ガラスの入ったドアと、横の明かり
+    if (r() < .5) { g.fillStyle = '#4F8A4A'; for (let k = 0; k < 3; k++) { g.beginPath(); g.ellipse(PW * .15 + k * 7, PH - 6, 4, 5, 0, 0, Math.PI * 2); g.fill(); } g.fillStyle = '#8A5530'; for (let k = 0; k < 3; k++) g.fillRect(PW * .15 + k * 7 - 3, PH - 4, 6, 4); } } // [T70] 玄関の鉢植え
+}
+/* [T34〜T45] どの建物にもかける「本物らしさ」の仕上げ（壁の材料・よごれ・光のたまり） */
+function facWear(g, r, PW, PH, st, night) {
+  const soft = st === 'glass' || st === 'nakamise' || st === 'market' || st === 'station';
+  g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(0, 0, PW, 3); const ao = g.createLinearGradient(0, 0, 0, 14); ao.addColorStop(0, 'rgba(0,0,0,.16)'); ao.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = ao; g.fillRect(0, 3, PW, 14); // [T34] 屋上のふちの下にたまるかげ
+  for (const [x0, dir] of [[0, 1], [PW, -1]]) { const e = g.createLinearGradient(x0, 0, x0 + dir * 10, 0); e.addColorStop(0, 'rgba(0,0,0,.14)'); e.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = e; g.fillRect(dir > 0 ? 0 : PW - 10, 0, 10, PH); } // [T35] 建物の角（となりとの境）の暗がり
+  if (!soft) { g.globalAlpha = .07; for (let k = 0; k < 220; k++) { g.fillStyle = r() < .5 ? '#000000' : '#FFFFFF'; g.fillRect(r() * PW, r() * PH, 1 + r() * 2, 1 + r() * 2); } g.globalAlpha = 1; // [T36] 壁の材料のざらつき（吹きつけ・タイルのむら）
+    if (r() < .5) { g.strokeStyle = 'rgba(0,0,0,.07)'; g.lineWidth = 1; g.beginPath(); for (let x = 36 + r() * 20; x < PW; x += 36 + r() * 30) { g.moveTo(x, 0); g.lineTo(x, PH); } g.stroke(); } // [T37] 外壁の板の目地（たて）
+    for (let i = 0; i < 3; i++) if (r() < .45) { const x = r() * PW, y = r() * PH * .7, sg = g.createLinearGradient(0, y, 0, y + 60); sg.addColorStop(0, 'rgba(60,50,40,.14)'); sg.addColorStop(1, 'rgba(60,50,40,0)'); g.fillStyle = sg; g.fillRect(x, y, 1.5 + r() * 2.5, 60); } // [T38] 雨だれのすじ
+    const sp = g.createLinearGradient(0, PH - 10, 0, PH); sp.addColorStop(0, 'rgba(60,50,40,0)'); sp.addColorStop(1, 'rgba(60,50,40,.25)'); g.fillStyle = sp; g.fillRect(0, PH - 10, PW, 10); // [T39] 地面からのはね返りのよごれ
+    if (r() < .6) { const x = 6 + r() * (PW - 20), y = PH - 3.2 * FAC_P - 10; g.fillStyle = '#2F5579'; g.fillRect(x, y, 10, 5); g.fillStyle = '#FBF6EE'; g.fillRect(x + 1.5, y + 2, 7, 1); } // [T40] 番地の青い札
+    if (r() < .55) { const x = r() < .5 ? 3 + r() * 6 : PW - 9 - r() * 6; g.fillStyle = 'rgba(120,124,128,.9)'; g.fillRect(x, 6, 3, PH - 6); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(x, 6, 1, PH - 6); g.fillStyle = 'rgba(90,94,98,.9)'; for (let y = 30; y < PH; y += 60) g.fillRect(x - 1, y, 5, 2); } // [T41] たてどい（雨水の管）と留め金
+    if (r() < .35 && PH > 140) { const x = 10 + r() * (PW - 30); g.fillStyle = 'rgba(200,60,50,.9)'; g.fillRect(x, PH - 3.2 * FAC_P - 26, 8, 8); g.fillStyle = '#FBF6EE'; g.fillRect(x + 2, PH - 3.2 * FAC_P - 23, 4, 2); } } // [T42] 消防の連結送水口の赤い札
+  if (st === 'glass') { const fl = 3.2 * FAC_P; g.fillStyle = night ? 'rgba(20,24,32,.55)' : 'rgba(60,72,86,.35)'; for (let y = PH - fl; y > 0; y -= fl) g.fillRect(0, y - 5, PW, 5); // [T45] ガラスのビルの、各階の床のかくし板（スパンドレル）
+    if (!night) { const d0 = g.createLinearGradient(0, 0, PW, PH); d0.addColorStop(0, 'rgba(255,255,255,.18)'); d0.addColorStop(.45, 'rgba(255,255,255,0)'); d0.addColorStop(.55, 'rgba(255,255,255,.12)'); d0.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = d0; g.fillRect(0, 0, PW, PH); // [T46] 空のうつりこみの、ななめの明るさ
+      for (let k = 0; k < 3; k++) { g.fillStyle = 'rgba(255,255,255,.16)'; const cx = r() * PW, cy = r() * PH * .6, rw = 20 + r() * 40; g.beginPath(); g.ellipse(cx, cy, rw, rw * .35, 0, 0, Math.PI * 2); g.ellipse(cx + rw * .6, cy + 4, rw * .6, rw * .25, 0, 0, Math.PI * 2); g.fill(); } // [T47] 雲のうつりこみ
+      g.fillStyle = 'rgba(40,50,62,.25)'; for (let k = 0; k < 2; k++) { const bw = 20 + r() * 40, bx = r() * PW; g.fillRect(bx, PH * (.35 + r() * .3), bw, PH); } } // [T48] 向かいのビルのうつりこみ
+    else { g.fillStyle = 'rgba(255,240,200,.35)'; for (let y = PH - fl; y > 0; y -= fl) if (r() < .5) g.fillRect(0, y - fl + 6, PW, 1.5); } } // [T49] 夜：残業している階の天井の明かり
+  if (st === 'mixed' && PH > 3.2 * FAC_P * 2.5 && r() < .55) { const nm = ['みどりビル', 'ひかりビル', 'あさひビル', 'さくらビル', '第二中村ビル', 'ことぶきビル', '大和ビル', '平和ビル'][(r() * 8) | 0], y = PH - 3.2 * FAC_P - 26, x = 8 + r() * Math.max(1, PW - 90);
+    g.fillStyle = 'rgba(70,64,56,.9)'; g.fillRect(x, y, Math.min(80, PW - 16), 13); g.fillStyle = '#E9E2D5'; g.font = `700 10px ${FAC_FONT}`; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(nm, x + 4, y + 7, Math.min(72, PW - 24)); } // [T50] ビルの名前の札（ありふれた名前）
+  if (night) { const lg = g.createLinearGradient(0, PH, 0, PH - 3.2 * FAC_P * 1.6); lg.addColorStop(0, 'rgba(255,220,160,.22)'); lg.addColorStop(1, 'rgba(255,220,160,0)'); g.fillStyle = lg; g.fillRect(0, PH - 3.2 * FAC_P * 1.6, PW, 3.2 * FAC_P * 1.6); } // [T43] 夜：店の明かりが、壁の下の方を照らす
+  else { const sk = g.createLinearGradient(0, 0, 0, PH * .4); sk.addColorStop(0, 'rgba(255,255,255,.07)'); sk.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = sk; g.fillRect(0, 0, PW, PH * .4); } // [T44] 昼：上の方は空の光で少し明るい
 }
 /* shared pieces */
 const FAC_GLASS = ['#6E8EA8', '#5E7C97', '#7F9FB8', '#8AA7BE'];
+/* 2026-11-17 オーナー：「ビルやお店の景色が、壁紙に雑な絵」。窓・ベランダ・室外機・店先を、1 つずつ作り込む（番号は docs/CITY-200-2026-11-17.md の T） */
 function winPane(g, r, x, y, w, h, night, o) {
   o = o || {};
-  if (night) { const v = r(); if (v < .55) { g.fillStyle = r() < .75 ? `rgb(255,${225 + (r() * 20) | 0},${160 + (r() * 40) | 0})` : '#DCE8F2'; g.fillRect(x, y, w, h); // lit room
-      g.fillStyle = 'rgba(0,0,0,.18)'; if (r() < .5) g.fillRect(x + w * .55, y, w * .45, h); if (r() < .4) g.fillRect(x, y + h * .7, w, h * .3); }
-    else { g.fillStyle = v < .8 ? '#2A3548' : '#1B2333'; g.fillRect(x, y, w, h); } }
+  g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(x - 1.5, y - 1.5, w + 3, h + 3); // [T1] 窓の穴の奥行き（壁の厚みのかげ）
+  if (night) { const v = r(); if (v < .55) { const warm = r() < .75; g.fillStyle = warm ? `rgb(255,${225 + (r() * 20) | 0},${160 + (r() * 40) | 0})` : '#DCE8F2'; g.fillRect(x, y, w, h); // lit room
+      g.fillStyle = warm ? 'rgba(255,255,240,.6)' : 'rgba(255,255,255,.7)'; g.fillRect(x + w * .15, y + 1, w * .7, 1.2); // [T2] 天井の明かりの線
+      if (r() < .12) { g.fillStyle = (['rgba(255,150,170,.4)', 'rgba(150,230,170,.35)', 'rgba(170,190,255,.35)'])[(r() * 3) | 0]; g.fillRect(x, y, w, h); } // [T87] 色のついたカーテン越しの明かり
+      g.fillStyle = 'rgba(60,40,30,.28)'; if (r() < .5) g.fillRect(x + w * .55, y, w * .45, h); if (r() < .4) g.fillRect(x, y + h * .7, w, h * .3); // 家具・カーテンのかげ
+      if (r() < .25) { g.fillStyle = 'rgba(40,30,30,.45)'; g.beginPath(); g.ellipse(x + w * (.3 + r() * .4), y + h * .62, w * .07, h * .2, 0, 0, Math.PI * 2); g.fill(); } } // [T3] 部屋の中の人かげ
+    else { g.fillStyle = v < .8 ? '#2A3548' : '#1B2333'; g.fillRect(x, y, w, h); if (r() < .12) { g.fillStyle = 'rgba(120,170,255,.35)'; g.fillRect(x + w * .2, y + h * .4, w * .3, h * .35); } } } // [T4] 暗い部屋に、テレビの青い光
   else { // daytime: sky reflected in the upper part, the dark room below
     const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, o.sky || '#9FBBD2'); gr.addColorStop(.55, FAC_GLASS[(r() * 4) | 0]); gr.addColorStop(1, '#3E5468'); g.fillStyle = gr; g.fillRect(x, y, w, h);
-    if (r() < .25) { g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(x, y, w * .3, h); } // a curtain
-    if (r() < .18) { g.fillStyle = 'rgba(240,235,220,.9)'; g.fillRect(x + 1, y + h * .35, w - 2, h * .65); } // a blind
-  }
-  g.fillStyle = o.frame || 'rgba(60,60,64,.9)'; g.lineWidth = 1; g.strokeStyle = o.frame || 'rgba(60,60,64,.9)'; g.strokeRect(x + .5, y + .5, w - 1, h - 1);
-  if (!o.noMullion && w > 14) { g.fillRect(x + w / 2 - .5, y, 1, h); }
+    if (r() < .5) { g.fillStyle = 'rgba(70,85,100,.35)'; const bw = w * (.2 + r() * .3); g.fillRect(x + r() * (w - bw), y + h * (.15 + r() * .2), bw, h); } // [T5] ガラスにうつる向かいのビル
+    const ins = r(); if (ins < .22) { g.fillStyle = 'rgba(245,242,232,.92)'; for (let k = 0; k < h * .55; k += 2) g.fillRect(x + 1, y + 1 + k, w - 2, 1.4); } // [T6] ブラインド（羽根の筋）
+    else if (ins < .45) { const cc = (['rgba(240,232,214,.85)', 'rgba(214,226,236,.85)', 'rgba(232,214,214,.8)'])[(r() * 9 | 0) % ['rgba(240,232,214,.85)', 'rgba(214,226,236,.85)', 'rgba(232,214,214,.8)'].length]; g.fillStyle = cc; const cw = w * (.22 + r() * .12); g.fillRect(x, y, cw, h); g.fillRect(x + w - cw, y, cw, h); g.fillStyle = 'rgba(0,0,0,.08)'; for (let k = 2; k < cw; k += 3) { g.fillRect(x + k, y, 1, h); g.fillRect(x + w - cw + k, y, 1, h); } } // [T7] 両わきのカーテンとひだ
+    else if (ins < .55) { g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x + w / 2, y, w / 2, h); } // [T8] 半分だけ網戸
+    else if (ins < .6) { g.fillStyle = 'rgba(20,24,30,.8)'; g.fillRect(x + w * .5, y, w * .5, h); } // [T88] 少しあけた窓（奥が暗い）
+    g.fillStyle = 'rgba(255,255,255,.22)'; g.beginPath(); g.moveTo(x + w * .1, y + h); g.lineTo(x + w * .35, y); g.lineTo(x + w * .45, y); g.lineTo(x + w * .2, y + h); g.fill(); // [T9] ななめの光の映りこみ
+    if (r() < .1) { g.fillStyle = '#5F9E5A'; g.beginPath(); g.ellipse(x + w * .2, y + h - 3, 3, 3, 0, 0, Math.PI * 2); g.fill(); } } // [T10] 窓辺の鉢植え
+  const fc = o.frame || (['rgba(60,60,64,.9)', 'rgba(170,176,182,.95)', 'rgba(110,98,86,.9)'])[(r() * 9 | 0) % ['rgba(60,60,64,.9)', 'rgba(170,176,182,.95)', 'rgba(110,98,86,.9)'].length]; g.fillStyle = fc; g.lineWidth = 1.2; g.strokeStyle = fc; g.strokeRect(x + .5, y + .5, w - 1, h - 1); // [T11] 窓枠の色（黒・銀・茶）
+  if (!o.noMullion && w > 14) { g.fillRect(x + w / 2 - .6, y, 1.2, h); }
+  if (h > 26 && !o.noMullion) g.fillRect(x, y + h * .28, w, 1); // [T12] 背の高い窓は、上に欄間の横枠
   g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(x, y, w, 1.5); // the lintel's shadow
+  g.fillStyle = 'rgba(235,232,224,.9)'; g.fillRect(x - 2, y + h, w + 4, 1.6); g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(x - 2, y + h + 1.6, w + 4, 1.4); // [T13] 窓台（白い水切り）とその下のかげ
+  g.fillStyle = 'rgba(70,60,50,.12)'; g.fillRect(x, y + h + 3, 2, 6); g.fillRect(x + w - 2, y + h + 3, 2, 5); // [T14] 窓台のはしから垂れた雨のしみ
 }
 function balcony(g, r, x, y, w, night) { // railing in front of a floor
   g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(x, y, w, 3);
-  g.fillStyle = 'rgba(235,235,230,.85)'; g.fillRect(x, y - 16, w, 2); for (let k = 0; k < w; k += 5) g.fillRect(x + k, y - 16, 1, 16);
-  g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(x, y - 16, w, 16);
-  if (r() < .5) { g.fillStyle = r() < .5 ? '#E9EDF0' : '#C8D2DA'; g.fillRect(x + w * .1 + r() * w * .5, y - 15, 9, 10); } // laundry / a box
+  const kind = r(); // [T15] 手すりは 3 種類：たて格子・すりガラスの板・コンクリートの腰壁
+  if (kind < .4) { g.fillStyle = 'rgba(235,235,230,.85)'; g.fillRect(x, y - 16, w, 2); for (let k = 0; k < w; k += 4) g.fillRect(x + k, y - 16, 1, 16); g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(x, y - 16, w, 16); }
+  else if (kind < .7) { g.fillStyle = 'rgba(200,214,224,.55)'; g.fillRect(x, y - 16, w, 15); g.fillStyle = 'rgba(255,255,255,.35)'; for (let k = 0; k < w; k += 22) g.fillRect(x + k, y - 16, 1.2, 15); g.fillStyle = 'rgba(160,166,172,.95)'; g.fillRect(x, y - 17, w, 2); }
+  else { g.fillStyle = 'rgba(205,200,190,.95)'; g.fillRect(x, y - 16, w, 15); g.fillStyle = 'rgba(0,0,0,.1)'; g.fillRect(x, y - 3, w, 2); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(x, y - 16, w, 1.2); }
+  g.fillStyle = 'rgba(0,0,0,.2)'; for (let k = 0; k < w; k += 30) g.fillRect(x + k, y - 17, 1.5, 17); // [T16] 部屋ごとの仕切り板の線
+  if (r() < .5) { const lx = x + w * .1 + r() * w * .5; g.strokeStyle = 'rgba(140,140,140,.8)'; g.lineWidth = .8; g.beginPath(); g.moveTo(lx - 2, y - 22); g.lineTo(lx + 24, y - 22); g.stroke(); for (let k = 0; k < 4; k++) { g.fillStyle = ['#E9EDF0', '#C8D2DA', '#F4CFD8', '#D7EFD0', '#355F86'][(r() * 5) | 0]; g.fillRect(lx + k * 6, y - 22, 5, 8 + r() * 4); } } // [T17] 物干しざおと洗たく物
+  if (r() < .35) { g.fillStyle = '#5F9E5A'; g.beginPath(); g.ellipse(x + w * (.7 + r() * .2), y - 19, 4, 4, 0, 0, Math.PI * 2); g.fill(); } // [T18] ベランダの植木
 }
-function acUnit(g, x, y) { g.fillStyle = '#D9DCDF'; g.fillRect(x, y, 10, 7); g.fillStyle = '#9AA0A6'; g.fillRect(x + 2, y + 1, 6, 5); g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(x, y + 7, 10, 2); }
-function slabLine(g, PW, y) { g.fillStyle = 'rgba(0,0,0,.13)'; g.fillRect(0, y, PW, 2); g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(0, y - 1, PW, 1); }
+function acUnit(g, x, y) { g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x + 1, y + 7, 10, 2.5); g.fillStyle = '#E3E5E7'; g.fillRect(x, y, 10, 7); g.fillStyle = '#9AA0A6'; g.beginPath(); g.arc(x + 4, y + 3.5, 2.6, 0, Math.PI * 2); g.fill(); g.fillStyle = '#C9CDD1'; g.fillRect(x + 7.5, y + 1, 1.8, 5); g.strokeStyle = 'rgba(120,120,120,.6)'; g.lineWidth = .6; g.beginPath(); g.moveTo(x + 10, y + 2); g.quadraticCurveTo(x + 13, y + 2, x + 13, y - 6); g.stroke(); } // [T19] 室外機：丸いファン・横の格子・下のかげ・壁へ上がる配管
+function slabLine(g, PW, y) { g.fillStyle = 'rgba(0,0,0,.13)'; g.fillRect(0, y, PW, 2); g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(0, y - 1, PW, 1); g.fillStyle = 'rgba(0,0,0,.05)'; g.fillRect(0, y + 2, PW, 5); } // [T20] 床の帯の下に、雨だれのうすいよごれ
 function signText(g, txt, x, y, w, h, color, bg) {
   if (bg) { g.fillStyle = bg; g.fillRect(x, y, w, h); }
   g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip(); g.fillStyle = color; g.textAlign = 'center'; g.textBaseline = 'middle';
@@ -89,25 +169,42 @@ function neonSign(g, r, x, y, w, h, night, txt, vertical, pal) {
   g.restore();
 }
 function shopFront(g, r, PW, y0, y1, night, words, awningCols) { // y0 = top of ground floor, y1 = street level
-  const H = y1 - y0, glassTop = y0 + H * .28, awnH = H * .14;
-  // display window with interior
-  g.fillStyle = night ? '#FFF0CC' : '#2E3A46'; g.fillRect(4, glassTop, PW - 8, y1 - glassTop - 3);
-  if (!night) { const gr = g.createLinearGradient(0, glassTop, 0, y1); gr.addColorStop(0, 'rgba(170,200,225,.75)'); gr.addColorStop(.6, 'rgba(120,150,175,.35)'); gr.addColorStop(1, 'rgba(40,50,60,0)'); g.fillStyle = gr; g.fillRect(4, glassTop, PW - 8, y1 - glassTop - 3); }
-  // shelves / people inside
-  for (let k = 0; k < 4 + r() * 4; k++) { g.fillStyle = ['#E86A75', '#F2C230', '#4E77A0', '#5F9E5A', '#F08A2E', '#FBF6EE'][(r() * 6) | 0]; g.globalAlpha = night ? .9 : .55; g.fillRect(8 + r() * (PW - 24), glassTop + 8 + r() * (y1 - glassTop - 26), 6 + r() * 8, 6 + r() * 10); } g.globalAlpha = 1;
-  // door
-  const dx = PW * (.25 + r() * .5); g.fillStyle = 'rgba(30,30,36,.85)'; g.fillRect(dx - 9, glassTop + 3, 18, y1 - glassTop - 6); g.fillStyle = night ? 'rgba(255,240,200,.75)' : 'rgba(120,150,175,.5)'; g.fillRect(dx - 7, glassTop + 5, 14, y1 - glassTop - 14);
+  const H = y1 - y0, glassTop = y0 + H * .3, awnH = H * .12, gb = y1 - 3;
+  r(); const shut = night && r() > .93 && words === SHOP_WORDS; /* 1 回目の数は種が小さいと必ず小さくなるので捨てる */ // [T93] 夜おそく、シャッターをおろした店もある
+  // [T21] 店の中：奥の壁・天井の明かり・たな・カウンター・人（夜は明るく、昼は暗くて少しだけ見える）
+  g.fillStyle = night ? (r() < .5 ? '#FFF0CC' : '#EEF6FF') : '#2E3A46'; g.fillRect(4, glassTop, PW - 8, gb - glassTop); // [T94] 店の明かりの色（あたたかい色・白い色）
+  g.fillStyle = night ? 'rgba(255,255,255,.75)' : 'rgba(230,236,240,.35)'; for (let x = 14; x < PW - 14; x += 26) g.fillRect(x, glassTop + 3, 14, 1.6); // [T22] 天井の明かりの列
+  const shelfC = night ? 'rgba(120,90,60,.5)' : 'rgba(150,160,170,.35)'; for (let k = 1; k <= 3; k++) { const yy = glassTop + (gb - glassTop) * (.2 + k * .17); g.fillStyle = shelfC; g.fillRect(8, yy, PW - 16, 1.4); // [T23] 奥のたなの段
+    for (let x = 10; x < PW - 12; x += 3 + r() * 3) { g.fillStyle = ['#E86A75', '#F2C230', '#4E77A0', '#5F9E5A', '#F08A2E', '#FBF6EE', '#9C7BD0'][(r() * 7) | 0]; g.globalAlpha = night ? .85 : .4; g.fillRect(x, yy - 3 - r() * 2, 2.2, 3 + r() * 2); } } g.globalAlpha = 1; // [T24] たなの上の品物
+  g.fillStyle = night ? 'rgba(140,100,70,.55)' : 'rgba(30,36,44,.6)'; g.fillRect(PW * (.55 + r() * .2), gb - (gb - glassTop) * .3, PW * .2, (gb - glassTop) * .3); // [T25] カウンター
+  for (let k = 0; k < 1 + r() * 2; k++) { const px = 12 + r() * (PW - 30), ph = (gb - glassTop) * (.45 + r() * .1); g.fillStyle = night ? 'rgba(60,40,40,.55)' : 'rgba(20,24,30,.55)'; g.beginPath(); g.ellipse(px, gb - ph, 2.6, 3, 0, 0, Math.PI * 2); g.fill(); g.fillRect(px - 3.2, gb - ph + 2.5, 6.4, ph - 2.5); } // [T26] 店の中のお客さん
+  if (!night) { const gr = g.createLinearGradient(0, glassTop, 0, gb); gr.addColorStop(0, 'rgba(170,200,225,.7)'); gr.addColorStop(.55, 'rgba(120,150,175,.28)'); gr.addColorStop(1, 'rgba(40,50,60,0)'); g.fillStyle = gr; g.fillRect(4, glassTop, PW - 8, gb - glassTop);
+    g.fillStyle = 'rgba(255,255,255,.16)'; for (let x = 10; x < PW; x += 60) { g.beginPath(); g.moveTo(x, gb); g.lineTo(x + 18, glassTop); g.lineTo(x + 30, glassTop); g.lineTo(x + 12, gb); g.fill(); } } // [T27] ガラスの反射（空・ななめの光）
+  // [T28] 入口：自動ドア 2 枚（まん中の合わせ目・取っ手）・足もとのマット
+  const dx = PW * (.25 + r() * .5); g.fillStyle = 'rgba(30,30,36,.85)'; g.fillRect(dx - 11, glassTop + 2, 22, gb - glassTop - 2); g.fillStyle = night ? 'rgba(255,240,200,.75)' : 'rgba(120,150,175,.5)'; g.fillRect(dx - 9.5, glassTop + 4, 8.8, gb - glassTop - 8); g.fillRect(dx + .7, glassTop + 4, 8.8, gb - glassTop - 8);
+  g.fillStyle = 'rgba(200,200,200,.9)'; g.fillRect(dx - 2.4, glassTop + (gb - glassTop) * .45, 1.2, 6); g.fillRect(dx + 1.2, glassTop + (gb - glassTop) * .45, 1.2, 6);
+  g.fillStyle = 'rgba(40,40,44,.75)'; g.fillRect(dx - 12, gb - 1.5, 24, 2.5); g.fillStyle = '#F2C230'; g.fillRect(dx - 8, glassTop + (gb - glassTop) * .55, 4, 2); // ドアの注意のシール
+  // [T29] 窓に貼った紙（営業時間・セール・メニュー）
+  if (r() < .7) { const px = dx + (r() < .5 ? -1 : 1) * (22 + r() * 20); if (px > 8 && px < PW - 20) { g.fillStyle = 'rgba(251,246,238,.92)'; g.fillRect(px, glassTop + (gb - glassTop) * .35, 11, 14); g.fillStyle = (['#C8463C', '#355F86', '#3B2A20'])[(r() * 9 | 0) % ['#C8463C', '#355F86', '#3B2A20'].length]; for (let k = 0; k < 4; k++) g.fillRect(px + 2, glassTop + (gb - glassTop) * .35 + 3 + k * 2.5, 7 - (k % 2) * 2, 1); } }
   // frame & mullions
-  g.strokeStyle = 'rgba(40,40,44,.9)'; g.lineWidth = 2; g.strokeRect(4, glassTop, PW - 8, y1 - glassTop - 3); for (let x = 4 + 28; x < PW - 8; x += 28) g.fillRect(x, glassTop, 1.5, y1 - glassTop - 3);
+  g.fillStyle = 'rgba(40,40,44,.9)'; g.strokeStyle = 'rgba(40,40,44,.9)'; g.lineWidth = 2; g.strokeRect(4, glassTop, PW - 8, gb - glassTop); for (let x = 4 + 30; x < PW - 8; x += 30) if (Math.abs(x - dx) > 13) g.fillRect(x, glassTop, 1.5, gb - glassTop);
+  g.fillStyle = 'rgba(110,110,114,.95)'; g.fillRect(4, gb - 4, PW - 8, 4); // [T30] ガラスの下の腰（金属のけこみ）
   // awning with sign
   const col = awningCols[(r() * awningCols.length) | 0];
   g.fillStyle = col; g.fillRect(0, glassTop - awnH, PW, awnH); g.fillStyle = 'rgba(255,255,255,.18)'; for (let x = 0; x < PW; x += 14) g.fillRect(x, glassTop - awnH, 7, awnH);
+  g.fillStyle = 'rgba(0,0,0,.18)'; for (let x = 0; x < PW; x += 7) { g.beginPath(); g.arc(x + 3.5, glassTop, 3.5, 0, Math.PI); g.fill(); } // [T31] テントのすその波形
   g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, glassTop - 2, PW, 3);
-  const word = words[(r() * words.length) | 0];
-  signText(g, word, 6, y0 + 2, PW - 12, glassTop - awnH - y0 - 4, night ? '#FFF6E0' : '#2B2B2B', night ? 'rgba(255,255,255,.08)' : 'rgba(255,255,255,.55)');
+  // [T32] 看板：枠・文字・小さなロゴの丸・夜は箱の中から光る
+  const word = words[(r() * words.length) | 0], sy0 = y0 + 2, sh = glassTop - awnH - y0 - 4, bgC = night ? 'rgba(255,250,235,.95)' : (['rgba(255,255,255,.88)', 'rgba(251,246,238,.92)', 'rgba(43,43,43,.9)', 'rgba(53,95,134,.9)'])[(r() * 9 | 0) % ['rgba(255,255,255,.88)', 'rgba(251,246,238,.92)', 'rgba(43,43,43,.9)', 'rgba(53,95,134,.9)'].length], ink = /43,43,43|53,95,134/.test(bgC) ? '#FBF6EE' : '#2B2B2B';
+  g.fillStyle = 'rgba(60,60,64,.9)'; g.fillRect(4, sy0 - 1, PW - 8, sh + 2); g.fillStyle = bgC; g.fillRect(6, sy0, PW - 12, sh);
+  if (night) { g.save(); g.shadowColor = 'rgba(255,230,170,.9)'; g.shadowBlur = 8; g.fillStyle = 'rgba(255,240,200,.25)'; g.fillRect(6, sy0, PW - 12, sh); g.restore(); }
+  { const c = (['#C8463C', '#F2C230', '#5F9E5A', '#4E77A0'])[(r() * 9 | 0) % ['#C8463C', '#F2C230', '#5F9E5A', '#4E77A0'].length]; g.fillStyle = c; g.beginPath(); g.arc(14, sy0 + sh / 2, Math.min(5, sh * .32), 0, Math.PI * 2); g.fill(); }
+  signText(g, word, 22, sy0, PW - 34, sh, night ? '#2B2B2B' : ink, null);
   if (night) { g.fillStyle = 'rgba(255,230,170,.35)'; g.fillRect(0, glassTop - awnH - 2, PW, 2); }
+  if (shut) { g.fillStyle = '#9AA0A6'; g.fillRect(4, glassTop, PW - 8, gb - glassTop); g.fillStyle = 'rgba(0,0,0,.18)'; for (let y = glassTop; y < gb; y += 3) g.fillRect(4, y, PW - 8, 1); g.fillStyle = 'rgba(40,40,44,.5)'; g.fillRect(PW * .45, gb - 6, PW * .1, 2); }
+  if (!night && sh > 14) { g.fillStyle = ink === '#FBF6EE' ? 'rgba(251,246,238,.7)' : 'rgba(43,43,43,.55)'; g.fillRect(PW * .35, sy0 + sh - 4, PW * .3, 1.4); } // [T95] 看板の下の小さな文字の行
   // step / curb
-  g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(0, y1 - 3, PW, 3);
+  g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(0, y1 - 3, PW, 3); g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(0, y1 - 3, PW, .8); // [T33] 入口の段のふち
 }
 
 const FAC_STYLE = {
@@ -358,12 +455,16 @@ const FAC_STYLE = {
 
 /* ---- the renderer side: draw the wall's texture in perspective strips ---- */
 const FS = new Float32Array(12);
-function drawFacadeTex(w, dist) {
-  const night = LT.night > .35, img0 = facadeTex(w.st, w.fv, w.fw, w.fh, night, w.fm, 1);
-  if (!img0 || !img0.width) return facade(w, dist);
-  const img = night ? img0 : litSprite(img0, LT.amb);
+function drawFacadeTex(w, dist) { /* [R16] 夕方：昼の絵と夜の絵を少しずつ入れかえる（前は一瞬で切りかわり、窓の明かりが急に全部ついた） */
+  const n = LT.night; if (n > .27 && n < .43 && dist < 70) { drawFacImg(w, dist, false, 1); drawFacImg(w, dist, true, (n - .27) / .16); return; }
+  drawFacImg(w, dist, n > .35, 1);
+}
+function drawFacImg(w, dist, night, aMul) {
+  const img0 = facadeTex(w.st, w.fv, w.fw, w.fh, night, w.fm, dist > 18 ? 1 : 0); /* [R6] 近くの壁は、その場で必ず描く（間に合わない時に簡単な絵へ切りかわり、目の前で絵が変わった） */
+  if (!img0 || !img0.width) return aMul < 1 ? null : facade(w, dist);
+  let img = night ? img0 : litSprite(img0, LT.amb);
   const lq = typeof lowQ !== 'undefined' ? lowQ : 0; // the light mode keeps every building front, just in fewer, cheaper strips
-  const v = w.v, IW = img.width, IH = img.height;
+  const v = w.v; let IW = img.width, IH = img.height;
   // world corners: A0 bottom-a, B0 bottom-b, B1 top-b, A1 top-a; camera depth is linear along the wall
   const C = [[v[0], v[1], v[2]], [v[3], v[4], v[5]], [v[6], v[7], v[8]], [v[9], v[10], v[11]]];
   for (let i = 0; i < 4; i++) tc(C[i][0], C[i][1], C[i][2], FS, i * 3);
@@ -374,11 +475,13 @@ function drawFacadeTex(w, dist) {
   if (zA < ZN) ua = (ZN - zA) / (zB - zA); else if (zB < ZN) ub = (ZN - zA) / (zB - zA);
   ua = clamp(ua, 0, 1); ub = clamp(ub, 0, 1); if (ub - ua < .002) return;
   const za = lerp(zA, zB, ua), zb = lerp(zA, zB, ub), ratio = Math.max(za, zb) / Math.max(.3, Math.min(za, zb));
+  { const ppx = FOCAL / Math.max(.5, Math.min(za, zb)) / FAC_P; img = facMip(img, ppx); IW = img.width; IH = img.height; } /* [R2] 遠くの壁は、前もって小さくした絵で（大きい絵を小さく縮めると、窓がちらちら・ざらざらになった） */
   // columns follow the depth change (the near end of a long wall would swim with one affine map); rows follow screen height
-  const cols = dist > 30 || lq ? 1 : clamp(Math.ceil(Math.log2(ratio) * 1.6), 1, 6);
+  const cols = clamp(Math.ceil(Math.log2(ratio) * (lq ? .9 : 1.7)), 1, lq ? 3 : 8); /* [R3] 遠くても、ななめに長く見える壁は細かく分けて貼る（1 枚で貼ると絵がゆがんで泳いだ） */
   const rows = dist > 30 || lq ? 1 : clamp(Math.ceil(80 / Math.max(4, Math.min(za, zb))), 1, 4), noClip = dist > (lq ? 12 : 30) && ua === 0 && ub === 1;
   const P = (u, t) => { const bx = lerp(C[0][0], C[1][0], u), by = lerp(C[0][1], C[1][1], u), bz = lerp(C[0][2], C[1][2], u), tx = lerp(C[3][0], C[2][0], u), ty = lerp(C[3][1], C[2][1], u), tz = lerp(C[3][2], C[2][2], u); return [lerp(bx, tx, t), lerp(by, ty, t), lerp(bz, tz, t)]; };
   const sx = [0, 0, 0, 0], sy = [0, 0, 0, 0];
+  const fa = (1 - fogK(dist) * .92) * aMul; if (fa < .03) return; ctx.globalAlpha = fa; /* [R1] 遠くの壁の絵も、もやの濃さに合わせてうすく（前は 75m で急に簡単な絵、95m で無地に変わり「途中で消える」ように見えた） */
   for (let ci = 0; ci < cols; ci++) {
     const uL = lerp(ua, ub, ci / cols), uR = lerp(ua, ub, (ci + 1) / cols);
     const tu0 = (w.fu0 + (w.fu1 - w.fu0) * uL) * IW, tu1 = (w.fu0 + (w.fu1 - w.fu0) * uR) * IW, tw = tu1 - tu0; if (Math.abs(tw) < .3) continue;
@@ -386,7 +489,7 @@ function drawFacadeTex(w, dist) {
       const t0 = k / rows, t1 = (k + 1) / rows, q = [P(uL, t0), P(uR, t0), P(uR, t1), P(uL, t1)];
       let ok = true; for (let i = 0; i < 4; i++) { tc(q[i][0], q[i][1], q[i][2], FS, i * 3); const z = FS[i * 3 + 2]; if (z < NEAR) { ok = false; break; } sx[i] = W / 2 + FS[i * 3] * FOCAL / z; sy[i] = HORIZON - FS[i * 3 + 1] * FOCAL / z; }
       if (!ok) continue;
-      const ty1 = IH * (1 - t0), ty0 = IH * (1 - t1), th = ty1 - ty0; if (th < .3) continue;
+      const f0 = w.fy0 || 0, f1 = w.fy1 == null ? 1 : w.fy1, ty1 = IH * (1 - (f0 + (f1 - f0) * t0)), ty0 = IH * (1 - (f0 + (f1 - f0) * t1)), th = ty1 - ty0; if (th < .3) continue; /* [R4] 段ごとの壁には、絵の縦の一部だけを貼る（1 階・基壇・塔） */
       const a = (sx[1] - sx[0]) / tw, b = (sy[1] - sy[0]) / tw, c = (sx[3] - sx[0]) / th, d = (sy[3] - sy[0]) / th;
       ctx.save();
       if (!noClip) { // a hair of overlap hides the seams between cells
@@ -400,7 +503,12 @@ function drawFacadeTex(w, dist) {
       ctx.restore();
     }
   }
+  ctx.globalAlpha = 1;
 }
+const FAC_MIP = new WeakMap();
+function facMip(img, ppx) { if (ppx > .55 || !img || img.width < 64) return img; let m = FAC_MIP.get(img); if (!m) { m = []; FAC_MIP.set(img, m); }
+  const lv = ppx > .28 ? 0 : 1; if (!m[lv]) { const src = lv ? facMip(img, .4) : img, c = document.createElement('canvas'); c.width = Math.max(8, src.width >> 1); c.height = Math.max(8, src.height >> 1); const g = c.getContext('2d'); if (!g) return img; g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height); c.__half = (lv + 1); m[lv] = c; }
+  return m[lv]; }
 
 const SPR_PEND = {};
 const SPR_FN = {}; // how each late-painted picture is made, kept so that it can be painted again (picRepairAll)
