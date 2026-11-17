@@ -5,7 +5,7 @@ const TREE = { green: ['#5F9E5A', '#4C8A48', '#7DB46A'], ginkgo: ['#E8B923', '#F
 const THEMES = {
   /* ---- the boss's house ---- */
   titleroom: { ja: '課長の家・寝室', en: "The boss's bedroom", kind: 'room', len: [26, 26], road: ['#D6C98A', '#CEBF7E'], rpat: 'tatami', side: ['#D2C483', '#C9BA77'], spat: 'tatami',
-    wall: '#EFE6D2', base: '#8A6A48', wallH: 3.0, ceil: '#B49A78', cpat: 'wood', light: 'round', wdeco: ['shoji'], backW: 5.2, backAt: -1.6, props: [], obs: [], hidden: 1 },
+    wall: '#EFE6D2', wpat: 'juraku', base: '#8A6A48', wallH: 3.0, ceil: '#B49A78', cpat: 'wood', light: 'round', wdeco: ['shoji'], backW: 5.2, backAt: -1.6, props: [], obs: [], hidden: 1 },
   bedroom:  { ja: '課長の家・寝室', en: "The boss's bedroom", kind: 'room', len: [62, 72], road: ['#D6C98A', '#CEBF7E'], rpat: 'tatami', side: ['#D2C483', '#C9BA77'], spat: 'tatami',
     wall: '#EFE6D2', base: '#8A6A48', wallH: 3.0, ceil: '#B49A78', cpat: 'wood', light: 'round', wdeco: ['shoji', 'shoji', 'fusuma', 'tokonoma', 'calendar'], props: [['tansu', 2], ['futon', 2], ['andon', 2], ['zabutonS', 2], ['papersS', 2]], obs: ['zabuton', 'clock', 'chabudai', 'futon', 'box', 'papers'] },
   hall:     { ja: '課長の家・廊下', en: "The boss's hallway", kind: 'room', len: [60, 70], road: ['#B98A5A', '#B08152'], rpat: 'boards', side: ['#B08152', '#A87A4C'], spat: 'boards',

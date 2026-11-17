@@ -4,8 +4,10 @@ function decalDraw(p, d) {
   if (d > 60) return; const a = clamp(1 - d / 60, 0, 1) * (LT.night > .5 ? .8 : 1), T = c => tint(c);
   ctx.globalAlpha = a;
   switch (p.dec) {
-    case 'futonD': quadImage(futonTopTex2(), 14, 10); break; // 敷きぶとんの上の面（2026-11-17：箱の上にのせる。マットのふちまでいっぱいに）
-    case 'futonShadow': quadImage(futonShadowTex(), 6, 6); break; // the boss's futon, still unmade (a soft painted picture laid on the floor in perspective)
+    case 'futonD': quadImage(futonTopTex3(), 14, 10); break; // 敷きぶとんの上の面（2026-11-17：箱の上にのせる。マットのふちまでいっぱいに）
+    case 'futonShadow': quadImage(futonShadowTex(), 6, 6); break;
+    case 'zabuTop': quadImage(zabuTopTex(p.zc || '#B4572E'), 6, 6); break; // 2026-11-17 ホーム画面の第 2 段：座布団の上の面
+    case 'zabuShadow': quadImage(futonShadowTex(), 4, 4); break; // the boss's futon, still unmade (a soft painted picture laid on the floor in perspective)
     case 'manhole': { const c = bil(.5, .5), ex = bil(1, .5), ey = bil(.5, 1), rx = Math.hypot(ex[0] - c[0], ex[1] - c[1]), ry = Math.abs(ey[1] - c[1]) + Math.abs(ey[0] - c[0]) * .05;
       ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(1, rx), Math.max(1, Math.max(rx * .18, ry)), Math.atan2(ex[1] - c[1], ex[0] - c[0]), 0, Math.PI * 2); ctx.fillStyle = T('#4E4C48'); ctx.fill(); ctx.strokeStyle = T('#2E2C2A'); ctx.lineWidth = Math.max(.8, 18 / d); ctx.stroke();
       if (d < 22) { ctx.globalAlpha = a * .5; ctx.beginPath(); for (let k = 1; k < 4; k++) bline(.5 - k * .1, .2, .5 - k * .1, .8), bline(.5 + k * .1, .2, .5 + k * .1, .8); ctx.strokeStyle = T('#6E6A64'); ctx.lineWidth = Math.max(.6, 10 / d); ctx.stroke(); } break; }
@@ -122,13 +124,25 @@ function floorPattern(p, d) {
       /* 2026-11-17 畳（ホーム画面ほか）：[31] 長い辺の黒い縁（へり）と、そのもよう、[32] い草の細かい織り目（近くだけ）、[33] 1 枚ごとの色のちがい（新しい畳は青み、古いのは黄色） */
       ctx.stroke(); ctx.globalAlpha = a * .9; bquad(0, 0, 1, .025, T('#2E3A2E')); bquad(0, .975, 1, 1, T('#2E3A2E')); ctx.globalAlpha = a * .35; bquad(0, .006, 1, .012, T('#C9B48A')); bquad(0, .988, 1, .994, T('#C9B48A'));
       ctx.globalAlpha = a * .12; bquad(0, .03, 1, .97, T(p.ti % 3 === 0 ? '#9AB070' : p.ti % 3 === 1 ? '#D9C27A' : '#C9B97A'));
-      if (d < 14) { ctx.globalAlpha = a * .18; ctx.beginPath(); ctx.strokeStyle = T('#7A7040'); for (let k = 1; k < 24; k++) bline(k / 24, .03, k / 24, .97); } break;
+      /* 2026-11-17 ホーム画面の第 2 段（オーナー「まだごわごわしてる」）：手前の畳の目が、太い横じまに見えていた（線の太さが近いほど太くなる作りだった）。
+         [64] い草の目を本物の細かさ（約 2cm）に [65] 線は細く・うすく [66] たての糸（経糸）のかすかな線 [67] い草 1 本ずつの色むら [68] 光の当たる向きのつや */
+      ctx.stroke(); if (d < 16) { const n = d < 7 ? 90 : 45, r = rnd(p.ti * 41 + 3); ctx.lineWidth = Math.max(.35, 2.2 / Math.max(d, 1)); ctx.globalAlpha = a * (d < 7 ? .1 : .14); ctx.beginPath(); ctx.strokeStyle = T('#6E6636'); for (let k = 1; k < n; k++) bline(k / n, .03, k / n, .97); ctx.stroke();
+        ctx.globalAlpha = a * .06; ctx.beginPath(); ctx.strokeStyle = T('#4A4422'); for (let k = 1; k < 8; k++) bline(0, .03 + k * .94 / 8, 1, .03 + k * .94 / 8); ctx.stroke();
+        if (d < 9) { ctx.globalAlpha = a * .18; for (let k = 0; k < 40; k++) { const u = r(), v = .03 + r() * .94; bquad(u, v, u + .011, v + .05 + r() * .1, T(r() < .5 ? '#A9B46E' : '#D6C27A')); } }
+        ctx.globalAlpha = a * .07; bquad(.2, .03, .45, .97, '#FFFFFF'); } ctx.beginPath(); break;
     case 'boards': ctx.strokeStyle = T('#6B4631'); for (let k = 1; k < 8; k++) bline(0, k / 8, 1, k / 8); { const v = (p.ti * 3 % 8) / 8; bline(.5, v, .5, v + 1 / 8); } break;
     case 'rug': ctx.globalAlpha = a * .7; ctx.strokeStyle = T('#F2C230'); bline(0, .15, 1, .15); bline(0, .85, 1, .85); ctx.stroke(); ctx.beginPath(); ctx.strokeStyle = T('#7A2E24'); bline(0, .5, 1, .5); break;
     case 'grid': ctx.globalAlpha = a * .3; ctx.strokeStyle = T('#8F8676'); for (let k = 0; k <= 4; k++) bline(0, k / 4, 1, k / 4); bline(0, 0, 0, 1); bline(.5, 0, .5, 1); break;
     case 'carpet': ctx.globalAlpha = a * .28; ctx.strokeStyle = T('#4E5B68'); for (let k = 0; k <= 4; k++) bline(0, k / 4, 1, k / 4); bline(0, 0, 0, 1); break;
     case 'stone': case 'plaza': ctx.globalAlpha = a * .22; ctx.strokeStyle = T('#55534D'); for (let k = 0; k <= 4; k++) bline(0, k / 4, 1, k / 4); bline(0, 0, 0, 1); bline(.5, (p.ti % 2) * .25, .5, (p.ti % 2) * .25 + .25); break;
-    case 'gravel': ctx.fillStyle = T('#A8966F'); for (let k = 0; k < 8; k++) bquad((k * .37 + p.ti * .11) % .9, (k * .61) % .9, (k * .37 + p.ti * .11) % .9 + .04, (k * .61) % .9 + .05, T('#A8966F')); break;
+    case 'gravel': ctx.fillStyle = T('#A8966F'); for (let k = 0; k < 8; k++) bquad((k * .37 + p.ti * .11) % .9, (k * .61) % .9, (k * .37 + p.ti * .11) % .9 + .04, (k * .61) % .9 + .05, T('#A8966F'));
+      /* 2026-11-17 景色 189〜193：川沿い・公園の土の遊歩道（u＝進む向き 1.5m、v＝横 5.2m） */
+      { const r = rnd(p.ti * 17 + 9); ctx.globalAlpha = a * .12; bquad(0, .3, 1, .7, '#FFFFFF'); // [190] 人がよく歩くまん中の、ふみ固められた明るい帯
+        ctx.globalAlpha = a * .18; bquad(0, 0, 1, .06, '#3A2E20'); bquad(0, .94, 1, 1, '#3A2E20'); // [191] 両はしの、雨水の流れたあとの暗い帯
+        if (d < 22) { ctx.globalAlpha = a * .5; for (let k = 0; k < 30; k++) { const u = r(), v = r(); bquad(u, v, u + .008, v + .004, r() < .5 ? T('#6E5E44') : T('#D8CCB2')); } } // [189] 細かい土のつぶ
+        if (d < 30 && p.ti % 3 === 1) { ctx.globalAlpha = a * .8; for (let k = 0; k < 4; k++) { const u = r(), v = .08 + r() * .84; bquad(u, v, u + .03, v + .012, T(['#C9861B', '#A8562A', '#D9B84A', '#7A5A2A'][k % 4])); } } // [192] 落ち葉
+        ctx.globalAlpha = a * .22; ctx.strokeStyle = '#4A3C28'; ctx.lineWidth = Math.max(.5, 6 / Math.max(d, 4)); ctx.beginPath(); const v0 = .42 + Math.sin(p.ti * .7) * .04, v1 = .42 + Math.sin(p.ti * .7 + .7) * .04; bline(0, v0, 1, v1); ctx.stroke(); ctx.beginPath(); ctx.globalAlpha = a * .4; } // [193] 自転車のわだち
+      break;
     case 'leaves': for (let k = 0; k < 9; k++) bquad((k * .29 + p.ti * .17) % .92, (k * .53) % .9, (k * .29 + p.ti * .17) % .92 + .06, (k * .53) % .9 + .08, k % 2 ? T('#F2CD45') : T('#C9961B')); break;
     case 'road': case 'hokoten': ctx.globalAlpha = Math.min(1, a * 1.5) * .8; ctx.strokeStyle = T('#ECEBE4'); ctx.lineWidth *= 1.25; if (p.ti % 3 !== 2) { bline(0, .355, 1, .355); bline(0, .645, 1, .645); } ctx.stroke(); ctx.beginPath(); ctx.strokeStyle = T('#E4E3DC'); ctx.lineWidth *= 1.2; bline(0, .03, 1, .03); bline(0, .97, 1, .97);
       if (d < 42 && p.pat === 'road') roadWear(p, d, a, T); // 2026-11-17 景色 21〜30：本物のアスファルトの使われたあと
@@ -157,7 +171,18 @@ function floorPattern(p, d) {
     case 'planks': ctx.strokeStyle = T('#B9B2A5'); for (let k = 1; k < 7; k++) bline(0, k / 7, 1, k / 7); bline(.5, 0, .5, 1); break;
     case 'stairs': ctx.globalAlpha = Math.min(1, a * 1.4); ctx.strokeStyle = T('#4F555B'); for (let k = 0; k < 6; k++) bline(k / 6, 0, k / 6, 1); ctx.stroke(); ctx.beginPath(); ctx.strokeStyle = T('#F2C230'); bline(0, .02, 1, .02); bline(0, .98, 1, .98); break;
     case 'water': case 'sea': { ctx.globalAlpha = .5; ctx.strokeStyle = LT.night > .5 ? 'rgba(255,220,160,.5)' : 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.4; const o = (G.t * .15) % .25;
-      for (let k = 0; k < 4; k++) { const v = (k * .25 + o) % 1; bline(.1 + (k % 2) * .3, v, .35 + (k % 2) * .3, v + .02); } } break;
+      for (let k = 0; k < 4; k++) { const v = (k * .25 + o) % 1; bline(.1 + (k % 2) * .3, v, .35 + (k % 2) * .3, v + .02); }
+      /* 2026-11-17 景色 194〜201：川・運河・海の水面 */
+      ctx.stroke(); ctx.beginPath(); const N = LT.night > .5, r = rnd(p.ti * 23 + 5), aa = clamp(1 - d / 90, 0, 1);
+      ctx.globalAlpha = aa * .18; bquad(0, 0, 1, .15, '#0E2234'); bquad(0, .85, 1, 1, '#0E2234'); // [194] 岸に近いほど濃い色（深さ）
+      if (d > 25) { ctx.globalAlpha = aa * .15; bquad(0, .3, 1, .7, N ? '#3A4A6A' : '#E8F2FA'); } // [195] 遠くの水面にうつる空の明るさ
+      if (d < 45) { ctx.globalAlpha = aa * .3; ctx.strokeStyle = N ? 'rgba(180,200,230,.6)' : 'rgba(255,255,255,.7)'; ctx.lineWidth = Math.max(.5, 5 / Math.max(d, 4)); for (let k = 0; k < 10; k++) { const u = (r() + G.t * .03) % 1, v = r(); bline(u, v, u + .12, v + .005); } ctx.stroke(); ctx.beginPath(); } // [196] 細かいさざ波
+      if (!N) { ctx.globalAlpha = aa * .9; for (let k = 0; k < 5; k++) { const u = r(), v = r(), on = Math.sin(G.t * 6 + k * 2.3 + p.ti) > .6; if (on) bquad(u, v, u + .015, v + .015, '#FFFFFF'); } } // [197] 日の光のきらめき（ちらちら）
+      else { ctx.globalAlpha = aa * .35; for (let k = 0; k < 3; k++) { const v = r(), w2 = Math.sin(G.t * 2 + k + p.ti) * .01; bquad(.1 + w2, v, .9 - w2, v + .02, ['#FFD27A', '#FFB060', '#F7F4E0'][k]); } } // [198] 夜：町の明かりの、ゆれる映りこみ
+      ctx.globalAlpha = aa * .25; bquad(0, 0, 1, .03, '#1A1A14'); bquad(0, .97, 1, 1, '#1A1A14'); // [200] 岸の水ぎわの黒いしみ
+      if (d < 35 && p.ti % 11 === 4) { const ph = (G.t * .5 + p.ti * .13) % 1, c = bil(.5, .5); ctx.globalAlpha = aa * .5 * (1 - ph); ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(2, (10 + ph * 60) / d), Math.max(1, (3 + ph * 16) / d), 0, 0, 7); ctx.stroke(); ctx.beginPath(); } // [201] 魚がはねた波紋の輪
+      if (d < 30 && p.ti % 5 === 2) { ctx.globalAlpha = aa * .8; for (let k = 0; k < 3; k++) { const u = (r() + G.t * .02) % 1, v = r(); bquad(u, v, u + .02, v + .01, ['#E8A6B8', '#C9861B', '#F7D3DE'][k]); } } // [199] 水に浮かぶ花びら・落ち葉（ゆっくり流れる）
+      ctx.globalAlpha = .5; } break;
   }
   ctx.stroke(); ctx.globalAlpha = 1;
 }
@@ -168,6 +193,15 @@ function wallPattern(w, d) {
   if (pat === 'fac') return w.fv != null && d < 75 ? drawFacadeTex(w, d) : facade(w, d); // far fronts still get their windows, just painted simply
   if (pat === 'roof') { ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1; ctx.beginPath(); for (let k = 1; k < 6; k++) bline(0, k / 6, 1, k / 6); ctx.stroke(); return; }
   if (d > 60) return;
+  if (pat === 'juraku') { /* 2026-11-17 ホーム画面の第 2 段：和室の壁（u＝横 3m、v＝下 0・上 1、高さ 3.0m）。前は、うすい黄色の平らな面だった
+      [99] じゅらく壁の細かい砂のつぶ [100] うっすらした色むら [101] 長押（木の横木。高さ 2.0m） [102] 長押の下に落ちる細いかげ [103] 天井近くの小壁の明るさ [104] 畳寄せ（壁と畳の間の細い木） */
+    const r = rnd(((w.v[0] * 13 + w.v[2] * 7) | 0) + 3), T = tint;
+    ctx.globalAlpha = .06; bquad(0, 0, .5, 1, '#8A6A40'); ctx.globalAlpha = .05; bquad(.5, .2, 1, .8, '#FFFFFF');
+    if (d < 20) { ctx.globalAlpha = .28; for (let k = 0; k < 160; k++) { const u = r(), v = r() * .66; bquad(u, v, u + .003, v + .004, r() < .5 ? T('#B8A27A') : T('#FFF8E8')); } }
+    ctx.globalAlpha = .1; bquad(0, .7, 1, 1, '#FFFFFF');
+    ctx.globalAlpha = .95; bquad(0, .666, 1, .694, T('#9C7A52')); ctx.globalAlpha = .5; bquad(0, .688, 1, .694, T('#C9A87C')); ctx.globalAlpha = .18; bquad(0, .64, 1, .666, '#3A2A18');
+    ctx.globalAlpha = .9; bquad(0, 0, 1, .02, T('#7A5A38'));
+    ctx.globalAlpha = 1; return; }
   if (pat === 'blocks') { const sd = Math.abs((w.v[0] * 7 + w.v[2] * 13 + w.v[1] * 3) | 0), near = d < 30, T = tint;
     /* 2026-11-17 景色 98〜104：住宅街のブロック塀（u＝横 3m、v＝下 0・上 1、高さ 1.35m） */
     if (sd % 4 === 1 && near) { ctx.globalAlpha = .95; bquad(.08, .02, .44, .86, T('#4E5156')); ctx.globalAlpha = .9; for (let k = 0; k < 12; k++) { const u = .1 + k * .03; bquad(u, .05, u + .012, .84, T('#7A7E84')); } bquad(.08, .8, .44, .86, T('#8A8E94')); bquad(.08, .05, .44, .1, T('#6E7278')); ctx.globalAlpha = 1; } // [101] アルミの門扉（たての格子）
@@ -199,7 +233,7 @@ function ceiling(w, d) {
     ctx.strokeStyle = 'rgba(70,80,92,.28)'; ctx.lineWidth = 1; ctx.beginPath(); bline(0, 0, 0, 1); ctx.stroke(); }
   ctx.strokeStyle = 'rgba(0,0,0,.12)'; ctx.lineWidth = 1; ctx.beginPath();
   if (cp === 'plain' && !w.train) { bline(0, 1 / 3, 1, 1 / 3); bline(0, 2 / 3, 1, 2 / 3); }
-  if (cp === 'wood') { for (let k = 1; k < 8; k++) bline(0, k / 8, 1, k / 8); bline(0, 0, 1, 0); }
+  if (cp === 'wood') { for (let k = 1; k < 8; k++) bline(0, k / 8, 1, k / 8); bline(0, 0, 1, 0); if (d < 18) { ctx.stroke(); const rr = rnd((w.ti || 0) * 7 + 5); ctx.save(); ctx.strokeStyle = 'rgba(90,60,30,.12)'; ctx.lineWidth = .8; ctx.beginPath(); for (let k = 0; k < 8; k++) for (let j = 0; j < 3; j++) { const v = k / 8 + .02 + rr() * .09, u = rr() * .6; bline(u, v, u + .25 + rr() * .3, v + (rr() - .5) * .01); } ctx.stroke(); ctx.restore(); ctx.beginPath(); } } // [110] 天井板の木目（2026-11-17）
   else if (cp === 'grid') { for (let k = 1; k < 4; k++) bline(0, k / 4, 1, k / 4); bline(0, 0, 1, 0); bline(.5, 0, .5, 1); }
   else if (cp === 'beams' || cp === 'girder') { ctx.stroke(); bquad(0, 0, .12, 1, cp === 'girder' ? tint('#2B2B30') : tint('#7D8791')); if (cp === 'girder') { ctx.strokeStyle = tint('#55555C'); ctx.beginPath(); bline(0, 0, 1, 1); bline(0, 1, 1, 0); } }
   ctx.stroke();
@@ -283,8 +317,10 @@ const DECO_DRAW = {
     const r = rnd(e.seed || 11); ctx.strokeStyle = 'rgba(190,175,150,.25)'; ctx.lineWidth = .7; ctx.beginPath(); for (let i = 0; i < 26; i++) { const u = r(), v = .18 + r() * .8; bline(u, v, u + .05 + r() * .05, v + (r() - .5) * .03); } ctx.stroke();
     if (!N) { ctx.globalAlpha = .13; ctx.strokeStyle = '#4A5A3A'; ctx.lineWidth = 3; ctx.beginPath(); bline(.05, .95, .55, .62); bline(.3, .8, .42, .92); bline(.4, .74, .52, .86); bline(.55, .62, .9, .55); ctx.stroke(); ctx.fillStyle = '#4A5A3A'; for (let i = 0; i < 9; i++) { const c = bil(.2 + r() * .7, .55 + r() * .4); ctx.beginPath(); ctx.ellipse(c[0], c[1], 4, 2, r() * 3, 0, 7); ctx.fill(); } ctx.globalAlpha = 1; }
     bquad(0, 0, 1, .16, tint('#B48C62')); ctx.strokeStyle = tint('#8A6A48'); ctx.lineWidth = 1; ctx.beginPath(); bline(0, .08, 1, .08); ctx.stroke();
+    { ctx.strokeStyle = 'rgba(110,70,35,.18)'; ctx.lineWidth = .8; ctx.beginPath(); for (let k = 0; k < 14; k++) { const v = .01 + r() * .14, u = r() * .7; bline(u, v, u + .2 + r() * .2, v + (r() - .5) * .01); } ctx.stroke(); } // [108] 下の腰板の木目（2026-11-17 ホーム画面の第 2 段）
     ctx.strokeStyle = 'rgba(80,55,30,.22)'; ctx.lineWidth = 2.6; ctx.beginPath(); for (let k = 1; k < 4; k++) bline(k / 4 + .006, .16, k / 4 + .006, 1); for (let k = 1; k < 6; k++) bline(0, .16 + k * .14 + .005, 1, .16 + k * .14 + .005); ctx.stroke();
     ctx.strokeStyle = tint('#A07C56'); ctx.lineWidth = 1.6; ctx.beginPath(); for (let k = 1; k < 4; k++) bline(k / 4, .16, k / 4, 1); for (let k = 1; k < 6; k++) bline(0, .16 + k * .14, 1, .16 + k * .14); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,245,225,.35)'; ctx.lineWidth = .7; ctx.beginPath(); for (let k = 1; k < 4; k++) bline(k / 4 - .004, .16, k / 4 - .004, 1); for (let k = 1; k < 6; k++) bline(0, .16 + k * .14 - .004, 1, .16 + k * .14 - .004); ctx.stroke(); // [109] 組子の、光の当たるふち
     ctx.strokeStyle = tint('#7A5636'); ctx.lineWidth = 3.4; ctx.beginPath(); bline(0, 0, 0, 1); bline(1, 0, 1, 1); bline(0, 1, 1, 1); bline(0, .16, 1, .16); ctx.stroke();
     bquad(.86, .5, .94, .56, tint('#C9B48A')); ctx.strokeStyle = tint('#8A6A48'); ctx.lineWidth = 1; ctx.beginPath(); bline(.86, .5, .94, .5); bline(.86, .56, .94, .56); ctx.stroke(); },
   fusuma(e) { bquad(0, 0, 1, 1, tint('#E9DDC1')); ctx.strokeStyle = tint('#6B4631'); ctx.lineWidth = 2; ctx.beginPath(); bline(0, 0, 0, 1); bline(.5, 0, .5, 1); bline(1, 0, 1, 1); bline(0, 1, 1, 1); ctx.stroke(); bquad(.38, .45, .44, .52, tint('#6B4631')); bquad(.56, .45, .62, .52, tint('#6B4631')); bquad(.05, .12, .45, .4, tint('#B9CBB0')); bquad(.55, .6, .95, .85, tint('#B9CBB0')); },
@@ -722,3 +758,20 @@ function stampSprite(tid, big) {
   g.font = '900 11px sans-serif'; g.fillText(LANG === 'ja' || !st || !st.en ? 'TOKYO' : st.en.toUpperCase(), 64, 92, 74);
   STAMP_CACHE[key] = c; return c;
 }
+
+/* 2026-11-17 ホーム画面の第 2 段（オーナー「まだごわごわしてる」）：座布団は、横にのびた棒の絵に見えていた。本物（55×59cm・厚さ 10cm）の大きさの箱を 2 枚重ね、上の面に絵をのせる。
+   [69] 本当の大きさと厚み [70] まん中のふくらみ（光とかげ） [71] まん中の糸のとじ（三方とじの房） [72] 4 すみの房 [73] 地紋（青海波） [74] ふちの縫い目 [75] 布の細かい織り目 */
+function zabuTopTex(c) { return artCanvas('zabuTop|' + c, 240, 240, (g, W, H) => { g.__keep = 1;
+  const gr = g.createRadialGradient(W * .42, H * .4, 8, W * .5, H * .5, W * .62); gr.addColorStop(0, shadeHex(c, 1.25)); gr.addColorStop(.55, c); gr.addColorStop(1, shadeHex(c, .72)); g.fillStyle = gr; g.fillRect(0, 0, W, H); // [70]
+  g.strokeStyle = 'rgba(255,255,255,.16)'; g.lineWidth = 1.2; for (let y = 18; y < H; y += 22) for (let x = (y / 22 % 2) * 11; x < W; x += 22) { g.beginPath(); g.arc(x, y, 10, Math.PI, 0); g.stroke(); g.beginPath(); g.arc(x, y, 6, Math.PI, 0); g.stroke(); } // [73] 青海波
+  g.fillStyle = 'rgba(0,0,0,.05)'; for (let y = 0; y < H; y += 2) g.fillRect(0, y, W, .6); for (let x = 0; x < W; x += 2) g.fillRect(x, 0, .6, H); // [75]
+  g.setLineDash([5, 4]); g.strokeStyle = 'rgba(255,255,255,.4)'; g.lineWidth = 1.5; g.strokeRect(9, 9, W - 18, H - 18); g.setLineDash([]); // [74]
+  g.fillStyle = shadeHex(c, .55); g.beginPath(); g.arc(W / 2, H / 2, 6, 0, 7); g.fill(); g.strokeStyle = shadeHex(c, .45); g.lineWidth = 2.5; for (const a of [0, 2.1, 4.2]) { g.beginPath(); g.moveTo(W / 2, H / 2); g.lineTo(W / 2 + Math.cos(a) * 13, H / 2 + Math.sin(a) * 13); g.stroke(); } // [71]
+  g.fillStyle = shadeHex(c, .8); for (const [x, y] of [[4, 4], [W - 4, 4], [4, H - 4], [W - 4, H - 4]]) { g.beginPath(); g.arc(x, y, 7, 0, 7); g.fill(); } // [72]
+  const e = 18; for (const [x, y, w, h, x0, y0, x1, y1] of [[0, 0, W, e, 0, 0, 0, e], [0, H - e, W, e, 0, H, 0, H - e], [0, 0, e, H, 0, 0, e, 0], [W - e, 0, e, H, W, 0, W - e, 0]]) { const sg = g.createLinearGradient(x0, y0, x1, y1); sg.addColorStop(0, 'rgba(0,0,0,.28)'); sg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = sg; g.fillRect(x, y, w, h); } }); } // ふちの丸み
+/* 2026-11-17 ホーム画面の第 2 段：敷きぶとんの上の面 [93] シーツのやわらかいしわ（光とかげの曲線） [94] 掛けぶとんの細かい麻の葉もよう [95] 木綿の細かい織り目 [96] 人が寝ていたくぼみ（まくらの下の、うすいかげ） */
+function futonTopTex3() { return artCanvas('futonTop3', 700, 500, (g, W, H) => { g.__keep = 1; g.drawImage(futonTopTex2(), 0, 0, W, H); const r = rnd(5);
+  for (let k = 0; k < 7; k++) { const x = W * (.1 + r() * .8), y = H * (.45 + r() * .5), l = 60 + r() * 120, a = r() * .6 - .3; g.save(); g.translate(x, y); g.rotate(a); const gr = g.createLinearGradient(0, -6, 0, 6); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(.45, 'rgba(255,255,255,.35)'); gr.addColorStop(.55, 'rgba(120,100,70,.18)'); gr.addColorStop(1, 'rgba(120,100,70,0)'); g.fillStyle = gr; g.beginPath(); g.ellipse(0, 0, l, 6, 0, 0, 7); g.fill(); g.restore(); } // [93]
+  g.save(); g.beginPath(); g.rect(0, 0, W, H * .36); g.clip(); g.strokeStyle = 'rgba(255,255,255,.12)'; g.lineWidth = 1; for (let y = 0; y < H * .36; y += 18) for (let x = (y / 18 % 2) * 15; x < W; x += 30) { g.beginPath(); for (let k = 0; k < 6; k++) { const a = k / 6 * 6.283; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * 9, y + Math.sin(a) * 9); } g.stroke(); } g.restore(); // [94]
+  g.fillStyle = 'rgba(0,0,0,.035)'; for (let y = 0; y < H; y += 2) g.fillRect(0, y, W, .7); for (let x = 0; x < W; x += 2) g.fillRect(x, 0, .7, H); // [95]
+  const dg = g.createRadialGradient(W * .5, H * .62, 10, W * .5, H * .62, W * .3); dg.addColorStop(0, 'rgba(110,90,60,.12)'); dg.addColorStop(1, 'rgba(110,90,60,0)'); g.fillStyle = dg; g.fillRect(0, 0, W, H); }); } // [96]

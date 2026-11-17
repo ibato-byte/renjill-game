@@ -136,7 +136,7 @@ function boxFaces(seg, b, ds, dl, dy) {
   return [
     { v: quad(seg, [[s0, l0, y1], [s0, l1, y1], [s1, l1, y1], [s1, l0, y1]]), n: [0, 1, 0], sh: FACE_SH.top, top: 1 },
     { v: quad(seg, [[s0, l0, y0], [s0, l1, y0], [s0, l1, y1], [s0, l0, y1]]), n: [-f[0], 0, -f[1]], sh: FACE_SH.front, front: 1 },
-    { v: quad(seg, [[s1, l1, y0], [s1, l0, y0], [s1, l0, y1], [s1, l1, y1]]), n: [f[0], 0, f[1]], sh: FACE_SH.back },
+    { v: quad(seg, [[s1, l1, y0], [s1, l0, y0], [s1, l0, y1], [s1, l1, y1]]), n: [f[0], 0, f[1]], sh: FACE_SH.back, back: 1 },
     { v: quad(seg, [[s1, l0, y0], [s0, l0, y0], [s0, l0, y1], [s1, l0, y1]]), n: [-r[0], 0, -r[1]], sh: FACE_SH.left, sideL: 1 },
     { v: quad(seg, [[s0, l1, y0], [s1, l1, y0], [s1, l1, y1], [s0, l1, y1]]), n: [r[0], 0, r[1]], sh: FACE_SH.right, sideR: 1 },
     { v: quad(seg, [[s0, l1, y0], [s0, l0, y0], [s1, l0, y0], [s1, l1, y0]]), n: [0, -1, 0], sh: .7 },
@@ -193,19 +193,27 @@ let BOXA = 1;
 const FI = new Float32Array(3);
 function faceImage(img, flip, v) {
   if (!img || !img.width) return; // a picture the phone had no memory for: the plain box face stays
-  const L = litSprite(img, LT.amb), IW = L.width, IH = L.height, N = 6;
+  const L = litSprite(img, LT.amb), IW = L.width, IH = L.height;
   // world corners: bottom-start, bottom-end, top-start, top-end (start = the image's left edge)
   let B0 = [v[0], v[1], v[2]], B1 = [v[3], v[4], v[5]], T1 = [v[6], v[7], v[8]], T0 = [v[9], v[10], v[11]];
   if (flip) { [B0, B1] = [B1, B0]; [T0, T1] = [T1, T0]; }
-  const P = (A, Bq, t) => { tc(A[0] + (Bq[0] - A[0]) * t, A[1] + (Bq[1] - A[1]) * t, A[2] + (Bq[2] - A[2]) * t, FI, 0); if (FI[2] < NEAR) return null; return [W / 2 + FI[0] * FOCAL / FI[2], HORIZON - FI[1] * FOCAL / FI[2]]; };
-  for (let i = 0; i < N; i++) {
-    const t0 = i / N, t1 = (i + 1) / N, b0 = P(B0, B1, t0), b1 = P(B0, B1, t1), u0 = P(T0, T1, t0), u1 = P(T0, T1, t1); if (!b0 || !b1 || !u0 || !u1) continue;
-    const sx = IW * t0, sw = IW / N;
-    ctx.save(); ctx.beginPath(); ctx.moveTo(b0[0], b0[1]); ctx.lineTo(b1[0], b1[1]); ctx.lineTo(u1[0], u1[1]); ctx.lineTo(u0[0], u0[1]); ctx.closePath(); ctx.clip();
-    // image (sx..sx+sw, 0..IH): top-left -> u0, top-right -> u1, bottom-left -> b0
-    ctx.transform((u1[0] - u0[0]) / sw, (u1[1] - u0[1]) / sw, (b0[0] - u0[0]) / IH, (b0[1] - u0[1]) / IH, u0[0] - (u1[0] - u0[0]) / sw * sx, u0[1] - (u1[1] - u0[1]) / sw * sx);
-    ctx.drawImage(L, sx - .5, 0, sw + 1, IH, sx - .5, 0, sw + 1, IH); ctx.restore();
-  }
+  /* 2026-11-17 オーナー「ホーム画面のタンスなど、まだごわごわしてる」：前は 6 本のたての帯を、左上の角だけに合わせてゆがめていたので、帯ごとに下の方がずれて、
+     取っ手や木目が段になって切れていた。面を（たて×よこ）のます目に分け、本当の遠近で求めた 4 すみを、三角 2 つずつで貼る（ずれない）。小さく見える面はます目を少なく（軽い） */
+  const Q = (t, s) => { const bx = B0[0] + (B1[0] - B0[0]) * t, by = B0[1] + (B1[1] - B0[1]) * t, bz = B0[2] + (B1[2] - B0[2]) * t, tx = T0[0] + (T1[0] - T0[0]) * t, ty = T0[1] + (T1[1] - T0[1]) * t, tz = T0[2] + (T1[2] - T0[2]) * t;
+    tc(bx + (tx - bx) * s, by + (ty - by) * s, bz + (tz - bz) * s, FI, 0); if (FI[2] < NEAR) return null; return [W / 2 + FI[0] * FOCAL / FI[2], HORIZON - FI[1] * FOCAL / FI[2]]; };
+  const c00 = Q(0, 0), c10 = Q(1, 0), c01 = Q(0, 1), c11 = Q(1, 1); if (!c00 || !c10 || !c01 || !c11) return;
+  const sw = Math.max(Math.hypot(c10[0] - c00[0], c10[1] - c00[1]), Math.hypot(c11[0] - c01[0], c11[1] - c01[1])), sh = Math.max(Math.hypot(c01[0] - c00[0], c01[1] - c00[1]), Math.hypot(c11[0] - c10[0], c11[1] - c10[1]));
+  let N = clamp(Math.ceil(sw / 28), 1, 10), M = clamp(Math.ceil(sh / 34), 1, 10); while (N * M > 48) { if (N >= M) N--; else M--; } const G2 = []; // 1 面あたり三角 96 まで（電車など、近くの大きな面がたくさんあっても重くしない）
+  for (let j = 0; j <= M; j++) { const row = []; for (let i = 0; i <= N; i++) row.push(Q(i / N, 1 - j / M)); G2.push(row); } // row 0 = top of the picture
+  const tri = (p0, p1, p2, t0, t1, t2) => { if (!p0 || !p1 || !p2) return;
+    const cx = (p0[0] + p1[0] + p2[0]) / 3, cy = (p0[1] + p1[1] + p2[1]) / 3, gr = q => { const dx = q[0] - cx, dy = q[1] - cy, l = Math.hypot(dx, dy) || 1; return [q[0] + dx / l * .9, q[1] + dy / l * .9]; }; // a hair bigger, so no hairline seams
+    const du1 = t1[0] - t0[0], dv1 = t1[1] - t0[1], du2 = t2[0] - t0[0], dv2 = t2[1] - t0[1], det = du1 * dv2 - du2 * dv1; if (Math.abs(det) < 1e-6) return;
+    const x1 = p1[0] - p0[0], y1 = p1[1] - p0[1], x2 = p2[0] - p0[0], y2 = p2[1] - p0[1];
+    const A = (x1 * dv2 - x2 * dv1) / det, B = (y1 * dv2 - y2 * dv1) / det, C = (x2 * du1 - x1 * du2) / det, D = (y2 * du1 - y1 * du2) / det;
+    const a = gr(p0), b = gr(p1), c = gr(p2); ctx.save(); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.closePath(); ctx.clip();
+    ctx.transform(A, B, C, D, p0[0] - A * t0[0] - C * t0[1], p0[1] - B * t0[0] - D * t0[1]); ctx.drawImage(L, 0, 0); ctx.restore(); };
+  for (let j = 0; j < M; j++) for (let i = 0; i < N; i++) { const T = (ii, jj) => [IW * ii / N, IH * jj / M];
+    tri(G2[j][i], G2[j][i + 1], G2[j + 1][i + 1], T(i, j), T(i + 1, j), T(i + 1, j + 1)); tri(G2[j][i], G2[j + 1][i + 1], G2[j + 1][i], T(i, j), T(i + 1, j + 1), T(i, j + 1)); }
 }
 function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
   const faces = [];
@@ -224,7 +232,8 @@ function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
       if (y1 - y0 > 14) { const gr = ctx.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, 'rgba(255,255,255,.10)'); gr.addColorStop(.6, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(20,15,30,.22)'); ctx.fillStyle = gr; ctx.fill(); } }
     if (fd < 30 && !b.noEdge) { ctx.strokeStyle = 'rgba(40,30,24,.08)'; ctx.lineWidth = 1; ctx.stroke(); }
     if (fc.top && m === 4 && fd < 22 && !glow) { ctx.strokeStyle = `rgba(255,250,240,${(.22 * (1 - fd / 22)).toFixed(3)})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(SCR[0], SCR[1]); ctx.lineTo(SCR[2], SCR[3]); ctx.stroke(); }
-    if (b.face && m === 4 && fd < (b.faceN ? 120 : 50) && (b.faceAll ? (fc.front || fc.sideL || fc.sideR) : b.faceFront ? fc.front : b.faceSide ? (b.faceSide === 'L' ? fc.sideL : fc.sideR) : (fc.sideL || fc.sideR))) faceImage(paintFace(b.faceN && LT.night > .4 ? b.faceN : b.face, b.faceW, b.faceH), fc.sideL, fc.v); // 電車（faceN）は遠くからも絵で。先頭の顔は前の面（faceFront）
+    if (b.face && m === 4 && fd < (b.faceN ? 120 : 50) && (b.faceAll ? (fc.front || fc.back || fc.sideL || fc.sideR) : b.faceFront ? fc.front : b.faceSide ? (b.faceSide === 'L' ? fc.sideL : fc.sideR) : (fc.sideL || fc.sideR))) faceImage(paintFace(b.faceN && LT.night > .4 ? b.faceN : b.face, b.faceW, b.faceH), fc.sideL, fc.v); // 電車（faceN）は遠くからも絵で。先頭の顔は前の面（faceFront）
+    if (b.face2 && m === 4 && fd < 50 && !fc.top && !(b.faceSide === 'L' ? fc.sideL : fc.sideR) && (fc.front || fc.back || fc.sideL || fc.sideR)) faceImage(paintFace(b.face2, b.face2W || 200, b.face2H || 200), fc.sideL, fc.v); // 2026-11-17：主な面とちがう絵を、ほかの横の面に（たんすの横の板）
     if (m === 4 && fd < 45) {
       if (b.pat === 'vend' && (fc.sideL || fc.sideR || fc.front)) vendFace(b);
       if (b.txt && (fc.front || (b.vert && (fc.sideL || fc.sideR)))) qtext(b.txt, .08, .06, .92, .94, b.tc || (hexRgb(b.c)[0] + hexRgb(b.c)[1] < 260 ? '#FBF6EE' : '#2B1A12'), { vert: b.vert });

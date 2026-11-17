@@ -101,11 +101,13 @@ function buildTitleRoom(seg) {
   // [6] 掛けぶとんの折り返しの厚みは、上の面の絵の中のかげとふくらみで出す（箱にすると、白い棒に見えた）
   seg.spr.push({ lat: 0, s: 3.4, y: 2.05, w: .9, h: .95, img: artKey('pendant', ''), keep: 1 });
   sp('lowtable', '', 2.4, -2.5, 1.5, .62); // the low round table, his mug and the morning paper on it (one picture, so nothing floats)
-  sp('tZabuton', '', 3.4, -1.6, 1.0, .34); { const k = .6 + .2 * plantLv(); sp('plant', '', 5.6, 3.7, 1.0 * k, 1.75 * k); } /* 牧草で育つ観葉植物（B-12）：これまでに集めた牧草で 5 段階 */ sp('futon', '', 5.3, -3.8, 1.5, 1.1);
+  { const ZT = .17, l = -1.58, sa = 3.4; seg.floor.push({ v: quad(seg, [[3.0, -2.0, .004], [3.85, -2.0, .004], [3.85, -1.15, .004], [3.0, -1.15, .004]]), c: [0, 0, 0], dec: 'zabuShadow', ti: 0, a: 3.0, b: 3.85 }); // [77] 畳に落ちるやわらかいかげ
+    seg.floor.push({ v: quad(seg, [[sa - .3, l - .28, ZT + .003], [sa + .3, l - .28, ZT + .003], [sa + .3, l + .28, ZT + .003], [sa - .3, l + .28, ZT + .003]]), c: [0, 0, 0], dec: 'zabuTop', zc: '#B4572E', ti: 1, a: sa - .3, b: sa + .3 });
+    seg.props.push(mkProp(seg, [{ l0: l - .28, l1: l + .28, s0: sa - .3, s1: sa + .3, y0: 0, y1: ZT, c: '#8A5A4A', noTop: 1, face: 'zabuSide|2', faceW: 220, faceH: 52, faceAll: 1 }], { big: 1 })); } // 2026-11-17 ホーム画面の第 2 段：座布団 2 枚を本当の厚みの箱で（前は横にのびた 1 枚の絵）。横の面に 2 枚分の厚みを描く { const k = .6 + .2 * plantLv(); sp('plant', '', 5.6, 3.7, 1.0 * k, 1.75 * k); } /* 牧草で育つ観葉植物（B-12）：これまでに集めた牧草で 5 段階 */ sp('futon', '', 5.3, -3.8, 1.5, 1.1);
   if (EVENT) { const dk = EV_KITS[EVENT].deco; sp(dk, '', 3.9, -2.15, .46, .43); sp(dk, '', 2.75, -2.55, .36, .34); } // the season's decorations by the table
   /* 2026-11-17 オーナー：「タンスは紙切れみたいになってる」。前は壁に貼った絵だった。本物のきりのたんすは奥行き 45cm。
      奥行きのある箱にして、正面に引き出しの絵（4e_art.js の paintFace 'tansu2'）、上の面と横の面は木。上に小物（写真立て・一輪ざし） */
-  seg.props.push(mkProp(seg, [{ l0: HW - .47, l1: HW - .03, s0: -1.2, s1: .3, y0: .06, y1: 1.65, c: '#B88A5C', face: 'tansu2', faceW: 300, faceH: 330, faceSide: 'L' }, // [11] 奥行き 45cm の箱
+  seg.props.push(mkProp(seg, [{ l0: HW - .47, l1: HW - .03, s0: -1.2, s1: .3, y0: .06, y1: 1.65, c: '#B88A5C', face: 'tansu2', faceW: 300, faceH: 330, faceSide: 'L', face2: 'tansuSide', face2W: 200, face2H: 330, noEdge: 1 }, // [11] 奥行き 45cm の箱
     { l0: HW - .48, l1: HW - .02, s0: -1.22, s1: .32, y0: 1.65, y1: 1.69, c: '#C79A68' }, // [12] 天板（少し出っぱる）
     { l0: HW - .45, l1: HW - .05, s0: -1.16, s1: .26, y0: 0, y1: .06, c: '#5E3E24' }], { big: 1 })); // [13] 足もとの台輪（少し引っこむ）
   seg.spr.push({ lat: HW - .25, s: -.85, y: 1.69, w: .26, h: .3, img: artKey('photoFrame', ''), keep: 1 }); // [14] 写真立て

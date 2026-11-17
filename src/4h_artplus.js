@@ -387,20 +387,30 @@ Object.assign(PROP_ART, { pillowS: () => artCanvas('pillowS', 260, 90, paintPill
   if (kind === 'futonSide' || kind === 'quiltEdge') return artCanvas('face|' + kind, W, H, (g) => { const q = kind === 'quiltEdge';
     g.fillStyle = vgrad(g, 0, H, q ? [[0, '#FBF7EE'], [.5, '#E6DCC8'], [1, '#C4B79C']] : [[0, '#FBF7EE'], [.25, '#F1EADB'], [.7, '#DCD2BE'], [1, '#B8AC94']]); g.fillRect(0, 0, W, H);
     g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(0, 0, W, H * .12); g.fillStyle = q ? 'rgba(90,110,150,.6)' : 'rgba(170,150,120,.5)'; g.fillRect(0, H * .1, W, H * .06);
-    if (!q) { g.fillStyle = 'rgba(140,120,90,.25)'; for (let x = W * .06; x < W; x += W * .12) { g.beginPath(); g.ellipse(x, H * .55, 4, 3, 0, 0, 7); g.fill(); } }
+    if (!q) { g.fillStyle = 'rgba(140,120,90,.14)'; for (let x = W * .06; x < W; x += W * .12) { g.beginPath(); g.ellipse(x, H * .55, 2.5, 2, 0, 0, 7); g.fill(); } } // [97] とじのくぼみを小さく・うすく（前は、こぶのように目立った）
+    { const eg = g.createLinearGradient(0, 0, W, 0); eg.addColorStop(0, 'rgba(90,70,40,.22)'); eg.addColorStop(.04, 'rgba(90,70,40,0)'); eg.addColorStop(.96, 'rgba(90,70,40,0)'); eg.addColorStop(1, 'rgba(90,70,40,.22)'); g.fillStyle = eg; g.fillRect(0, 0, W, H); } // [98] 両はしの丸み（かどがかげになる）
     g.fillStyle = 'rgba(80,60,30,.2)'; g.fillRect(0, H * .9, W, H * .1); });
   return pf1(kind, W, H); }; }
-{ const pf0 = paintFace; paintFace = function (kind, W, H) { if (kind !== 'tansu2') return pf0(kind, W, H); return artCanvas('face|tansu2', W, H, (g) => {
-  const wood = (x, y, w, h, seed, k) => { g.fillStyle = vgrad(g, y, y + h, [[0, shadeHex('#D7B488', 1.05 * k)], [1, shadeHex('#C49C6C', .95 * k)]]); g.fillRect(x, y, w, h); AP.grain(g, x, y, w, h, 'rgba(120,80,40,.22)', 9, seed); };
-  g.fillStyle = '#8A6038'; g.fillRect(0, 0, W, H); wood(W * .02, H * .01, W * .96, H * .98, 3, .92); // [16] きりの木の外わく
-  const rows = [[.03, .2, 2], [.22, .43, 1], [.45, .66, 1], [.68, .96, 1]];
-  rows.forEach(([v0, v1, n], ri) => { for (let c = 0; c < n; c++) { const x0 = W * (.05 + c * .46), w = n === 2 ? W * .44 : W * .9, y0 = H * v0, h = H * (v1 - v0);
-    g.fillStyle = 'rgba(40,24,10,.55)'; g.fillRect(x0 - 2, y0 - 2, w + 4, h + 4); wood(x0, y0, w, h, ri * 7 + c, 1); // [17] 引き出しと、まわりの暗いすき間
-    g.fillStyle = 'rgba(255,240,215,.35)'; g.fillRect(x0, y0, w, 2); g.fillStyle = 'rgba(0,0,0,.15)'; g.fillRect(x0, y0 + h - 2, w, 2); // [18] 引き出しの上のふちの光と下のかげ
-    const hx = x0 + w / 2, hy = y0 + h * .48; g.fillStyle = '#2A2420'; rrect(g, hx - W * .1, hy - H * .03, W * .2, H * .05, 3); g.fill(); // [19] 取っ手の座金
-    g.strokeStyle = '#1A1614'; g.lineWidth = 4; g.lineCap = 'round'; g.beginPath(); g.moveTo(hx - W * .08, hy - H * .01); g.quadraticCurveTo(hx - W * .07, hy + H * .05, hx, hy + H * .045); g.quadraticCurveTo(hx + W * .07, hy + H * .05, hx + W * .08, hy - H * .01); g.stroke(); g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(hx - W * .06, hy + H * .03); g.quadraticCurveTo(hx, hy + H * .042, hx + W * .06, hy + H * .03); g.stroke(); // [20] わらび手の鉄の取っ手
-    if (ri === 1) { g.fillStyle = '#2A2420'; g.beginPath(); g.arc(hx, y0 + h * .2, W * .025, 0, 7); g.fill(); g.fillStyle = '#C9A030'; g.fillRect(hx - 1.5, y0 + h * .17, 3, h * .07); } } }); // [21] 錠前
-  g.fillStyle = '#2A2420'; for (const [x, y] of [[0, 0], [W - W * .08, 0], [0, H - H * .06], [W - W * .08, H - H * .06]]) { g.fillRect(x, y, W * .08, H * .06); } g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(0, 0, W * .08, 2); // [22] すみの鉄の金具
+{ const pf0 = paintFace; paintFace = function (kind, W, H) { if (kind !== 'tansu2') return pf0(kind, W, H); return artCanvas('face|tansu2b', W * 2, H * 2, (g, W, H) => {
+  /* 2026-11-17 ホーム画面の第 2 段（オーナー「タンスなど、まだごわごわしてる」）：桐たんすを作り直し。絵を 2 倍の細かさに。
+     [78] 桐の柾目（まっすぐで細い木目） [79] 引き出しごとの色のちがい [80] 引き出しのふちの面取り（上と左は光、下と右はかげ） [81] 引き出しのすき間の深いかげ
+     [82] 外わくの木の厚み [83] わらび手の取っ手（細く、つや） [84] 取っ手の下に落ちるかげ [85] 座金の菊の形の彫り [86] 錠前の鍵穴 [87] すみの金具の透かしと鋲 [88] 窓からの光の、ななめのつや */
+  const grain = (x, y, w, h, seed) => { const r = rnd(seed * 31 + 7); for (let k = 0; k < w / 3; k++) { const xx = x + r() * w, a = .04 + r() * .08; g.fillStyle = `rgba(120,78,40,${a.toFixed(3)})`; g.fillRect(xx, y, .8 + r() * 1.2, h); } for (let k = 0; k < 6; k++) { g.fillStyle = 'rgba(255,240,220,.08)'; g.fillRect(x + r() * w, y, 2 + r() * 4, h); } };
+  const wood = (x, y, w, h, seed, k) => { g.fillStyle = vgrad(g, y, y + h, [[0, shadeHex('#DCBC92', 1.04 * k)], [1, shadeHex('#C9A274', .96 * k)]]); g.fillRect(x, y, w, h); grain(x, y, w, h, seed); };
+  g.fillStyle = '#7A5230'; g.fillRect(0, 0, W, H); wood(W * .015, H * .008, W * .97, H * .984, 3, .9); // [82]
+  g.fillStyle = 'rgba(90,60,30,.25)'; g.fillRect(W * .015, H * .008, W * .97, 3); g.fillRect(W * .015, H * .008, 3, H * .984);
+  const rows = [[.03, .2, 2], [.22, .43, 1], [.45, .66, 1], [.68, .955, 1]];
+  rows.forEach(([v0, v1, n], ri) => { for (let c = 0; c < n; c++) { const x0 = W * (.05 + c * .46), w = n === 2 ? W * .44 : W * .9, y0 = H * v0, h = H * (v1 - v0), k = .96 + ((ri * 3 + c * 5) % 7) * .012;
+    g.fillStyle = 'rgba(40,22,8,.7)'; g.fillRect(x0 - 3, y0 - 3, w + 6, h + 6); wood(x0, y0, w, h, ri * 7 + c, k); // [79] [81]
+    g.fillStyle = 'rgba(255,244,222,.55)'; g.fillRect(x0, y0, w, 3); g.fillRect(x0, y0, 3, h); g.fillStyle = 'rgba(70,40,15,.35)'; g.fillRect(x0, y0 + h - 4, w, 4); g.fillRect(x0 + w - 3, y0, 3, h); // [80]
+    const hx = x0 + w / 2, hy = y0 + h * .46, hw = W * .085;
+    g.fillStyle = '#2A2420'; g.beginPath(); for (let a = 0; a < 16; a++) { const rr = (a % 2 ? .82 : 1) * hw * .62, ang = a / 16 * 6.283; g.lineTo(hx + Math.cos(ang) * rr * 1.5, hy - H * .006 + Math.sin(ang) * rr * .55); } g.closePath(); g.fill(); g.fillStyle = 'rgba(255,255,255,.12)'; g.beginPath(); g.ellipse(hx - hw * .3, hy - H * .012, hw * .4, H * .006, 0, 0, 7); g.fill(); // [85] 菊の形の座金
+    g.strokeStyle = 'rgba(40,22,8,.35)'; g.lineWidth = 5; g.lineCap = 'round'; g.beginPath(); g.moveTo(hx - hw, hy + 4); g.quadraticCurveTo(hx - hw * .9, hy + H * .055 + 4, hx, hy + H * .05 + 4); g.quadraticCurveTo(hx + hw * .9, hy + H * .055 + 4, hx + hw, hy + 4); g.stroke(); // [84]
+    g.strokeStyle = '#1A1512'; g.lineWidth = 5; g.beginPath(); g.moveTo(hx - hw, hy); g.quadraticCurveTo(hx - hw * .9, hy + H * .055, hx, hy + H * .05); g.quadraticCurveTo(hx + hw * .9, hy + H * .055, hx + hw, hy); g.stroke(); for (const sx of [-1, 1]) { g.beginPath(); g.arc(hx + sx * hw, hy - 2, 3.5, 0, 7); g.fillStyle = '#1A1512'; g.fill(); }
+    g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(hx - hw * .7, hy + H * .036); g.quadraticCurveTo(hx, hy + H * .048, hx + hw * .7, hy + H * .036); g.stroke(); // [83]
+    if (ri === 1) { const ly = y0 + h * .18; g.fillStyle = '#2A2420'; g.beginPath(); g.ellipse(hx, ly, W * .035, H * .022, 0, 0, 7); g.fill(); g.fillStyle = '#C9A030'; g.beginPath(); g.arc(hx, ly - H * .004, 3, 0, 7); g.fill(); g.fillRect(hx - 1.2, ly - H * .004, 2.4, H * .015); } } }); // [86]
+  for (const [x, y, fx, fy] of [[0, 0, 1, 1], [W, 0, -1, 1], [0, H, 1, -1], [W, H, -1, -1]]) { const s = W * .085; g.fillStyle = '#2A2420'; g.beginPath(); g.moveTo(x, y); g.lineTo(x + fx * s, y); g.lineTo(x + fx * s * .7, y + fy * s * .45); g.lineTo(x + fx * s * .45, y + fy * s * .7); g.lineTo(x, y + fy * s); g.closePath(); g.fill(); g.fillStyle = '#C9B48A'; g.beginPath(); g.arc(x + fx * s * .38, y + fy * s * .38, 3.2, 0, 7); g.fill(); g.fillStyle = '#7A6A50'; g.beginPath(); g.arc(x + fx * s * .7, y + fy * s * .15, 2.2, 0, 7); g.arc(x + fx * s * .15, y + fy * s * .7, 2.2, 0, 7); g.fill(); } // [87]
+  const sh = g.createLinearGradient(0, 0, W, H); sh.addColorStop(0, 'rgba(255,248,230,0)'); sh.addColorStop(.55, 'rgba(255,248,230,.14)'); sh.addColorStop(.62, 'rgba(255,248,230,0)'); g.fillStyle = sh; g.fillRect(0, 0, W, H); // [88]
 }); }; }
 // [34〜36] たたんだ布団（部屋のすみ）：たたみ目のふくらみと、しまの柄・上にたたんだパジャマ
 { const f0 = PROP_ART.futon; PROP_ART.futon = (n, v) => { const c = f0(n, v); if (c && !c.__plus) { const g = c.getContext('2d'), W = c.width, H = c.height;
@@ -520,3 +530,24 @@ function paintAreaMap(g, W, H, night) { const x0 = W * .1, x1 = W * .9, y0 = H *
   if (night) { g.fillStyle = 'rgba(255,250,220,.18)'; g.fillRect(x0 - 10, y0 - 10, x1 - x0 + 20, y1 - y0 + 20); } } // [135] 夜は中から光る
 Object.assign(PROP_ART, { bollard: (n) => artCanvas('pbollard|' + n, 200, 110, (g, w, h) => paintBollards(g, w, h, n)), areamap: (n) => artCanvas('pareamap|' + n, 220, 300, (g, w, h) => paintAreaMap(g, w, h, n)) });
 Object.assign(PROP_DIM, { bollard: { w: 1.8, h: .95, off: 0 }, areamap: { w: 1.5, h: 2.1, off: 0 } });
+
+/* [76] 座布団の横の面：ふっくらした厚み（上は光、まん中がふくらみ、下はかげ）と横の縫い目 */
+{ const pf2 = paintFace; paintFace = function (kind, W, H) { if (!/^zabuSide/.test(kind)) return pf2(kind, W, H); return artCanvas('face|' + kind, W, H, (g) => {
+  for (const [y0, c] of [[0, '#B4572E'], [.5, '#5E6E9E']]) { const t = H * y0, h = H * .5; g.fillStyle = vgrad(g, t, t + h, [[0, shadeHex(c, 1.15)], [.4, shadeHex(c, 1.02)], [1, shadeHex(c, .6)]]); g.fillRect(0, t, W, h);
+    g.setLineDash([4, 3]); g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, t + h * .45); g.lineTo(W, t + h * .45); g.stroke(); g.setLineDash([]); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, t + h - 2, W, 2); } }); }; }
+
+/* [89] たんすの横の板：桐の柾目と、上から下への光のグラデーション [90] 横の板の継ぎ目と、手前のふちの面取りの光 [91] 下のほうの、畳からの照り返し */
+{ const pf3 = paintFace; paintFace = function (kind, W, H) { if (kind !== 'tansuSide') return pf3(kind, W, H); return artCanvas('face|tansuSide', W * 2, H * 2, (g, W, H) => {
+  g.fillStyle = vgrad(g, 0, H, [[0, '#B48C5E'], [.6, '#A27A4E'], [1, '#8E6A42']]); g.fillRect(0, 0, W, H); const r = rnd(77); // [92] 窓と反対を向く面なので、正面より暗く
+  for (let k = 0; k < W / 2.5; k++) { g.fillStyle = `rgba(110,70,35,${(.04 + r() * .09).toFixed(3)})`; g.fillRect(r() * W, 0, .8 + r() * 1.4, H); } for (let k = 0; k < 8; k++) { g.fillStyle = 'rgba(255,240,215,.08)'; g.fillRect(r() * W, 0, 3 + r() * 5, H); }
+  g.fillStyle = 'rgba(80,50,20,.3)'; g.fillRect(W * .5, 0, 1.5, H); g.fillStyle = 'rgba(255,240,215,.4)'; g.fillRect(0, 0, 4, H); g.fillRect(W - 4, 0, 4, H); g.fillStyle = 'rgba(90,60,25,.35)'; g.fillRect(0, 0, W, 5);
+  const gr = g.createLinearGradient(0, H * .8, 0, H); gr.addColorStop(0, 'rgba(200,190,120,0)'); gr.addColorStop(1, 'rgba(200,190,120,.18)'); g.fillStyle = gr; g.fillRect(0, H * .8, W, H * .2); }); }; }
+
+/* 2026-11-17 ホーム画面の第 2 段：[105] ちゃぶ台の天板の木目と、窓の光のつや [106] マグの取っ手の光 [107] つり下げのあかりの和紙のせんい [111] 写真立てのガラスの映りこみ [112] 一輪ざしのつや */
+{ const l1 = PROP_ART.lowtable; if (l1) PROP_ART.lowtable = (n, v) => { const c = l1(n, v); if (c && !c.__plus2) { const g = c.getContext('2d'), W = c.width, H = c.height, r = rnd(19);
+  g.save(); g.globalCompositeOperation = 'source-atop'; g.strokeStyle = 'rgba(90,55,25,.16)'; g.lineWidth = 1; for (let k = 0; k < 14; k++) { const y = H * (.3 + r() * .25); g.beginPath(); g.moveTo(W * (.05 + r() * .3), y); g.quadraticCurveTo(W * .5, y + (r() - .5) * 6, W * (.65 + r() * .3), y + (r() - .5) * 4); g.stroke(); }
+  const gl = g.createLinearGradient(W * .2, 0, W * .6, 0); gl.addColorStop(0, 'rgba(255,250,235,0)'); gl.addColorStop(.5, 'rgba(255,250,235,.18)'); gl.addColorStop(1, 'rgba(255,250,235,0)'); g.fillStyle = gl; g.fillRect(0, H * .25, W, H * .3); g.restore();
+  g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 1.2; g.beginPath(); g.arc(W * .43, H * .2, W * .018, -1.2, .6); g.stroke(); c.__plus2 = 1; } return c; }; }
+{ const p1 = PROP_ART.pendant; if (p1) PROP_ART.pendant = (n, v) => { const c = p1(n, v); if (c && !c.__plus2) { const g = c.getContext('2d'), W = c.width, H = c.height, r = rnd(23); g.save(); g.globalCompositeOperation = 'source-atop'; g.strokeStyle = 'rgba(170,145,105,.18)'; g.lineWidth = .7; for (let k = 0; k < 40; k++) { const x = r() * W, y = r() * H; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + 4, y + (r() - .5) * 6, x + 6 + r() * 8, y + (r() - .5) * 4); g.stroke(); } g.restore(); c.__plus2 = 1; } return c; }; }
+{ const pf = PROP_ART.photoFrame; PROP_ART.photoFrame = () => { const c = pf(); if (c && !c.__plus2) { const g = c.getContext('2d'), W = c.width, H = c.height; g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.moveTo(W * .2, H * .15); g.lineTo(W * .45, H * .15); g.lineTo(W * .25, H * .6); g.lineTo(W * .15, H * .6); g.closePath(); g.fill(); c.__plus2 = 1; } return c; }; }
+{ const ic = PROP_ART.ichirin; PROP_ART.ichirin = () => { const c = ic(); if (c && !c.__plus2) { const g = c.getContext('2d'), W = c.width, H = c.height; g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(W * .38, H * .75, W * .05, H * .12, -.1, 0, 7); g.fill(); c.__plus2 = 1; } return c; }; }
