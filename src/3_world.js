@@ -27,6 +27,22 @@ function terrainFor(seg, prev) {
   if (d || hump || w2) seg.hp = { a, b, d, hump, w2, shape };
 }
 
+/* やわらかい物（敷きぶとん・座布団）の形（2026-11-17 オーナー：「ホーム画面の座布団や布団がカクカクしていて現実っぽくない」）。
+   前は角の立った箱だった。本物のふとんや座布団は、中の綿で横がふくらみ、角は丸く、下は床に押されて内へ入る。
+   上の面（絵）のふちから、まわりを角の丸い輪で何段か囲み、半円の形で外へふくらませて床へもどす。1 枚ごとに向きに合わせて明るさを変える */
+function softSlab(seg, o) {
+  const { s0, s1, l0, l1 } = o, h = o.h, y0 = o.y0 || 0, R = o.r != null ? o.r : h * .6, rc = o.rc != null ? o.rc : .04, n = o.n || 6, m = 5, base = o.col;
+  const ring = (out, y) => { const pts = [], cs = [[s1 - rc, l1 - rc, 0], [s0 + rc, l1 - rc, Math.PI / 2], [s0 + rc, l0 + rc, Math.PI], [s1 - rc, l0 + rc, Math.PI * 1.5]];
+    for (const [cx, cl, a0] of cs) for (let i = 0; i <= m; i++) { const a = a0 + Math.PI / 2 * i / m, r = rc + out; pts.push([cx + Math.cos(a) * r, cl + Math.sin(a) * r, y, Math.cos(a), Math.sin(a)]); }
+    return pts; };
+  const rings = []; for (let k = 0; k <= n; k++) { const th = Math.PI * k / n; rings.push({ r: ring(R * Math.sin(th) * (k ? 1 : 0), y0 + h * (.5 + .5 * Math.cos(th)) - (o.dip || 0) * Math.sin(th) * 0), th }); }
+  { const T = rings[0].r, top = y0 + h, tc = o.colAt ? o.colAt(0) : base; for (let i = 1; i + 1 < T.length; i++) seg.floor.push({ v: quad(seg, [[T[0][0], T[0][1], top], [T[i][0], T[i][1], top], [T[i + 1][0], T[i + 1][1], top], [T[i + 1][0], T[i + 1][1], top]]), c: tc, soft: 1, sb: o.sb || 0 }); } // 上の面（絵が無い所も、すき間なく）
+  for (let k = 0; k < n; k++) { const A = rings[k].r, B = rings[k + 1].r, th = Math.PI * (k + .5) / n, nv = R * Math.cos(th), nh = h / 2 * Math.sin(th), L = Math.hypot(nv, nh) || 1;
+    for (let i = 0; i < A.length; i++) { const j = (i + 1) % A.length, dirS = (A[i][3] + A[j][3]) / 2, dirL = (A[i][4] + A[j][4]) / 2;
+      const up = nv / L, side = nh / L, lightK = .74 + .26 * up + side * (.07 * -dirL - .05 * dirS) - (up < 0 ? .12 * -up : 0); // 上ほど明るく、下（床に入る所）は暗く。光は左前から
+      const c = (o.colAt ? o.colAt(k / n) : base).map((v) => v * lightK);
+      seg.floor.push({ v: quad(seg, [[A[i][0], A[i][1], A[i][2]], [A[j][0], A[j][1], A[j][2]], [B[j][0], B[j][1], B[j][2]], [B[i][0], B[i][1], B[i][2]]]), c, soft: 1, sb: o.sb || 0 }); } }
+}
 function quad(seg, pts, flat) { const v = []; for (const [s, lat, y] of pts) { const p = segPos(seg, s, lat); v.push(p[0], y + (flat ? seg.e0 || 0 : p[2]), p[1]); } return v; }
 const C = hexRgb;
 const TORII_TUNNEL_H = 4.8; // 鳥居のトンネルの高さ（m）。横木の下は 3.7m：縦長のスマホのカメラ（2.75m）より十分に上

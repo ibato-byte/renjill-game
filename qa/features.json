@@ -1270,6 +1270,11 @@
       "name": "赤い電波塔：入口の建物・屋上・踊り場のある外階段・500 段からの通路",
       "file": "src/1b_places.js",
       "has": "{ t: 'tlobby', d: 5 }, { t: 'troof', d: 4 }, { t: 'tstair', d: 12 }, { t: 'tpass', d: 4 }"
+    },
+    {
+      "name": "やわらかい布団・座布団（角の丸い、ふくらんだ形）",
+      "file": "src/3_world.js",
+      "has": "function softSlab(seg, o)"
     }
   ]
 }
