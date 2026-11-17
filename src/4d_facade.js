@@ -132,6 +132,14 @@ const FAC_STYLE = {
     const M = NEON_MOOD[mood] || NEON_MOOD.def;
     FAC_STYLE.mixed(g, r, PW, PH, w, h, night, variant, mood);
     const fl = 3.2 * FAC_P;
+    /* 2026-11-17 景色 149〜152：繁華街の雑居ビル */
+    if (PH > fl * 2.2 && w >= 4) { const tx = r() < .5 ? PW - 30 : 4, floorsN = Math.floor((PH - fl) / fl), cols = M.neon || ['#FF5C7A', '#5CD3FF', '#FFD24A'];
+      g.fillStyle = 'rgba(30,30,34,.85)'; g.fillRect(tx - 2, PH - fl - floorsN * fl * .55 - 4, 30, floorsN * fl * .55 + 4);
+      for (let k = 0; k < floorsN; k++) { const y = PH - fl - (k + 1) * fl * .55, col = cols[(r() * cols.length) | 0]; g.fillStyle = night ? col : '#F4F2EC'; g.fillRect(tx, y + 2, 26, fl * .55 - 4);
+        if (night) { g.save(); g.shadowColor = col; g.shadowBlur = 8; g.fillRect(tx, y + 2, 26, fl * .55 - 4); g.restore(); } // [150] 夜：看板のまわりのにじんだ光
+        g.fillStyle = night ? '#1A1020' : col; g.font = `900 ${Math.round(fl * .2)}px ${FAC_FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText((k + 2) + 'F', tx + 7, y + fl * .27, 12); g.fillText([...M.words[(r() * M.words.length) | 0]].slice(0, 2).join(''), tx + 19, y + fl * .27, 13); } } // [149] 各階の店の看板が、たてにならぶ
+    if (variant % 3 === 1 && PH > fl * 2) { const ex = r() < .5 ? 0 : PW - 22; g.strokeStyle = night ? 'rgba(150,150,160,.7)' : 'rgba(70,72,78,.9)'; g.lineWidth = 2; for (let y = PH - fl; y > 10; y -= fl) { g.strokeRect(ex + 1, y - fl, 20, fl); g.beginPath(); g.moveTo(ex + 1, y); g.lineTo(ex + 21, y - fl * .5); g.stroke(); } } // [151] 外の非常階段の鉄の骨組み
+    { const gx = r() < .5 ? 0 : PW - 5; const gr = g.createLinearGradient(gx, 0, gx + 5, 0); gr.addColorStop(0, 'rgba(0,0,0,.45)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(gx, 0, 5, PH); } // [152] となりのビルとのすき間の暗がり
     if (mood === 'akiba' && PH > fl * 2.5 && r() < .8) { // a full-height poster panel in pastel colors with bold generic kana
       const pw = Math.min(PW - 8, 34 + r() * 40), px = r() < .5 ? 4 : PW - pw - 4, py = 8, ph = PH - fl - 16;
       const col = M.poster[(r() * M.poster.length) | 0]; g.fillStyle = col; g.fillRect(px, py, pw, ph); g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(px + 4, py + 4, pw - 8, ph * .35);
@@ -144,23 +152,31 @@ const FAC_STYLE = {
     if (mood === 'kabuki' && night) { g.fillStyle = 'rgba(255,60,120,.18)'; g.fillRect(0, PH - fl, PW, fl); } // pink spill of the ground floor
   },
   // Ginza: stone-clad fronts with large showcase windows, bronze trim and a glowing ground floor
-  luxury(g, r, PW, PH, w, h, night, variant) {
-    const fl = 3.2 * FAC_P, floors = Math.max(1, Math.floor(h / 3.2));
-    // ground floor: tall showcase glazing
-    const y0 = PH - fl * 1.25; g.fillStyle = night ? '#FFF3D8' : '#2F3D4C'; g.fillRect(6, y0, PW - 12, PH - y0 - 4);
-    if (!night) { const gr = g.createLinearGradient(0, y0, 0, PH); gr.addColorStop(0, 'rgba(190,210,230,.8)'); gr.addColorStop(1, 'rgba(60,80,100,.1)'); g.fillStyle = gr; g.fillRect(6, y0, PW - 12, PH - y0 - 4); }
-    for (let k = 0; k < 3; k++) { g.fillStyle = night ? ['#E86A75', '#4E77A0', '#F2C230'][k] : 'rgba(255,255,255,.35)'; g.fillRect(14 + k * (PW - 28) / 3, y0 + 20 + r() * 20, 10, 24); } // mannequins / displays
-    g.fillStyle = '#B08A3E'; g.fillRect(4, y0 - 6, PW - 8, 6); g.fillRect(4, y0, 2, PH - y0 - 4); g.fillRect(PW - 6, y0, 2, PH - y0 - 4); for (let x = 6 + (PW - 12) / 3; x < PW - 8; x += (PW - 12) / 3) g.fillRect(x, y0, 2, PH - y0 - 4);
-    g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(0, PH - 4, PW, 4);
-    // upper floors: wide windows in a stone grid
-    const cols = Math.max(1, Math.round(w / 3));
-    for (let k = 1; k < floors; k++) {
-      const yt = PH - fl * 1.25 - k * fl; if (yt < -fl) break;
-      slabLine(g, PW, yt + fl * .12);
-      const ww = (PW - 8) / cols; for (let i = 0; i < cols; i++) winPane(g, r, 4 + i * ww + ww * .1, yt + fl * .22, ww * .8, fl * .62, night, { frame: 'rgba(70,60,40,.9)', sky: '#B8CEDF' });
-    }
-    g.fillStyle = 'rgba(255,255,255,.28)'; g.fillRect(0, 0, PW, 8); g.fillStyle = '#B08A3E'; g.fillRect(0, 8, PW, 2);
-    if (night) { g.fillStyle = 'rgba(255,220,160,.35)'; g.fillRect(0, y0 - 10, PW, 4); }
+  luxury(g, r, PW, PH, w, h, night, variant) { /* 2026-11-17 景色 136〜148：銀座・表参道の高級な店のビル（前は、ガラスの窓がならぶだけで、オフィスと見分けがつかなかった） */
+    const P = FAC_P, fl = 3.4 * P, kind = variant % 3, y0 = PH - fl * 1.3, k0 = night ? .45 : 1;
+    const stone = ['#E3D8C4', '#F1EEE8', '#B9B4AC'][kind], sh = (c, m) => shadeHex(c, m * k0);
+    g.fillStyle = sh(stone, 1); g.fillRect(0, 0, PW, PH); for (let y = 0; y < y0; y += .6 * P) { g.fillStyle = 'rgba(0,0,0,.06)'; g.fillRect(0, y, PW, 1); for (let x = ((y / (.6 * P)) % 2) * .6 * P; x < PW; x += 1.2 * P) g.fillRect(x, y, 1, .6 * P); } // [136] 石張りの壁と目地
+    if (night) { const gr = g.createLinearGradient(0, y0, 0, y0 - 3 * fl); gr.addColorStop(0, 'rgba(255,214,150,.45)'); gr.addColorStop(1, 'rgba(255,214,150,0)'); g.fillStyle = gr; g.fillRect(0, y0 - 3 * fl, PW, 3 * fl); } // [146] 夜：壁を下から照らす
+    if (kind === 2) { const gb = g.createLinearGradient(0, 0, 0, y0); gb.addColorStop(0, night ? '#3A3A48' : '#9FB6C8'); gb.addColorStop(1, night ? '#5A4A3A' : '#56687A'); g.fillStyle = gb; g.fillRect(0, fl * .4, PW, y0 - fl * .6); if (night) for (let y = fl * .6; y < y0 - fl * .3; y += fl) { g.fillStyle = 'rgba(255,225,170,.45)'; g.fillRect(0, y, PW, fl * .5); } g.fillStyle = night ? 'rgba(230,230,235,.35)' : 'rgba(250,250,252,.85)'; for (let x = 4; x < PW; x += 9) g.fillRect(x, fl * .4, 3, y0 - fl * .6); for (let y = fl * .4; y < y0 - fl * .2; y += fl) g.fillRect(0, y, PW, 3); } // [143] 金属の格子の外装（白いルーバー）
+    else { const cols = Math.max(1, Math.round(w / 2.6)), ww = PW / cols; for (let y = y0 - fl; y > -fl * .5; y -= fl) for (let c = 0; c < cols; c++) { const x = c * ww + ww * .2, wx = ww * .6, wy = fl * .66, yy = y + fl * .18;
+        g.fillStyle = sh(stone, .82); g.fillRect(x - 5, yy - 6, wx + 10, wy + 12); g.fillStyle = sh(stone, 1.08); g.fillRect(x - 5, yy - 6, wx + 10, 3); // [142] 石の窓わく
+        if (night) { g.fillStyle = r() < .5 ? '#F3D9A8' : '#2A2C38'; g.fillRect(x, yy, wx, wy); g.fillStyle = 'rgba(255,255,255,.25)'; for (let xx = x + 2; xx < x + wx; xx += 4) g.fillRect(xx, yy, 1.5, wy); } // [147] 夜：カーテン越しの光
+        else { const gr = g.createLinearGradient(0, yy, 0, yy + wy); gr.addColorStop(0, '#BCD0E0'); gr.addColorStop(1, '#4A5A6A'); g.fillStyle = gr; g.fillRect(x, yy, wx, wy); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(x + wx * .1, yy, wx * .15, wy); }
+        g.fillStyle = sh('#3A3632', 1); g.fillRect(x - 3, yy + wy - 8, wx + 6, 2); for (let xx = x; xx < x + wx; xx += 5) g.fillRect(xx, yy + wy - 8, 1.5, 10); } } // [142] 小さなバルコニーの鉄の手すり
+    g.fillStyle = sh(stone, .7); g.fillRect(0, 0, PW, 10); g.fillStyle = sh(stone, 1.1); g.fillRect(0, 10, PW, 4); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, 14, PW, 6); // [144] 屋上の張り出したふち（コーニス）とかげ
+    // 1 階：ショーウィンドウ
+    g.fillStyle = sh('#2E2A26', 1); g.fillRect(0, y0, PW, PH - y0); const nW = Math.max(2, Math.round(PW / (2.8 * P))), sw = PW / nW, door = (nW / 2) | 0;
+    for (let k = 0; k < nW; k++) { const x = k * sw + 6, xw = sw - 12, top = y0 + 14, bot = PH - .5 * P;
+      if (k === door) { g.fillStyle = night ? '#FFE7B8' : '#3A3430'; g.fillRect(x + xw * .1, top + 10, xw * .8, PH - top - 14); g.fillStyle = '#C9A24A'; g.fillRect(x + xw * .5 - 1, top + 10, 2, PH - top - 14); g.fillRect(x + xw * .1, top + 6, xw * .8, 4); g.fillStyle = sh('#D8D0C2', 1); g.fillRect(x, PH - 6, xw, 6); continue; } // [139] 両開きの入口と石段
+      g.fillStyle = night ? '#FFF2DA' : '#33404C'; g.fillRect(x, top, xw, bot - top);
+      if (!night) { const gr = g.createLinearGradient(0, top, 0, bot); gr.addColorStop(0, 'rgba(200,218,232,.75)'); gr.addColorStop(1, 'rgba(60,80,100,.15)'); g.fillStyle = gr; g.fillRect(x, top, xw, bot - top); }
+      for (let m = 0; m < 2; m++) { const mx = x + xw * (.3 + m * .4), my = bot - 8, col = ['#2B2B2B', '#B9433A', '#E9E2D5', '#3A5A8C', '#8A6A4A'][(r() * 5) | 0]; g.fillStyle = night ? col : 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(mx, my - 1.25 * P, .14 * P, 0, 7); g.fill(); g.beginPath(); g.moveTo(mx - .22 * P, my - 1.05 * P); g.lineTo(mx + .22 * P, my - 1.05 * P); g.lineTo(mx + .3 * P, my - .3 * P); g.lineTo(mx - .3 * P, my - .3 * P); g.closePath(); g.fill(); g.fillRect(mx - 1, my - .3 * P, 2, .3 * P); } // [137] 中のマネキン
+      if (night) { for (let m = 0; m < 3; m++) { const gl = g.createRadialGradient(x + xw * (.2 + m * .3), top + 4, 1, x + xw * (.2 + m * .3), top + 4, xw * .35); gl.addColorStop(0, 'rgba(255,255,255,.6)'); gl.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gl; g.fillRect(x, top, xw, bot - top); } } // [145] 夜：スポットライトの光の輪
+      else { g.fillStyle = 'rgba(255,255,255,.22)'; g.beginPath(); g.moveTo(x + xw * .15, bot); g.lineTo(x + xw * .45, top); g.lineTo(x + xw * .55, top); g.lineTo(x + xw * .25, bot); g.fill(); } // [148] ガラスの映りこみ
+      g.fillStyle = sh('#D8D0C2', 1); g.fillRect(x - 2, bot, xw + 4, PH - bot); g.fillStyle = 'rgba(0,0,0,.15)'; g.fillRect(x - 2, bot, xw + 4, 2); } // [138] ショーウィンドウの足もとの台
+    g.fillStyle = '#C9A24A'; g.fillRect(PW * .3, y0 - .45 * P, PW * .4, .28 * P); g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(PW * .3, y0 - .45 * P, PW * .4, 2); g.fillStyle = sh('#2E2A26', 1); for (let k = 0; k < 6; k++) g.fillRect(PW * (.33 + k * .06), y0 - .4 * P, PW * .035, .18 * P); // [141] 金色の店名の板（字の形だけ）
+    if (variant % 2 === 0) { const fx = PW - 10, fc = ['#7A1F2B', '#1E3A5C', '#2E4A3A', '#E9E2D5'][(variant >> 1) % 4]; g.fillStyle = '#8A8A8A'; g.fillRect(fx - 30, y0 - 1.6 * P, 30, 3); g.fillStyle = sh(fc, 1); g.fillRect(fx - 26, y0 - 1.6 * P + 3, 18, .9 * P); g.fillStyle = 'rgba(0,0,0,.15)'; g.fillRect(fx - 12, y0 - 1.6 * P + 3, 4, .9 * P); } // [140] 店先の小さな旗
+    g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(0, y0 - 3, PW, 3);
   },
   // Shinjuku: curtain-wall towers, glass bands reflecting the sky, spandrels between
   glass(g, r, PW, PH, w, h, night, variant) { /* 2026-11-17 景色 114〜130：オフィス街のガラスのビル（前は、青い帯と白い帯がならぶだけだった） */
