@@ -1355,6 +1355,16 @@
       "name": "押上の電波塔：4 階の入口と四季のエレベーター・展望回廊の坂",
       "file": "src/1b_places.js",
       "has": "{ t: 'slobby', d: 5 }"
+    },
+    {
+      "name": "やわらかい布団・座布団（角の丸い、ふくらんだ形）",
+      "file": "src/3_world.js",
+      "has": "function softSlab(seg, o)"
+    },
+    {
+      "name": "メンテナンス中の表示（公開版だけ・自動チェックと ?preview=1 では出さない）",
+      "file": "src/7_ui.js",
+      "has": "function maintShow()"
     }
   ]
 }
