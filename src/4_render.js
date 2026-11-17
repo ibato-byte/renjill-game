@@ -347,6 +347,8 @@ function drawSegment(sg, isCur) {
   }
   pm('walls');
   // 坂の向こうの線（ガードレール・手すり）も、坂のかげに隠す（2026-11-09：渋谷の上り坂で、先の下り坂のガードレールが透けて見えた）。長い線は 4m ごとに分けて、それぞれの奥行きで
+  const cur0 = G.segs[G.ci], walled = !isCur && cur0 && cur0 !== sg && cur0.th.kind === 'room' && G.segs.indexOf(sg) > G.ci; /* [T6] 部屋（塔の入口の建物など）の中にいる時は、この先の場所の線（塔の骨組み・手すり）を描かない（壁ごしに透けて見えた） */
+  if (walled) { } else
   if (oc) { for (const l of sg.lines) { const len = Math.abs(l.b[0] - l.a[0]), n = Math.max(1, Math.ceil(len / 4));
       for (let k = 0; k < n; k++) { const t0 = k / n, t1 = (k + 1) / n, piece = n === 1 ? l : { a: [l.a[0] + (l.b[0] - l.a[0]) * t0, l.a[1] + (l.b[1] - l.a[1]) * t0, l.a[2] + (l.b[2] - l.a[2]) * t0], b: [l.a[0] + (l.b[0] - l.a[0]) * t1, l.a[1] + (l.b[1] - l.a[1]) * t1, l.a[2] + (l.b[2] - l.a[2]) * t1], c: l.c, w: l.w, glowN: l.glowN };
         const pm2 = segPos(sg, (piece.a[0] + piece.b[0]) / 2, (piece.a[1] + piece.b[1]) / 2), d = (pm2[0] - CAM.x) * CAM.s + (pm2[1] - CAM.z) * CAM.c; G.occLines = (G.occLines || 0) + 1;
@@ -545,6 +547,7 @@ function bunnyAmb() { const a = LT.amb.map(x => x + (1 - x) * .45), m = (a[0] + 
    ふだんは翼を広げてすべるように飛び（滑空）、ときどき重そうに 2〜3 回はばたく。かぎづめで背中の上（首のうしろ）をそっとつかむ */
 function drawHawk(b) {
   const k = b === G.player ? 0 : b === G.follow ? 1.7 : 3.1, t = G.t + k, rel = b.hawkRel || 0, cyc = (t * (.55 + rel * 1.6)) % 1, flapping = rel > 0 || cyc > .62, fl = rel > 0 ? Math.sin(t * 14) : flapping ? Math.sin((cyc - .62) / .38 * Math.PI * 3) : Math.sin(t * 1.3) * .08; /* [D4] はなす時は速く羽ばたく */
+  if (b.hawkIn != null && b.hawkIn < 1) { const q = 1 - b.hawkIn; ctx.translate(-q * 160, -q * q * 1100); ctx.globalAlpha *= clamp(b.hawkIn * 3, 0, 1); } /* [F4] つかむ前：ななめ上から、おりてくる */
   if (rel > .2) { const q = (rel - .2) / .8; ctx.translate(Math.sin(k * 2) * q * 220, -q * q * 900); ctx.globalAlpha *= 1 - q * .6; ctx.scale(1 - q * .45, 1 - q * .45); } /* [D5] 足をはなしたオオタカは、ななめ上へ飛び去って小さくなる */
   const T = c => tint(c), up = -fl * 70, x0 = Math.sin(t * .9) * 6;
   ctx.save(); ctx.translate(x0, -335 + fl * 8);
@@ -580,7 +583,7 @@ function drawBunnyWorld(b) {
   let pose;
   // しゃがむ・跳ぶが、ふり返り（look）より先（ふり返っている間に下スワイプしても、しゃがまなかった：2026-11-09 の報告）
   if (b.view === 'front') pose = 'front_' + (b.mood || 'open');
-  else if (b.hawk && !(b.hawkRel > .2)) pose = b.hawkRel > .02 ? 'fall' : 'air'; /* オオタカにつかまれて、足をのばしてぶら下がる。[D3] 地面が近づくと、足を下へのばして着地の用意 */
+  else if (b.hawk && !(b.hawkRel > .2) && !(b.hawkIn < .85)) pose = b.hawkRel > .02 ? 'fall' : 'air'; /* オオタカにつかまれて、足をのばしてぶら下がる。[D3] 地面が近づくと、足を下へのばして着地の用意 */
   else if (b.fly) pose = 'run0'; /* 紙飛行機に乗っている間は、足を止めて座る（2026-11-17 オーナー：「紙飛行機に乗ってる時も走り続けてる動作をしてる」）。下半分は紙飛行機にかくれる */
   else if (b.slide) pose = 'slide'; else if (b.air) pose = !b.fly && (b === G.player ? G.vy : b.vy) < -2.5 ? 'fall' : 'air'; /* くだりは「落ちてくる絵」 */
   else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
