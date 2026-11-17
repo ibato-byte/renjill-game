@@ -235,6 +235,7 @@ function aerialCity(seg, yb, alt, hz) {
     for (const [d, wx, wz, h, i, j, ro] of list) { const fk = clamp(1 - Math.exp(-d / (4200 + camH * 8)), 0, .85);
       if (ro && ro.tower) { rmTowerBody({ P, cx0, cz0, cs, cc, yb }, ro, night, fog, dd => clamp(1 - Math.exp(-dd / (4200 + camH * 8)), 0, .85)); continue; }
       if (ro && ro.crane) { if (d < 3500) rmCrane({ P }, ro, night, (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * LT.amb[q], fog[q], fk)) | 0)})`); continue; }
+      if (ro && ro.pier) { rmPier({ P }, ro, night, (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * (night ? 1 : LT.amb[q]), fog[q], fk)) | 0)})`); continue; }
       if (ro && ro.brick) { rmBrick({ P }, ro, night, (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * (night ? 1 : LT.amb[q]), fog[q], fk)) | 0)})`); continue; }
       if (ro && (ro.bridge || ro.pagoda)) { const mc = (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * (night ? 1 : LT.amb[q]), fog[q], fk)) | 0)})`; if (ro.bridge) rmBridge({ P, yb }, ro.bridge, night, mc); else rmPagoda({ P, yb }, ro, night, mc); continue; }
       if (ro && ro.temple) { rmTemple({ P, yb }, ro, night, (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * (night ? 1 : LT.amb[q]), fog[q], fk)) | 0)})`); continue; }

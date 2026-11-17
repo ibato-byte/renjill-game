@@ -677,6 +677,8 @@ function yWedge(seg) {
   seg.walls.push({ v: quad(seg, [[fs, -half, 0], [fs, half, 0], [fs, half, h], [fs, -half, h]]), c, n: [-seg.f[0], -seg.f[1]], sh: 1, pat: 'fac', st: fac.style === 'station' ? 'glass' : fac.style, h, w: 1.3, seed: (Math.random() * 1e5) | 0, yFront: 1 });
   seg.yFront = { s: fs, half, h };
   /* [Y2] 分かれ目の島：とがった建物の前に、低い縁石の三角の島（植え込み）。先に黄色と黒のポール [Y3] 信号の柱と、こちらを向いた信号（赤・黄・青）[Y4] 島の両わきの白い柵 */
+  seg.props.push(mkProp(seg, [{ l0: -half - .25, l1: half + .25, s0: fs - .9, s1: fs - .02, y0: 2.7, y1: 2.84, c: '#3B3F46' }, { l0: -half - .25, l1: half + .25, s0: fs - .92, s1: fs - .86, y0: 2.5, y1: 2.84, c: pick(['#B5302A', '#2F5579', '#3E5A48']) }], { big: 1 })); /* [Y10] とがった角の建物の、1 階の上のひさし（色のついた前だれ） */
+  if (h > 14) { const cy = Math.min(h - 2, 9.5); seg.props.push(mkProp(seg, [{ l0: -.55, l1: .55, s0: fs - .25, s1: fs - .05, y0: cy - .55, y1: cy + .55, c: '#2B2F36' }, { l0: -.46, l1: .46, s0: fs - .27, s1: fs - .25, y0: cy - .46, y1: cy + .46, c: '#F6F2E8' }, { l0: -.03, l1: .03, s0: fs - .29, s1: fs - .27, y0: cy - .02, y1: cy + .32, c: '#2B2B2B' }, { l0: -.02, l1: .24, s0: fs - .29, s1: fs - .27, y0: cy - .02, y1: cy + .02, c: '#2B2B2B' }], { big: 1 })); } /* [Y11] 角の建物の正面の、四角いわくの大きな時計（分かれ道の角の目印） */
   const tip = fs - 5.4, G0 = '#B9B4A8';
   seg.props.push(mkProp(seg, [{ l0: -.3, l1: .3, s0: tip, s1: tip + 1.8, y0: 0, y1: .16, c: G0 }, { l0: -.48, l1: .48, s0: tip + 1.8, s1: tip + 3.6, y0: 0, y1: .16, c: G0 }, { l0: -.62, l1: .62, s0: tip + 3.6, s1: fs - .05, y0: 0, y1: .16, c: G0 },
     { l0: -.38, l1: .38, s0: tip + 2, s1: fs - .2, y0: .16, y1: .32, c: '#6F9A52' }, { l0: -.1, l1: .1, s0: tip + .2, s1: tip + .4, y0: 0, y1: .85, c: '#E8C23A' }, { l0: -.1, l1: .1, s0: tip + .2, s1: tip + .4, y0: .5, y1: .62, c: '#2B2B2B' },
