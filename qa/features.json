@@ -1250,6 +1250,26 @@
       "name": "ホーム画面の第 2 段（座布団の厚み・桐たんす・じゅらく壁）",
       "file": "src/4b_patterns.js",
       "has": "function zabuTopTex("
+    },
+    {
+      "name": "目印は曲がっても世界の同じ向き（正面に出続けない）",
+      "file": "src/4b_patterns.js",
+      "has": "function lmWorldAngle("
+    },
+    {
+      "name": "分かれ道で選ばなかった道をすぐ消さない",
+      "file": "src/4_render.js",
+      "has": "G.forkGhost"
+    },
+    {
+      "name": "分かれ道の手前に外の通り（Y 字路が実際に出る）",
+      "file": "src/1b_places.js",
+      "has": "const yFit = "
+    },
+    {
+      "name": "赤い電波塔：入口の建物・屋上・踊り場のある外階段・500 段からの通路",
+      "file": "src/1b_places.js",
+      "has": "{ t: 'tlobby', d: 5 }, { t: 'troof', d: 4 }, { t: 'tstair', d: 12 }, { t: 'tpass', d: 4 }"
     }
   ]
 }

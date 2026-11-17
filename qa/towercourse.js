@@ -32,7 +32,7 @@ const { chromium } = require('playwright'); const path = require('path');
     await p.evaluate(() => { const H = window.__hayDash, G = H.G, seg = G.segs[G.ci]; G.invT = 999; G.s = seg.len - 2; for (const o of seg.obs) o.dead = .001; if (!seg.th.sky && !seg.th.grab) H.act(seg.fork ? 'left' : seg.turn < 0 ? 'left' : 'right'); });
     await p.waitForTimeout(450);
   }
-  const path1 = seen.join('>'); const want = [['tfoot', 'tower', 'tdeck', 'hawk', 'tland'], ['sfoot', 'sdeck', 'skytree', 'hawk2', 'sland'], ['asakusa', 'nakamise', 'hozomon', 'hondo', 'denboin']];
+  const path1 = seen.join('>'); const want = [['tfoot', 'tlobby', 'troof', 'tstair', 'tpass', 'tdeck', 'hawk', 'tland'], ['sfoot', 'sdeck', 'skytree', 'hawk2', 'sland'], ['asakusa', 'nakamise', 'hozomon', 'hondo', 'denboin']];
   for (const w of want) { const i = seen.lastIndexOf(w[0]); if (i < 0 || seen.slice(i, i + w.length).join('>') !== w.join('>')) bad.push('コースの順番がちがう：' + w.join('>') + ' ／ 通った道：' + path1); }
   if (seen.filter(x => x === 'tfoot').length > 1) bad.push('赤い電波塔コースが 2 回始まった');
   if (seen.indexOf('tfoot') > seen.indexOf('sfoot')) bad.push('30万点のコースが 10万点のコースより先'); if (seen.indexOf('sfoot') > seen.indexOf('nakamise')) bad.push('50万点のコースが 30万点のコースより先');
