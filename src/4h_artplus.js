@@ -503,3 +503,20 @@ function paintPolePlus(g, W, H, night) { paintPole(g, W, H); const x = W / 2;
   const ly = H * .29; g.strokeStyle = '#8B8F93'; g.lineWidth = 3; g.beginPath(); g.moveTo(x - 5, ly); g.lineTo(x - 28, ly - 8); g.stroke(); g.fillStyle = '#D9DCDF'; rrect(g, x - 38, ly - 12, 16, 7, 3); g.fill(); g.fillStyle = night ? '#FFFFFF' : '#C9CDD2'; g.fillRect(x - 36, ly - 6, 12, 2.5); // [111] 防犯灯（夜は光る）
   if (night) { const gl = g.createRadialGradient(x - 30, ly - 4, 1, x - 30, ly - 4, 26); gl.addColorStop(0, 'rgba(235,245,255,.85)'); gl.addColorStop(1, 'rgba(235,245,255,0)'); g.fillStyle = gl; g.fillRect(x - 58, ly - 30, 56, 56); } }
 PROP_ART.pole = (n) => artCanvas('ppole2|' + (n ? 1 : 0), 120, 560, (g, w, h) => paintPolePlus(g, w, h, n));
+
+/* 2026-11-17 景色 131〜135：オフィス街・駅前の歩道（車止め・案内地図） */
+function paintBollards(g, W, H, night) { for (let k = 0; k < 3; k++) { const x = W * (.17 + k * .33), bw = W * .09, top = H * .22;
+    g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(x + 4, H - 4, bw * 1.3, 5, 0, 0, 7); g.fill();
+    const gr = g.createLinearGradient(x - bw, 0, x + bw, 0); gr.addColorStop(0, '#6E747A'); gr.addColorStop(.35, '#F2F4F6'); gr.addColorStop(.6, '#B9BEC4'); gr.addColorStop(1, '#5A6066'); g.fillStyle = gr; g.fillRect(x - bw, top, bw * 2, H - top - 4); // [131] ステンレスの車止め
+    g.beginPath(); g.ellipse(x, top, bw, bw * .7, 0, Math.PI, 0); g.fill(); g.fillStyle = 'rgba(255,255,255,.7)'; g.beginPath(); g.ellipse(x - bw * .3, top - bw * .2, bw * .3, bw * .15, 0, 0, 7); g.fill(); // [132] 頭の丸みと光
+    g.fillStyle = night ? '#FFE27A' : '#E8C23A'; g.fillRect(x - bw, top + H * .12, bw * 2, H * .07); g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(x - bw * .4, top + H * .12, bw * .3, H * .07); } } // [133] 黄色い反射の帯
+function paintAreaMap(g, W, H, night) { const x0 = W * .1, x1 = W * .9, y0 = H * .1, y1 = H * .62;
+  g.fillStyle = '#4A5058'; g.fillRect(W * .2, y1, W * .07, H - y1); g.fillRect(W * .73, y1, W * .07, H - y1); g.fillStyle = '#5A626C'; g.fillRect(x0 - 6, y0 - 14, x1 - x0 + 12, 12); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(x0, y0 - 2, x1 - x0, 4); // [135] 案内板の屋根
+  g.fillStyle = '#3A4048'; g.fillRect(x0 - 4, y0 - 4, x1 - x0 + 8, y1 - y0 + 8); g.fillStyle = night ? '#FFFCEB' : '#F4F1E8'; g.fillRect(x0, y0, x1 - x0, y1 - y0);
+  g.fillStyle = night ? '#CFE6C2' : '#BFD9B0'; g.fillRect(x0 + (x1 - x0) * .55, y0 + 10, (x1 - x0) * .3, (y1 - y0) * .35); g.fillStyle = night ? '#BFDDF2' : '#A9CDE8'; g.fillRect(x0, y0 + (y1 - y0) * .75, x1 - x0, (y1 - y0) * .1); // 地図：公園と川
+  g.strokeStyle = '#FFFFFF'; g.lineWidth = 5; g.beginPath(); for (const f of [.3, .6]) { g.moveTo(x0, y0 + (y1 - y0) * f); g.lineTo(x1, y0 + (y1 - y0) * f); g.moveTo(x0 + (x1 - x0) * f, y0); g.lineTo(x0 + (x1 - x0) * f, y1); } g.stroke(); g.fillStyle = '#C9C2B0'; for (let k = 0; k < 9; k++) g.fillRect(x0 + 6 + (k % 3) * (x1 - x0) * .3, y0 + 6 + ((k / 3) | 0) * (y1 - y0) * .3, (x1 - x0) * .2, (y1 - y0) * .18);
+  g.fillStyle = '#D7262E'; g.beginPath(); g.arc(x0 + (x1 - x0) * .45, y0 + (y1 - y0) * .5, 6, 0, 7); g.fill(); g.font = `900 ${Math.round(H * .045)}px sans-serif`; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText('現在地', x0 + (x1 - x0) * .45 + 9, y0 + (y1 - y0) * .5); // [134] 案内地図と現在地の赤い点
+  g.fillStyle = '#1E5AA8'; g.fillRect(x0, y0, x1 - x0, H * .06); g.fillStyle = '#FFFFFF'; g.font = `900 ${Math.round(H * .04)}px sans-serif`; g.textAlign = 'center'; g.fillText('周辺案内図', (x0 + x1) / 2, y0 + H * .03);
+  if (night) { g.fillStyle = 'rgba(255,250,220,.18)'; g.fillRect(x0 - 10, y0 - 10, x1 - x0 + 20, y1 - y0 + 20); } } // [135] 夜は中から光る
+Object.assign(PROP_ART, { bollard: (n) => artCanvas('pbollard|' + n, 200, 110, (g, w, h) => paintBollards(g, w, h, n)), areamap: (n) => artCanvas('pareamap|' + n, 220, 300, (g, w, h) => paintAreaMap(g, w, h, n)) });
+Object.assign(PROP_DIM, { bollard: { w: 1.8, h: .95, off: 0 }, areamap: { w: 1.5, h: 2.1, off: 0 } });
