@@ -647,7 +647,7 @@ boot();
 function maintShow() {
   const MAINT = 1;
   const END = Date.UTC(2026, 10, 18, 3, 0); // 終了予定：2026-11-18（水）12:00（日本時間）。オーナー「一旦、明日のお昼の12時までにして」（2026-11-17）。延ばす時はここを変える
-  try { if (!MAINT || !window.HAYDASH_APP || navigator.webdriver || /[?&]preview=1/.test(location.search)) return; } catch (e) { return; }
+  try { if (!MAINT || Date.now() >= END || !window.HAYDASH_APP || navigator.webdriver || /[?&]preview=1/.test(location.search)) return; } catch (e) { return; } /* 2026-11-18：終了予定（END）を過ぎたら、新しく公開しなおさなくても、メンテナンス表示は自動で出なくなる（オーナー「一旦、明日のお昼の12時までにして」） */
   const T = { ja: ['ただいまメンテナンス中', 'レンとジルとポムが、東京の町をもっと本物みたいにお手入れしています。', 'もうすぐもどります。また遊びに来てね！'],
     en: ['Under maintenance', 'Ren, Jill and Pom are making Tokyo look even more real.', 'We will be back soon. Please come again!'],
     zh: ['維護中', 'Ren、Jill 和 Pom 正在把東京的街道整理得更逼真。', '很快就回來，請再來玩！'], ko: ['점검 중', '렌과 질과 폼이 도쿄 거리를 더 진짜처럼 손보고 있어요.', '곧 돌아올게요. 또 놀러 와 주세요!'] }[LANG] || null;

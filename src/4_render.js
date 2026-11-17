@@ -347,6 +347,8 @@ function drawSegment(sg, isCur) {
   }
   pm('walls');
   // 坂の向こうの線（ガードレール・手すり）も、坂のかげに隠す（2026-11-09：渋谷の上り坂で、先の下り坂のガードレールが透けて見えた）。長い線は 4m ごとに分けて、それぞれの奥行きで
+  const cur0 = G.segs[G.ci], walled = !isCur && cur0 && cur0 !== sg && cur0.th.kind === 'room' && G.segs.indexOf(sg) > G.ci; /* [T6] 部屋（塔の入口の建物など）の中にいる時は、この先の場所の線（塔の骨組み・手すり）を描かない（壁ごしに透けて見えた） */
+  if (walled) { } else
   if (oc) { for (const l of sg.lines) { const len = Math.abs(l.b[0] - l.a[0]), n = Math.max(1, Math.ceil(len / 4));
       for (let k = 0; k < n; k++) { const t0 = k / n, t1 = (k + 1) / n, piece = n === 1 ? l : { a: [l.a[0] + (l.b[0] - l.a[0]) * t0, l.a[1] + (l.b[1] - l.a[1]) * t0, l.a[2] + (l.b[2] - l.a[2]) * t0], b: [l.a[0] + (l.b[0] - l.a[0]) * t1, l.a[1] + (l.b[1] - l.a[1]) * t1, l.a[2] + (l.b[2] - l.a[2]) * t1], c: l.c, w: l.w, glowN: l.glowN };
         const pm2 = segPos(sg, (piece.a[0] + piece.b[0]) / 2, (piece.a[1] + piece.b[1]) / 2), d = (pm2[0] - CAM.x) * CAM.s + (pm2[1] - CAM.z) * CAM.c; G.occLines = (G.occLines || 0) + 1;
@@ -545,6 +547,7 @@ function bunnyAmb() { const a = LT.amb.map(x => x + (1 - x) * .45), m = (a[0] + 
    ふだんは翼を広げてすべるように飛び（滑空）、ときどき重そうに 2〜3 回はばたく。かぎづめで背中の上（首のうしろ）をそっとつかむ */
 function drawHawk(b) {
   const k = b === G.player ? 0 : b === G.follow ? 1.7 : 3.1, t = G.t + k, rel = b.hawkRel || 0, cyc = (t * (.55 + rel * 1.6)) % 1, flapping = rel > 0 || cyc > .62, fl = rel > 0 ? Math.sin(t * 14) : flapping ? Math.sin((cyc - .62) / .38 * Math.PI * 3) : Math.sin(t * 1.3) * .08; /* [D4] はなす時は速く羽ばたく */
+  if (b.hawkIn != null && b.hawkIn < 1) { const q = 1 - b.hawkIn; ctx.translate(-q * 160, -q * q * 1100); ctx.globalAlpha *= clamp(b.hawkIn * 3, 0, 1); } /* [F4] つかむ前：ななめ上から、おりてくる */
   if (rel > .2) { const q = (rel - .2) / .8; ctx.translate(Math.sin(k * 2) * q * 220, -q * q * 900); ctx.globalAlpha *= 1 - q * .6; ctx.scale(1 - q * .45, 1 - q * .45); } /* [D5] 足をはなしたオオタカは、ななめ上へ飛び去って小さくなる */
   const T = c => tint(c), up = -fl * 70, x0 = Math.sin(t * .9) * 6;
   ctx.save(); ctx.translate(x0, -335 + fl * 8);
@@ -562,6 +565,8 @@ function drawHawk(b) {
     ctx.beginPath(); ctx.moveTo(sd * 24, -14); ctx.bezierCurveTo(sd * 110, -54 + up * .3, sd * 210, -40 + up * .7, tipX, tipY); ctx.lineTo(sd * 250, 24 + up * .8); ctx.bezierCurveTo(sd * 170, 58 + up * .5, sd * 80, 52 + up * .2, sd * 22, 34); ctx.closePath();
     const gr = ctx.createLinearGradient(0, 0, tipX, 0); gr.addColorStop(0, T('#7A8490')); gr.addColorStop(.55, T('#5D6672')); gr.addColorStop(1, T('#3B414A')); ctx.fillStyle = gr; ctx.fill();
     for (let j = 0; j < 6; j++) { const q = j / 5, fx = sd * (236 + q * 78), fy = 8 + up * .92 - q * 26 + (j % 2) * 4; ctx.fillStyle = T(j % 2 ? '#353A42' : '#2E333A'); ctx.beginPath(); ctx.ellipse(fx, fy, 40, 9, sd * (.15 + q * .45), 0, Math.PI * 2); ctx.fill(); }
+    if (!lowQ) { for (let j = 0; j < 11; j++) { const q = (j + .5) / 11, bx = sd * (26 + q * 220), by = 36 + q * 2 + up * (q * .8) + Math.sin(q * 3.1) * 18; ctx.fillStyle = T(j % 2 ? '#4C5560' : '#454D57'); ctx.beginPath(); ctx.ellipse(bx, by, 13, 9, 0, 0, Math.PI); ctx.fill(); ctx.strokeStyle = 'rgba(235,238,240,.18)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(bx, by, 13, 9, 0, .2, Math.PI - .2); ctx.stroke(); } /* [D16] 翼のうしろのふち：風切り羽の先が 1 枚ずつ（ぎざぎざ）、先に白っぽいふち */
+      for (let row = 0; row < 2; row++) for (let j = 0; j < 7 - row * 2; j++) { const q = (j + .5) / (7 - row * 2) * (.75 - row * .2), bx = sd * (40 + q * 230), by = -8 + row * 16 - q * 10 + up * q * .55; ctx.strokeStyle = row ? 'rgba(210,216,222,.22)' : 'rgba(225,230,235,.18)'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(bx, by, 10 - row * 2, .15, Math.PI - .15); ctx.stroke(); } } /* [D17] 翼の付け根の小さな羽（雨おおい）のうろこ模様 2 列 */
     ctx.strokeStyle = 'rgba(30,34,40,.35)'; ctx.lineWidth = 2.5; for (let j = 1; j < 5; j++) { const q = j / 5; ctx.beginPath(); ctx.moveTo(sd * (60 + q * 150), 46 - q * 6 + up * q * .6); ctx.lineTo(sd * (70 + q * 160), 6 - q * 18 + up * q * .7); ctx.stroke(); } // 羽のすじ
     ctx.strokeStyle = LT.night > .4 ? 'rgba(200,214,255,.55)' : 'rgba(255,255,255,.22)'; ctx.lineWidth = LT.night > .4 ? 4 : 3; ctx.beginPath(); ctx.moveTo(sd * 28, -16); ctx.bezierCurveTo(sd * 110, -54 + up * .3, sd * 210, -40 + up * .7, tipX, tipY); ctx.stroke(); }
   // 胴と頭：背中は灰黒、頭は黒っぽく、目の上に白いまゆ
@@ -578,7 +583,7 @@ function drawBunnyWorld(b) {
   let pose;
   // しゃがむ・跳ぶが、ふり返り（look）より先（ふり返っている間に下スワイプしても、しゃがまなかった：2026-11-09 の報告）
   if (b.view === 'front') pose = 'front_' + (b.mood || 'open');
-  else if (b.hawk && !(b.hawkRel > .2)) pose = b.hawkRel > .02 ? 'fall' : 'air'; /* オオタカにつかまれて、足をのばしてぶら下がる。[D3] 地面が近づくと、足を下へのばして着地の用意 */
+  else if (b.hawk && !(b.hawkRel > .2) && !(b.hawkIn < .85)) pose = b.hawkRel > .02 ? 'fall' : 'air'; /* オオタカにつかまれて、足をのばしてぶら下がる。[D3] 地面が近づくと、足を下へのばして着地の用意 */
   else if (b.fly) pose = 'run0'; /* 紙飛行機に乗っている間は、足を止めて座る（2026-11-17 オーナー：「紙飛行機に乗ってる時も走り続けてる動作をしてる」）。下半分は紙飛行機にかくれる */
   else if (b.slide) pose = 'slide'; else if (b.air) pose = !b.fly && (b === G.player ? G.vy : b.vy) < -2.5 ? 'fall' : 'air'; /* くだりは「落ちてくる絵」 */
   else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');

@@ -66,7 +66,7 @@ const { chromium } = require('playwright');
     if (!/見つかりません|not found/.test(await C.p.textContent('#linkMsg'))) errs.push(lang + ' used code accepted again');
     // the connect link: a new code from A, opened in a fresh browser D
     await A.p.click('#btnLinkMake'); await A.p.waitForTimeout(800); const url2 = await A.p.evaluate(() => document.querySelector('#linkOut').dataset.url);
-    const D = await context(lang); await D.p.goto('http://127.0.0.1:8790/?link=' + url2.split('link=')[1]); await D.p.waitForTimeout(2200);
+    const D = await context(lang); await D.p.goto('http://127.0.0.1:8790/?link=' + url2.split('link=')[1]); await D.p.waitForFunction(() => !!document.querySelector('#linkAsk:not([hidden])'), null, { timeout: 9000 }).catch(() => {}); await D.p.waitForTimeout(200); /* 2026-11-18：起動が重くなり、2.2 秒の固定待ちでは間に合わないことがあった（main でも落ちた）。出るまで最大 9 秒待つ（確かめる中身は同じ） */
     const dAsk = await D.p.evaluate(() => ({ panel: !document.querySelector('#sPanel').hidden, ask: !!document.querySelector('#linkAsk:not([hidden])'), url: location.search }));
     if (!dAsk.panel || !dAsk.ask || dAsk.url) errs.push(lang + ' connect link ' + JSON.stringify(dAsk));
     for (const X of [A, B, C, D]) await X.ctx.close();
