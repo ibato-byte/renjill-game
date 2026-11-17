@@ -646,7 +646,8 @@ boot();
    終わったら、下の MAINT を 0 にする（関数の中に置く：起動の途中で呼ぶので、ファイルの後ろの const はまだ使えない） */
 function maintShow() {
   const MAINT = 1;
-  try { if (!MAINT || !window.HAYDASH_APP || navigator.webdriver || /[?&]preview=1/.test(location.search)) return; } catch (e) { return; }
+  const END = Date.UTC(2026, 10, 18, 3, 0); // 終了予定：2026-11-18（水）12:00（日本時間）。オーナー「一旦、明日のお昼の12時までにして」（2026-11-17）。延ばす時はここを変える
+  try { if (!MAINT || Date.now() >= END || !window.HAYDASH_APP || navigator.webdriver || /[?&]preview=1/.test(location.search)) return; } catch (e) { return; } /* 2026-11-18：終了予定（END）を過ぎたら、新しく公開しなおさなくても、メンテナンス表示は自動で出なくなる（オーナー「一旦、明日のお昼の12時までにして」） */
   const T = { ja: ['ただいまメンテナンス中', 'レンとジルとポムが、東京の町をもっと本物みたいにお手入れしています。', 'もうすぐもどります。また遊びに来てね！'],
     en: ['Under maintenance', 'Ren, Jill and Pom are making Tokyo look even more real.', 'We will be back soon. Please come again!'],
     zh: ['維護中', 'Ren、Jill 和 Pom 正在把東京的街道整理得更逼真。', '很快就回來，請再來玩！'], ko: ['점검 중', '렌과 질과 폼이 도쿄 거리를 더 진짜처럼 손보고 있어요.', '곧 돌아올게요. 또 놀러 와 주세요!'] }[LANG] || null;
@@ -657,6 +658,7 @@ function maintShow() {
     + '<canvas id="maintCv" width="360" height="200" style="width:100%;max-width:360px;height:auto;display:block;margin:0 auto 6px"></canvas>'
     + '<div style="display:inline-block;background:#F2C230;color:#3B2A20;border-radius:999px;padding:4px 14px;font-weight:900;font-size:13px;letter-spacing:.08em;margin-bottom:10px">🛠 MAINTENANCE</div>'
     + '<h1 style="margin:0 0 10px;font-size:24px;font-weight:900;line-height:1.3">' + tx[0] + '</h1>'
+    + (Date.now() < END ? '<div id="maintEnd" style="display:inline-block;margin:0 0 12px;padding:6px 14px;border-radius:14px;background:#FFF0D6;border:2px solid #F2C230;font-weight:900;font-size:15px;line-height:1.4">🕛 ' + ({ ja: '終了予定 11月18日（水）12:00', en: 'Back by Wed, Nov 18, 12:00 (JST)', zh: '預計結束 11月18日（三）12:00（日本時間）', ko: '종료 예정 11월 18일(수) 12:00 (일본 시간)' }[LANG] || '終了予定 11月18日（水）12:00') + '</div>' : '')
     + '<p style="margin:0 0 8px;font-size:15px;line-height:1.7">' + tx[1] + '</p><p style="margin:0;font-size:15px;line-height:1.7;font-weight:700;color:#A0522D">' + tx[2] + '</p></div>';
   document.body.appendChild(d);
   for (const ev of ['keydown', 'keyup', 'pointerdown', 'touchstart', 'wheel']) d.addEventListener(ev, e => e.stopPropagation(), { capture: true });

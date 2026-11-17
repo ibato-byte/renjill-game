@@ -354,7 +354,7 @@ function act(a) {
   }
 }
 function flashChoice(seg, d) {
-  const cue = $('#turnCue'); cue.textContent = d < 0 ? '←' : '→'; cue.className = (d < 0 ? 'l' : 'r') + ' show locked';
+  const cue = $('#turnCue'); cue.textContent = ''; cue.className = ''; /* 曲がると決めた時の大きな矢印も出さない（オーナー 2026-11-18）。音と、分かれ道の行き先の帯で伝わる */
   if (seg.fork && seg.forkLbl) banner(d < 0 ? '← LEFT' : 'RIGHT →', L(d < 0 ? seg.forkLbl.L : seg.forkLbl.R), 'good');
 }
 // the turn itself never fails half way: the street to turn into is found (or built) first; only then does the runner move onto it.
@@ -657,7 +657,7 @@ function update(dt) {
     else if (!fc.hidden) fc.hidden = true;
   }
   if (G.turnQueued && !G.turnAuto && G.s < seg.len) { /* chosen: keep the locked arrow */ }
-  else if (G.s > win && G.s < seg.len && !G.turnQueued && (seg.turn || seg.fork)) { cue.textContent = seg.fork ? '←  →' : seg.turn > 0 ? '→' : '←'; cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + ' win' + (Math.floor(G.t * 8) % 2 ? ' show' : ''); cue.style.setProperty('--left', clamp((seg.len - G.s) / Math.max(1, seg.len - win), 0, 1).toFixed(3)); } // 曲がれる残り（C-6）：矢印の下の線が短くなっていく
+  else if (G.s > win && G.s < seg.len && !G.turnQueued && (seg.turn || seg.fork)) { cue.textContent = ''; /* 2026-11-18 オーナー「右や左に曲がる時の大きな矢印は全ていらない（景色のじゃま）」：大きな矢印の字は出さない。曲がれる残りの細い線（C-6）だけ、曲がる側に小さく出す */ cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + ' win' + (Math.floor(G.t * 8) % 2 ? ' show' : ''); cue.style.setProperty('--left', clamp((seg.len - G.s) / Math.max(1, seg.len - win), 0, 1).toFixed(3)); } // 曲がれる残り（C-6）：矢印の下の線が短くなっていく
   else cue.className = '';
   // events inside a stretch
   if (seg.goldRoad && !seg.goldTold && G.s > seg.goldRoad - 34) { seg.goldTold = 1; banner('GOLDEN ROAD!', tr('金のチモシーの道！', 'A road of golden hay!'), 'good'); }
@@ -689,7 +689,7 @@ function update(dt) {
   // animation
   P.ph += dt * (P.who === 'pom' ? 10 + G.speed * .75 : 6 + G.speed * .55); /* [46] ポムは足が短いので、もう少し速く足を回す（2026-11-17） */ /* ポムは足が短いので、同じ速さでも足の回転が速い */
   { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1, seg.th.kind); if (G.weather === 'snow' && seg.th.kind !== 'room' && seg.th.kind !== 'train') { const fw = segPos(seg, G.s, G.lat + ((c & 1) ? .12 : -.12)); (G.prints = G.prints || []).push({ x: fw[0], z: fw[1], y: fw[2], t: G.t, a: G.player.wy }); if (G.prints.length > 40) G.prints.shift(); } } } // footprints in the snow (2026-11-08) // a soft footstep on every stride
-  { const sky = !!seg.th.sky, rel = sky ? clamp((G.s - (seg.len - 30)) / 16, 0, 1) : 0, nx = G.segs[G.ci + 1], hin = sky ? 1 : (seg.turn === 0 && !seg.fork && nx && nx.th.sky) ? clamp((G.s - (seg.len - 11)) / 8, 0, 1) : 0; /* [F4] 展望台のテラスの先で、オオタカが上からおりてきて、つかむ */ P.hawk = G.follow.hawk = G.pom.hawk = hin > 0; P.hawkIn = G.follow.hawkIn = G.pom.hawkIn = hin; P.hawkRel = G.follow.hawkRel = G.pom.hawkRel = rel; if (!sky) G.hawkLand = 0; else if (rel > .2 && !G.hawkLand) { G.hawkLand = 1; G.landT = .14; G.landK = .85; try { SFX.land(); const sp = spriteAt(P.wx, G.ey || 0, P.wz); if (sp) for (let k = 0; k < 10; k++) FX.push({ x: sp.sx + rand(-34, 34), y: sp.sy, vx: rand(-130, 130), vy: rand(-80, -15), life: rand(.3, .5), t: 0, c: 'rgba(214,222,190,.85)', r: rand(2, 4) }); } catch (e) { } } /* [D18] 着地の一歩：足をはなした時、ぽんと着地（体が少しつぶれる・音・芝の小さなほこり） */ /* [D1] 地面の近くで、オオタカが足をはなす（0→1：はなして、空へもどっていく） */
+  { const sky = !!seg.th.sky, rel = sky ? clamp((G.s - (seg.len - 30)) / 16, 0, 1) : 0, nx = G.segs[G.ci + 1], hin = sky ? 1 : (seg.turn === 0 && !seg.fork && nx && nx.th.sky) ? clamp((G.s - (seg.len - 11)) / 8, 0, 1) : 0; /* [F4] 展望台のテラスの先で、オオタカが上からおりてきて、つかむ */ P.hawk = G.follow.hawk = G.pom.hawk = hin > 0; P.hawkIn = G.follow.hawkIn = G.pom.hawkIn = hin; P.hawkRel = G.follow.hawkRel = G.pom.hawkRel = rel; if (!sky) G.hawkLand = 0; else if (sky && !G.skyWhoosh) { G.skyWhoosh = 1; try { whoosh(1.4, .09, 300, 1800); } catch (e) { } } if (!sky) G.skyWhoosh = 0; /* [F9] 飛び立つ時の、長い風の音 */ if (rel > .2 && !G.hawkLand) { G.hawkLand = 1; G.landT = .14; G.landK = .85; try { SFX.land(); const sp = spriteAt(P.wx, G.ey || 0, P.wz); if (sp) for (let k = 0; k < 10; k++) FX.push({ x: sp.sx + rand(-34, 34), y: sp.sy, vx: rand(-130, 130), vy: rand(-80, -15), life: rand(.3, .5), t: 0, c: 'rgba(214,222,190,.85)', r: rand(2, 4) }); } catch (e) { } } /* [D18] 着地の一歩：足をはなした時、ぽんと着地（体が少しつぶれる・音・芝の小さなほこり） */ /* [D1] 地面の近くで、オオタカが足をはなす（0→1：はなして、空へもどっていく） */
     if (rel > 0 && !G.hawkLet) { G.hawkLet = 1; tone(880, .12, 'bell', .03); tone(660, .16, 'bell', .025, AU.ctx && AU.ctx.currentTime + .1); } if (!sky) G.hawkLet = 0; }
   P.air = G.air && !flying; P.slide = sliding; P.fly = flying; P.flash = G.invT > 0 && G.invT < 2.4 && !flying; P.glow = G.shield ? '#5FB05A' : G.pow.dash > 0 ? '#F08A2E' : null;
   if (P.look > 0) P.look = Math.max(0, P.look - dt);
@@ -723,7 +723,7 @@ function placeCamera(dt) {
   const tk = G.camTall, dist = 3.9 + .3 * tk, fx = Math.sin(G.camYaw), fz = Math.cos(G.camYaw); // tall phones: the camera sits a little higher and further back, so the road ahead shows above the runners' heads (2026-11-14; measured: 108 → 133 px of road above their heads; the first, higher try (153 px) looked down too steeply and ran into overhead gates, so it was eased)
   const sh = G.shake > 0 ? Math.sin(G.t * 60) * .09 * G.shake : 0, sway = seg.th.kind === 'train' && !OPT().calm ? Math.sin(G.t * 1.7) * .05 + Math.sin(G.t * .63 + 1) * .025 + (G.jolt || 0) * Math.sin(G.t * 38) * .35 : 0; /* [85] 2 つの周期の重なった横ゆれ ＋ 継ぎ目の小さなガタン */
   CAM.x = G.rx - fx * dist + Math.cos(G.camYaw) * (sh + sway); CAM.z = G.rz - fz * dist - Math.sin(G.camYaw) * (sh + sway);
-  G.fovK = lerp(G.fovK || 0, (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0, Math.min(1, dt * 4)); FOCAL = BASEF * (1 - .09 * G.fovK);
+  G.fovK = lerp(G.fovK || 0, (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0, Math.min(1, dt * 4)); G.skyK = lerp(G.skyK || 0, seg.th.sky && !(P.hawkRel > .3) ? 1 : 0, Math.min(1, dt * 1.5)); FOCAL = BASEF * (1 - .09 * G.fovK - .07 * G.skyK); /* [F10] 空へ飛び出すと、見える広さが少しずつ広がる（ひらけた感じ）。着地の前にもどる */
   const eC = segE(seg, G.s - 2.5), slope = clamp((segE(seg, Math.min(seg.len, G.s + 14)) - eP) / 14, -.3, .3);
   const camNew = G.camE == null;
   G.camE = G.camE == null ? eC : lerp(G.camE, Math.max(eC, eP - .4), Math.min(1, dt * 10)); G.camSl = lerp(G.camSl || 0, slope, Math.min(1, dt * 3));
