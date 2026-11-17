@@ -116,6 +116,7 @@ const T = [
   { n: 'keeprun', why: '「ここで一区切り」で勝手に終わらない（直せないときはほかの道から同じ時刻で続ける・死んだのに画面が出ないときはふつうの画面）', ok: has('KEEP RUN OK'), timeout: 120 },
   { n: 'yfork', why: 'Y 字路：45 度ずつ左右へ・曲がったあと道の上・先の角も曲がれる・公園や室内は Y 字にしない', ok: has('YFORK OK'), timeout: 240 },
   { n: 'towercourse', why: '電波塔コース：10万点・30万点で始まる・順番・空の上は障害物なしで高さが下がりカメラが回る・展望台から地面の公園が見えない・方角がそろう', ok: has('TOWERCOURSE OK'), timeout: 300 },
+  { n: 'realworld', why: '現実味：目印は曲がっても世界の同じ向き・Y 字路にできる分かれ道が半分以上・道のわきの物は通りすぎても消えない・選ばなかった道をすぐ消さない', ok: has('REALWORLD OK'), timeout: 200 },
   { n: 'drawlog', why: '絵が描けない時、エラーの記録に何がどこでこわれたかを残す（走りは続く）', ok: has('DRAW LOG OK'), timeout: 120 },
   { n: 'viewclear', why: '道の先が見える（帯・おしごとのカード・ナイスの文字が道の先にかからない、8つの画面の大きさ。スマホ縦長は頭の上に道が見える。鳥居のトンネルではカメラが下がる）', ok: has('VIEW CLEAR OK'), timeout: 200 },
   { n: 'featureguard', why: '入れた機能が消えていない（古い版のファイルで上書きして、機能が気づかずに消えた事故の再発防止）', ok: has('FEATURE OK'), timeout: 60 },

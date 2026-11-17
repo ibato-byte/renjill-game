@@ -1230,6 +1230,46 @@
       "name": "銀座・表参道の店のビル（景色 136〜148）",
       "file": "src/4d_facade.js",
       "has": "景色 136〜148"
+    },
+    {
+      "name": "市場・町家・古書店・仲見世の店（景色 153〜188）",
+      "file": "src/4d_facade.js",
+      "has": "景色 184〜188"
+    },
+    {
+      "name": "土の遊歩道・水面（景色 189〜201）",
+      "file": "src/4b_patterns.js",
+      "has": "景色 194〜201"
+    },
+    {
+      "name": "箱の面の絵をます目の三角で貼る（ホーム画面のたんすがごわごわして見えた）",
+      "file": "src/4_render.js",
+      "has": "while (N * M > 48)"
+    },
+    {
+      "name": "ホーム画面の第 2 段（座布団の厚み・桐たんす・じゅらく壁）",
+      "file": "src/4b_patterns.js",
+      "has": "function zabuTopTex("
+    },
+    {
+      "name": "目印は曲がっても世界の同じ向き（正面に出続けない）",
+      "file": "src/4b_patterns.js",
+      "has": "function lmWorldAngle("
+    },
+    {
+      "name": "分かれ道で選ばなかった道をすぐ消さない",
+      "file": "src/4_render.js",
+      "has": "G.forkGhost"
+    },
+    {
+      "name": "分かれ道の手前に外の通り（Y 字路が実際に出る）",
+      "file": "src/1b_places.js",
+      "has": "const yFit = "
+    },
+    {
+      "name": "赤い電波塔：入口の建物・屋上・踊り場のある外階段・500 段からの通路",
+      "file": "src/1b_places.js",
+      "has": "{ t: 'tlobby', d: 5 }, { t: 'troof', d: 4 }, { t: 'tstair', d: 12 }, { t: 'tpass', d: 4 }"
     }
   ]
 }
