@@ -71,6 +71,7 @@ function clippedPattern(q, fn) {
   try { fn(); } finally { BU0 = 0; BUS = 1; ctx.restore(); }
 }
 function bline(u0, v0, u1, v1) { const a = bil(u0, v0), b = bil(u1, v1); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
+function bpathAdd(u0, v0, u1, v1) { const a = bil(u0, v0), b = bil(u1, v0), c = bil(u1, v1), d = bil(u0, v1); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath(); } /* bquad の、ぬらずに形だけ足す版（同じ色をまとめて 1 回でぬる） */
 function bquad(u0, v0, u1, v1, fill) { const a = bil(u0, v0), b = bil(u1, v0), c = bil(u1, v1), d = bil(u0, v1); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); }
 function bpath(u0, v0, u1, v1) { const a = bil(u0, v0), b = bil(u1, v0), c = bil(u1, v1), d = bil(u0, v1); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath(); }
 // text laid onto the current projected quad (affine approximation)
@@ -112,7 +113,9 @@ function computeLight(seg) {
 function lit(c, k) { return [c[0] * k * LT.amb[0], c[1] * k * LT.amb[1], c[2] * k * LT.amb[2]]; }
 function fogK(d) { return clamp((d - 34) / (FAR - 34), 0, 1) * (LT.indoor ? .55 : 1); } // the haze starts a little nearer: more depth down the street
 const c255 = x => x > 255 ? 255 : x < 0 ? 0 : x | 0; // out-of-range rgb() values put the canvas on a very slow path
-function fogged(c, k, d, glow) { const t = fogK(d); const q = glow ? [c[0], c[1], c[2]] : lit(c, k); return `rgb(${c255(lerp(q[0], LT.fog[0], t))},${c255(lerp(q[1], LT.fog[1], t))},${c255(lerp(q[2], LT.fog[2], t))})`; }
+const RGBS = new Map(); /* [軽く] 色の文字（rgb(…)）を作り直さず使い回す。同じ文字だとブラウザの色の読み取りも速い */
+function rgbStr(r, g, b) { const key = (r << 16) | (g << 8) | b; let v = RGBS.get(key); if (v === undefined) { if (RGBS.size > 30000) RGBS.clear(); v = `rgb(${r},${g},${b})`; RGBS.set(key, v); } return v; }
+function fogged(c, k, d, glow) { const t = fogK(d), f = LT.fog; let r, g, b; if (glow) { r = c[0]; g = c[1]; b = c[2]; } else { const a = LT.amb; r = c[0] * k * a[0]; g = c[1] * k * a[1]; b = c[2] * k * a[2]; } return rgbStr(c255(r + (f[0] - r) * t), c255(g + (f[1] - g) * t), c255(b + (f[2] - b) * t)); }
 const TC = new Map(); let TCK = '';
 function tint(hex) { // apply the current light to a literal color (for patterns)
   const key = LT.amb.map(x => x.toFixed(2)).join(); if (key !== TCK) { TC.clear(); TCK = key; }
@@ -217,21 +220,25 @@ function faceImage(img, flip, v) {
 }
 function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
   const faces = [];
-  const far1 = (lowQ ? .7 : 1); if (cache) { for (const [fc, b] of cache) { if (b.sz != null && b.sz < .7 && d > (b.sz < .35 ? 22 : 34) * far1) continue; if (faceVisible(fc)) faces.push([depthOf(fc.v), fc, b]); } }
-  else for (const b of list) { if (b.sz != null && b.sz < .7 && d > (b.sz < .35 ? 22 : 34) * (lowQ ? .7 : 1)) continue; /* [軽く] 小さな物（品物・金具など）は、遠くでは画面で 2〜3 ドットにしかならないので描かない */ for (const fc of boxFaces(sg, b, ds, dl, dy)) if (faceVisible(fc)) faces.push([depthOf(fc.v), fc, b]); }
+  if (cache) { for (const [fc, b] of cache) { if (faceVisible(fc)) faces.push([depthOf(fc.v), fc, b]); } }
+  else for (const b of list) { for (const fc of boxFaces(sg, b, ds, dl, dy)) if (faceVisible(fc)) faces.push([depthOf(fc.v), fc, b]); }
   faces.sort((a, b) => b[0] - a[0]);
-  ctx.globalAlpha = alpha; BOXA = alpha; ctx.lineJoin = 'round';
+  ctx.globalAlpha = alpha; BOXA = alpha; ctx.lineJoin = 'round'; let PEND = null;
   for (const [fd, fc, b] of faces) {
-    const m = project(fc.v); if (!m) continue; pathPoly(Math.abs(m));
+    const m = project(fc.v); if (!m) continue; const am = Math.abs(m); let ar = 0; for (let i = 0, j = am - 1; i < am; j = i++) ar += (SCR[j * 2] + SCR[i * 2]) * (SCR[j * 2 + 1] - SCR[i * 2 + 1]); ar = Math.abs(ar) * .5;
+    if (ar < .02) continue; /* 面積がほぼ 0（真横から見た面）だけ省く */
     const glow = b.glow && (LT.night > .3 || b.glow === 1);
-    const col = fogged(b.cc, glow ? 1 : fc.sh * sunK(fc.n), fd, glow); ctx.fillStyle = col; ctx.fill();
-    const small = b.sz != null && b.sz < .7; /* 小さな物は、ふちの線・光のぐあい・材質の絵を省く（画面では見分けられない大きさ） */
-    if (fd < 40 && !glow && !(small && fd > 8)) { ctx.strokeStyle = col; ctx.lineWidth = clamp(36 / fd, .6, 2.6); ctx.stroke(); } // soft, rounded edges instead of hard cube corners
-    if (fd < (small ? 6 : 34) && !glow && m === 4) matFace(fc, b, sg, fd);
-    if (fd < (small ? 6 : 28) && m === 4 && !glow && !fc.top) { // soft light: a little brighter at the top of a face, darker at its foot
+    const col = fogged(b.cc, glow ? 1 : fc.sh * sunK(fc.n), fd, glow);
+    const plain = !((fd < 40 && !glow) || (fd < 34 && !glow && m === 4) || (fd < 28 && m === 4 && !glow && !fc.top) || (fd < 30 && !b.noEdge) || (fc.top && m === 4 && fd < 22 && !glow) || b.face || b.face2 || (m === 4 && fd < 45 && (b.pat === 'vend' || b.txt)));
+    if (plain) { if (PEND !== col) { if (PEND) { ctx.fillStyle = PEND; ctx.fill(); } ctx.beginPath(); PEND = col; } ctx.moveTo(SCR[0], SCR[1]); for (let i = 1; i < am; i++) ctx.lineTo(SCR[i * 2], SCR[i * 2 + 1]); ctx.closePath(); continue; } /* [軽く] 飾りのない面は、同じ色が続くあいだ 1 回にまとめてぬる（描く回数がへる。見た目は同じ） */
+    if (PEND) { ctx.fillStyle = PEND; ctx.fill(); PEND = null; }
+    pathPoly(am); ctx.fillStyle = col; ctx.fill(); /* 小さな物は、ふちの線・光のぐあい・材質の絵を省く（画面では見分けられない大きさ） */
+    if (fd < 40 && !glow) { ctx.strokeStyle = col; ctx.lineWidth = clamp(36 / fd, .6, 2.6); ctx.stroke(); } // soft, rounded edges instead of hard cube corners
+    if (fd < 34 && !glow && m === 4) matFace(fc, b, sg, fd);
+    if (fd < 28 && m === 4 && !glow && !fc.top) { // soft light: a little brighter at the top of a face, darker at its foot
       let y0 = 1e9, y1 = -1e9; for (let i = 0; i < 4; i++) { y0 = Math.min(y0, SCR[i * 2 + 1]); y1 = Math.max(y1, SCR[i * 2 + 1]); }
       if (y1 - y0 > 14) { const gr = ctx.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, 'rgba(255,255,255,.10)'); gr.addColorStop(.6, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(20,15,30,.22)'); ctx.fillStyle = gr; ctx.fill(); } }
-    if (fd < (small ? 6 : 30) && !b.noEdge) { ctx.strokeStyle = 'rgba(40,30,24,.08)'; ctx.lineWidth = 1; ctx.stroke(); }
+    if (fd < 30 && !b.noEdge) { ctx.strokeStyle = 'rgba(40,30,24,.08)'; ctx.lineWidth = 1; ctx.stroke(); }
     if (fc.top && m === 4 && fd < 22 && !glow) { ctx.strokeStyle = `rgba(255,250,240,${(.22 * (1 - fd / 22)).toFixed(3)})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(SCR[0], SCR[1]); ctx.lineTo(SCR[2], SCR[3]); ctx.stroke(); }
     if (b.face && m === 4 && fd < (b.faceN ? 120 : 50) && (b.faceAll ? (fc.front || fc.back || fc.sideL || fc.sideR) : b.faceFront ? fc.front : b.faceSide ? (b.faceSide === 'L' ? fc.sideL : fc.sideR) : (fc.sideL || fc.sideR))) faceImage(paintFace(b.faceN && LT.night > .4 ? b.faceN : b.face, b.faceW, b.faceH), fc.sideL, fc.v); // 電車（faceN）は遠くからも絵で。先頭の顔は前の面（faceFront）
     if (b.face2 && m === 4 && fd < 50 && !fc.top && (b.face2F ? (fc.front || fc.back) : !(b.faceSide === 'L' ? fc.sideL : fc.sideR) && (fc.front || fc.back || fc.sideL || fc.sideR))) faceImage(paintFace(b.face2, b.face2W || 200, b.face2H || 200), fc.sideL, fc.v); // 2026-11-17：主な面とちがう絵を、ほかの横の面に（たんすの横の板）
@@ -240,6 +247,7 @@ function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
       if (b.txt && (fc.front || (b.vert && (fc.sideL || fc.sideR)))) qtext(b.txt, .08, .06, .92, .94, b.tc || (hexRgb(b.c)[0] + hexRgb(b.c)[1] < 260 ? '#FBF6EE' : '#2B1A12'), { vert: b.vert });
     }
   }
+  if (PEND) { ctx.fillStyle = PEND; ctx.fill(); }
   ctx.globalAlpha = 1;
 }
 function vendFace(b) { bquad(.08, .45, .92, .95, '#FFFFFF'); for (let r = 0; r < 3; r++) for (let k = 0; k < 5; k++) bquad(.12 + k * .16, .5 + r * .14, .22 + k * .16, .6 + r * .14, ['#C8463C', '#F2C230', '#4E77A0', '#5F9E5A', '#E86A75'][(r + k) % 5]); bquad(.3, .1, .7, .3, '#2B2B2B'); }

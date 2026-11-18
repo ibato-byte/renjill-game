@@ -106,11 +106,11 @@ function futonTopTex() {
 function roadWear(p, d, a, T) { const r = rnd(p.ti * 31 + 7 + ((p.a || 0) * 13 | 0)), near = d < 18;
   ctx.stroke(); ctx.beginPath();
   ctx.globalAlpha = a * .08; bquad(0, .04, 1, .96, p.ti % 4 === 1 ? '#000000' : p.ti % 4 === 3 ? '#FFFFFF' : 'rgba(0,0,0,0)'); // [27] 区画ごとの色のちがい
-  ctx.globalAlpha = a * .13; for (const v of [.12, .23, .44, .55, .76, .87]) bquad(0, v - .025, 1, v + .025, '#1A1A1E'); // [21] タイヤの通り道の黒い帯（1 車線に 2 本）
-  if (near) { ctx.globalAlpha = a * .35; for (let i = 0; i < 26; i++) { const u = r(), v = .05 + r() * .9, c = r() < .5 ? '#B9B6AE' : '#2E2E32'; bquad(u, v, u + .006, v + .008, c); } } // [22] 小石まじりの細かいつぶ
+  ctx.globalAlpha = a * .13; ctx.beginPath(); for (const v of [.12, .23, .44, .55, .76, .87]) bpathAdd(0, v - .025, 1, v + .025); ctx.fillStyle = '#1A1A1E'; ctx.fill(); /* [軽く] 6 本を 1 回でぬる */ // [21] タイヤの通り道の黒い帯（1 車線に 2 本）
+  if (near) { ctx.globalAlpha = a * .35; const pa = [], pb = []; for (let i = 0; i < 26; i++) { const u = r(), v = .05 + r() * .9; (r() < .5 ? pa : pb).push(u, v); } for (const [arr, c] of [[pa, '#B9B6AE'], [pb, '#2E2E32']]) { ctx.beginPath(); for (let k = 0; k < arr.length; k += 2) bpathAdd(arr[k], arr[k + 1], arr[k] + .006, arr[k + 1] + .008); ctx.fillStyle = c; ctx.fill(); } } /* [軽く] 色ごとにまとめてぬる */ // [22] 小石まじりの細かいつぶ
   if (p.ti % 7 === 3) { ctx.globalAlpha = a * .5; ctx.strokeStyle = '#18181B'; ctx.lineWidth = Math.max(.6, 6 / Math.max(d, 4)); ctx.beginPath(); let u = r() * .3, v = .1 + r() * .3; for (let k = 0; k < 5; k++) { const u2 = u + .1 + r() * .15, v2 = v + (r() - .3) * .2; bline(u, v, u2, v2); u = u2; v = v2; } ctx.stroke(); ctx.beginPath(); } // [23] ひび割れをふさいだ黒いタールのすじ
   if (p.ti % 11 === 5) { ctx.globalAlpha = a * .08; const v0 = .1 + r() * .5; bquad(.15, v0, .85, v0 + .25, '#2A2A2E'); ctx.globalAlpha = a * .14; ctx.strokeStyle = '#1A1A1E'; ctx.beginPath(); bline(.15, v0, .85, v0); bline(.15, v0 + .25, .85, v0 + .25); bline(.15, v0, .15, v0 + .25); bline(.85, v0, .85, v0 + .25); ctx.stroke(); ctx.beginPath(); } // [24] 掘り返して埋めた補修のあと（色のちがう四角と継ぎ目）
-  if (p.ti % 3 !== 2 && near) { ctx.globalAlpha = a * .7; for (let i = 0; i < 4; i++) { const u = r(); for (const v of [.355, .645]) bquad(u, v - .006, u + .04 + r() * .05, v + .006, T('#5A5A60')); } } // [25] 白線のはげた所
+  if (p.ti % 3 !== 2 && near) { ctx.globalAlpha = a * .7; ctx.beginPath(); for (let i = 0; i < 4; i++) { const u = r(); for (const v of [.355, .645]) bpathAdd(u, v - .006, u + .04 + r() * .05, v + .006); } ctx.fillStyle = T('#5A5A60'); ctx.fill(); } // [25] 白線のはげた所
   if (p.ti % 9 === 4) { ctx.globalAlpha = a * .18; const c = bil(.5, .2 + (p.ti % 3) * .3); ctx.fillStyle = '#121214'; ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(2, 40 / d), Math.max(1, 14 / d), 0, 0, 7); ctx.fill(); } // [26] 車が止まる所の油じみ
   roadMarks(p, d, a, T, r, near);
   ctx.globalAlpha = a; }
@@ -580,10 +580,10 @@ function drawSky(seg) {
   ctx.globalAlpha = 1 - fade; lmPass(seg, true); ctx.globalAlpha = 1;
   const rmOn = climb && (th.sky || alt >= 20) && typeof rmFrame === 'function' && rmFrame(seg); /* 展望台・階段の上からも同じ（本物の場所の立体のビルを見せる） */ /* [M30] 鳥と降りる時は、地平線の平たいビルの絵を出さない（本物の場所の立体のビルがあるので、絵と立体が重なっていた） */
   const sky3 = !climb || alt < 20; /* [V3] 地上では立体の町。高い所（階段の上など）は、今までどおり */
-  if (!rmOn) { if (sky3) skyline3d(seg, 0); else skyline(seg, yb, 0); }
+  if (!rmOn) { if (sky3) skyline3dCached(seg, 0); else skyline(seg, yb, 0); }
   if (prev && fade > .02) { ctx.globalAlpha = fade; lmPass(prev, false); ctx.globalAlpha = 1; }
   ctx.globalAlpha = 1 - fade; lmPass(seg, false); ctx.globalAlpha = 1;
-  if (!rmOn) { if (sky3) skyline3d(seg, 1); else skyline(seg, yb, 1); }
+  if (!rmOn) { if (sky3) skyline3dCached(seg, 1); else skyline(seg, yb, 1); }
   ctx.fillStyle = N > .4 ? 'rgb(36,44,74)' : `rgb(${(LT.bot[0] * .82) | 0},${(LT.bot[1] * .85) | 0},${(LT.bot[2] * .88) | 0})`; ctx.fillRect(0, yb, W, H - yb);
   if (climb && (alt >= 20 || th.sky)) { try { aerialCity(seg, yb, alt, horizon); } catch (e) { reportErr(e); } }
   { const cur = G.segs[G.ci], nx = G.segs[G.ci + 1]; if (G.mode === 'play' && !OPT().calm && cur === seg && seg.toSky && nx && nx.th.sky && G.s > seg.len - 16) { const k = clamp((G.s - (seg.len - 16)) / 16, 0, 1); ctx.save(); ctx.strokeStyle = `rgba(255,255,255,${(.22 * k).toFixed(3)})`; ctx.lineWidth = 1; for (let i = 0; i < 6; i++) { const ph = (G.t * (1.1 + i * .17) + i * .31) % 1, x = (i * 131) % W, y = horizon - 60 + ((i * 97) % 120); ctx.beginPath(); ctx.moveTo(x - ph * 80, y); ctx.lineTo(x - ph * 80 - 26, y + 2); ctx.stroke(); } ctx.restore(); } } /* [F11] 外のテラスに出ると、横へ流れる風のすじ（飛び立つ前ぶれ） */
@@ -619,9 +619,9 @@ function drawClouds(hz) {
    世界の中に置いた立体のビルに。場所は世界の座標で決まる（走ると近いビルほど速く流れ、曲がると本当にうしろへ回る）。
    見える面は 2 つまで（日の当たる面・かげの面）、窓の階の帯、屋上の機械室とアンテナ。遠いほど空の色にかすむ。夜は窓に明かり。
    700m より手前には置かない（手前は道の立体の町なみがある）。海の見える所は 3km より先だけ */
-function skyline3d(seg, layer) {
+function skyline3d(seg, layer, g) { g = g || ctx;
   const N = LT.night, th = seg.th, hz = HORIZON - Math.tan(CAM.pitch) * FOCAL, F = FOCAL, cs = Math.sin(CAM.yaw), cc = Math.cos(CAM.yaw), cx0 = CAM.x, cz0 = CAM.z;
-  const camH = th.climb ? clamp(altitude(seg, clamp(G.s || 0, 0, seg.len)) + 2.4, 1.5, 24) : clamp(CAM.y - (segE(seg, clamp(G.s || 0, 0, seg.len)) || 0), 1.5, 8), /* [V4] 階段・屋上（地上 20m まで）は、本当の目の高さから見下ろす */ S = 160, lq = typeof lowQ !== 'undefined' && lowQ, near = th.bay || th.view === 'sea' ? 3000 : 700, far = lq ? 2600 : 4200, split = lq ? 1400 : 1700; /* 軽い画質では、近い所だけ・窓なし */
+  const camH = th.climb ? clamp(altitude(seg, clamp(G.s || 0, 0, seg.len)) + 2.4, 1.5, 24) : clamp(CAM.y - (segE(seg, clamp(G.s || 0, 0, seg.len)) || 0), 1.5, 8), /* [V4] 階段・屋上（地上 20m まで）は、本当の目の高さから見下ろす */ S = 160, lq = typeof lowQ !== 'undefined' && lowQ, near = th.bay || th.view === 'sea' ? 3000 : 700, far = 4200, split = 1700; /* 軽い画質では、近い所だけ・窓なし */
   const lo = layer ? near : split, hi = layer ? split : far; if (lo >= hi) return;
   const P = (wx, wz, y) => { const dx = wx - cx0, dz = wz - cz0, d = dx * cs + dz * cc; if (d < 5) return null; const l = dx * cc - dz * cs; return [W / 2 + l / d * F, hz + (camH - y) / d * F, d]; };
   const fog = N > .4 ? [30, 38, 68] : [LT.bot[0] * .95, LT.bot[1] * .96, LT.bot[2] * .98], amb = N > .4 ? [1, 1, 1] : LT.amb, list = [];
@@ -637,14 +637,23 @@ function skyline3d(seg, layer) {
     const fk = clamp(1 - Math.exp(-d / 2600), .12, .88), pal = [[176, 182, 190], [150, 160, 174], [196, 192, 182], [130, 142, 158], [206, 208, 210]][(acHash(i, j, 48) * 5) | 0];
     const base = N > .4 ? [34, 40, 62] : pal.map((v, q) => v * amb[q]), col = k => `rgb(${base.map((v, q) => (lerp(v * k, fog[q], fk)) | 0)})`;
     for (let q = 0; q < 4; q++) { const n = (q + 1) % 4, ex = pts[n][0] - pts[q][0], ez = pts[n][1] - pts[q][1]; if (ez * ((pts[q][0] + pts[n][0]) / 2 - cx0) - ex * ((pts[q][1] + pts[n][1]) / 2 - cz0) >= 0) continue;
-      const lit = (q === 0 || q === 3) ? 1.04 : .8; ctx.fillStyle = col(lit); ctx.beginPath(); ctx.moveTo(bt[q][0], bt[q][1]); ctx.lineTo(bt[n][0], bt[n][1]); ctx.lineTo(tp[n][0], tp[n][1]); ctx.lineTo(tp[q][0], tp[q][1]); ctx.closePath(); ctx.fill();
-      const hpx = bt[q][1] - tp[q][1], wpx = Math.abs(bt[n][0] - bt[q][0]); if (lq || hpx < 6 || wpx < 3) continue; const rows = Math.min(40, (tall / 3.6) | 0), stepR = Math.max(1, Math.ceil(rows / (hpx / 2.2)));
-      if (N > .4) { ctx.fillStyle = `rgba(247,213,138,${(.85 * (1 - fk * .6)).toFixed(3)})`; const cols = Math.max(1, Math.min(10, (wpx / 3.2) | 0)); for (let rr = 1; rr < rows; rr += stepR) for (let c3 = 0; c3 < cols; c3++) { if (acHash(i * 31 + rr, j * 17 + c3, q) < .45) continue; const t = rr / rows, u = (c3 + .5) / cols, x = lerp(bt[q][0], bt[n][0], u), y = lerp(lerp(bt[q][1], tp[q][1], t), lerp(bt[n][1], tp[n][1], t), u); ctx.fillRect(x - .6, y - .5, 1.3, 1.1); } }
-      else { ctx.strokeStyle = `rgba(60,72,90,${(.22 * (1 - fk)).toFixed(3)})`; ctx.lineWidth = .6; ctx.beginPath(); for (let rr = 1; rr < rows; rr += stepR) { const t = rr / rows; ctx.moveTo(bt[q][0], lerp(bt[q][1], tp[q][1], t)); ctx.lineTo(bt[n][0], lerp(bt[n][1], tp[n][1], t)); } ctx.stroke(); } }
-    const top = tp.reduce((a, q) => q[1] < a[1] ? q : a, tp[0]); ctx.strokeStyle = N > .4 ? 'rgba(90,100,140,.5)' : `rgba(255,255,255,${(.35 * (1 - fk)).toFixed(3)})`; ctx.lineWidth = .8; ctx.beginPath(); tp.forEach((q, m) => m ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.stroke(); /* 屋上のへり */
-    if (tall > 45) { const c = [lerp(tp[0][0], tp[2][0], .5), lerp(tp[0][1], tp[2][1], .5)], mh = Math.max(1, (bt[0][1] - tp[0][1]) * .06), mw = Math.abs(tp[1][0] - tp[0][0]) * .4 + 1; ctx.fillStyle = col(.92); ctx.fillRect(c[0] - mw / 2, c[1] - mh, mw, mh + .5); } /* 屋上の機械室 */
-    if (tall > 110) { const a0 = P(wx, wz, tall), a1 = P(wx, wz, tall + 18); if (a0 && a1) { ctx.strokeStyle = col(.7); ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(a0[0], a0[1]); ctx.lineTo(a1[0], a1[1]); ctx.stroke(); if (N > .3 && Math.floor(G.t * 1.2 + h0 * 9) % 2) { ctx.fillStyle = '#FF4A3D'; ctx.fillRect(a1[0] - 1.2, a1[1] - 1.2, 2.4, 2.4); } } } } /* 高いビルのアンテナと、夜の赤い灯 */
+      const lit = (q === 0 || q === 3) ? 1.04 : .8; g.fillStyle = col(lit); g.beginPath(); g.moveTo(bt[q][0], bt[q][1]); g.lineTo(bt[n][0], bt[n][1]); g.lineTo(tp[n][0], tp[n][1]); g.lineTo(tp[q][0], tp[q][1]); g.closePath(); g.fill();
+      const hpx = bt[q][1] - tp[q][1], wpx = Math.abs(bt[n][0] - bt[q][0]); if (hpx < 6 || wpx < 3) continue; const rows = Math.min(40, (tall / 3.6) | 0), stepR = Math.max(1, Math.ceil(rows / (hpx / 2.2)));
+      if (N > .4) { g.fillStyle = `rgba(247,213,138,${(.85 * (1 - fk * .6)).toFixed(3)})`; const cols = Math.max(1, Math.min(10, (wpx / 3.2) | 0)); for (let rr = 1; rr < rows; rr += stepR) for (let c3 = 0; c3 < cols; c3++) { if (acHash(i * 31 + rr, j * 17 + c3, q) < .45) continue; const t = rr / rows, u = (c3 + .5) / cols, x = lerp(bt[q][0], bt[n][0], u), y = lerp(lerp(bt[q][1], tp[q][1], t), lerp(bt[n][1], tp[n][1], t), u); g.fillRect(x - .6, y - .5, 1.3, 1.1); } }
+      else { g.strokeStyle = `rgba(60,72,90,${(.22 * (1 - fk)).toFixed(3)})`; g.lineWidth = .6; g.beginPath(); for (let rr = 1; rr < rows; rr += stepR) { const t = rr / rows; g.moveTo(bt[q][0], lerp(bt[q][1], tp[q][1], t)); g.lineTo(bt[n][0], lerp(bt[n][1], tp[n][1], t)); } g.stroke(); } }
+    const top = tp.reduce((a, q) => q[1] < a[1] ? q : a, tp[0]); g.strokeStyle = N > .4 ? 'rgba(90,100,140,.5)' : `rgba(255,255,255,${(.35 * (1 - fk)).toFixed(3)})`; g.lineWidth = .8; g.beginPath(); tp.forEach((q, m) => m ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); g.closePath(); g.stroke(); /* 屋上のへり */
+    if (tall > 45) { const c = [lerp(tp[0][0], tp[2][0], .5), lerp(tp[0][1], tp[2][1], .5)], mh = Math.max(1, (bt[0][1] - tp[0][1]) * .06), mw = Math.abs(tp[1][0] - tp[0][0]) * .4 + 1; g.fillStyle = col(.92); g.fillRect(c[0] - mw / 2, c[1] - mh, mw, mh + .5); } /* 屋上の機械室 */
+    if (tall > 110) { const a0 = P(wx, wz, tall), a1 = P(wx, wz, tall + 18); if (a0 && a1) { g.strokeStyle = col(.7); g.lineWidth = .8; g.beginPath(); g.moveTo(a0[0], a0[1]); g.lineTo(a1[0], a1[1]); g.stroke(); if (N > .3 && Math.floor(G.t * 1.2 + h0 * 9) % 2) { g.fillStyle = '#FF4A3D'; g.fillRect(a1[0] - 1.2, a1[1] - 1.2, 2.4, 2.4); } } } } /* 高いビルのアンテナと、夜の赤い灯 */
 }
+/* [軽く] 2026-11-18 オーナー「プレイ中スマホでまだ重い」：遠くの立体の町（700m より先）は、走っても見た目はほとんど動かない。
+   1 枚の絵に描いておき、向き・高さが変わった時と、3m 進むごとにだけ描きなおす（ふだんは絵を 1 回はるだけ）。曲がっている間は毎コマ描く */
+const SK3C = [null, null];
+function skyline3dCached(seg, layer) { const k = SK3C[layer] || (SK3C[layer] = { c: document.createElement('canvas'), key: '' }), c = k.c;
+  if (c.width !== cv.width || c.height !== cv.height) { c.width = cv.width; c.height = cv.height; k.key = ''; }
+  const hz = HORIZON - Math.tan(CAM.pitch) * FOCAL, key = [seg.id, Math.round(CAM.yaw * 2000), Math.round(hz * 2), Math.round(CAM.x / 3), Math.round(CAM.z / 3), Math.round(CAM.y * 4), LT.night > .4 ? 1 : 0, (LT.amb || []).map(x => Math.round(x * 40)).join(), W, H, FOCAL | 0, typeof lowQ !== 'undefined' ? lowQ : 0, Math.floor((G.t || 0) * 1.2) % 2].join('|');
+  if (key !== k.key) { const g = c.getContext('2d'); if (!g) { skyline3d(seg, layer); return; } g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(DPR, 0, 0, DPR, 0, 0); skyline3d(seg, layer, g); k.key = key; }
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(c, 0, 0); ctx.restore(); }
+
 function skyline(seg, yb, layer) {
   const N = LT.night, sc = seg.th.climb ? .6 : layer ? 1 : .7;
   for (const b of SKYB) {
