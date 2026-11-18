@@ -46,8 +46,8 @@ function quadImage(img, nu, nv) {
     const du1 = t1[0] - t0[0], dv1 = t1[1] - t0[1], du2 = t2[0] - t0[0], dv2 = t2[1] - t0[1], det = du1 * dv2 - du2 * dv1; if (Math.abs(det) < 1e-6) return;
     const x1 = p1[0] - p0[0], y1 = p1[1] - p0[1], x2 = p2[0] - p0[0], y2 = p2[1] - p0[1];
     const A = (x1 * dv2 - x2 * dv1) / det, B = (y1 * dv2 - y2 * dv1) / det, C = (x2 * du1 - x1 * du2) / det, D = (y2 * du1 - y1 * du2) / det;
-    ctx.save(); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.closePath(); ctx.clip();
-    ctx.transform(A, B, C, D, p0[0] - A * t0[0] - C * t0[1], p0[1] - B * t0[0] - D * t0[1]); ctx.drawImage(img, 0, 0); ctx.restore(); };
+    const E = p0[0] - A * t0[0] - C * t0[1], F = p0[1] - B * t0[0] - D * t0[1]; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.closePath();
+    if (!texFill(img, A, B, C, D, E, F)) { ctx.save(); ctx.clip(); ctx.transform(A, B, C, D, E, F); ctx.drawImage(img, 0, 0); ctx.restore(); } }; /* [軽く] 切り抜かずに、絵の模様でぬる */
   for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) {
     const u0 = i / nu, u1 = (i + 1) / nu, v0 = j / nv, v1 = (j + 1) / nv;
     const P00 = bil(u0, v0), P10 = bil(u1, v0), P11 = bil(u1, v1), P01 = bil(u0, v1), T = (u, v) => [u * W, v * H];
