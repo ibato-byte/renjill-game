@@ -561,6 +561,7 @@ function texWarm(ms) {
       if (sg.tid && THEMES[sg.tid] && THEMES[sg.tid].stamp) stampSprite(sg.tid);
       sg.warmA = key; }
   } finally { if (swapped && cur) computeLight(cur); }
+  return !Object.keys(SPR_PEND).length; /* [軽く 2] 全部用意できた（準備の画面は、これが「はい」になるまで待つ） */
 }
 
 // every kept picture is empty (see picCheck): the item and scenery pictures are painted again now, the late-painted ones when next needed
