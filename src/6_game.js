@@ -553,6 +553,7 @@ function tutorialScale(seg, dt) {
 
 /* ---------- per-frame update ---------- */
 function update(dt) {
+  if (G.prepHold) { G.prepHold -= dt; if (G.prepHold > 0 && G.mode === 'play') return; G.prepHold = 0; } /* 走り出す前の準備の間は、ゲームを止めておく（最大 1.5 秒） */
   if (G.segDue > 0 && G.mode !== 'title' && (G.segDue -= dt) <= 0) { G.segDue = 0; ensureSegs(1); if (!G.fork && G.segs.length - G.ci < 4 && !G.segDue) G.segDue = .05; } // one street per step, never a pile in one frame
   { const sg = G.segs[G.ci]; if (sg && sg.th.kind === 'train') trainTick(sg, dt); else G.jolt = 0; }
   for (const sg of [G.segs[G.ci], G.segs[G.ci + 1]]) if (sg && sg.walkers) for (const w of sg.walkers) { w.s += w.vs * dt; if (w.s > w.a1) w.s = w.a0; else if (w.s < w.a0) w.s = w.a1; }

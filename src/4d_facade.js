@@ -495,7 +495,8 @@ function drawFacImg(w, dist, night, aMul) {
       const f0 = w.fy0 || 0, f1 = w.fy1 == null ? 1 : w.fy1, ty1 = IH * (1 - (f0 + (f1 - f0) * t0)), ty0 = IH * (1 - (f0 + (f1 - f0) * t1)), th = ty1 - ty0; if (th < .3) continue; /* [R4] 段ごとの壁には、絵の縦の一部だけを貼る（1 階・基壇・塔） */
       const a = (sx[1] - sx[0]) / tw, b = (sy[1] - sy[0]) / tw, c = (sx[3] - sx[0]) / th, d = (sy[3] - sy[0]) / th;
       ctx.save();
-      if (!noClip) { // a hair of overlap hides the seams between cells
+      const para = Math.abs(sx[0] + sx[2] - sx[1] - sx[3]) + Math.abs(sy[0] + sy[2] - sy[1] - sy[3]) < .8; /* [軽く] ほぼ平行四辺形のます目は、切り抜き（重い）をしなくても、はみ出しが 1 ドットより小さい */
+      if (!noClip && !para) { // a hair of overlap hides the seams between cells
         const cx = (sx[0] + sx[1] + sx[2] + sx[3]) / 4, cy = (sy[0] + sy[1] + sy[2] + sy[3]) / 4; ctx.beginPath();
         for (let i = 0; i < 4; i++) { const dx = sx[i] - cx, dy = sy[i] - cy, L = Math.hypot(dx, dy) || 1, e = .6 / L; i ? ctx.lineTo(sx[i] + dx * e, sy[i] + dy * e) : ctx.moveTo(sx[i] + dx * e, sy[i] + dy * e); }
         ctx.closePath(); ctx.clip(); }

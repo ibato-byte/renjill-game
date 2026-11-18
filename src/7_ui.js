@@ -356,9 +356,16 @@ $('#btnStart').onclick = () => { hideAll(); prepRun(); };
 /* [軽く] 2026-11-18 オーナー「重すぎる。開いた時に少しローディングの時間を設けてもいい」：スタートを押したら、ほんの少し（長くても 0.6 秒）
    準備の画面（チモシーのくるくると棒）を出して、その間に、はじめの道と次の道の絵・建物の正面・物の面を、前もって作っておく。走り出してからの「一瞬止まる」を減らす */
 function prepRun() { let el = document.getElementById('prepCue'); if (!el) { el = document.createElement('div'); el.id = 'prepCue'; el.innerHTML = '<img alt=""><i><b></b></i>'; document.body.appendChild(el); }
-  try { el.querySelector('img').src = SPR_URL.hay; } catch (e) { } const bar = el.querySelector('b'); bar.style.width = '8%'; el.className = 'show';
-  requestAnimationFrame(() => requestAnimationFrame(() => { startRun(); const t0 = performance.now(); let k = 0;
-    const step = () => { try { texWarm(40); } catch (e) { } k++; bar.style.width = Math.min(100, 8 + k * 23) + '%'; if (k < 4 && performance.now() - t0 < 600 && G.mode === 'play') requestAnimationFrame(step); else { bar.style.width = '100%'; setTimeout(() => { el.className = ''; }, 120); } };
+  try { el.querySelector('img').src = SPR_URL.hay; } catch (e) { } const bar = el.querySelector('b'); bar.style.width = '5%'; el.className = 'show';
+  /* 2026-11-18 オーナー「描く量を減らして現実味を落とすのは避けて。開始前のローディングで対応して」：走り出す前に、時間をかけて全部用意する（長くても 1.5 秒）。
+     ①はじめの道と次の 2 本の道の絵・建物の正面・物の面・明るさごとの絵 ②空から見る町の地面の絵（昼と夜）③路面・雲の絵。用意している間は、ゲームは止めておく（G.prepHold） */
+  requestAnimationFrame(() => requestAnimationFrame(() => { startRun(); G.prepHold = 1.5; const t0 = performance.now();
+    const jobs = [() => { if (!FTEX.asphalt) buildFloorTex(); }, () => { if (!CLOUD_SPR.length) buildCloudSprites(); }, () => { if (typeof aerGet === 'function') aerGet(false); }, () => { if (typeof aerGet === 'function') aerGet(true); }, () => { if (typeof aerFine === 'function') { aerFine(false, true); aerFine(false, false); } }, () => { if (typeof aerFine === 'function') { aerFine(true, true); aerFine(true, false); } }];
+    let k = 0, warmN = 0; const total = jobs.length + 8;
+    const step = () => { const t1 = performance.now(); try { if (k < jobs.length) jobs[k++](); else { texWarm(45); warmN++; } } catch (e) { reportErr(e); if (k < jobs.length) k++; else warmN = 99; }
+      bar.style.width = Math.min(100, 5 + (k + warmN) / total * 95) + '%';
+      const done = (k >= jobs.length && (warmN >= 8 || !Object.keys(SPR_PEND).length && warmN >= 3)) || performance.now() - t0 > 1500;
+      if (!done) requestAnimationFrame(step); else { bar.style.width = '100%'; G.prepHold = 0; setTimeout(() => { el.className = ''; }, 150); } };
     step(); })); }
 $('#btnName').onclick = () => openName(0);
 $('#btnChat').onclick = chatOpen; $('#btnChat2').onclick = chatOpen; $('#chatClose').onclick = chatClose;
@@ -443,7 +450,11 @@ let last = performance.now();
 let perfAcc = 0, perfN = 0, lowQ = 0, FT_AVG = 0, FT_DEBT = 0;
 // the loop must never die: an error in one frame is reported once and the next frame goes on
 let FRAME_ERRS = 0, FRAME_BAD = 0;
+/* [軽く] 2026-11-18 オーナー「プレイ中スマホでまだ重い」：1 秒に 120 回・90 回描く画面のスマホでも、描くのは 1 秒に 60 回まで（それ以上は目には同じで、
+   スマホが 2 倍働いて熱くなり、遅くなっていた）。間のコマは何もしない */
+let FRAME_LAST = 0;
 function frame(now) {
+  if (FRAME_LAST && now - FRAME_LAST < 10) { requestAnimationFrame(frame); return; } FRAME_LAST = now; /* 120 回の画面は 1 回おきに描く（60 回）。90 回・60 回の画面はそのまま */
   try { frameBody(now); FRAME_BAD = 0; } catch (e) { FRAME_ERRS++; window.__frameErr = (window.__frameErr || 0) + 1; window.__frameErrMsg = String(e && e.message || e); window.__frameErrAt = String(e && e.stack || '').split('\n').slice(1, 3).map(x => x.trim().replace(/^at /, '').replace(/\(?(?:https?|file):\/\/\S*\/([^/\s)]*:\d+:\d+)\)?/, '$1').replace(/\(eval at [^)]*\)\S*\)?,?\s*/, '')).join(' < '); if (FRAME_ERRS < 4) console.error('frame error', e); try { for (let i = 0; i < 12; i++) ctx.restore(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none'; } catch (e2) { } frameTrouble(); }
   requestAnimationFrame(frame);
 }
@@ -540,6 +551,7 @@ function boot() {
   if (EVENT) { const gifts = CLOSET.filter(c => c.ev === EVENT && !SV.closet[c.id]); if (gifts.length) { for (const c of gifts) SV.closet[c.id] = 1; save(); const g = (EVENT_INFO.gift || EV_KITS[EVENT].gift), until = EVENT_INFO.to ? t('untilMD', +EVENT_INFO.to.slice(5, 7), +EVENT_INFO.to.slice(8, 10)) : ''; toastTitle(L(g) + until); } }
   loadFeed(); linkFromUrl(); inAppCard(); freshCard();
   setTimeout(() => { try { if (!CLOUD_SPR.length) buildCloudSprites(); if (!FTEX.asphalt) buildFloorTex(); } catch (e) { } }, 1200); // ready before the first street
+  for (const [ms, f] of [[2600, () => aerGet(false)], [3600, () => aerGet(true)], [4400, () => { aerFine(false, true); aerFine(false, false); }], [5200, () => { aerFine(true, true); aerFine(true, false); }]]) setTimeout(() => { try { if (G.mode === 'title' && typeof aerGet === 'function') f(); } catch (e) { } }, ms); /* [軽く] 題名の画面にいる間に、空から見る町の地面の絵（昼・夜）を前もって作る（はじめて塔から飛んだ時に、一瞬止まっていた） */
   requestAnimationFrame(frame);
 }
 /* ---- SNS × game: a small feed (the latest episode and secret words) published next to the app (feed.json) ----
@@ -637,6 +649,7 @@ window.__hayDash = { ev: s => eval(s), BUN, addObs: (seg, t, s, l) => makeObs(se
     const seg = G.segs[G.ci]; const T = {}; const tm = (k, f) => { const t0 = performance.now(); f(); T[k] = +(performance.now() - t0).toFixed(2); };
     PROF.on = 1; for (const k in PROF) if (k !== 'on') PROF[k] = 0; computeLight(seg); camPrep(); tm('sky', () => drawSky(seg)); for (const sg of segOrder()) tm('seg_' + sg.tid + (sg === seg ? '*' : ''), () => drawSegment(sg, sg === seg)); tm('fx', drawFX); tm('post', postFX); PROF.on = 0; return Object.assign(T, PROF); }, get SV() { return SV; } }; window.__die = die;
 G.jumpTo = (tid, clock, day, next) => { // test helper
+  G.prepHold = 0; // the start-up preparation does not hold a test that jumps somewhere
   const s0 = newSeg(null, { t: tid, d: 30 }, { t0: clock || 600, day: day || 1 }); G.segs = [s0]; G.ci = 0; G.s = 0; G.lane = 1; G.lat = 0; G.fork = null; G.plan = next ? [{ t: next, d: 30 }, { t: next, d: 30 }, { t: next, d: 30 }] : dayPlan(1).filter(x => !x.fork); G.planClock = s0.t1; ensureSegs();
   const p = segPos(s0, 0, 0); G.rx = p[0]; G.rz = p[1]; G.camYaw = 0; G.ey = G.camE = null; G.invT = 99; G.mode = 'play'; onEnterSeg(s0); };
 G.testFork = () => { // test helper: put the player just before the lunch fork
