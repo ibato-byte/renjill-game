@@ -239,6 +239,7 @@ function wallPattern(w, d) {
     if (sd % 4 === 1 && near) { ctx.globalAlpha = .95; bquad(.5, .5, .62, .72, T('#3A3C40')); bquad(.505, .66, .615, .69, T('#1E1F22')); bquad(.66, .55, .74, .66, T('#EDE7D8')); ctx.globalAlpha = .6; bquad(.67, .57, .73, .64, T('#6E6658')); } // [103] 門のわきの郵便受け [104] 表札
     ctx.globalAlpha = 1; return; }
   if (pat === 'ishigaki') { ctx.globalAlpha = .45; ctx.strokeStyle = tint('#6E685C'); ctx.lineWidth = 1; ctx.beginPath(); for (let k = 1; k < 6; k++) bline(0, k / 6, 1, k / 6 + .03); for (let k = 0; k < 8; k++) bline(k / 8 + ((k * 3) % 2) * .05, (k % 6) / 6, k / 8 + ((k * 3) % 2) * .05, (k % 6 + 1) / 6); ctx.stroke(); ctx.globalAlpha = 1; return; }
+  if (pat === 'kawara') { if (d > 70) return; ctx.globalAlpha = .55; ctx.strokeStyle = 'rgba(20,20,24,.9)'; ctx.lineWidth = Math.max(.6, 14 / Math.max(d, 4)); ctx.beginPath(); for (let k = 1; k < 8; k++) bline(0, k / 8, 1, k / 8); ctx.stroke(); ctx.globalAlpha = .25; ctx.strokeStyle = 'rgba(220,224,230,.9)'; ctx.beginPath(); const n = Math.max(4, Math.round((w.w || 4) * 3)); for (let k = 0; k <= n; k++) bline(k / n, 0, k / n, 1); ctx.stroke(); ctx.globalAlpha = 1; return; } /* [P60] 瓦の屋根：横の段と、たての丸瓦の線 */
   if (pat === 'stonewall') { ctx.globalAlpha = .4; ctx.strokeStyle = tint('#5C574C'); ctx.lineWidth = 1; ctx.beginPath(); bline(0, .5, 1, .5); for (let k = 0; k < 4; k++) bline(k / 4 + .1, 0, k / 4 + .1, .5); ctx.stroke(); ctx.globalAlpha = 1; return; }
   if (pat === 'bricks') { ctx.globalAlpha = .35; ctx.strokeStyle = tint('#E9D9BF'); ctx.lineWidth = Math.max(.5, 18 / d); ctx.beginPath(); for (let k = 1; k < 12; k++) bline(0, k / 12, 1, k / 12); ctx.stroke(); ctx.globalAlpha = 1;
     bpath(.1, 0, .9, .78); ctx.fillStyle = N > .3 || w.c ? tint('#3A2016') : '#3A2016'; ctx.fill(); return; }
@@ -578,7 +579,7 @@ function drawSky(seg) {
   if (prev && fade > .02) { ctx.globalAlpha = fade; lmPass(prev, true); ctx.globalAlpha = 1; }
   ctx.globalAlpha = 1 - fade; lmPass(seg, true); ctx.globalAlpha = 1;
   const rmOn = climb && (th.sky || alt >= 20) && typeof rmFrame === 'function' && rmFrame(seg); /* 展望台・階段の上からも同じ（本物の場所の立体のビルを見せる） */ /* [M30] 鳥と降りる時は、地平線の平たいビルの絵を出さない（本物の場所の立体のビルがあるので、絵と立体が重なっていた） */
-  const sky3 = !climb || alt < 10; /* [V3] 地上では立体の町。高い所（階段の上など）は、今までどおり */
+  const sky3 = !climb || alt < 20; /* [V3] 地上では立体の町。高い所（階段の上など）は、今までどおり */
   if (!rmOn) { if (sky3) skyline3d(seg, 0); else skyline(seg, yb, 0); }
   if (prev && fade > .02) { ctx.globalAlpha = fade; lmPass(prev, false); ctx.globalAlpha = 1; }
   ctx.globalAlpha = 1 - fade; lmPass(seg, false); ctx.globalAlpha = 1;
@@ -620,7 +621,7 @@ function drawClouds(hz) {
    700m より手前には置かない（手前は道の立体の町なみがある）。海の見える所は 3km より先だけ */
 function skyline3d(seg, layer) {
   const N = LT.night, th = seg.th, hz = HORIZON - Math.tan(CAM.pitch) * FOCAL, F = FOCAL, cs = Math.sin(CAM.yaw), cc = Math.cos(CAM.yaw), cx0 = CAM.x, cz0 = CAM.z;
-  const camH = clamp(CAM.y - (segE(seg, clamp(G.s || 0, 0, seg.len)) || 0), 1.5, 8), S = 160, lq = typeof lowQ !== 'undefined' && lowQ, near = th.bay || th.view === 'sea' ? 3000 : 700, far = lq ? 2600 : 4200, split = lq ? 1400 : 1700; /* 軽い画質では、近い所だけ・窓なし */
+  const camH = th.climb ? clamp(altitude(seg, clamp(G.s || 0, 0, seg.len)) + 2.4, 1.5, 24) : clamp(CAM.y - (segE(seg, clamp(G.s || 0, 0, seg.len)) || 0), 1.5, 8), /* [V4] 階段・屋上（地上 20m まで）は、本当の目の高さから見下ろす */ S = 160, lq = typeof lowQ !== 'undefined' && lowQ, near = th.bay || th.view === 'sea' ? 3000 : 700, far = lq ? 2600 : 4200, split = lq ? 1400 : 1700; /* 軽い画質では、近い所だけ・窓なし */
   const lo = layer ? near : split, hi = layer ? split : far; if (lo >= hi) return;
   const P = (wx, wz, y) => { const dx = wx - cx0, dz = wz - cz0, d = dx * cs + dz * cc; if (d < 5) return null; const l = dx * cc - dz * cs; return [W / 2 + l / d * F, hz + (camH - y) / d * F, d]; };
   const fog = N > .4 ? [30, 38, 68] : [LT.bot[0] * .95, LT.bot[1] * .96, LT.bot[2] * .98], amb = N > .4 ? [1, 1, 1] : LT.amb, list = [];

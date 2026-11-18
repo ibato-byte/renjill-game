@@ -352,7 +352,14 @@ stage.addEventListener('pointerup', endTouch); stage.addEventListener('pointerca
 document.addEventListener('visibilitychange', () => { if (document.hidden) { cpSave(); saveNow(); if (G.mode === 'countdown') { G.mode = 'play'; $('#tutCue').className = ''; } pause(); } });
 
 /* ================= buttons ================= */
-$('#btnStart').onclick = () => { hideAll(); startRun(); };
+$('#btnStart').onclick = () => { hideAll(); prepRun(); };
+/* [軽く] 2026-11-18 オーナー「重すぎる。開いた時に少しローディングの時間を設けてもいい」：スタートを押したら、ほんの少し（長くても 0.6 秒）
+   準備の画面（チモシーのくるくると棒）を出して、その間に、はじめの道と次の道の絵・建物の正面・物の面を、前もって作っておく。走り出してからの「一瞬止まる」を減らす */
+function prepRun() { let el = document.getElementById('prepCue'); if (!el) { el = document.createElement('div'); el.id = 'prepCue'; el.innerHTML = '<img alt=""><i><b></b></i>'; document.body.appendChild(el); }
+  try { el.querySelector('img').src = SPR_URL.hay; } catch (e) { } const bar = el.querySelector('b'); bar.style.width = '8%'; el.className = 'show';
+  requestAnimationFrame(() => requestAnimationFrame(() => { startRun(); const t0 = performance.now(); let k = 0;
+    const step = () => { try { texWarm(40); } catch (e) { } k++; bar.style.width = Math.min(100, 8 + k * 23) + '%'; if (k < 4 && performance.now() - t0 < 600 && G.mode === 'play') requestAnimationFrame(step); else { bar.style.width = '100%'; setTimeout(() => { el.className = ''; }, 120); } };
+    step(); })); }
 $('#btnName').onclick = () => openName(0);
 $('#btnChat').onclick = chatOpen; $('#btnChat2').onclick = chatOpen; $('#chatClose').onclick = chatClose;
 $('#chatForm').onsubmit = e => { e.preventDefault(); chatAsk($('#chatIn').value); }; $('#chatStop').onclick = () => { if (CHAT.ctl) CHAT.ctl.abort(); };

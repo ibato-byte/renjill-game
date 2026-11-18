@@ -217,20 +217,21 @@ function faceImage(img, flip, v) {
 }
 function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
   const faces = [];
-  if (cache) { for (const [fc, b] of cache) if (faceVisible(fc)) faces.push([depthOf(fc.v), fc, b]); }
-  else for (const b of list) for (const fc of boxFaces(sg, b, ds, dl, dy)) if (faceVisible(fc)) faces.push([depthOf(fc.v), fc, b]);
+  const far1 = (lowQ ? .7 : 1); if (cache) { for (const [fc, b] of cache) { if (b.sz != null && b.sz < .7 && d > (b.sz < .35 ? 22 : 34) * far1) continue; if (faceVisible(fc)) faces.push([depthOf(fc.v), fc, b]); } }
+  else for (const b of list) { if (b.sz != null && b.sz < .7 && d > (b.sz < .35 ? 22 : 34) * (lowQ ? .7 : 1)) continue; /* [軽く] 小さな物（品物・金具など）は、遠くでは画面で 2〜3 ドットにしかならないので描かない */ for (const fc of boxFaces(sg, b, ds, dl, dy)) if (faceVisible(fc)) faces.push([depthOf(fc.v), fc, b]); }
   faces.sort((a, b) => b[0] - a[0]);
   ctx.globalAlpha = alpha; BOXA = alpha; ctx.lineJoin = 'round';
   for (const [fd, fc, b] of faces) {
     const m = project(fc.v); if (!m) continue; pathPoly(Math.abs(m));
     const glow = b.glow && (LT.night > .3 || b.glow === 1);
     const col = fogged(b.cc, glow ? 1 : fc.sh * sunK(fc.n), fd, glow); ctx.fillStyle = col; ctx.fill();
-    if (fd < 40 && !glow) { ctx.strokeStyle = col; ctx.lineWidth = clamp(36 / fd, .6, 2.6); ctx.stroke(); } // soft, rounded edges instead of hard cube corners
-    if (fd < 34 && !glow && m === 4) matFace(fc, b, sg, fd);
-    if (fd < 28 && m === 4 && !glow && !fc.top) { // soft light: a little brighter at the top of a face, darker at its foot
+    const small = b.sz != null && b.sz < .7; /* 小さな物は、ふちの線・光のぐあい・材質の絵を省く（画面では見分けられない大きさ） */
+    if (fd < 40 && !glow && !(small && fd > 8)) { ctx.strokeStyle = col; ctx.lineWidth = clamp(36 / fd, .6, 2.6); ctx.stroke(); } // soft, rounded edges instead of hard cube corners
+    if (fd < (small ? 6 : 34) && !glow && m === 4) matFace(fc, b, sg, fd);
+    if (fd < (small ? 6 : 28) && m === 4 && !glow && !fc.top) { // soft light: a little brighter at the top of a face, darker at its foot
       let y0 = 1e9, y1 = -1e9; for (let i = 0; i < 4; i++) { y0 = Math.min(y0, SCR[i * 2 + 1]); y1 = Math.max(y1, SCR[i * 2 + 1]); }
       if (y1 - y0 > 14) { const gr = ctx.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, 'rgba(255,255,255,.10)'); gr.addColorStop(.6, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(20,15,30,.22)'); ctx.fillStyle = gr; ctx.fill(); } }
-    if (fd < 30 && !b.noEdge) { ctx.strokeStyle = 'rgba(40,30,24,.08)'; ctx.lineWidth = 1; ctx.stroke(); }
+    if (fd < (small ? 6 : 30) && !b.noEdge) { ctx.strokeStyle = 'rgba(40,30,24,.08)'; ctx.lineWidth = 1; ctx.stroke(); }
     if (fc.top && m === 4 && fd < 22 && !glow) { ctx.strokeStyle = `rgba(255,250,240,${(.22 * (1 - fd / 22)).toFixed(3)})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(SCR[0], SCR[1]); ctx.lineTo(SCR[2], SCR[3]); ctx.stroke(); }
     if (b.face && m === 4 && fd < (b.faceN ? 120 : 50) && (b.faceAll ? (fc.front || fc.back || fc.sideL || fc.sideR) : b.faceFront ? fc.front : b.faceSide ? (b.faceSide === 'L' ? fc.sideL : fc.sideR) : (fc.sideL || fc.sideR))) faceImage(paintFace(b.faceN && LT.night > .4 ? b.faceN : b.face, b.faceW, b.faceH), fc.sideL, fc.v); // 電車（faceN）は遠くからも絵で。先頭の顔は前の面（faceFront）
     if (b.face2 && m === 4 && fd < 50 && !fc.top && (b.face2F ? (fc.front || fc.back) : !(b.faceSide === 'L' ? fc.sideL : fc.sideR) && (fc.front || fc.back || fc.sideL || fc.sideR))) faceImage(paintFace(b.face2, b.face2W || 200, b.face2H || 200), fc.sideL, fc.v); // 2026-11-17：主な面とちがう絵を、ほかの横の面に（たんすの横の板）
@@ -322,7 +323,7 @@ function drawSegment(sg, isCur) {
   // floor
   DRAW.length = 0;
   const skyRM = curSeg().th.sky && rmFrame(curSeg()); /* [M64] 空を飛んでいる間は、本物の地図の川があるので、着地する公園の手前の立体の水面は描かない（色がちがい、川の上に板がういて見えた） */
-  for (const p of sg.floor) { if (skyRM && p.far && p.pat === 'sea') continue; const d = depthOf(p.v); if (d >= FAR + 8 || depthMax(p.v) < -.5) continue; DRAW.push([p.dec ? d - (p.dec === 'futonD' || p.dec === 'zabuTop' ? 4.6 : .8) : p.soft ? d - 4 - (p.sb || 0) : d, p]); } // やわらかい物（soft）とその上の絵は、まわりの畳より後に描く（畳にかくれない）
+  for (const p of sg.floor) { if (skyRM && p.far) continue; const d = depthOf(p.v); if (d >= FAR + 8 || depthMax(p.v) < -.5) continue; DRAW.push([p.dec ? d - (p.dec === 'futonD' || p.dec === 'zabuTop' ? 4.6 : .8) : p.soft ? d - 4 - (p.sb || 0) : d, p]); } // やわらかい物（soft）とその上の絵は、まわりの畳より後に描く（畳にかくれない）
   const patFar = typeof lowQ !== 'undefined' && lowQ > 1 ? 55 : 999;
   DRAW.sort((a, b) => b[0] - a[0]);
   const isW = p => p.pat === 'sea' || p.pat === 'water';
@@ -338,7 +339,7 @@ function drawSegment(sg, isCur) {
   // walls, ceilings, decorations
   DRAW.length = 0;
   const wing = wingOn(sg), cap = wing || capOn(sg);
-  for (const w of sg.walls) { if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; DRAW.push([d, 1, w]); }
+  for (const w of sg.walls) { if (skyRM && w.far) continue; /* [M67] 空から見る間は、着地の公園のうしろの町の正面（うすいかべ）を描かない（上から見ると屋根の無い板に見えた） */ if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; DRAW.push([d, 1, w]); }
   const behind = G.segs.indexOf(sg) >= 0 && G.segs.indexOf(sg) < G.ci; // 曲がり終えた角の矢印の看板は描かない（横に浮いた板に見えていた）
   for (const e of sg.decos) { if (e.sign && behind) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (e.glow || e.pat === 'bigscreen' ? FAR : lowQ ? 70 : 90)) continue; /* [R14] 光る大画面は遠くでも見える */ DRAW.push([d - 1.6, 2, e]); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
   DRAW.sort((a, b) => b[0] - a[0]);

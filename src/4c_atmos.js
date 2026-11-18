@@ -144,13 +144,14 @@ function streetShade(sg) {
 let GRAIN = null, VIG = null, VIGK = '';
 /* 2026-11-15：やわらかい光（アニメの撮影でいう「ディフュージョン」）。画面を小さく写し取り、明るい所だけを残して、ぼかして上から明るく重ねる。
    窓・照明・空・白い物のまわりが、ふわっとにじむ。軽いモード・細かさを下げている時は使わない（設定「画質：きれい」では常に） */
-let DIFC = null, DIFG = null, DIF_K = 1;
+let DIFC = null, DIFG = null, DIF_K = 1, DIF_N = 0;
 function diffusion() {
   try { const g = gfxMode(); if (g === 'low' || (g !== 'high' && RES_K < 1) || DIF_K <= 0) return;
     const sw = Math.max(24, Math.round(cv.width / 7)), sh = Math.max(24, Math.round(cv.height / 7));
     if (!DIFC || DIFC.width !== sw || DIFC.height !== sh) { DIFC = document.createElement('canvas'); DIFC.width = sw; DIFC.height = sh; DIFG = DIFC.getContext('2d', { alpha: false }) || DIFC.getContext('2d'); if (!DIFG) { DIF_K = 0; return; } }
+    DIF_N = (DIF_N + 1) % 2; if (DIF_N === 0 || DIFC.__fresh !== 1) { DIFC.__fresh = 1; /* [軽く] やわらかい光のもと（明るい所だけの小さな絵）は 2 コマに 1 回だけ作り直す（ぼかした光なので、1 コマ前の物で見分けがつかない。画面の絵を読む重い処理が半分に） */
     DIFG.globalCompositeOperation = 'copy'; DIFG.globalAlpha = 1; DIFG.imageSmoothingEnabled = true; DIFG.drawImage(cv, 0, 0, sw, sh);
-    DIFG.globalCompositeOperation = 'multiply'; DIFG.drawImage(DIFC, 0, 0); DIFG.drawImage(DIFC, 0, 0); /* 自分どうしを 2 回掛けて、とても明るい所だけを残す（全体が白っぽくならない） */
+    DIFG.globalCompositeOperation = 'multiply'; DIFG.drawImage(DIFC, 0, 0); DIFG.drawImage(DIFC, 0, 0); } /* 自分どうしを 2 回掛けて、とても明るい所だけを残す（全体が白っぽくならない） */
     const a = (LT.night > .5 ? .42 : LT.indoor ? .16 : .2) * DIF_K;
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = a; ctx.imageSmoothingEnabled = true; ctx.drawImage(DIFC, 0, 0, cv.width, cv.height); ctx.restore(); smoothOn();
   } catch (e) { DIF_K = 0; } }
