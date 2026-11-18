@@ -269,7 +269,7 @@ function titleLight() {
   const calm = !!OPT().calm, t = calm ? 0 : G.t, m = Math.min(W, H), top = H * (W < H * .8 ? .56 : .92); // たて長の画面は、下の札にかかる前で光を消す
   ctx.save(); ctx.globalCompositeOperation = 'screen';
   { const gl = ctx.createRadialGradient(W * .08, H * .04, m * .05, W * .08, H * .04, m * 1.05); gl.addColorStop(0, 'rgba(255,238,196,.22)'); gl.addColorStop(.4, 'rgba(255,232,184,.07)'); gl.addColorStop(1, 'rgba(255,232,184,0)'); ctx.fillStyle = gl; ctx.fillRect(0, 0, W, top); }
-  for (let k = 0; k < 3; k++) { const x0 = W * (-.1 + k * .2), wd = m * (.09 + k * .025), a = (.075 + .025 * Math.sin(t * .35 + k * 2.1)) * (k === 1 ? 1.15 : 1), dx = top * .62;
+  for (let k = 0; k < 3; k++) { const x0 = W * (-.1 + k * .2), wd = m * (.09 + k * .025), a = (.045 + .015 * Math.sin(t * .35 + k * 2.1)) * (k === 1 ? 1.15 : 1), dx = top * .62; // 光の帯は弱め（2026-11-18：まん中の選んだ子の上を通り、選んだ子が約 3% 明るく見えていた。オーナー「選んだ子のライトはいらない」）
     const lg = ctx.createLinearGradient(0, 0, 0, top); lg.addColorStop(0, `rgba(255,240,205,${a})`); lg.addColorStop(.7, `rgba(255,240,205,${a * .45})`); lg.addColorStop(1, 'rgba(255,240,205,0)'); ctx.fillStyle = lg;
     ctx.beginPath(); ctx.moveTo(x0, 0); ctx.lineTo(x0 + wd, 0); ctx.lineTo(x0 + wd * 1.9 + dx, top); ctx.lineTo(x0 + dx, top); ctx.closePath(); ctx.fill(); }
   if (!calm && !(typeof lowQ !== 'undefined' && lowQ)) for (let i = 0; i < 18; i++) { const u = (i * .6180339) % 1, v = (i * .3819660 + .13) % 1, sp = .012 + (i % 5) * .004, ph = (t * sp + v) % 1; // ほこり：光の帯にそって、ゆっくり右下へ
