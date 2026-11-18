@@ -18,6 +18,7 @@ function applyLang() {
   $('#lbScore').textContent = tr('スコア', 'SCORE'); $('#lbTime').textContent = tr('時刻', 'TIME'); $('#lbHay').textContent = tr('チモシー', 'HAY'); $('#resBest').textContent = lab('NEW BEST!');
   $('#btnChat').textContent = $('#btnChat2').textContent = tr('ジルに聞く', 'Ask Jill');
   ['btnMute', 'btnMute2'].forEach(id => $('#' + id).textContent = SV.mute ? t('soundOff') : t('soundOn'));
+  { const m = $('#btnMute'); m.classList.toggle('off', !!SV.mute); m.setAttribute('aria-label', m.textContent); $('#btnSet').setAttribute('aria-label', tr('設定', 'Settings')); } /* ホームでは、音と設定は絵のボタン（字は読み上げ用に残す） */
 }
 // the character cards are narrow: put each part ("課長" / "ホーランドロップ") on its own line, never split a word
 function cardTxt(sel, txt) { const el = $(sel); el.textContent = ''; String(txt).split(/\s*[・：:·]\s*/).forEach((p, i) => { if (i) el.appendChild(document.createElement('br')); const s = document.createElement('span'); s.textContent = p; el.appendChild(s); }); }
@@ -634,6 +635,7 @@ function toastSubBack() { try { if (!document.querySelector('.ttoast[data-sub]')
 /* お知らせは、題名のロゴ（チモシーダッシュ！）にかぶせない（毎日の出社ボーナスが、ロゴの1行目をかくしていた：2026-11-15）。
    ロゴの下の一言の帯の上に重ねる（同じ形の帯なので、帯の中身が入れかわったように見える）。帯が見えない画面（横向きなど）では、ロゴより上か、今までの位置 */
 function toastPlace(d) { try { const sub = $('#tSub'), logo = $('#tLogo'), app = $('#app').getBoundingClientRect(); const h = d.offsetHeight || 36;
+    { const dock = $('#sTitle.home .chars'); if (dock && dock.offsetParent && !$('#sTitle').hidden) { const r = dock.getBoundingClientRect(); d.classList.add('hm'); d.style.setProperty('--tt-top', Math.max(8, Math.round(r.top - app.top - h - 16)) + 'px'); return; } } /* 新しいホーム（2026-11-19）：お知らせは、下の台のすぐ上・まん中に出す（上の帯やロゴ・左右のボタンにかぶせない） */
     const sr = sub && sub.offsetParent ? sub.getBoundingClientRect() : null, lr = logo && logo.offsetParent ? logo.getBoundingClientRect() : null;
     let top = null;
     if (sr && sr.height > 8 && sr.top > 0 && sr.bottom < app.bottom) { top = sr.top + sr.height / 2 - h / 2; d.style.minWidth = Math.min(Math.round(sr.width), Math.round(app.width * .86)) + 'px'; sub.style.visibility = 'hidden'; d.dataset.sub = '1'; } /* 帯の上に重ねる間、下の帯の字はかくす（2つの文が重なって読めなかった） */

@@ -553,4 +553,126 @@ html.calm .howanim .ha-cap span:first-child{opacity:1}
 @media (prefers-reduced-motion:no-preference){.fit.pop img.fit-f{animation:fitPop .38s cubic-bezier(.2,1.4,.4,1)}@keyframes fitPop{0%{transform:scale(.94,1.05)}60%{transform:scale(1.04,.97)}100%{transform:none}}}
 .shop-item[data-try]{cursor:pointer;transition:box-shadow .15s,background .15s}
 .shop-item.trying{box-shadow:inset 0 0 0 2px var(--tie);background:#FFF8E6}
+/* ==== HOME-V2 START ==== */
+/* ---- ホーム画面の一新（2026-11-19。オーナー：「メニュー画面を一新して、もっと高品質なデザインに」）----
+   部屋と 3 人を主役に。ベージュの大きな札をやめ、上に細い状態の帯・左右に絵のついた丸いボタン・下にキャラクターえらびとスタートだけの台。
+   ボタンの種類・id・動きは前と同じ（並びと見た目だけ）。絵のボタンは /home の道具（docs/HOME-2026-11-19.md）で作った SVG */
+#sTitle.home{padding:0;overflow-x:hidden;overflow-y:auto;align-items:stretch}
+#sTitle.home .logo{position:absolute;left:14px;top:calc(10px + env(safe-area-inset-top,0px));margin:0;padding:0;text-align:left;z-index:2;pointer-events:none}
+#sTitle.home .logo .k{font-size:10px;letter-spacing:.22em}
+#sTitle.home .logo h1{font-size:clamp(24px,7.2vw,34px);line-height:1.02;margin-top:2px;text-shadow:0 3px 0 var(--ink)}
+#sTitle.home .logo .ja{display:none}
+#sTitle.home .card{margin:0;width:100%;max-width:none;min-height:100%;flex:none;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;border-radius:0;padding:0;position:relative;right:auto;top:auto;transform:none;max-height:none;overflow:visible;
+  display:grid;grid-template-columns:76px minmax(0,1fr) 76px;grid-template-rows:auto auto auto auto minmax(8px,1fr) auto auto auto auto;gap:0;align-items:start}
+#sTitle.home .card::before{display:none}
+#sTitle.home .card::after{content:"";grid-column:1/-1;grid-row:6/10;align-self:stretch;justify-self:center;width:min(100%,520px);border-radius:28px 28px 0 0;z-index:0;
+  background:linear-gradient(180deg,rgba(255,252,246,.96),rgba(251,246,238,.98));box-shadow:0 -8px 28px rgba(59,42,32,.24),inset 0 1.5px 0 #fff}
+#sTitle.home .card>*{position:relative;z-index:1;min-width:0}
+/* 上の帯：ベスト・チモシー・音・設定 */
+#sTitle.home .card>.bank{grid-column:1/-1;grid-row:1;justify-content:flex-end;flex-wrap:nowrap;gap:6px;padding:calc(54px + env(safe-area-inset-top,0px)) 12px 0 150px;color:var(--ink)}
+#sTitle.home .bank>span:not(.tog){display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px 0 9px;border-radius:999px;background:rgba(255,252,246,.94);box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff;font-size:10px;white-space:nowrap}
+#sTitle.home .bank b{font-size:14px}
+#sTitle.home .bank img{width:18px;height:18px;vertical-align:0}
+#sTitle.home .bank .tog{display:inline-flex;gap:6px;margin:0}
+#sTitle.home .bank .tog .sub{width:32px;height:32px;min-height:0;min-width:0;padding:0;border-radius:50%;font-size:0;color:transparent;overflow:hidden;background:rgba(255,252,246,.94) center/20px no-repeat;box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff}
+#sTitle.home #btnMute{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 12.500h4.500L15.500 7v18l-6-5.500H5z%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M19.500 12a5.500 5.500 0 0 1 0 8M22.800 8.500a10 10 0 0 1 0 15%22/%3E%3C/svg%3E")}#sTitle.home #btnMute.off{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 12.500h4.500L15.500 7v18l-6-5.500H5z%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M20 12.500l7 7M27 12.500l-7 7%22 stroke=%22%23D9584C%22 stroke-width=%222.400%22/%3E%3C/svg%3E")}#sTitle.home #btnSet{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M16 4.500l2 .3.900 2.700 2.300 1 2.500-1.300 2.100 2.100-1.300 2.500 1 2.300 2.700.9v3l-2.700.9-1 2.300 1.300 2.500-2.100 2.100-2.500-1.300-2.300 1-.9 2.700h-3l-.9-2.700-2.300-1-2.500 1.300-2.100-2.100 1.300-2.500-1-2.300-2.700-.9v-3l2.700-.9 1-2.300L5.200 9.300l2.100-2.100 2.500 1.300 2.300-1 .9-2.700z%22 fill=%22%23FBF6EE%22 stroke-width=%221.700%22/%3E%3Ccircle cx=%2216%22 cy=%2216.500%22 r=%223.600%22 fill=%22%23E9B44C%22/%3E%3C/svg%3E")}
+/* 昇進の帯 */
+#sTitle.home .card>#tCareer{grid-column:1/-1;grid-row:2;padding:8px 12px 0}
+#sTitle.home #tCareer .career{background:rgba(255,252,246,.94);border-radius:999px;padding:5px 14px;box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff;row-gap:0}
+#sTitle.home #tCareer .career .cr-plant{display:none}
+/* まん中：はじめての人への説明／今日の目標のふきだし */
+#sTitle.home .card>.story{grid-column:2;grid-row:3;margin:10px 0 0;padding:8px 12px;border-radius:16px;background:rgba(255,252,246,.94);box-shadow:0 2px 0 rgba(59,42,32,.28);font-size:12px}
+#sTitle.home .card>#tToday{grid-column:2;grid-row:4;margin:10px 2px 0;padding:8px;border-radius:18px;background:rgba(255,252,246,.95);box-shadow:0 3px 0 rgba(59,42,32,.3),inset 0 1px 0 #fff;gap:5px;position:relative}
+#sTitle.home #tToday::after{content:"";position:absolute;left:50%;bottom:-9px;width:18px;height:18px;margin-left:-9px;background:rgba(255,252,246,.95);border-radius:0 0 5px 0;transform:rotate(45deg);box-shadow:3px 3px 0 rgba(59,42,32,.3)}
+#sTitle.home #tToday .tt-c{background:none;padding:2px 6px 4px}
+#sTitle.home #tToday .tt-ch{background:var(--cream);border-radius:10px;padding:5px 9px;font-size:11px}
+#sTitle.home .card>#tKeep,#sTitle.home .card>#tDayGoal,#sTitle.home .card>.last{display:none}
+#sTitle.home .card>#tDaily{grid-column:2;grid-row:4;margin:10px 2px 0;padding:6px 10px;border-radius:14px;background:rgba(255,252,246,.94);box-shadow:0 2px 0 rgba(59,42,32,.28)}
+#sTitle.home .card.tgrid>#tDaily{display:none}
+#sTitle.home .card>#tComm{grid-column:2;grid-row:5;align-self:end;justify-self:center;margin:0 0 10px}
+/* 左右の、絵のついた丸いボタン */
+#sTitle.home .card>.row,#sTitle.home .card>.row2{grid-row:3/6;align-self:end;justify-self:center;display:flex;flex-direction:column;gap:9px;padding:12px 0 14px}
+#sTitle.home .card>.row{grid-column:1}#sTitle.home .card>.row2{grid-column:3}
+#sTitle.home .row .mini,#sTitle.home .row2 .sub{width:68px;min-height:0;background:none;border-radius:0;padding:0;gap:3px;display:flex;flex-direction:column;align-items:center;overflow:visible;white-space:nowrap;
+  font-size:10px;font-weight:900;line-height:1.2;color:#fff}
+#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{content:"";display:block;width:50px;height:50px;margin:0;border-radius:50%;background:#FFFCF6 center/30px no-repeat;
+  box-shadow:0 3px 0 rgba(59,42,32,.42),0 6px 12px rgba(59,42,32,.18),inset 0 0 0 2.5px #fff,inset 0 -4px 0 rgba(214,162,60,.16)}
+#sTitle.home .row .mini em{font-size:10px;line-height:1.25;padding:1px 7px;border-radius:999px;background:rgba(59,42,32,.72);color:#fff;max-width:74px;overflow:hidden;text-overflow:ellipsis}
+#sTitle.home .row2 .sub{position:relative;isolation:isolate;width:auto;min-width:50px;max-width:76px;padding:54px 7px 1px;background:none;font-size:10px;line-height:1.25;overflow:visible;text-overflow:clip;display:block;align-self:center}
+#sTitle.home .row2 .sub::before{position:absolute;left:50%;top:0;margin-left:-25px}
+#sTitle.home .row2 .sub::after{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(1.25em + 2px);border-radius:999px;background:rgba(59,42,32,.72);z-index:-1}
+#sTitle.home #btnMissions::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%227%22 y=%226%22 width=%2218%22 height=%2221%22 rx=%223%22 fill=%22%23FBF6EE%22/%3E%3Crect x=%2212%22 y=%223.5%22 width=%228%22 height=%225%22 rx=%222%22 fill=%22%23E9B44C%22/%3E%3Cpath d=%22M11.5 15.5l2.6 2.6 5.6-5.8%22 stroke=%22%236DB36A%22 stroke-width=%222.6%22/%3E%3Cpath d=%22M11.5 22.5h9%22 stroke-width=%221.8%22/%3E%3C/svg%3E")}#sTitle.home #btnStamps::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4.5 9l7.5-3 8 3 7.5-3v17l-7.5 3-8-3-7.5 3z%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M12 6v17M20 9v17%22 stroke-width=%221.4%22 opacity=%22.55%22/%3E%3Cpath d=%22M16 21s5-4.6 5-8.4a5 5 0 0 0-10 0c0 3.800 5 8.400 5 8.400z%22 fill=%22%23D9584C%22/%3E%3Ccircle cx=%2216%22 cy=%2212.600%22 r=%221.700%22 fill=%22%23FBF6EE%22 stroke=%22none%22/%3E%3C/svg%3E")}#sTitle.home #btnZukan::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M16 9c-2.500-2-6-2.600-10-2v17c4-.6 7.500 0 10 2 2.500-2 6-2.600 10-2V7c-4-.6-7.500 0-10 2z%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M16 9v17%22 stroke-width=%221.6%22/%3E%3Cpath d=%22M8.500 19c0-4 2-6.500 5-7.500 0 4-1.500 6.500-5 7.500z%22 fill=%22%236DB36A%22 stroke-width=%221.5%22/%3E%3Cpath d=%22M19 13h4.500M19 17h4.500%22 stroke-width=%221.6%22 opacity=%22.7%22/%3E%3C/svg%3E")}
+#sTitle.home #btnShop::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 14v12h20V14%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M4 9.500L6.500 5h19L28 9.500v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z%22 fill=%22%23E9B44C%22/%3E%3Cpath d=%22M10 5.500v6M16 5.500v6M22 5.500v6%22 stroke-width=%221.3%22 opacity=%22.6%22/%3E%3Crect x=%2213%22 y=%2218%22 width=%226%22 height=%228%22 rx=%221%22 fill=%22%235B8DBF%22/%3E%3C/svg%3E")}#sTitle.home #btnHow::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211.500%22 fill=%22%235B8DBF%22/%3E%3Cpath d=%22M12.300 12.800a3.800 3.800 0 1 1 5.600 3.400c-1.200.7-1.900 1.400-1.900 2.800%22 stroke=%22%23FBF6EE%22 stroke-width=%222.600%22/%3E%3Ccircle cx=%2216%22 cy=%2222.700%22 r=%221.500%22 fill=%22%23FBF6EE%22 stroke=%22none%22/%3E%3C/svg%3E")}
+#sTitle.home #btnRank::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 11l5.500 5L16 7.500l5.500 8.500L27 11l-2.200 12.500H7.200z%22 fill=%22%23E9B44C%22/%3E%3Cpath d=%22M8 26.500h16%22 stroke-width=%222.400%22/%3E%3Ccircle cx=%2216%22 cy=%2218.500%22 r=%221.800%22 fill=%22%23D9584C%22 stroke=%22none%22/%3E%3C/svg%3E")}#sTitle.home #btnName::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%224.500%22 y=%229%22 width=%2223%22 height=%2216%22 rx=%223.500%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M4.500 13.500h23%22 stroke=%22none%22/%3E%3Cpath d=%22M5.500 9.800h21a2.500 2.500 0 0 1 1 2v2.200h-23v-2.200a2.500 2.500 0 0 1 1-2z%22 fill=%22%235B8DBF%22 stroke=%22none%22/%3E%3Crect x=%224.500%22 y=%229%22 width=%2223%22 height=%2216%22 rx=%223.500%22/%3E%3Cpath d=%22M13 5.500v5M19 5.500v5%22 stroke-width=%222.200%22/%3E%3Cpath d=%22M9.500 19.500h13%22 stroke-width=%222.400%22/%3E%3C/svg%3E")}#sTitle.home #btnChat::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 8.500a3.500 3.500 0 0 1 3.500-3.500h15A3.500 3.500 0 0 1 27 8.500v9a3.500 3.500 0 0 1-3.500 3.500H15l-6 5.500V21h-.5A3.500 3.500 0 0 1 5 17.500z%22 fill=%22%23FBF6EE%22/%3E%3Ccircle cx=%2211%22 cy=%2213%22 r=%221.600%22 fill=%22%233B2A20%22 stroke=%22none%22/%3E%3Ccircle cx=%2216%22 cy=%2213%22 r=%221.600%22 fill=%22%233B2A20%22 stroke=%22none%22/%3E%3Ccircle cx=%2221%22 cy=%2213%22 r=%221.600%22 fill=%22%233B2A20%22 stroke=%22none%22/%3E%3C/svg%3E")}
+#sTitle.home .row .mini .dot{top:0;right:8px;width:12px;height:12px;box-shadow:0 0 0 2px #fff}
+/* 下の台：キャラクターえらび・スタート・小さなボタン */
+#sTitle.home .card>.chars{grid-column:1/-1;grid-row:6;display:flex;justify-content:center;gap:14px;padding:16px 16px 22px;position:relative;justify-self:center;width:min(100%,520px);box-sizing:border-box;background-color:#FDF9F2;border-radius:28px 28px 0 0;box-shadow:inset 0 1.5px 0 #fff}
+#sTitle.home .chars .char{width:78px;border:0;background:none;box-shadow:none;border-radius:0;padding:0;gap:3px;align-items:center;text-align:center;position:static;flex:none}
+#sTitle.home .chars .char canvas{width:66px;height:66px;max-width:none;aspect-ratio:auto;border-radius:50%;background:radial-gradient(circle at 50% 35%,#fff,var(--cream));box-shadow:0 0 0 2.5px rgba(59,42,32,.16);transition:transform .16s cubic-bezier(.2,.9,.3,1.3),box-shadow .16s}
+#sTitle.home .chars .char[aria-pressed="true"] canvas{transform:scale(1.1);box-shadow:0 0 0 3px var(--tie),0 0 0 6px rgba(214,162,60,.25),0 4px 10px rgba(59,42,32,.2)}
+#sTitle.home .chars .char .nm{font-size:13px;margin-top:3px}
+#sTitle.home .chars .char:not([aria-pressed="true"]) .nm{opacity:.62}
+#sTitle.home .chars .char .role,#sTitle.home .chars .char .cbest{display:none}
+#sTitle.home .chars .char .perk{display:none;position:absolute;left:0;right:0;bottom:4px;text-align:center;font-size:11px;white-space:nowrap}
+#sTitle.home .chars .char .perk br{display:none}#sTitle.home .chars .char .perk span+span::before{content:"・"}
+#sTitle.home .chars .char[aria-pressed="true"] .perk{display:block}
+#sTitle.home .card>#btnCont{grid-column:1/-1;grid-row:7;justify-self:center;width:min(100% - 32px,440px);margin:0 0 8px}
+#sTitle.home .card>#btnStart{grid-column:1/-1;grid-row:8;justify-self:center;width:min(100% - 32px,440px);box-sizing:border-box;margin:0;border-radius:999px;font-size:26px;padding:13px 14px 14px;letter-spacing:.12em;color:#3B2A20;
+  background:linear-gradient(180deg,#FFE08A 0%,#F3C24F 38%,#D9A53C 100%);box-shadow:0 5px 0 #9A6F1C,0 12px 20px rgba(59,42,32,.22),inset 0 2px 0 rgba(255,255,255,.7),inset 0 -3px 0 rgba(154,111,28,.25)}
+#sTitle.home .card>#btnStart:active{transform:translateY(3px);box-shadow:0 2px 0 #9A6F1C,inset 0 2px 0 rgba(255,255,255,.7)}
+#sTitle.home .card>#tKeepBtns{grid-column:1/-1;grid-row:9;margin:0;padding:12px 12px calc(14px + env(safe-area-inset-bottom,0px));gap:8px}
+#sTitle.home #tKeepBtns .sub{display:inline-flex;align-items:center;gap:5px;background:var(--cream);border-radius:999px;padding:6px 12px 6px 8px;font-size:11px}
+#sTitle.home #tKeepBtns .sub::before{content:"";flex:none;width:18px;height:18px;background-position:center;background-size:18px;background-repeat:no-repeat}
+#sTitle.home #btnRecords::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 26.500h22%22/%3E%3Crect x=%227%22 y=%2217%22 width=%224.600%22 height=%229.500%22 rx=%221.200%22 fill=%22%23FBF6EE%22/%3E%3Crect x=%2213.700%22 y=%2211.500%22 width=%224.600%22 height=%2215%22 rx=%221.200%22 fill=%22%23E9B44C%22/%3E%3Crect x=%2220.400%22 y=%226%22 width=%224.600%22 height=%2220.500%22 rx=%221.200%22 fill=%22%23D9584C%22/%3E%3C/svg%3E")}#sTitle.home #btnPractice::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M9 28V4.500%22/%3E%3Cpath d=%22M9 6h13.500l-3 4.500 3 4.500H9z%22 fill=%22%236DB36A%22/%3E%3Cpath d=%22M5.500 28h8%22 stroke-width=%222.400%22/%3E%3C/svg%3E")}#sTitle.home #btnRev::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M24.500 16a8.500 8.500 0 1 1-2.700-6.200%22 stroke-width=%222.600%22/%3E%3Cpath d=%22M24.800 5v6h-6%22 fill=%22none%22 stroke-width=%222.600%22/%3E%3C/svg%3E")}
+/* 下の小さな文字（遊び方・公式サイト・SNS）は、台の下に続く */
+#sTitle.home>.small-print{position:static;background:rgba(251,246,238,.98);width:100%;margin:0;padding:6px 16px;box-sizing:border-box;text-align:center;flex:none}
+#sTitle.home>.small-print,#sTitle.home>.small-print a,#sTitle.home>.small-print span,#sTitle.home>.small-print b{color:var(--ink-soft);text-shadow:none}
+#sTitle.home>.small-print.fol{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+/* 横長の画面（PC・タブレット）：左右のボタンを大きく・間をあける */
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){
+  #sTitle.home .logo{left:max(2.4vw,22px);top:18px}
+  #sTitle.home .logo h1{font-size:clamp(30px,5.6vh,52px)}
+  #sTitle.home .card{grid-template-columns:208px minmax(0,1fr) 208px}
+  #sTitle.home .card>.row{display:grid;grid-template-columns:1fr 1fr;justify-items:center;justify-self:start;padding-left:max(1.2vw,10px)}
+  #sTitle.home .card>.row2{justify-self:end;padding-right:max(2vw,20px)}
+  #sTitle.home .card>.bank{padding:64px max(2vw,20px) 0 0}
+  #sTitle.home .card>#tCareer{justify-self:end;width:min(360px,34vw);padding:8px max(2vw,20px) 0 0;grid-column:2/-1}
+  #sTitle.home .card>#tToday,#sTitle.home .card>.story,#sTitle.home .card>#tDaily{justify-self:center;width:min(340px,100%);box-sizing:border-box}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:10px;padding-bottom:20px}
+  #sTitle.home .row .mini{width:96px}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:58px;height:58px;background-size:34px}
+  #sTitle.home .row2 .sub::before{margin-left:-29px}
+  #sTitle.home .row2 .sub{padding:62px 9px 2px;max-width:104px;font-size:11.5px}#sTitle.home .row2 .sub::after{height:calc(1.25em + 4px)}
+  #sTitle.home .row .mini em{font-size:11.5px;max-width:104px;padding:2px 9px}
+  #sTitle.home .card>.chars{padding-top:14px}
+}
+/* 横向きのスマホ（高さが低い）：スタートとキャラクターえらびを横に並べ、左右のボタンは 2 列に */
+@media (orientation:landscape) and (max-height:559px){
+  #sTitle.home .logo{left:12px;top:8px}
+  #sTitle.home .logo .k{display:none}
+  #sTitle.home .logo h1{font-size:22px}#sTitle.home .logo h1 br{display:none}
+  #sTitle.home .card{grid-template-columns:150px minmax(0,1fr) 150px}
+  #sTitle.home .card>.bank{padding:8px 120px 0 0}
+  #sTitle.home .card>#tCareer{display:none}
+  #sTitle.home .card>#tToday{justify-self:center;width:min(360px,100%);box-sizing:border-box;margin-top:8px}
+  #sTitle.home #tToday .tt-ch{display:none}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{display:grid;grid-template-columns:1fr 1fr;gap:6px 2px;padding:6px 4px 8px;align-self:end}
+  #sTitle.home .card>.row2{grid-template-columns:1fr 1fr}
+  #sTitle.home .row .mini{width:72px}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:42px;height:42px;background-size:26px}
+  #sTitle.home .row2 .sub{padding-top:46px}#sTitle.home .row2 .sub::before{margin-left:-21px}
+  #sTitle.home .card>.chars{grid-column:2;grid-row:8;justify-self:start;width:auto;padding:8px 0 20px 14px;gap:8px}
+  #sTitle.home .chars .char{width:56px}#sTitle.home .chars .char canvas{width:46px;height:46px}
+  #sTitle.home .chars .char .nm{font-size:11px;margin-top:1px}
+  #sTitle.home .chars .char .perk{bottom:3px;font-size:10px;left:14px;right:auto}
+  #sTitle.home .card>#btnStart{grid-column:2;grid-row:8;justify-self:end;align-self:center;width:46%;margin:0 14px 6px 0;font-size:20px;padding:10px}
+  #sTitle.home .card>#btnCont{grid-column:2;grid-row:7;width:60%;margin:6px 0 0;font-size:12px;padding:6px}
+  #sTitle.home .card>#tKeepBtns{display:none}
+  #sTitle.home .card::after{grid-column:2;grid-row:7/10;width:100%;border-radius:22px 22px 0 0}
+}
+
+/* お知らせの帯：下の台のすぐ上・まん中（場所は toastPlace が決める） */
+.ttoast.hm{top:var(--tt-top,54px)!important;bottom:auto!important;left:0!important;right:0!important;margin:0 auto!important;max-width:min(86vw,520px)!important;min-width:0!important}
+@media (max-width:359px){ #sTitle.home #tBestL{display:none} #sTitle.home .card>.bank{padding-left:118px;gap:5px} #sTitle.home .bank>span:not(.tog){padding:0 9px 0 7px} #sTitle.home .logo h1{font-size:23px} #sTitle.home .logo{left:10px} }
+/* ==== HOME-V2 END ==== */
 </style>
