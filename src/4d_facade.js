@@ -483,7 +483,7 @@ function drawFacImg(w, dist, night, aMul) {
   const vz = (() => { const m = (ua + ub) / 2, bx = lerp(C[0][0], C[1][0], m), by = lerp(C[0][1], C[1][1], m), bz = lerp(C[0][2], C[1][2], m), tx = lerp(C[3][0], C[2][0], m), ty = lerp(C[3][1], C[2][1], m), tz = lerp(C[3][2], C[2][2], m); tc(bx, by, bz, FS, 0); tc(tx, ty, tz, FS, 3); const z0 = Math.max(NEAR, FS[2]), z1 = Math.max(NEAR, FS[5]); return [Math.max(z0, z1) / Math.min(z0, z1), Math.abs(FS[1] / z0 - FS[4] / z1) * FOCAL]; })();
   const rows = clamp(Math.ceil(Math.log2(vz[0]) * (lq ? 4 : 7)) + Math.ceil(vz[1] / (lq ? 260 : 150)), 1, lq ? 6 : 12), noClip = dist > (lq ? 12 : 30) && ua === 0 && ub === 1;
   const P = (u, t) => { const bx = lerp(C[0][0], C[1][0], u), by = lerp(C[0][1], C[1][1], u), bz = lerp(C[0][2], C[1][2], u), tx = lerp(C[3][0], C[2][0], u), ty = lerp(C[3][1], C[2][1], u), tz = lerp(C[3][2], C[2][2], u); return [lerp(bx, tx, t), lerp(by, ty, t), lerp(bz, tz, t)]; };
-  const sx = [0, 0, 0, 0], sy = [0, 0, 0, 0];
+  const sx = [0, 0, 0, 0], sy = [0, 0, 0, 0], M0 = ctx.getTransform ? ctx.getTransform() : null;
   const fa = (1 - fogK(dist) * .92) * aMul; if (fa < .03) return; ctx.globalAlpha = fa; /* [R1] 遠くの壁の絵も、もやの濃さに合わせてうすく（前は 75m で急に簡単な絵、95m で無地に変わり「途中で消える」ように見えた） */
   for (let ci = 0; ci < cols; ci++) {
     const uL = lerp(ua, ub, ci / cols), uR = lerp(ua, ub, (ci + 1) / cols);
@@ -494,17 +494,17 @@ function drawFacImg(w, dist, night, aMul) {
       if (!ok) continue;
       const f0 = w.fy0 || 0, f1 = w.fy1 == null ? 1 : w.fy1, ty1 = IH * (1 - (f0 + (f1 - f0) * t0)), ty0 = IH * (1 - (f0 + (f1 - f0) * t1)), th = ty1 - ty0; if (th < .3) continue; /* [R4] 段ごとの壁には、絵の縦の一部だけを貼る（1 階・基壇・塔） */
       const a = (sx[1] - sx[0]) / tw, b = (sy[1] - sy[0]) / tw, c = (sx[3] - sx[0]) / th, d = (sy[3] - sy[0]) / th;
-      ctx.save();
       const para = Math.abs(sx[0] + sx[2] - sx[1] - sx[3]) + Math.abs(sy[0] + sy[2] - sy[1] - sy[3]) < .8; /* [軽く] ほぼ平行四辺形のます目は、切り抜き（重い）をしなくても、はみ出しが 1 ドットより小さい */
+      const E = sx[0] - a * tu0 + c * ty1, F = sy[0] - b * tu0 + d * ty1; if (PROF.on) PROF.strips = (PROF.strips || 0) + 1;
       if (!noClip && !para) { // a hair of overlap hides the seams between cells
         const cx = (sx[0] + sx[1] + sx[2] + sx[3]) / 4, cy = (sy[0] + sy[1] + sy[2] + sy[3]) / 4; ctx.beginPath();
         for (let i = 0; i < 4; i++) { const dx = sx[i] - cx, dy = sy[i] - cy, L = Math.hypot(dx, dy) || 1, e = .6 / L; i ? ctx.lineTo(sx[i] + dx * e, sy[i] + dy * e) : ctx.moveTo(sx[i] + dx * e, sy[i] + dy * e); }
-        ctx.closePath(); ctx.clip(); }
-      ctx.transform(a, b, -c, -d, sx[0] - a * tu0 + c * ty1, sy[0] - b * tu0 + d * ty1); // texture y grows downward, the wall's v grows upward
+        ctx.closePath(); if (texFill(img, a, b, -c, -d, E, F)) continue; /* [軽く 2026-11-19] 切り抜かずに、絵の模様でこのます目をぬる（同じ見た目） */
+        ctx.save(); ctx.clip(); } else if (!M0) ctx.save();
+      ctx.transform(a, b, -c, -d, E, F); // texture y grows downward, the wall's v grows upward
       const ux = Math.min(tu0, tu1), uw = Math.abs(tw);
       ctx.drawImage(img, ux, ty0, uw, th, ux, ty0, uw, th);
-      if (PROF.on) PROF.strips = (PROF.strips || 0) + 1;
-      ctx.restore();
+      if (M0 && (noClip || para)) ctx.setTransform(M0); else ctx.restore(); /* [軽く] 切り抜きのないます目は、保存・復元（重い）をせず、ゆがめた向きだけ戻す */
     }
   }
   ctx.globalAlpha = 1;

@@ -213,8 +213,8 @@ function faceImage(img, flip, v) {
     const du1 = t1[0] - t0[0], dv1 = t1[1] - t0[1], du2 = t2[0] - t0[0], dv2 = t2[1] - t0[1], det = du1 * dv2 - du2 * dv1; if (Math.abs(det) < 1e-6) return;
     const x1 = p1[0] - p0[0], y1 = p1[1] - p0[1], x2 = p2[0] - p0[0], y2 = p2[1] - p0[1];
     const A = (x1 * dv2 - x2 * dv1) / det, B = (y1 * dv2 - y2 * dv1) / det, C = (x2 * du1 - x1 * du2) / det, D = (y2 * du1 - y1 * du2) / det;
-    const a = gr(p0), b = gr(p1), c = gr(p2); ctx.save(); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.closePath(); ctx.clip();
-    ctx.transform(A, B, C, D, p0[0] - A * t0[0] - C * t0[1], p0[1] - B * t0[0] - D * t0[1]); ctx.drawImage(L, 0, 0); ctx.restore(); };
+    const a = gr(p0), b = gr(p1), c = gr(p2), E = p0[0] - A * t0[0] - C * t0[1], F = p0[1] - B * t0[0] - D * t0[1]; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.closePath();
+    if (!texFill(L, A, B, C, D, E, F)) { ctx.save(); ctx.clip(); ctx.transform(A, B, C, D, E, F); ctx.drawImage(L, 0, 0); ctx.restore(); } };
   for (let j = 0; j < M; j++) for (let i = 0; i < N; i++) { const T = (ii, jj) => [IW * ii / N, IH * jj / M];
     tri(G2[j][i], G2[j][i + 1], G2[j + 1][i + 1], T(i, j), T(i + 1, j), T(i + 1, j + 1)); tri(G2[j][i], G2[j + 1][i + 1], G2[j + 1][i], T(i, j), T(i + 1, j + 1), T(i, j + 1)); }
 }
@@ -287,7 +287,14 @@ function titleLight() {
   /* 選んだ子へのスポットライトは無し（オーナー 2026-11-17：「スポットライトが明るすぎて不自然。選択されてるキャラクターのライトいらない」）。
      だれを選んでいるかは、まん中・いちばん手前にいることで分かる。qa/homelight.js が、選んだ子だけ明るくなっていないことを見張る */
 }
+/* [軽く 2026-11-19] 絵を斜めの形に貼る時、前は「切り抜き（clip）→ ゆがめる → 絵を描く → もとに戻す」だった。切り抜きはスマホでとても重い
+   （1 コマに数百回）。同じ絵を「模様」にして、その形をぬるだけにする（見た目は同じ。切り抜きをしない）。模様は 1 コマの中だけ使い回す */
+let PAT_OK = (() => { try { const c = document.createElement('canvas'); c.width = c.height = 2; const p = c.getContext('2d').createPattern(c, 'no-repeat'); return !!(p && typeof p.setTransform === 'function' && typeof DOMMatrix !== 'undefined'); } catch (e) { return false; } })();
+const PATF = new Map(), PATM = PAT_OK ? new DOMMatrix() : null, PATI = PAT_OK ? new DOMMatrix() : null;
+function texPat(img) { let p = PATF.get(img); if (p === undefined) { try { p = img && img.width && img.height ? ctx.createPattern(img, 'no-repeat') : null; } catch (e) { p = null; } PATF.set(img, p); } return p; }
+function texFill(img, A, B, C, D, E, F) { if (!PAT_OK) return false; const p = texPat(img); if (!p) return false; PATM.a = A; PATM.b = B; PATM.c = C; PATM.d = D; PATM.e = E; PATM.f = F; p.setTransform(PATM); ctx.fillStyle = p; ctx.fill(); return true; } // いまの形（path）を、絵でぬる
 function render() {
+  PATF.clear();
   const seg = G.segs[G.ci] || G.segs[0]; if (!seg) return;
   computeLight(seg); camPrep();
   drawSky(seg);
