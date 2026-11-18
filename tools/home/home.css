@@ -4,7 +4,7 @@
 #sTitle.home{padding:0;overflow-x:hidden;overflow-y:auto;align-items:stretch}
 #sTitle.home .logo{position:absolute;left:14px;top:calc(10px + env(safe-area-inset-top,0px));margin:0;padding:0;text-align:left;z-index:2;pointer-events:none}
 #sTitle.home .logo .k{font-size:10px;letter-spacing:.22em}
-#sTitle.home .logo h1{font-size:clamp(24px,7.2vw,34px);line-height:1.02;margin-top:2px;text-shadow:0 3px 0 var(--ink)}
+#sTitle.home .logo h1{font-size:clamp(22px,6.6vw,30px);line-height:1.02;margin-top:2px;text-shadow:0 3px 0 var(--ink)}
 #sTitle.home .logo .ja{display:none}
 #sTitle.home .card{margin:0;width:100%;max-width:none;min-height:100%;flex:none;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;border-radius:0;padding:0;position:relative;right:auto;top:auto;transform:none;max-height:none;overflow:visible;
   display:grid;grid-template-columns:76px minmax(0,1fr) 76px;grid-template-rows:auto auto auto auto minmax(8px,1fr) auto auto auto auto;gap:0;align-items:start}
@@ -118,3 +118,191 @@
 /* お知らせの帯：下の台のすぐ上・まん中（場所は toastPlace が決める） */
 .ttoast.hm{top:var(--tt-top,54px)!important;bottom:auto!important;left:0!important;right:0!important;margin:0 auto!important;max-width:min(86vw,520px)!important;min-width:0!important}
 @media (max-width:359px){ #sTitle.home #tBestL{display:none} #sTitle.home .card>.bank{padding-left:118px;gap:5px} #sTitle.home .bank>span:not(.tog){padding:0 9px 0 7px} #sTitle.home .logo h1{font-size:23px} #sTitle.home .logo{left:10px} }
+/* ==== ブラッシュアップ A（docs/HOME-2026-11-19.md の 1〜25）==== */
+/* 1・2 丸いボタン：上から下へのやわらかい色・ボタンごとの色の輪 */
+#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{background-color:#FFFDF8;background-image:var(--ic),linear-gradient(180deg,#FFFFFF 0%,#FFF8EC 62%,#F6E7CC 100%);background-position:center,center;background-size:30px,100% 100%;background-repeat:no-repeat;
+  box-shadow:0 3px 0 rgba(59,42,32,.42),0 7px 14px rgba(59,42,32,.2),inset 0 0 0 2.5px #fff,inset 0 0 0 4px var(--ring,rgba(214,162,60,.28));transition:transform .12s cubic-bezier(.2,.9,.3,1.4),box-shadow .12s}
+#sTitle.home #btnMissions{--ic:ICON(missions);--ring:rgba(109,179,106,.4)}#sTitle.home #btnStamps{--ic:ICON(stamps);--ring:rgba(217,88,76,.34)}#sTitle.home #btnZukan{--ic:ICON(zukan);--ring:rgba(109,179,106,.4)}
+#sTitle.home #btnShop{--ic:ICON(shop);--ring:rgba(233,180,76,.5)}#sTitle.home #btnHow{--ic:ICON(how);--ring:rgba(91,141,191,.4)}
+#sTitle.home #btnRank{--ic:ICON(rank);--ring:rgba(233,180,76,.5)}#sTitle.home #btnName{--ic:ICON(name);--ring:rgba(91,141,191,.4)}#sTitle.home #btnChat{--ic:ICON(chat);--ring:rgba(91,141,191,.4)}
+/* 3・4・5 押した時・マウスをのせた時・キーボードで選んだ時 */
+#sTitle.home .row .mini:active,#sTitle.home .row2 .sub:active{transform:none;filter:none}
+#sTitle.home .row .mini:active::before,#sTitle.home .row2 .sub:active::before{transform:translateY(2px) scale(.93);box-shadow:0 1px 0 rgba(59,42,32,.42),inset 0 0 0 2.5px #fff,inset 0 0 0 4px var(--ring,rgba(214,162,60,.28))}
+@media (hover:hover){#sTitle.home .row .mini:hover::before,#sTitle.home .row2 .sub:hover::before{transform:translateY(-2px);box-shadow:0 5px 0 rgba(59,42,32,.42),0 10px 18px rgba(59,42,32,.22),inset 0 0 0 2.5px #fff,inset 0 0 0 4px var(--ring,rgba(214,162,60,.28))}
+  #sTitle.home .chars .char:hover canvas{transform:scale(1.06)}#sTitle.home .chars .char[aria-pressed="true"]:hover canvas{transform:scale(1.12)}
+  #sTitle.home .card>#btnStart:hover{filter:brightness(1.04)}}
+#sTitle.home button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 6px rgba(53,95,134,.85);border-radius:14px}
+/* 6・7 出てくる時の動き（左右のボタンは外から、ふきだしはふわっと）。動きを減らす設定の人には出さない */
+@media (prefers-reduced-motion:no-preference){
+  #sTitle.home:not([hidden]) .row .mini{animation:hmL .42s cubic-bezier(.2,.9,.3,1.15) both}#sTitle.home:not([hidden]) .row2 .sub{animation:hmR .42s cubic-bezier(.2,.9,.3,1.15) both}
+  #sTitle.home .row .mini:nth-child(2),#sTitle.home .row2 .sub:nth-child(2){animation-delay:.05s}#sTitle.home .row .mini:nth-child(3),#sTitle.home .row2 .sub:nth-child(3){animation-delay:.1s}#sTitle.home .row .mini:nth-child(4){animation-delay:.15s}#sTitle.home .row .mini:nth-child(5){animation-delay:.2s}
+  #sTitle.home:not([hidden]) .card>#tToday{animation:hmPop .4s cubic-bezier(.2,.9,.3,1.25) .12s both;transform-origin:50% 100%}
+  #sTitle.home:not([hidden]) .card>.bank,#sTitle.home:not([hidden]) .card>#tCareer{animation:hmDown .36s ease-out both}
+}
+@keyframes hmL{from{transform:translateX(-26px);opacity:0}to{transform:none;opacity:1}}@keyframes hmR{from{transform:translateX(26px);opacity:0}to{transform:none;opacity:1}}
+@keyframes hmPop{from{transform:scale(.86);opacity:0}to{transform:none;opacity:1}}@keyframes hmDown{from{transform:translateY(-10px);opacity:0}to{transform:none;opacity:1}}
+/* 8・9 ふきだし：数字を大きく・棒を太く丸く */
+#sTitle.home #tToday .tt-c small{font-size:10px;letter-spacing:.02em}
+#sTitle.home #tToday .tt-c b{font-size:19px;line-height:1.2}
+#sTitle.home #tToday .tt-c i{height:6px;border-radius:999px;margin-top:3px;background:rgba(59,42,32,.12)}#sTitle.home #tToday .tt-c i u{border-radius:999px;min-width:6px}
+#sTitle.home #tToday .tt-c+.tt-c{box-shadow:-1px 0 0 rgba(59,42,32,.1)}
+#sTitle.home #tToday .tt-ch em{background:#fff;border-radius:999px;padding:1px 8px;box-shadow:inset 0 0 0 1.5px rgba(53,95,134,.25)}
+/* 10 台：上のふちに細い金の線 */
+#sTitle.home .card>.chars::before{content:"";position:absolute;left:50%;top:7px;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:linear-gradient(90deg,rgba(214,162,60,.0),rgba(214,162,60,.55),rgba(214,162,60,0))}
+/* 11・12 スタート：ときどき光のすじが走る（前の「光の輪がふくらむ」はやめる） */
+#sTitle.home .card>#btnStart{animation:none;text-shadow:0 1px 0 rgba(255,255,255,.55);
+  background-image:linear-gradient(100deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.6) 50%,rgba(255,255,255,0) 60%),linear-gradient(180deg,#FFE08A 0%,#F3C24F 38%,#D9A53C 100%);background-size:250% 100%,100% 100%;background-position:150% 0,0 0;background-repeat:no-repeat}
+@media (prefers-reduced-motion:no-preference){#sTitle.home:not([hidden]) .card>#btnStart{animation:hmShine 3.6s ease-in-out 1.2s infinite}}
+@keyframes hmShine{0%{background-position:150% 0,0 0}22%,100%{background-position:-50% 0,0 0}}
+/* 13・14・15 キャラクターえらび：選ぶとぽんとはずむ・選んでいない子は少しうすく・とくいなことは青い札に */
+@media (prefers-reduced-motion:no-preference){#sTitle.home .chars .char[aria-pressed="true"] canvas{animation:hmPick .34s cubic-bezier(.2,.9,.3,1.5)}}
+@keyframes hmPick{0%{transform:scale(.94)}60%{transform:scale(1.16)}100%{transform:scale(1.1)}}
+#sTitle.home .chars .char:not([aria-pressed="true"]) canvas{filter:saturate(.82)}
+#sTitle.home .chars .char .perk{left:50%;right:auto;transform:translateX(-50%);bottom:2px;padding:1px 10px;border-radius:999px;background:#EAF1F8;color:var(--badge-deep)}
+#sTitle.home .card>.chars{padding-bottom:26px}
+/* 16・17 上の帯：ベストに王冠・チモシーの数字をそろえる・昇進の棒を太く */
+#sTitle.home .bank>span:first-child::before{content:"";width:16px;height:16px;background:ICON(rank) center/16px no-repeat}
+#sTitle.home .bank b{font-variant-numeric:tabular-nums;letter-spacing:.01em}
+#sTitle.home #tCareer .career .cr-bar{height:9px;box-shadow:inset 0 1px 1px rgba(59,42,32,.18)}#sTitle.home #tCareer .career .cr-bar i{background:linear-gradient(180deg,#F6D06A,#D6A23C);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+#sTitle.home #tCareer .career small{opacity:.9}
+/* 18・19 題名：景色が明るくても読めるように、上にうすい影（横長の画面にも） */
+#sTitle.home .logo h1{filter:drop-shadow(0 2px 6px rgba(40,26,18,.35))}
+#sTitle.home::before{content:"";position:sticky;align-self:stretch;flex:0 0 200px;margin-bottom:-200px;top:0;height:200px;pointer-events:none;z-index:0;background:linear-gradient(180deg,rgba(43,29,18,.46),rgba(43,29,18,.18) 58%,rgba(43,29,18,0))}
+/* 20・21 下の小さなボタン・名前の札 */
+#sTitle.home #tKeepBtns .sub{box-shadow:inset 0 0 0 1.5px rgba(59,42,32,.1),0 2px 0 rgba(59,42,32,.12);min-height:34px}
+#sTitle.home .row .mini em,#sTitle.home .row2 .sub{letter-spacing:.02em}
+/* 22 新しいお知らせの赤い丸は、ゆっくり大きさが変わる */
+@media (prefers-reduced-motion:no-preference){#sTitle.home .row .mini .dot{animation:hmDot 1.6s ease-in-out infinite}}
+@keyframes hmDot{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+/* 23 言語のボタンを、上の帯と同じ形に */
+#sTitle.home .langtop{height:32px;padding:0 12px;font-size:12px;top:calc(12px + env(safe-area-inset-top,0px));right:12px;box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff;background:rgba(255,252,246,.94);border:0}
+/* 24 下の小さな文字：台との間に細い線 */
+#sTitle.home>.small-print:not(.fol){box-shadow:inset 0 1px 0 rgba(59,42,32,.1)}
+/* 25 横長の画面：台は下から少しうかせて、角を全部丸く */
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){
+  #sTitle.home .card{padding-bottom:16px;box-sizing:border-box}
+  #sTitle.home .card::after{border-radius:28px;margin-bottom:0;width:min(100%,480px)}
+  #sTitle.home .card>.chars{width:min(100%,480px)}
+  #sTitle.home .card>#tKeepBtns{padding-bottom:16px}
+  #sTitle.home .langtop{right:max(2vw,20px);top:16px}
+}
+/* 26 せまい画面（スマホ）では、ベストは王冠の絵と数字だけ（題名にかぶらない） */
+@media (max-width:480px){#sTitle.home #tBestL{display:none}}
+/* ==== ブラッシュアップ B（28〜60）==== */
+/* 28 言語のボタン：地球は、どの端末でも同じ絵に（前は端末ごとに形がちがう絵文字） */
+#sTitle.home .langtop>span[aria-hidden]{display:none}
+#sTitle.home .langtop::before{content:"";display:inline-block;width:18px;height:18px;margin-right:5px;vertical-align:-4px;background:ICON(globe) center/18px no-repeat}
+/* 29 設定の歯車は、のせると少し回る・30 音のボタンは押すとぽんと縮む */
+@media (hover:hover){#sTitle.home #btnSet:hover{transform:rotate(30deg)}}
+#sTitle.home .bank .tog .sub{transition:transform .2s cubic-bezier(.2,.9,.3,1.4)}#sTitle.home .bank .tog .sub:active{transform:scale(.88)}
+/* 31 ふきだしのチャレンジは 1 行に（長い時は「…」）。文字の量を減らす */
+#sTitle.home #tToday .tt-ch span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 32・33 キャラクターの名前：選んだ子は濃く、丸い顔のわくは金色のグラデーション */
+#sTitle.home .chars .char[aria-pressed="true"] .nm{color:var(--ink)}
+#sTitle.home .chars .char[aria-pressed="true"] canvas{background:radial-gradient(circle at 50% 30%,#fff,#FFF4DC 70%,#F6E2B5)}
+/* 34 途中のつづき（ある時だけ）：スタートの上の、白い細長いボタン */
+#sTitle.home .card>#btnCont{border-radius:999px;background:#fff;box-shadow:inset 0 0 0 2px var(--tie),0 2px 0 rgba(59,42,32,.18);font-size:13px;padding:9px 12px}
+/* 35 逆走デーのボタンは赤いふちで目立たせる */
+#sTitle.home #tKeepBtns #btnRev{box-shadow:inset 0 0 0 2px rgba(200,70,60,.55),0 2px 0 rgba(59,42,32,.12);color:#A63A30}
+/* 36 お知らせの帯：上の帯と同じ白い丸い札に（前は四角い黒っぽい帯） */
+.ttoast.hm{background:rgba(255,252,246,.97)!important;color:var(--ink)!important;border-radius:999px!important;box-shadow:0 3px 0 rgba(59,42,32,.3),0 8px 18px rgba(59,42,32,.18)!important;border:0!important;padding:8px 16px!important;font-size:13px!important;font-weight:900!important}
+.ttoast.hm .ja{color:var(--ink)!important}
+/* 37 台：上のほうを少し明るく（紙のようなやわらかさ） */
+#sTitle.home .card>.chars{background-image:radial-gradient(120% 70% at 50% 0%,#fff 0%,rgba(255,255,255,0) 70%)}
+/* 38 スタートを押した時：少し縮んで、色が深くなる */
+#sTitle.home .card>#btnStart:active{transform:translateY(3px) scale(.985);filter:saturate(1.1) brightness(.97)}
+/* 39 キャラクターえらびの、キーボードで選んだ時のわく */
+#sTitle.home .chars .char:focus-visible{box-shadow:none;outline:none}#sTitle.home .chars .char:focus-visible canvas{box-shadow:0 0 0 3px #fff,0 0 0 6px rgba(53,95,134,.85)}
+/* 40 背の低いスマホ（高さ 740 まで）：ふきだしのチャレンジの行はしまう（3 人の顔にかぶらない） */
+@media (max-aspect-ratio:4/5) and (max-height:740px){#sTitle.home #tToday .tt-ch{display:none}}
+/* 41 とても背の低いスマホ（高さ 640 まで）：丸いボタンを小さく・間をつめる */
+@media (max-aspect-ratio:4/5) and (max-height:640px){
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:42px;height:42px;background-size:26px,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:45px}#sTitle.home .row2 .sub::before{margin-left:-21px}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:5px;padding-bottom:8px}
+  #sTitle.home .chars .char canvas{width:54px;height:54px}#sTitle.home .card>.chars{padding-top:12px}
+  #sTitle.home .card>#btnStart{font-size:22px;padding:10px}
+}
+/* 42 ボタンの名前の札：字の太さをそろえる・少しだけ間をあける */
+#sTitle.home .row .mini em,#sTitle.home .row2 .sub{font-weight:800}
+/* 43 上の帯の数字：小さな影で、景色の上でもくっきり */
+#sTitle.home .bank b{text-shadow:0 1px 0 #fff}
+/* 44 昇進の札：名前（主任など）を少し大きく */
+#sTitle.home #tCareer .career .cr-t{font-size:15px}
+/* 45 ふきだしの角：右上に小さな金の点（「今日」の目じるし） */
+#sTitle.home .card>#tToday::before{content:"";position:absolute;top:-4px;right:14px;width:10px;height:10px;border-radius:50%;background:var(--tie);box-shadow:0 0 0 2px #fff}
+/* 46 ふきだしの目標を達成した時は、まわりが緑にかがやく */
+#sTitle.home #tToday:has(.tt-c.ok){box-shadow:0 3px 0 rgba(59,42,32,.3),0 0 0 3px rgba(109,179,106,.45),inset 0 1px 0 #fff}
+/* 47 横長の画面：ふきだしの字を大きく */
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){#sTitle.home #tToday .tt-c b{font-size:22px}#sTitle.home #tToday .tt-c small{font-size:11px}#sTitle.home #tToday .tt-ch{font-size:12px}}
+/* 48 台の上の金の線：横長の画面では、台の上のふちに */
+/* 49 ボタンの絵が読みこまれる前に、白い丸だけが一瞬出ないよう、丸は最初から色つき */
+#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{background-color:#FFF8EC}
+/* 50 画面を下へなぞった時（スマホ）：上の影はうすく */
+#sTitle.home.scrolled::before{opacity:.4}
+/* 51 スマホ：題名の「！」が上の帯にかくれないよう、題名を少し小さく */
+/* 52 英語など長い名前（How to play）も、札がボタンの幅からはみ出さない */
+#sTitle.home .card{grid-template-columns:82px minmax(0,1fr) 82px}
+#sTitle.home .row .mini{width:80px}#sTitle.home .row .mini em{max-width:80px}#sTitle.home .row2 .sub{max-width:80px}
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){#sTitle.home .card{grid-template-columns:208px minmax(0,1fr) 208px}#sTitle.home .row .mini{width:96px}#sTitle.home .row .mini em,#sTitle.home .row2 .sub{max-width:104px}}
+@media (orientation:landscape) and (max-height:559px){#sTitle.home .card{grid-template-columns:150px minmax(0,1fr) 150px}#sTitle.home .row .mini{width:72px}#sTitle.home .row .mini em,#sTitle.home .row2 .sub{max-width:72px}}
+/* ==== ブラッシュアップ C（54〜）==== */
+/* 54 はじめての人：「朝・道中・夜」は、3 つの小さな札を 1 列に（ふきだしの形・中は透けない白） */
+#sTitle.home .card>.story{padding:7px;gap:5px;position:relative;background:rgba(255,252,246,.96)}
+#sTitle.home .card>.story::after{content:"";position:absolute;left:50%;bottom:-8px;width:16px;height:16px;margin-left:-8px;background:rgba(255,252,246,.96);border-radius:0 0 4px 0;transform:rotate(45deg);box-shadow:3px 3px 0 rgba(59,42,32,.28)}
+#sTitle.home .story .stp{padding:4px 2px 5px;font-size:11px;background:var(--cream)}
+#sTitle.home .story .stp b{font-size:10px;padding:0 7px}
+/* 55 はじめての人：チャレンジの札はしまう（まず走ってみる。文字を減らす） */
+#sTitle.home .card:not(.tgrid)>#tDaily{display:none}
+/* 56 3 人の時（ポムに会った後）：顔の間を少しつめる */
+#sTitle.home .chars.three{gap:10px}
+/* 57 図鑑などの赤い丸：丸いボタンの右上に（名前の札ではなく、絵の丸につける） */
+#sTitle.home .row .mini .dot{top:2px;right:12px}
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){#sTitle.home .row .mini .dot{right:20px}}
+/* 58 小さなボタンの列がない時（はじめての人）：スタートの下にも余白（画面のふちにくっつかない） */
+#sTitle.home .card:not(:has(#tKeepBtns:not([hidden])))>#btnStart{margin-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+/* 59 たて長のタブレット（幅 600 以上）：ふきだしは まん中に はばをしぼり、丸いボタン・顔・スタートを大きく */
+@media (max-aspect-ratio:4/5) and (min-width:600px){
+  #sTitle.home .card{grid-template-columns:120px minmax(0,1fr) 120px}
+  #sTitle.home .card>#tToday,#sTitle.home .card>.story,#sTitle.home .card>#tDaily{justify-self:center;width:min(380px,100%);box-sizing:border-box}
+  #sTitle.home .row .mini{width:104px}#sTitle.home .row .mini em,#sTitle.home .row2 .sub{max-width:110px;font-size:12px}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:64px;height:64px;background-size:38px,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:68px}#sTitle.home .row2 .sub::before{margin-left:-32px}
+  #sTitle.home .chars .char{width:96px}#sTitle.home .chars .char canvas{width:82px;height:82px}#sTitle.home .chars .char .nm{font-size:15px}
+  #sTitle.home .card>#btnStart{font-size:30px;padding:16px}
+  #sTitle.home .logo h1{font-size:38px}
+  #sTitle.home .card>.bank{padding-left:220px;padding-right:128px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
+  #sTitle.home .card>#tCareer{padding-top:14px;padding-left:220px}
+}
+/* 60 大きな画面（PC の全画面など、幅 1500・高さ 900 以上）：全体を大きく（前は画面のわりに小さく見えた） */
+@media (min-aspect-ratio:5/4) and (min-width:1500px) and (min-height:900px){
+  #sTitle.home .card{grid-template-columns:260px minmax(0,1fr) 260px}
+  #sTitle.home .row .mini{width:118px}#sTitle.home .row .mini em,#sTitle.home .row2 .sub{max-width:124px;font-size:13px}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:74px;height:74px;background-size:44px,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:78px}#sTitle.home .row2 .sub::before{margin-left:-37px}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:16px}
+  #sTitle.home .card>#tToday{width:min(440px,100%)}#sTitle.home #tToday .tt-c b{font-size:28px}#sTitle.home #tToday .tt-c small{font-size:13px}#sTitle.home #tToday .tt-ch{font-size:14px}
+  #sTitle.home .card::after,#sTitle.home .card>.chars{width:min(100%,580px)}
+  #sTitle.home .chars .char{width:104px}#sTitle.home .chars .char canvas{width:88px;height:88px}#sTitle.home .chars .char .nm{font-size:16px}
+  #sTitle.home .card>#btnStart{width:min(100% - 32px,520px);font-size:32px;padding:16px}
+  #sTitle.home .bank>span:not(.tog){height:38px;font-size:12px;padding:0 14px 0 11px}#sTitle.home .bank b{font-size:18px}
+  #sTitle.home .bank .tog .sub{width:38px;height:38px;background-size:24px}
+  #sTitle.home .card>#tCareer{width:min(460px,34vw)}#sTitle.home #tCareer .career .cr-t{font-size:17px}
+  #sTitle.home .langtop{height:38px;font-size:14px}
+  #sTitle.home .logo h1{font-size:64px}
+}
+/* 62 背の低いスマホ（高さ 700 まで。iPhone SE など）：スタートが最初から見えるように、下の台は「顔の列」と「スタート」を横に並べる */
+@media (max-aspect-ratio:4/5) and (max-height:700px){
+  #sTitle.home .card>.chars{grid-row:8;justify-self:start;width:auto;padding:12px 0 10px 12px;gap:6px;background:none;box-shadow:none}
+  #sTitle.home .card>.chars::before{display:none}
+  #sTitle.home .chars .char{width:50px}#sTitle.home .chars .char canvas{width:44px;height:44px}#sTitle.home .chars .char .nm{font-size:11px;margin-top:1px}
+  #sTitle.home .chars .char[aria-pressed="true"] canvas{transform:scale(1.06)}
+  #sTitle.home .chars .char .perk{display:none!important}
+  #sTitle.home .card>#btnStart{grid-row:8;justify-self:end;align-self:center;width:calc(100% - 196px);min-width:120px;margin:6px 12px 0 0;font-size:20px;padding:11px 8px;letter-spacing:.06em}
+  #sTitle.home .card:has(.chars.three)>#btnStart{width:calc(100% - 250px)}
+  #sTitle.home .card>#btnCont{grid-row:7;margin-top:10px}
+  #sTitle.home .card::after{grid-row:7/10}
+  #sTitle.home .card>#tKeepBtns{padding-top:6px}
+  #sTitle.home .card:not(:has(#tKeepBtns:not([hidden])))>#btnStart{margin-bottom:6px}
+  #sTitle.home .card:not(:has(#tKeepBtns:not([hidden])))>.chars{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+}
