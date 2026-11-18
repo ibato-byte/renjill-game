@@ -478,7 +478,10 @@ function drawFacImg(w, dist, night, aMul) {
   { const ppx = FOCAL / Math.max(.5, Math.min(za, zb)) / FAC_P; img = facMip(img, ppx); IW = img.width; IH = img.height; } /* [R2] 遠くの壁は、前もって小さくした絵で（大きい絵を小さく縮めると、窓がちらちら・ざらざらになった） */
   // columns follow the depth change (the near end of a long wall would swim with one affine map); rows follow screen height
   const cols = clamp(Math.ceil(Math.log2(ratio) * (lq ? .9 : 1.7)), 1, lq ? 3 : 8); /* [R3] 遠くても、ななめに長く見える壁は細かく分けて貼る（1 枚で貼ると絵がゆがんで泳いだ） */
-  const rows = dist > 30 || lq ? 1 : clamp(Math.ceil(80 / Math.max(4, Math.min(za, zb))), 1, 4), noClip = dist > (lq ? 12 : 30) && ua === 0 && ub === 1;
+  /* 2026-11-18 オーナー「曲がり角に近づくと、かべのビルの絵が上の方へ不自然に上がっていく」：高いかべを縦 4 段までしか分けずに貼っていたので、
+     近づくと（カメラは少し下を向いているので）上ほど遠くなり、1 段の中で絵がずれて「上へすべる」ように見えた。上と下の遠さのちがいと、画面の高さから段の数を決める */
+  const vz = (() => { const m = (ua + ub) / 2, bx = lerp(C[0][0], C[1][0], m), by = lerp(C[0][1], C[1][1], m), bz = lerp(C[0][2], C[1][2], m), tx = lerp(C[3][0], C[2][0], m), ty = lerp(C[3][1], C[2][1], m), tz = lerp(C[3][2], C[2][2], m); tc(bx, by, bz, FS, 0); tc(tx, ty, tz, FS, 3); const z0 = Math.max(NEAR, FS[2]), z1 = Math.max(NEAR, FS[5]); return [Math.max(z0, z1) / Math.min(z0, z1), Math.abs(FS[1] / z0 - FS[4] / z1) * FOCAL]; })();
+  const rows = clamp(Math.ceil(Math.log2(vz[0]) * (lq ? 4 : 7)) + Math.ceil(vz[1] / (lq ? 260 : 150)), 1, lq ? 6 : 12), noClip = dist > (lq ? 12 : 30) && ua === 0 && ub === 1;
   const P = (u, t) => { const bx = lerp(C[0][0], C[1][0], u), by = lerp(C[0][1], C[1][1], u), bz = lerp(C[0][2], C[1][2], u), tx = lerp(C[3][0], C[2][0], u), ty = lerp(C[3][1], C[2][1], u), tz = lerp(C[3][2], C[2][2], u); return [lerp(bx, tx, t), lerp(by, ty, t), lerp(bz, tz, t)]; };
   const sx = [0, 0, 0, 0], sy = [0, 0, 0, 0];
   const fa = (1 - fogK(dist) * .92) * aMul; if (fa < .03) return; ctx.globalAlpha = fa; /* [R1] 遠くの壁の絵も、もやの濃さに合わせてうすく（前は 75m で急に簡単な絵、95m で無地に変わり「途中で消える」ように見えた） */
@@ -544,6 +547,7 @@ function texWarm(ms) {
     for (const w of sg.walls) { if (w.pat !== 'fac' || w.fv == null) continue;
       const img0 = facadeTex(w.st, w.fv, w.fw, w.fh, night, w.fm); if (!night) litSprite(img0, LT.amb, 1);
       if (performance.now() > end) return; } }
+  for (const sg of list) { if (!sg || !sg.props || sg.fcDone) continue; for (const pr of sg.props) { if (pr.fc) continue; pr.fc = []; for (const b of pr.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) pr.fc.push([fc, b]); if (performance.now() > end) return; } sg.fcDone = 1; } /* [軽く] 先の道の、物の面（箱の 6 面）を前もって作っておく（角を曲がって初めて見えた時に、まとめて作って一瞬止まっていた） */
   // then the art of the obstacles and props ahead, lit the way that stretch will be (indoors and out differ)
   const cur = G.segs[G.ci]; let swapped = false;
   try {

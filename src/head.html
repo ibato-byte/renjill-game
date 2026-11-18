@@ -277,6 +277,7 @@ html.bigtext #hud .chip,html.bigtext #banner,html.bigtext #lives,html.bigtext .p
 .album img{width:100%;border-radius:10px;display:block;box-shadow:0 2px 0 rgba(59,42,32,.25)}
 .album figure{margin:0}
 .album figcaption{font-size:11px;font-weight:900;margin-top:4px}
+#prepCue{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(250,246,238,.92);opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}#prepCue.show{opacity:1}#prepCue img{width:46px;height:46px;animation:prepSpin 1s linear infinite}#prepCue i{display:block;width:120px;height:6px;border-radius:3px;background:rgba(80,60,40,.15);overflow:hidden}#prepCue b{display:block;height:100%;width:0;background:#7FB23F;border-radius:3px;transition:width .15s}@keyframes prepSpin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){#prepCue img{animation:none}}
 #tutCue{position:absolute;left:0;right:0;top:56%;text-align:center;opacity:0;transition:opacity .15s;pointer-events:none}
 #tutCue.show{opacity:1}
 #tutCue.turn b{color:#FFD45C;animation:tpulse .5s ease-in-out infinite alternate}@keyframes tpulse{to{transform:scale(1.12)}}
