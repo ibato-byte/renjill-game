@@ -1390,6 +1390,8 @@
       "name": "メンテナンスの終了予定の時刻（予定を過ぎたら出さない）",
       "file": "src/7_ui.js",
       "has": "id=\"maintEnd\""
-    }
+    },
+    {"name": "遠くの町の絵は、向きが少し変わってもずらしてはる（曲がる時・階段で止まらない）", "file": "src/4b_patterns.js", "has": "const MX = Math.round(.12 * FOCAL * DPR);"},
+    {"name": "赤い電波塔の屋上のまわり（地面・ビル・公園の木）", "file": "src/3_world.js", "has": "[T-R1〜R5 2026-11-19"}
   ]
 }
