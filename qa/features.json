@@ -1401,7 +1401,25 @@
       "file": "src/7_ui.js",
       "has": "id=\"maintEnd\""
     },
-    {"name": "新しいホーム画面（部屋が主役・絵のボタン）", "file": "src/body.html", "has": "<section id=\"sTitle\" class=\"screen home\">"},
-    {"name": "ホーム画面の見た目（絵のボタン）", "file": "src/head.html", "has": "/* ==== HOME-V2 START ==== */"}
+    {
+      "name": "新しいホーム画面（部屋が主役・絵のボタン）",
+      "file": "src/body.html",
+      "has": "<section id=\"sTitle\" class=\"screen home\">"
+    },
+    {
+      "name": "ホーム画面の見た目（絵のボタン）",
+      "file": "src/head.html",
+      "has": "/* ==== HOME-V2 START ==== */"
+    },
+    {
+      "name": "ホーム画面の畳を本当の大きさで1枚ずつ（祝儀敷き・縁は長い辺だけ）",
+      "file": "src/6_game.js",
+      "has": "function tatamiLay(seg)"
+    },
+    {
+      "name": "題字（ロゴ）：1字ずつの弾み・ネクタイの「！」・チモシーの穂",
+      "file": "src/7_ui.js",
+      "has": "function logoBuild()"
+    }
   ]
 }
