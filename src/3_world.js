@@ -805,6 +805,12 @@ function courseExtras(seg) { const th = seg.th, L = seg.len, t = seg.tid, H = se
     { const a = L * .3, q = -sd * (HW - .02); bx.push({ l0: q - .03, l1: q + .03, s0: a, s1: a + 3, y0: 1.2, y1: 2.6, c: '#2B2B2E' }, { l0: q - .05, l1: q + .05, s0: a + .1, s1: a + 2.9, y0: 1.3, y1: 2.5, c: t === 'slobby' ? '#1F3A5A' : '#5A1F1F', glow: 2 }); } /* [C39] かべの大きな案内の画面（今日の見え方・混みぐあい。夜も明るい） */
     seg.props.push(mkProp(seg, bx, { big: 1 }));
     seg.floor.push({ v: quad(seg, [[2, -1.2, .012], [12, -1.2, .012], [12, 1.2, .012], [2, 1.2, .012]]), c: C('#7A2A2A'), pat: 'rug', ti: 0 }); } /* [C40] 入口の、赤いマット */
+  if (seg.toSky && (t === 'tdeck' || t === 'skytree')) { const T0 = L - 16, bx = []; /* [C41〜C44] 飛び立つテラス */
+    for (const sd of [-1, 1]) bx.push({ l0: sd * (HW - .5) - .3, l1: sd * (HW - .5) + .3, s0: T0 + 2, s1: T0 + 2.6, y0: 0, y1: .5, c: '#B9B2A5' }, { l0: sd * (HW - .5) - .25, l1: sd * (HW - .5) + .25, s0: T0 + 2.05, s1: T0 + 2.55, y0: .5, y1: .85, c: '#4C8A48' }); /* [C41] テラスの入口の、低い植えこみ */
+    bx.push({ l0: -HW + .3, l1: -HW + .38, s0: L - 6, s1: L - 4.6, y0: .2, y1: 1.05, c: '#2B3A4C' }, { l0: -HW + .37, l1: -HW + .39, s0: L - 5.92, s1: L - 4.68, y0: .28, y1: .97, c: '#DCE6EE' }); /* [C42] 手すりの、見える方角の案内の板 */
+    seg.props.push(mkProp(seg, bx, { big: 1 }));
+    for (let x = -HW + .6; x < HW - .4; x += 1.2) seg.floor.push({ v: quad(seg, [[T0 + .4, x, .012], [L - .4, x, .012], [L - .4, x + .06, .012], [T0 + .4, x + .06, .012]]), c: C('#9A9690'), pat: null, ti: 0 }); /* [C43] テラスの床の、板のつなぎ目の線 */
+    seg.floor.push({ v: quad(seg, [[T0 - .2, -HW + .35, .013], [T0 + .2, -HW + .35, .013], [T0 + .2, HW - .35, .013], [T0 - .2, HW - .35, .013]]), c: C('#6E7278'), pat: null, ti: 0 }); } /* [C44] 屋内とテラスのさかいの、金属の床のふち */
   if (t === 'troof') { const bx = []; /* [C19〜C22] 入口の建物の屋上 */
     for (const sd of [-1, 1]) for (let a = 8; a < L - 8; a += 10) bx.push({ l0: sd * (HW - .9) - .35, l1: sd * (HW - .9) + .35, s0: a, s1: a + .7, y0: 0, y1: .55, c: '#B9B2A5' }, { l0: sd * (HW - .9) - .3, l1: sd * (HW - .9) + .3, s0: a + .05, s1: a + .65, y0: .55, y1: .95, c: '#4C8A48' }); /* [C19] 屋上の植えこみの箱 */
     for (let a = 6; a < L - 4; a += 12) bx.push({ l0: -HW + .2, l1: -HW + .5, s0: a, s1: a + .3, y0: 0, y1: 2.4, c: '#5E6268' }, { l0: -HW + .1, l1: -HW + .6, s0: a - .1, s1: a + .4, y0: 2.4, y1: 2.6, c: '#FFF1D0', glow: 2 }); /* [C20] 屋上の低い街灯（夜は光る） */
