@@ -252,6 +252,16 @@
       "has": "cue.style.setProperty('--left'"
     },
     {
+      "name": "曲がる時は小さな矢印（線ではなく）",
+      "file": "src/6_game.js",
+      "has": "cue.textContent = seg.fork ? '←\\u2002→' : seg.turn > 0 ? '→' : '←';"
+    },
+    {
+      "name": "絵を切り抜かずに模様でぬる（スマホで軽く）",
+      "file": "src/4_render.js",
+      "has": "function texFill(img, A, B, C, D, E, F)"
+    },
+    {
       "name": "横の押し戻しをゆっくり",
       "file": "src/6_game.js",
       "has": "G.pushT = .3"
