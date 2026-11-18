@@ -752,7 +752,7 @@ html.calm .howanim .ha-cap span:first-child{opacity:1}
 @media (hover:hover){#sTitle.home #btnSet:hover{transform:rotate(30deg)}}
 #sTitle.home .bank .tog .sub{transition:transform .2s cubic-bezier(.2,.9,.3,1.4)}#sTitle.home .bank .tog .sub:active{transform:scale(.88)}
 /* 31 ふきだしのチャレンジは 1 行に（長い時は「…」）。文字の量を減らす */
-#sTitle.home #tToday .tt-ch span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sTitle.home #tToday .tt-ch span{white-space:normal;text-wrap:balance;overflow-wrap:anywhere;line-height:1.3} /* 2026-11-19：長い英語の目標（Make it to the lunch break）が「…」で切れて、CI の見切れの点検に落ちた。2 行に折り返す */
 /* 32・33 キャラクターの名前：選んだ子は濃く、丸い顔のわくは金色のグラデーション */
 #sTitle.home .chars .char[aria-pressed="true"] .nm{color:var(--ink)}
 #sTitle.home .chars .char[aria-pressed="true"] canvas{background:radial-gradient(circle at 50% 30%,#fff,#FFF4DC 70%,#F6E2B5)}
@@ -959,5 +959,42 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
 #sTitle.home .bank>span.zero{display:none}
 /* 100 CrazyGames ではじめての人の画面：台の下のすき間をそろえる */
 .portal-cg.cg-fresh #sTitle.home .card>#btnStart{margin-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+
+/* ---- 2026-11-19 題字（ロゴ）v1 ---- */
+#sTitle.home .logo h1{font-family:var(--f-display);color:#FFF4DE;letter-spacing:0;filter:none;
+  text-shadow:.06em 0 0 var(--ink),-.06em 0 0 var(--ink),0 .06em 0 var(--ink),0 -.06em 0 var(--ink),.045em .045em 0 var(--ink),-.045em .045em 0 var(--ink),.045em -.045em 0 var(--ink),-.045em -.045em 0 var(--ink),0 .14em 0 var(--ink),.04em .14em 0 var(--ink),-.04em .14em 0 var(--ink)}
+#sTitle.home .logo h1 .ln{display:inline-block;white-space:nowrap}
+#sTitle.home .logo h1 .c{display:inline-block;transform:translateY(var(--y,0)) rotate(var(--r,0deg));transform-origin:50% 80%}
+#sTitle.home .logo h1 .l1 .c1{--r:-6deg;--y:.02em}#sTitle.home .logo h1 .l1 .c2{--r:4deg;--y:-.04em}#sTitle.home .logo h1 .l1 .c3{--r:-3deg;--y:.01em}
+#sTitle.home .logo h1 em.l2{color:#F3B940;text-shadow:inherit;transform:skewX(-7deg);margin-left:.08em}
+#sTitle.home .logo h1 .l2 .c1{--r:-4deg;--y:0}#sTitle.home .logo h1 .l2 .c2{--r:6deg;--y:.04em}#sTitle.home .logo h1.kana .l2 .c2{--y:.08em;font-size:.86em}#sTitle.home .logo h1 .l2 .c3{--r:-2deg;--y:-.03em}#sTitle.home .logo h1 .l2 .c4{--r:5deg;--y:.03em}#sTitle.home .logo h1.kana .l2 .c4{--y:.06em;font-size:.86em}
+#sTitle.home .logo h1 .hay{position:absolute;right:.12em;top:-.6em;width:.4em;height:1.22em;transform:rotate(18deg);transform-origin:50% 100%;filter:drop-shadow(0 .05em 0 var(--ink));z-index:-1;background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 140'%3E%3Cg stroke='%233B2A20' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M25 136c0-24 0-44 0-66' stroke-width='10' fill='none'/%3E%3Cpath d='M25 136c0-24 0-44 0-66' stroke='%239DBE55' stroke-width='4.5' fill='none'/%3E%3Cpath d='M26 112c6-12 12-20 20-26-2 12-8 22-18 30' stroke-width='4' fill='%238DB04E'/%3E%3Cpath d='M25 74c-6 0-8-6-8-14V14c0-7 4-11 8-11s8 4 8 11v46c0 8-2 14-8 14z' stroke-width='5' fill='%23D4CB6E'/%3E%3C/g%3E%3Cg fill='%23A39A44'%3E%3Ccircle cx='22' cy='18' r='1.8'/%3E%3Ccircle cx='28' cy='26' r='1.8'/%3E%3Ccircle cx='22' cy='34' r='1.8'/%3E%3Ccircle cx='28' cy='42' r='1.8'/%3E%3Ccircle cx='22' cy='50' r='1.8'/%3E%3Ccircle cx='28' cy='58' r='1.8'/%3E%3C/g%3E%3Cpath d='M21.5 12v20' stroke='%23F4EDB4' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E")}
+#sTitle.home .logo h1 .tie{display:inline-block;width:.62em;height:1.2em;vertical-align:-.2em;margin-left:.02em;transform:rotate(8deg);filter:drop-shadow(0 .1em 0 var(--ink));background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 110'%3E%3Cg stroke='%233B2A20' stroke-width='6' stroke-linejoin='round'%3E%3Cpath d='M14 5h24l-4 15H18z' fill='%23C48E2B'/%3E%3Cpath d='M17 20h18l12 48-21 16-21-16z' fill='%23F3B940'/%3E%3Ccircle cx='26' cy='99' r='8' fill='%23F3B940'/%3E%3C/g%3E%3Cpath d='M17 37l18-7M14 54l23-8M15 69l18-6' stroke='%23C48E2B' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E")}
+#sTitle.home .logo .k{display:inline-block;background:var(--ink);color:#FFF4DE;border-radius:6px;padding:2px 8px 3px;transform:rotate(-3deg);opacity:1;text-shadow:none;margin:0 0 4px 2px}
+/* 題字 v5→v11：パソコンは少し大きく。スマホは上の帯（役職の棒）にかからない大きさのまま */
+#sTitle.home .logo h1{font-size:clamp(22px,6.8vw,29px)}
+#sTitle.home .logo .k{font-size:9px;padding:2px 7px}
+@media (min-aspect-ratio:5/4) and (min-width:900px){#sTitle.home .logo h1{font-size:clamp(38px,7.4vh,66px)}}
+#sTitle.home .logo h1{line-height:1.04}
+@media (min-aspect-ratio:5/4) and (min-width:900px){#sTitle.home .logo h1{line-height:1.1}#sTitle.home .logo .k{font-size:11px;padding:3px 9px 4px}}
+#sTitle.home .logo h1 .l1{position:relative;isolation:isolate;padding-right:.18em}
+#sTitle.home .logo h1 .l1 .c4{--r:-2deg;--y:.02em}
+@media (orientation:landscape) and (max-height:559px){#sTitle.home .logo .k{display:none}#sTitle.home .logo h1{font-size:21px;line-height:1}#sTitle.home .logo h1 .l1{margin-right:.2em}}
+@media (max-height:620px) and (orientation:portrait){#sTitle.home .logo .k{display:none}}
+/* 題字 v12：幅 400 以上の縦長（上の帯が 1 段になり、役職の棒が上に来る）では、題字が棒にかからないよう少し詰める */
+#sTitle.home .logo .k{margin:0 0 1px 1px;line-height:1.3}
+@media (orientation:portrait) and (min-width:400px) and (max-width:599px){#sTitle.home .logo{top:calc(6px + env(safe-area-inset-top,0px))}#sTitle.home .logo h1{font-size:24px;line-height:.98}#sTitle.home .logo h1 .tie{vertical-align:-.12em;height:1.1em}}
+@media (orientation:portrait) and (min-width:600px) and (max-width:899px){#sTitle.home .logo h1{font-size:34px}}
+/* 題字 v14：チモシーの穂が、風でゆっくりゆれる（動きを減らす設定の人には動かさない） */
+@keyframes haySway{0%,100%{transform:rotate(18deg)}50%{transform:rotate(25deg)}}
+@media (prefers-reduced-motion:no-preference){#sTitle.home:not([hidden]) .logo h1 .hay{animation:haySway 3.4s ease-in-out infinite}}
+.ttoast.hm.hmn{box-sizing:border-box!important;max-width:min(144px,calc(100vw - 176px))!important;border-radius:16px!important;font-size:12px!important;padding:7px 11px!important;line-height:1.35}
+/* 2026-11-19：はじめての人・LINE の中で開いた人への 1 行のお知らせ（.quiet）は、スタートのすぐ下に（新しいホームでは表の真ん中に出ていた。qa/linktest） */
+#sTitle.home .card>.quiet{grid-column:1/-1;grid-row:9;justify-self:center;margin:8px 16px 0;position:relative;z-index:1;max-width:min(100% - 32px,440px)}
+#sTitle.home .card>#tKeepBtns{grid-row:10}
+#sTitle.home .card::after{grid-row:6/11}
+@media (orientation:landscape) and (max-height:559px){#sTitle.home .card>.quiet{grid-column:2;grid-row:9;margin:2px 14px 4px auto;font-size:11px}#sTitle.home .card::after{grid-row:7/11}}
+@media (max-aspect-ratio:4/5) and (max-height:700px){#sTitle.home .card:has(>.quiet)>.chars{padding-bottom:2px}#sTitle.home .card:has(>.quiet)>#btnStart{margin-bottom:0}#sTitle.home .card>.quiet{margin:0 12px calc(4px + env(safe-area-inset-bottom,0px))}}
+#sTitle.home .logo .k{position:relative;z-index:1}
 /* ==== HOME-V2 END ==== */
 </style>
