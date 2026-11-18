@@ -1400,6 +1400,21 @@
       "name": "メンテナンスの終了予定の時刻（予定を過ぎたら出さない）",
       "file": "src/7_ui.js",
       "has": "id=\"maintEnd\""
+    },
+    {
+      "name": "走り出す前の準備は、先の道の絵が全部できるまで待つ（スマホは長くても4秒）",
+      "file": "src/7_ui.js",
+      "has": "warmDone = !!texWarm("
+    },
+    {
+      "name": "画質の自動調整は、準備中・走り出し直後・一瞬の引っかかりを数えない",
+      "file": "src/7_ui.js",
+      "has": "G.prepEndT || 0) > 1500"
+    },
+    {
+      "name": "走っている間の絵の見張りは1秒に2枚だけ（毎秒の引っかかりをなくす）",
+      "file": "src/2b_bunny.js",
+      "has": "PIC_ROT = (PIC_ROT + 2) % list.length"
     }
   ]
 }
