@@ -658,7 +658,7 @@ function update(dt) {
     else if (!fc.hidden) fc.hidden = true;
   }
   if (G.turnQueued && !G.turnAuto && G.s < seg.len) { /* chosen: keep the locked arrow */ }
-  else if (G.s > win && G.s < seg.len && !G.turnQueued && (seg.turn || seg.fork)) { cue.textContent = ''; /* 2026-11-18 オーナー「右や左に曲がる時の大きな矢印は全ていらない（景色のじゃま）」：大きな矢印の字は出さない。曲がれる残りの細い線（C-6）だけ、曲がる側に小さく出す */ cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + ' win' + (Math.floor(G.t * 8) % 2 ? ' show' : ''); cue.style.setProperty('--left', clamp((seg.len - G.s) / Math.max(1, seg.len - win), 0, 1).toFixed(3)); } // 曲がれる残り（C-6）：矢印の下の線が短くなっていく
+  else if (G.s > win && G.s < seg.len && !G.turnQueued && (seg.turn || seg.fork)) { cue.textContent = seg.fork ? '←\u2002→' : seg.turn > 0 ? '→' : '←'; /* 2026-11-18 オーナー「大きな矢印はいらない（景色のじゃま）」→ 2026-11-19 オーナー「曲がる時の小さな線（ーー）は矢印にして」：曲がる側に、小さな矢印だけを出す（点滅はせず、ゆっくり大きさが変わる） */ cue.className = (seg.fork ? 'c' : seg.turn > 0 ? 'r' : 'l') + ' win show'; cue.style.setProperty('--left', clamp((seg.len - G.s) / Math.max(1, seg.len - win), 0, 1).toFixed(3)); } // 曲がれる残り（C-6）：矢印の下の線が短くなっていく
   else cue.className = '';
   // events inside a stretch
   if (seg.goldRoad && !seg.goldTold && G.s > seg.goldRoad - 34) { seg.goldTold = 1; banner('GOLDEN ROAD!', tr('金のチモシーの道！', 'A road of golden hay!'), 'good'); }

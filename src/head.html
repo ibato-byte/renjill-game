@@ -104,7 +104,7 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 #hint{position:absolute;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));text-align:center;font-weight:900;font-size:14px;color:var(--paper);text-shadow:0 2px 0 rgba(0,0,0,.35);transition:opacity .4s}
 #turnCue{position:absolute;top:31%;font-family:var(--f-display);font-size:clamp(46px,14vw,80px);color:var(--tie);text-shadow:0 4px 0 var(--ink);opacity:0;transition:opacity .12s}
 #turnCue.l{left:8%}#turnCue.r{right:8%}#turnCue.show{opacity:1}
-#turnCue.win::after{content:'';display:block;height:7px;border-radius:4px;background:currentColor;box-shadow:0 2px 0 var(--ink);width:calc(var(--left,1) * 1.4em);margin:6px auto 0;opacity:1}
+#turnCue.win{font-size:clamp(34px,10vw,52px);text-shadow:0 3px 0 var(--ink);animation:cueBeat .55s ease-in-out infinite alternate}@keyframes cueBeat{from{transform:scale(.9)}to{transform:scale(1.08)}} /* 曲がる時は小さな矢印だけ（2026-11-19 オーナー：線ではなく矢印に） */
 #hChal{display:block;font-size:10px;font-weight:900;color:#C8463C;letter-spacing:.02em}#hChal:empty{display:none}
 #bossBar{margin:6px auto 0;width:min(300px,78vw);text-align:center;pointer-events:none}#bossBar b{display:block;font-size:12px;font-weight:900;color:#FBF6EE;text-shadow:0 1px 2px rgba(0,0,0,.6)}#bossBar i{display:block;height:9px;border-radius:6px;background:rgba(59,42,32,.55);border:2px solid #FBF6EE;overflow:hidden}#bossBar s{display:block;height:100%;background:linear-gradient(90deg,#C8463C,#E86A75);text-decoration:none}
 /* 小さい画面で文字が切れていた（2026-11-09） */

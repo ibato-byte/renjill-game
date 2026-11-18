@@ -220,7 +220,8 @@ function floorTexture(p, d, m, sg) {
   const one = (ox, e01, e03) => { // texture over the quad currently in SCR
     const a = (SCR[2] - SCR[0]) / e01, b = (SCR[3] - SCR[1]) / e01, c = (SCR[6] - SCR[0]) / e03, dd = (SCR[7] - SCR[1]) / e03;
     ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = alpha;
-    ctx.save(); pathPoly(4); ctx.clip(); ctx.transform(a, b, c, dd, SCR[0] - a * ox, SCR[1] - b * ox); ctx.fillStyle = pat; ctx.fillRect(ox - 1, -1, e01 + 2, e03 + 2); ctx.restore();
+    if (PAT_OK) { pathPoly(4); PATM.a = a; PATM.b = b; PATM.c = c; PATM.d = dd; PATM.e = SCR[0] - a * ox; PATM.f = SCR[1] - b * ox; pat.setTransform(PATM); ctx.fillStyle = pat; ctx.fill(); pat.setTransform(PATI); } /* [軽く] 切り抜かずに、模様の向きを合わせてぬる（同じ見た目） */
+    else { ctx.save(); pathPoly(4); ctx.clip(); ctx.transform(a, b, c, dd, SCR[0] - a * ox, SCR[1] - b * ox); ctx.fillStyle = pat; ctx.fillRect(ox - 1, -1, e01 + 2, e03 + 2); ctx.restore(); }
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; };
   const v = p.v, e01 = Math.hypot(v[3] - v[0], v[5] - v[2]) * px, e03 = Math.hypot(v[9] - v[0], v[11] - v[2]) * px;
   let miny = 1e9, maxy = -1e9; if (m === 4) for (let i = 0; i < 4; i++) { miny = Math.min(miny, SCR[i * 2 + 1]); maxy = Math.max(maxy, SCR[i * 2 + 1]); }
