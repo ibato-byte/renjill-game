@@ -1372,6 +1372,11 @@
       "has": "function goStraight()"
     },
     {
+      "name": "地上から見る遠くの町を、世界に置いた立体のビルに",
+      "file": "src/4b_patterns.js",
+      "has": "function skyline3d(seg, layer)"
+    },
+    {
       "name": "本物の地図の東京（ビル・線路・首都高・川・お寺）",
       "file": "src/4i_realmap.js",
       "has": "function realMapLayer(seg, o)"
