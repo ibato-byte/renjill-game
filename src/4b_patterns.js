@@ -648,11 +648,21 @@ function skyline3d(seg, layer, g) { g = g || ctx;
 /* [軽く] 2026-11-18 オーナー「プレイ中スマホでまだ重い」：遠くの立体の町（700m より先）は、走っても見た目はほとんど動かない。
    1 枚の絵に描いておき、向き・高さが変わった時と、3m 進むごとにだけ描きなおす（ふだんは絵を 1 回はるだけ）。曲がっている間は毎コマ描く */
 const SK3C = [null, null];
-function skyline3dCached(seg, layer) { const k = SK3C[layer] || (SK3C[layer] = { c: document.createElement('canvas'), key: '' }), c = k.c;
-  if (c.width !== cv.width || c.height !== cv.height) { c.width = cv.width; c.height = cv.height; k.key = ''; }
-  const hz = HORIZON - Math.tan(CAM.pitch) * FOCAL, key = [seg.id, Math.round(CAM.yaw * 2000), Math.round(hz * 2), Math.round(CAM.x / 3), Math.round(CAM.z / 3), Math.round(CAM.y * 4), LT.night > .4 ? 1 : 0, (LT.amb || []).map(x => Math.round(x * 40)).join(), W, H, FOCAL | 0, typeof lowQ !== 'undefined' ? lowQ : 0, Math.floor((G.t || 0) * 1.2) % 2].join('|');
-  if (key !== k.key) { const g = c.getContext('2d'); if (!g) { skyline3d(seg, layer); return; } g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(DPR, 0, 0, DPR, 0, 0); skyline3d(seg, layer, g); k.key = key; }
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(c, 0, 0); ctx.restore(); }
+function skyline3dCached(seg, layer) { const k = SK3C[layer] || (SK3C[layer] = { c: document.createElement('canvas'), key: '', yaw: 0, hz: 0, age: 0 }), c = k.c;
+  const MX = Math.round(.12 * FOCAL * DPR); /* 左右に少し広く描いておく（横にずらした時に、はしが欠けない） */
+  if (c.width !== cv.width + 2 * MX || c.height !== cv.height) { c.width = cv.width + 2 * MX; c.height = cv.height; k.key = ''; }
+  /* [2026-11-19 オーナー「東京タワーの最初の階段を上って右に曲がる時に止まる」] 前は、カメラが 0.25m 上がるたび・向きが少しでも変わるたびに、遠くの町を全部描きなおしていた
+     （階段を上る間・曲がる間は、ほぼ毎コマ。スマホで止まる原因）。遠くの町（700m より先）は：
+     ・上下の向き（地平線の高さ）が変わっても、絵全体が同じだけ上下に動くだけ → 描きなおさず、ずらしてはる（同じ絵）
+     ・目の高さが 1m 変わっても、0.6 ドットも動かない → 1m ごとに描きなおす
+     ・横の向きが少し変わった時は、横にずらしてはる（ずれは 1 ドット以下）。曲がっている間は 1 コマおきに描きなおす
+     ・夜の飛行機よけの赤い明かりの点滅は、夜だけ描きなおす */
+  const hz = HORIZON - Math.tan(CAM.pitch) * FOCAL, night = LT.night > .4 ? 1 : 0, key = [seg.id, Math.round(CAM.x / 3), Math.round(CAM.z / 3), Math.round(CAM.y), night, (LT.amb || []).map(x => Math.round(x * 40)).join(), W, H, FOCAL | 0, typeof lowQ !== 'undefined' ? lowQ : 0, LT.night > .3 ? Math.floor((G.t || 0) * 1.2) % 2 : 0].join('|');
+  const dyaw = angDiff(CAM.yaw, k.yaw), turning = G.turnT > 0, tol = turning ? (k.age < 1 ? .05 : 0) : .012;
+  if (key !== k.key || Math.abs(dyaw) > tol) { const g = c.getContext('2d'); if (!g) { skyline3d(seg, layer); return; } g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(DPR, 0, 0, DPR, MX, 0); skyline3d(seg, layer, g); k.key = key; k.yaw = CAM.yaw; k.hz = hz; k.age = 0; }
+  else k.age++;
+  const ox = -angDiff(CAM.yaw, k.yaw) * FOCAL * DPR, oy = (hz - k.hz) * DPR;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(c, Math.round((ox - MX) * 4) / 4, Math.round(oy * 4) / 4); ctx.restore(); }
 
 function skyline(seg, yb, layer) {
   const N = LT.night, sc = seg.th.climb ? .6 : layer ? 1 : .7;
