@@ -389,6 +389,8 @@ function platformDoors(seg, s0, end) {
 /* ---- streets: sidewalks, curbs, building facades ---- */
 function buildStreet(seg, s0, lEnd, rEnd) {
   const th = seg.th, fac = th.fac, L = seg.len;
+  if (th.rpat === 'road' && fac && ['neon', 'mixed', 'glass', 'luxury'].includes(fac.style) && !th.gate) for (const sd of [-1, 1]) { const end = sd < 0 ? lEnd : rEnd, a0 = (sideStart(seg, sd) ?? s0) + 4, gl = sd * (ROAD + .35); /* [P74] 大通りの歩道のふちの、白い歩行者用の柵（ところどころ切れ目。横断歩道・角の手前はあける） */
+    for (let a = a0; a < end - 14; a += 14) { const b = a + 9; seg.lines.push({ a: [a, gl, .8], b: [b, gl, .8], c: '#E9EDF0', w: .05 }, { a: [a, gl, .45], b: [b, gl, .45], c: '#E9EDF0', w: .04 }); for (let x = a; x <= b + .01; x += 1.5) seg.lines.push({ a: [x, gl, 0], b: [x, gl, .82], c: '#E9EDF0', w: .045 }); } }
   // curbs
   const cc = C(th.curb || '#D9D6CE');
   for (const sd of [-1, 1]) {
@@ -399,13 +401,22 @@ function buildStreet(seg, s0, lEnd, rEnd) {
   }
   const cont = !!(seg.step && seg.step.cont);
   if (th.gate && !cont) { const gc = th.gateColor || '#2F5579', s1 = (seg.first ? 6 : HW) + (th.gateColor ? 22 : 7); // the street's name gate, painted whole
-    if (gc === '#B5302A') templeGate(seg, s1); else seg.spr.push({ lat: 0, s: s1 + .2, y: 0, w: (ROAD + .9) * 2, h: 6.5, img: artKey('sgate', th.gate + '/' + gc), far: 1, keep: 1 }); }
+    if (gc === '#B5302A') templeGate(seg, s1); else signGate(seg, s1, th.gate, gc); }
   if (th.torii && !cont) { const tc = th.torii, s1 = (seg.first ? 6 : HW) + 10, W2 = ROAD + 1.3; // a big shrine gate across the approach, painted whole
-    seg.spr.push({ lat: 0, s: s1 + .35, y: 0, w: (W2 + 1.9) * 2, h: 8.35, img: artKey('torii', tc + '/' + (th.toriiTop || '#2B2B2B') + (th.plaque ? '/' + th.plaque : '')), far: 1, keep: 1 }); }
+    { const c = s1 + .35, top = th.toriiTop || '#2B2B2B', bx = []; /* [P83〜P89] 神社の大きな鳥居を、平たい絵から立体に */
+      for (const x of [-W2, W2]) bx.push(B(x, c - .32, .64, .64, 0, 7.0, tc), B(x, c - .42, .84, .84, 0, .7, '#2B2B2B'), B(x, c - .36, .72, .72, 5.45, 5.6, shadeHex2(tc, .8))); /* [P83] 太い 2 本の柱 [P84] 柱の根もとの黒い台（亀腹） [P85] 柱の、ぬきが通る所の帯 */
+      bx.push(B(0, c - .22, 2 * (W2 + 1.1), .44, 5.55, 6.0, tc)); /* [P86] 下の横木（貫） */
+      bx.push(B(0, c - .28, 2 * (W2 + 1.5), .56, 6.95, 7.35, tc), B(0, c - .36, 2 * (W2 + 1.9), .72, 7.35, 7.85, top), B(-(W2 + 1.75), c - .36, .5, .72, 7.85, 8.15, top), B(W2 + 1.75, c - .36, .5, .72, 7.85, 8.15, top)); /* [P87] 上の 2 段の横木（島木と笠木）と、両はしのそり上がり */
+      bx.push(Object.assign(B(0, c - .3, 1.0, .2, 6.0, 6.95, '#2B2B2B'), th.plaque ? { txt: th.plaque, tc: '#E8C25A', vert: 1 } : {})); /* [P88] まん中の額（神社の名前） */
+      seg.props.push(mkProp(seg, bx, { big: 1 })); seg.floor.push({ v: quad(seg, [[c - 1.2, -W2 - .6, .01], [c + 1.2, -W2 - .6, .01], [c + 1.2, W2 + .6, .01], [c - 1.2, W2 + .6, .01]]), c: C('#A9A295'), pat: 'stone', ti: 0 }); } } /* [P89] 鳥居の下の石だたみ */
   if (th.toriiTunnel) { const W2 = ROAD + .45, key = artKey('torii', '#D9452B/#2B2B2B/tunnel'); for (let a = (seg.first ? 10 : HW + 8); a < L - HW - 10; a += 2.8) seg.spr.push({ lat: 0, s: a + .14, y: 0, w: (W2 + .5) * 2, h: TORII_TUNNEL_H, img: key, keep: 1, beamY: TORII_TUNNEL_H * (1 - .22) }); } /* beamY＝いちばん下の横木の下の高さ（qa/toriiview が、カメラより上にあることを確かめる） */ // rows of small vermilion gates
   if (seg.hp && seg.hp.shape === 'underpass') { // a railway bridge across the bottom of the dip, painted whole (deck, railing, piers, the height sign)
     const mid = (seg.hp.a + seg.hp.b) / 2, a0 = mid - 4, a1 = mid + 4;
-    seg.spr.push({ lat: 0, s: a0, y: 0, w: (HW + 1.2) * 2, h: 7.6, img: artKey('overpass', 'rail'), far: 1, keep: 1 });
+    { const bx = []; for (const sd of [-1, 1]) { const x = sd * (HW + .7); bx.push(B(x, a0 + .6, 1.2, 6.8, 0, 4.6, '#9EA4AA'), B(x, a0 + .4, 1.5, 7.2, 0, .5, '#7E848A'), B(x, a0 + .55, 1.3, 6.9, 4.3, 4.6, '#8A9096')); for (let y = .9; y < 4.2; y += .9) bx.push(B(x, a0 + .58, 1.24, .04, y, y + .03, '#868C92')); } /* [P90] 橋げたを支える、両がわのコンクリートの橋台（根もとの台・上の帯・型わくの線） */
+      bx.push(B(0, a0 + .02, 2.2, .08, 3.9, 4.45, '#F2C230'), Object.assign(B(0, a0, 1.9, .06, 3.95, 4.4, '#2B2B2B'), { txt: '4.0m', tc: '#F2C230' })); /* [P91] 高さ制限の標識（黄色いわくに 4.0m） */
+      for (let x = -HW + 1; x < HW - .5; x += 2.2) bx.push(B(x, (a0 + a1) / 2 - .25, .5, .5, 4.5, 4.6, '#FFF1C8', 2)); /* [P92] 橋の下の天井の明かり（夜は光る） */
+      bx.push(B(0, a0 + .02, 2 * (HW + 1.4), .1, 4.55, 4.75, '#6E747A')); /* [P93] 橋げたの下のふちの、黒っぽい水切り */
+      seg.props.push(mkProp(seg, bx, { big: 1 })); }
     /* 2026-11-17 オーナー：「電車が上を通過する時に、電車の下側が見えてしまうのはおかしい。線路のはずなのに」。
        前は、橋げたが道の上（はば ±(HW+8)m）しか無く、電車はその外（±80m まで）も走るので、下から台車・床下の機器が丸見えだった。車輪も橋げたの上の面より下にめりこんでいた。
        本物の鉄道の高架橋：コンクリートの厚い橋げたが、電車の走る所ぜんぶの下にある。両側に、電車のすそをかくす高さの壁（かべ高欄）。電車はレールの上に乗る。
@@ -415,13 +426,20 @@ function buildStreet(seg, s0, lEnd, rEnd) {
     seg.movers = seg.movers || []; seg.movers.push({ ds: rand(-30, 30), v: -22, cross: 1, bx: trainCars({ cross: 1, l0: -40, l1: -10, s0: a0 + 1, s1: a1 - 1, y0: 6.75, lc: th.lc || '#80C241' }) }); // 車輪の下＝6.75-.95=5.8：橋げた（5.6）＋レール
   }
   if (th.overpass) { const a0 = L * .3, a1 = Math.min(L - HW - 6, a0 + 34); // an expressway passing overhead
-    seg.spr.push({ lat: 0, s: a0, y: 0, w: (HW + 6) * 2, h: 14.6, img: artKey('overpass', 'road'), far: 1, keep: 1 });
+    { const bx = [B(0, a0 + .05, 2 * (HW + 6), .5, 10.2, 11.4, '#B9BEC4'), B(0, a0 + .02, 2 * (HW + 6), .08, 10.9, 11.0, '#8A9096'), B(0, a0, 2 * (HW + 6), .05, 11.4, 13.6, '#C9CDD2'), B(0, a0 + .02, 2 * (HW + 6), .06, 13.6, 13.75, '#9AA0A6')]; /* [P94] 首都高の高架：橋の横の面（コンクリートのかべ高欄）と、上の防音のかべ・ふち */
+      for (const sd of [-1, 1]) { const x = sd * (HW + .4); bx.push(B(x, a0 + 1, 1.4, 1.6, 0, 8.6, '#9AA0A6'), B(x, a0 + .7, 2.2, 2.2, 8.4, 8.8, '#8A9096'), B(x, a0 + .8, 1.8, 2, 0, .4, '#7E848A')); } /* [P95] 手前の橋脚（柱の頭の広がり・根もとの台） */
+      bx.push(B(HW - 1.2, a0 - .3, 3.4, .12, 8.0, 9.6, '#2F7A4A'), Object.assign(B(HW - 1.2, a0 - .32, 3.1, .04, 8.1, 9.5, '#2F7A4A'), { txt: '出口 →', tc: '#FFFFFF' }), B(HW - 2.6, a0 - .2, .1, .1, 9.6, 10.2, '#6E7278'), B(HW + .2, a0 - .2, .1, .1, 9.6, 10.2, '#6E7278')); /* [P103] 高架の横につるした、緑の案内の板（出口 →） */
+      for (let x = -HW - 5; x < HW + 5.5; x += 3.5) bx.push(B(x, a0 - .05, .14, .12, 12.4, 13.0, '#5E6268')); /* [P96] 防音かべの上の、照明の柱 */
+      seg.props.push(mkProp(seg, bx, { big: 1 })); }
     seg.props.push(mkProp(seg, [{ l0: -HW - 6, l1: HW + 6, s0: a0 + .05, s1: a1, y0: 8.6, y1: 10.2, c: '#9AA0A6' }], { big: 1 }));
     for (const sd of [-1, 1]) seg.props.push(mkProp(seg, [{ l0: sd * (HW + .4) - .5, l1: sd * (HW + .4) + .5, s0: a1 - 5, s1: a1 - 3.8, y0: 0, y1: 8.6, c: '#8F949A' }], { big: 1 })); }
   if (fac.style === 'park') { buildPark(seg, s0, lEnd, rEnd); return; }
   for (const sd of [-1, 1]) { const a0 = sideStart(seg, sd) ?? s0, a1 = sd < 0 ? lEnd : rEnd, pf = seg.parentTh && seg.parentTh.fac, blend = pf && !['park', 'viaduct'].includes(pf.style) && a1 - a0 > 50;
     if (blend) { const keep = seg.th, cut = a0 + 22; seg.th = Object.assign({}, keep, { fac: pf }); try { buildFacades(seg, sd, a0, cut); } finally { seg.th = keep; } buildFacades(seg, sd, cut, a1); } /* [Y9] Y 字路で分かれた先の道は、はじめの約 20m は分かれる前の町なみが続き、そこから次の町に変わる（別の場所を Y 字でくっつけただけに見えないように） */
     else buildFacades(seg, sd, a0, a1); }
+  if (fac.style === 'market' && (th.tid === 'shotengai' || seg.tid === 'shotengai' || fac.mood === 'yanaka')) { const { s0: w0 } = sideEnds(seg), cols = ['#F4A7B9', '#FBF6EE', '#F2C230', '#9FD3A0']; /* [P72〜P73] 下町の商店街：道の上をわたる飾り（両がわの店の 2 階から、まん中が少したれる綱に、紙の花が 1m ごと） */
+    for (let a = w0 + 10; a < L - 8; a += 11) { const y = 5.6, sag = .5, bx = []; seg.lines.push({ a: [a, -HW, y], b: [a, 0, y - sag], c: '#8A6A4A', w: .02 }, { a: [a, 0, y - sag], b: [a, HW, y], c: '#8A6A4A', w: .02 });
+      for (let x = -HW + .6; x < HW - .4; x += 1) { const yy = y - sag * (1 - Math.abs(x) / HW) - .12; bx.push({ l0: x - .14, l1: x + .14, s0: a - .14, s1: a + .14, y0: yy - .28, y1: yy, c: cols[Math.abs(Math.round(x * 3 + a)) % cols.length] }); } seg.props.push(mkProp(seg, bx, { big: 1 })); } }
   { const st = fac.style, mood = fac.mood || ''; if (st === 'market' || st === 'machiya' || mood === 'shinbashi' || mood === 'korea' || mood === 'yanaka') { const { s0: w0 } = sideEnds(seg); /* [P54] 下町・商店街：道の上をわたる電線（両がわの電柱の高さから、まん中が少したれる）。2〜3 本ずつ */
       for (let a = w0 + 14; a < L - 14; a += rand(22, 30)) { const y = rand(7.2, 8), sag = .45; for (let k = 0; k < 3; k++) { const yy = y - k * .35; seg.lines.push({ a: [a, -(HW + .2), yy], b: [a + .3, 0, yy - sag], c: '#2B2B2E', w: .025 }, { a: [a + .3, 0, yy - sag], b: [a + .6, HW + .2, yy], c: '#2B2B2E', w: .025 }); } }
       for (const sd of [-1, 1]) { const ql = sd * (HW + .25); seg.lines.push({ a: [w0, ql, 7.9], b: [L, ql, 7.9], c: '#2B2B2E', w: .025 }, { a: [w0, ql, 7.4], b: [L, ql, 7.4], c: '#2B2B2E', w: .025 }); } } } /* [P55] 道ぞいに、のき先の高さを走る電線 2 本 */
@@ -443,6 +461,11 @@ function buildFacades(seg, sd, s0, end) {
   const style = sd < 0 ? (fac.left || fac.style) : (fac.right || fac.style);
   if (style === 'viaduct') { // elevated railway: arches below, a train going by on top
     for (let a = s0, k = 0; a < end - .01; a += 3, k++) { const b = Math.min(a + 3, end); addWallQuad(seg, sd, a, b, 0, 8, C('#8E8A82'), { pat: 'fac', st: 'viaduct', h: 8, w: b - a, seed: k, k }); }
+    { const L = o => sd * (HW + o), bx = []; for (let a = s0 + 3; a < end - .5; a += 6) bx.push(B2r(L, sd, -.35, 0, a - .45, a + .45, 0, 7.2, '#9A968E'), B2r(L, sd, -.42, 0, a - .55, a + .55, 0, .45, '#86827A')); /* [P99] 高架の、道がわへ少し出た太い柱（根もとの台つき） */
+      bx.push(B2r(L, sd, -.45, 0, s0, end, 7.2, 8.1, '#A39F97'), B2r(L, sd, -.5, -.42, s0, end, 8.1, 8.9, '#B5B1A9')); /* [P100] 柱の上の、横に長い橋げたと、上のかべ高欄 */
+      for (let a = s0 + 6; a < end - 2; a += 12) bx.push(B2r(L, sd, 1.0, 1.15, a - .08, a + .08, 8.9, 14.5, '#7A7E84'), B2r(L, sd, 1.0, 3.2, a - .05, a + .05, 13.6, 13.75, '#7A7E84')); /* [P102] 高架の上の、電車の架線の柱（たての柱と横の腕） */
+      for (let a = s0 + 6; a < end - 1; a += 6) bx.push(B2r(L, sd, -.6, -.4, a - .2, a + .2, 2.9, 3.25, '#FFE2A8', 2)); /* [P101] 高架下の店の入口の上の、明かり（夜は光る） */
+      seg.props.push(mkProp(seg, bx, { big: 1 })); }
     seg.movers = seg.movers || [];
     seg.movers.push({ ds: rand(s0, end - 40), v: -16, r0: s0, r1: end, bx: trainCars({ side: sd, near: HW + .4, far: HW + 3.4, y0: 8.3, len: 40, lc: th.lc || '#80C241' }) });
     return;
@@ -476,7 +499,7 @@ function buildFacades(seg, sd, s0, end) {
         addWallQuadO(seg, sd, a, b, y0, y1, off, c, { pat: 'fac', st: style, h, w: b - a, seed: seed + k, k, first: k === 0, fv, fw, fh, fm, fu0: (a - s) / w, fu1: (b - s) / w, fy0: y0 / h, fy1: y1 / h }); } });
       massDetail(seg, sd, s, s + w, h, tiers, c, style, seed, prevH, prevOff);
       if (h <= 17 && style !== 'nakamise' && style !== 'market' && style !== 'machiya' && w >= 5 && Math.random() < .7) // what stands on the roof
-        seg.spr.push({ lat: sd * (HW + 1.6 + tiers[tiers.length - 1][2]), s: s + w / 2, y: h + .35, w: Math.min(w - .5, 7.5), h: Math.min(w - .5, 7.5) * .66, img: artKey('roof', String(seed % 9)), far: 1, keep: 1 }); // [G7] 屋上の物は、パラペット（手すり壁）の上に
+        roof3d(seg, sd, s, s + w, h, tiers[tiers.length - 1][2], seed); /* [P63] 屋上の物を、平たい絵から立体に（給水タンク・室外機・階段室・アンテナ） */
       decorateBuilding(seg, sd, s, s + w, h, style, seed);
       prevOff = tiers[0][2];
     }
@@ -619,6 +642,15 @@ function alley(seg, sd, a, b, prevH, h) {
   if (Math.random() < .6) bx.push(B3(.6, 1.2, a + .1, a + .7, 0, .8, '#3F6E4E')); // ごみ箱
   seg.props.push(mkProp(seg, bx));
 }
+/* [P63〜P68] 屋上の物（前は 1 枚の絵）：建物ごとに、給水タンク（足つき）・室外機のならび・階段室（扉と小さな屋根）・アンテナのどれか 2〜3 つ。
+   道から 1.6m より奥に置く（下から見上げて、手すりかべの上に頭が見える） */
+function roof3d(seg, sd, a, b, h, off, seed) { const r = rnd(seed + 77), L = o => sd * (HW + o), bx = [], m = (a + b) / 2, o0 = off + 1.6, kind = seed % 9;
+  if (kind % 3 !== 2 && b - a > 4) { const x = a + 1 + r() * (b - a - 3.4); bx.push(B2r(L, sd, o0 + .4, o0 + 2.2, x, x + 1.8, h + 1.4, h + 3.1, '#D9DCDF'), B2r(L, sd, o0 + .35, o0 + 2.25, x - .05, x + 1.85, h + 3.1, h + 3.25, '#B9BEC4')); for (const [p, q] of [[.5, .5], [.5, 2.1], [2.1, .5], [2.1, 2.1]]) bx.push(B2r(L, sd, o0 + p - .06, o0 + p + .06, x + q - .5, x + q - .38, h, h + 1.4, '#7A7E84')); bx.push(B2r(L, sd, o0 + .3, o0 + 2.3, x - .1, x + 1.9, h + 1.35, h + 1.45, '#7A7E84')); } /* [P64] 給水タンク（白い箱・ふた・4 本の足と台） */
+  if (kind % 2 === 0) { const n = 2 + (r() * 3 | 0), x0 = a + .6 + r() * Math.max(.1, b - a - n * 1.0 - 1.2); for (let k = 0; k < n; k++) { const x = x0 + k * 1.0; bx.push(B2r(L, sd, o0 + 2.6, o0 + 3.3, x, x + .85, h, h + .7, '#E2E3DF'), B2r(L, sd, o0 + 2.58, o0 + 2.6, x + .18, x + .68, h + .14, h + .58, '#8A8D90')); } } /* [P65] 室外機のならび（前に黒い羽の丸） */
+  if (kind % 3 === 0 && b - a > 5) { const x = r() < .5 ? a + .4 : b - 2.8; bx.push(B2r(L, sd, o0 + 1.2, o0 + 3.8, x, x + 2.4, h, h + 2.6, '#C9C4BA'), B2r(L, sd, o0 + 1.1, o0 + 3.9, x - .1, x + 2.5, h + 2.6, h + 2.75, '#8A857C'), B2r(L, sd, o0 + 1.17, o0 + 1.2, x + .6, x + 1.5, h, h + 2.1, '#5E6268')); } /* [P66] 階段室（四角い小屋・小さな屋根・道がわの扉） */
+  if (kind % 4 === 1) { const x = m + (r() - .5) * (b - a) * .5; bx.push(B2r(L, sd, o0 + 1.5, o0 + 1.56, x, x + .06, h, h + 3.6, '#8A8F94'), B2r(L, sd, o0 + 1.2, o0 + 1.9, x - .4, x + .46, h + 3, h + 3.05, '#8A8F94'), B2r(L, sd, o0 + 1.2, o0 + 1.9, x - .3, x + .36, h + 3.4, h + 3.45, '#8A8F94')); } /* [P67] テレビのアンテナ（細い柱と横の棒） */
+  for (let x = a + .4; x < b - .3; x += 1.2) bx.push(B2r(L, sd, off + .02, off + .08, x, x + .05, h + .9, h + 1.6, '#9AA0A6')); if (b - a > 1) bx.push(B2r(L, sd, off + .01, off + .09, a + .3, b - .3, h + 1.55, h + 1.62, '#9AA0A6')); /* [P68] 屋上のふちの、細い鉄の柵 */
+  if (bx.length) seg.props.push(mkProp(seg, bx, { big: 1 })); }
 function houseBehind(seg, sd, a, b, h, c, seed) {
   const lat = sd * (HW + 3.2), n = [-sd * seg.r[0], -sd * seg.r[1]];
   for (let x = a; x < b - .01; x += 3) { const y = Math.min(x + 3, b);
@@ -672,6 +704,8 @@ function decorateBuilding(seg, sd, a, b, h, style, seed) {
   if (style === 'machiya' || style === 'nakamise') { const lat0 = sd * (HW - .25), lat1 = sd * (HW + 3.2), y1 = h + 1.5, n3 = [-sd * seg.r[0] * .55, .835, -sd * seg.r[1] * .55]; /* [P57] 町家・仲見世の、いちばん上の瓦屋根（道の方へ下がる面。前は平らなかべの上が水平に切れていた） */
     seg.walls.push({ v: quad(seg, [[a - .05, lat0, h], [b + .05, lat0, h], [b + .05, lat1, y1], [a - .05, lat1, y1]]), c: C(style === 'machiya' ? '#3E4046' : '#4A4C51'), n3, sh: .95, pat: 'kawara' });
     seg.props.push(mkProp(seg, [B2r(o => sd * (HW + o), sd, -.3, -.18, a - .05, b + .05, h - .12, h + .02, '#2E2F33'), B2r(o => sd * (HW + o), sd, 3.1, 3.4, a, b, y1 - .05, y1 + .3, '#2E2F33')], { big: 1 })); } /* [P58] のき先の線と、屋根のむね */
+  if (style === 'market' || style === 'neon') { const L = o => sd * (HW + o), rec = style === 'market' ? 1.1 : .55; seg.props.push(mkProp(seg, [B2r(L, sd, -.05, .22, a + .15, b - .15, 2.95, 3.22, '#8E9399'), B2r(L, sd, -.06, -.04, a + .15, b - .15, 3.0, 3.18, '#A9AEB3')], { big: 1 })); } /* [P75] 店の入口の上の、巻き上げたシャッターの箱 */
+  if (style === 'neon' && b - a > 3) { const L = o => sd * (HW + o), cc = pick(['#FBF6EE', '#F2C230', '#C8463C', '#355F86', '#2F6B3A', '#E86A75']); seg.props.push(mkProp(seg, [B2r(L, sd, -.32, -.02, a + .3, b - .3, 3.3, 3.95, cc), B2r(L, sd, -.34, -.3, a + .35, b - .35, 3.36, 3.89, shadeHex2(cc, 1.06))].map((q, i) => i ? Object.assign(q, { glow: 2 }) : q), { big: 1 })); } /* [P76] 店ごとの、横長の明かりの入った看板の箱（夜は光る） */
   if (style === 'market' && h > 4) seg.props.push(mkProp(seg, [B2r(o => sd * (HW + o), sd, -.12, .3, a + .02, b - .02, h - .05, h + .45, shadeHex2(fac.pal && fac.pal[0] || '#C9BFAF', .78))], { big: 1 })); /* [P59] 商店街の建物の屋上のふち（手すりかべ） */
   if (style === 'machiya') { const L = o => sd * (HW + o), bx = []; for (let x = a + .35; x < b - .35; x += .13) bx.push(B2r(L, sd, -.06, .0, x, x + .05, .35, 2.6, '#3A2A20')); bx.push(B2r(L, sd, -.08, .0, a + .3, b - .3, 2.6, 2.7, '#2E2219'), B2r(L, sd, -.08, .0, a + .3, b - .3, .28, .36, '#2E2219')); /* [P16] 町家の 1 階の、木の格子（細い縦の桟がならぶ） */
     for (let k = 0; k < 4; k++) bx.push(B2r(L, sd, -.75 + k * .2, -.53 + k * .2, a - .02, b + .02, 3.25 + k * .12, 3.37 + k * .12, k % 2 ? '#55575C' : '#4A4C51')); /* [P17] 1 階と 2 階のあいだの、瓦の小さな屋根（ひさし） */
@@ -697,6 +731,14 @@ function sakuraSpr(baseLat, s, dir, w, h) { const v = Math.random() < .5 ? 0 : 1
 /* [P31〜P42] お寺の二階建ての門（宝蔵門・三解脱門）を、平たい絵から立体に。道をまたいで建ち、下をくぐって通る。
    朱色の太い柱 8 本・柱の根もとの黒い石・1 階の横木・1 階の屋根（前とうしろの瓦の面、のき先の白い線）・2 階の朱色の胴と白いかべ・
    2 階の手すり・上の大きな屋根（前とうしろの面）・むね・左右の大きなつりちょうちん（ちょうちんの下は 4.2m より上） */
+/* [P77〜P83] 通りの名前の門（アメ横・歌舞伎町・竹下通り）を、平たい絵から立体に：道の両がわの鉄の柱（根もとの台）・上の横のはり・
+   名前の看板（字は看板の正面に）・看板の上下のふち・夜に光る、看板の下の小さな明かりの列・柱の上の飾り */
+function signGate(seg, c, name, gc) { const X = ROAD + .9, bx = [], dark = shadeHex2(gc, .7);
+  for (const x of [-X, X]) bx.push(B(x, c - .25, .5, .5, 0, 6.6, dark), B(x, c - .4, .8, .8, 0, .5, '#6E7278'), B(x, c - .3, .6, .6, 6.6, 7.0, gc)); /* [P77] 鉄の柱と根もとの台 [P78] 柱の上の飾り */
+  bx.push(B(0, c - .2, 2 * X + .5, .4, 5.0, 5.25, dark)); /* [P79] 上の横のはり */
+  bx.push(Object.assign(B(0, c - .3, 2 * X - .6, .25, 5.25, 6.55, gc), { txt: name, tc: '#FBF6EE' }), B(0, c - .2, 2 * X - .4, .3, 6.55, 6.7, '#F2EEE6'), B(0, c - .2, 2 * X - .4, .3, 5.1, 5.25, '#F2EEE6')); /* [P80] 名前の看板（正面に字）[P81] 看板の上下の白いふち */
+  for (let x = -X + .6; x < X - .5; x += .8) bx.push(B(x, c - .36, .16, .1, 4.85, 5.0, '#FFF1C8', 2)); /* [P82] 看板の下の小さな明かりの列（夜は光る） */
+  seg.props.push(mkProp(seg, bx, { big: 1 })); }
 function templeGate(seg, s1) {
   const c = s1, D = 4.2, X1 = ROAD + .7, X2 = HW + 1.6, ver = '#B5302A', dk = '#8A241E', f = seg.f, bx = [];
   for (const x of [-X2, -X1, X1, X2]) for (const z of [c - D + .6, c + D - .6]) bx.push(B(x, z - .35, .7, .7, 0, 6.2, ver), B(x, z - .45, .9, .9, 0, .45, '#2B2B2B')); /* [P31] 朱色の柱 8 本 [P32] 根もとの黒い石 */
@@ -1087,8 +1129,10 @@ const OBS = {
   telescope: L => ({ k: 'block', bx: [OB(L, 0, .75, .75, 0, .25, '#3B4650'), OB(L, .1, .5, .5, .25, 1.2, '#46525E'), OB(L, -.05, .6, .9, 1.2, 1.55, '#9AA9B6'), OB(L, -.07, .3, .02, 1.3, 1.45, '#2F3B47')] }),
   jokoro: L => ({ k: 'block', bx: [OB(L, 0, 1.3, 1.3, 0, .9, '#6E5A3A'), OB(L, .15, 1.0, 1.0, .9, 1.25, '#57472E'), OB(L, .4, .5, .5, 1.25, 1.9, '#6E5A3A')] }),
   rickshaw: L => ({ k: 'block', mv: 3.6, bx: [OB(L - .62, .4, .12, 1.0, 0, 1.0, '#2B2B2B'), OB(L + .62, .4, .12, 1.0, 0, 1.0, '#2B2B2B'), OB(L, .3, 1.15, 1.0, .7, 1.05, '#B5302A'), OB(L, .9, 1.15, .2, 1.05, 1.7, '#2B2B2B'), OB(L, -.6, .1, 1.0, .6, .66, '#3B2A20')] }),
-  kaminarimon: () => ({ k: 'high', y0: .72, hb: [-.82, .82, 2.3], bx: [OB(-3.4, 0, .5, .6, 0, 4.2, '#C0392B'), OB(3.4, 0, .5, .6, 0, 4.2, '#C0392B'), OB(0, -.15, 8.4, .9, 4.2, 4.6, '#3B2A20'), OB(0, -.25, 9.2, 1.1, 4.6, 4.75, '#2B2B2B'),
-    OB(0, 0, 1.6, 1.35, .9, 2.3, '#D33A2C', 1), Object.assign(OB(0, -.01, 1.6, .02, 1.2, 2.05, '#D33A2C', 1), { txt: '雷門', tc: '#1A0F0A', vert: 0 }), OB(0, 0, 1.25, 1.15, .72, .9, '#2B2B2B'), OB(0, 0, 1.25, 1.15, 2.3, 2.48, '#2B2B2B'), OB(0, .5, .1, .1, 2.48, 4.2, '#2B2B2B')] }),
+  kaminarimon: () => ({ k: 'high', solid3d: 1, y0: .72, hb: [-.82, .82, 2.3], bx: [OB(-3.4, 0, .5, .6, 0, 4.2, '#C0392B'), OB(3.4, 0, .5, .6, 0, 4.2, '#C0392B'), OB(0, -.15, 8.4, .9, 4.2, 4.6, '#3B2A20'), OB(0, -.25, 9.2, 1.1, 4.6, 4.75, '#2B2B2B'),
+    OB(0, 0, 1.6, 1.35, .9, 2.3, '#D33A2C', 1), Object.assign(OB(0, -.01, 1.6, .02, 1.2, 2.05, '#D33A2C', 1), { txt: '雷門', tc: '#1A0F0A', vert: 0 }), OB(0, 0, 1.25, 1.15, .72, .9, '#2B2B2B'), OB(0, 0, 1.25, 1.15, 2.3, 2.48, '#2B2B2B'), OB(0, .5, .1, .1, 2.48, 4.2, '#2B2B2B'),
+    OB(0, -.75, 10.6, 2.4, 4.75, 5.15, '#4A4C51'), OB(0, -.5, 9.2, 1.9, 5.15, 5.55, '#55575C'), OB(0, -.25, 7.6, 1.4, 5.55, 5.85, '#4A4C51'), OB(0, -.05, 6.2, 1.0, 5.85, 6.05, '#3E4046'), OB(0, -.78, 10.6, .06, 4.72, 4.84, '#E9E4D8'), /* [P97] 雷門の上の瓦屋根（4 段に上へすぼまる・のき先の白い線） */
+    OB(-4.3, -.2, 1.2, 1.0, 0, 4.2, '#B5302A'), OB(4.3, -.2, 1.2, 1.0, 0, 4.2, '#B5302A'), OB(-4.3, -.22, 1.0, .04, .5, 3.6, '#3A2420'), OB(4.3, -.22, 1.0, .04, .5, 3.6, '#3A2420'), OB(-4.3, -.24, .06, .05, .5, 3.6, '#B5302A'), OB(4.3, -.24, .06, .05, .5, 3.6, '#B5302A')] }), /* [P98] 門の左右の、朱色のこうしの部屋（風神・雷神の像が入る所。中は暗い） */
   parasol: L => ({ k: 'block', bx: [OB(L, .3, .8, .8, 0, .72, '#FBF6EE'), OB(L, .28, .84, .84, .66, .72, '#E9E2D5'), OB(L, .6, .1, .1, .72, 2.2, '#9AA0A6'), OB(L, -.1, 1.6, 1.5, 2.0, 2.2, pick(['#C8463C', '#355F86', '#F2C230'])), OB(L - .55, .4, .38, .38, 0, .8, '#9C7652')] }),
   flowers: L => ({ k: 'low', bx: [OB(L, 0, 1.1, 1.0, 0, .55, '#D9D2C6'), OB(L, .1, 1.0, .8, .55, .75, '#E86A75')] }),
   crate: L => { const tall = Math.random() < .4; return { k: tall ? 'block' : 'low', solid3d: 1, bx: (tall ? [OB(L, 0, .9, .9, 0, .5, '#E0A030'), OB(L, 0, .9, .9, .5, 1.0, '#C8463C'), OB(L, .05, .85, .85, 1.0, 1.5, '#E0A030')] : [OB(L, 0, .9, .9, 0, .5, '#E0A030'), OB(L, 0, .9, .9, .5, .82, '#C8463C')]).map(b => Object.assign(b, { face: 'crate|' + b.c, faceW: 72, faceH: 40, faceAll: 1 })) }; }, // one roll: a 3-high stack is dodged, a 2-high one is jumped (two separate rolls used to make some 3-high stacks 'jump over' ones you can't clear)
