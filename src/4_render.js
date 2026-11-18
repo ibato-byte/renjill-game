@@ -43,6 +43,7 @@ function project(v) {
   }
   let minx = 1e9, maxx = -1e9, miny = 1e9, maxy = -1e9;
   for (let i = 0; i < m; i++) { const z = src[i * 3 + 2]; const x = W / 2 + src[i * 3] * FOCAL / z, y = HORIZON - src[i * 3 + 1] * FOCAL / z; SCR[i * 2] = x; SCR[i * 2 + 1] = y; if (x < minx) minx = x; if (x > maxx) maxx = x; if (y < miny) miny = y; if (y > maxy) maxy = y; }
+  BOK = m === 4 && !behind; if (BOK) for (let i = 0; i < 12; i++) BCAM[i] = src[i]; /* 4 すみのカメラから見た位置（bil が遠近どおりに貼るため） */
   if (maxx < 0 || minx > W || maxy < 0 || miny > H) return 0;
   return behind ? -m : m;
 }
@@ -51,7 +52,14 @@ function depthMax(v) { let d = -1e9; const n = v.length / 3; for (let i = 0; i <
 function depthOf(v) { let d = 0; const n = v.length / 3; for (let i = 0; i < n; i++) d += (v[i * 3] - CAM.x) * CAM.s + (v[i * 3 + 2] - CAM.z) * CAM.c; return d / n; }
 function pathPoly(m) { ctx.beginPath(); ctx.moveTo(SCR[0], SCR[1]); for (let i = 1; i < m; i++) ctx.lineTo(SCR[i * 2], SCR[i * 2 + 1]); ctx.closePath(); }
 let BU0 = 0, BUS = 1; // u remap while a quad that is partly behind the camera is drawn through its visible part
-function bil(u, v) { u = (u - BU0) / BUS; return [lerp(lerp(SCR[0], SCR[2], u), lerp(SCR[6], SCR[4], u), v), lerp(lerp(SCR[1], SCR[3], u), lerp(SCR[7], SCR[5], u), v)]; }
+/* [2026-11-19 オーナー「電車の横の壁の絵が、通りすぎると上にぐにゃっと歪む」] 前は画面の上の 4 すみを、そのまま直線でまぜていた（遠近を無視）。
+   ななめに見る近い壁ほど、窓や広告が手前へずれ、カメラの横を通る時（壁の一部だけが見える時）は大きく上へゆがんでいた。
+   いまは、4 すみのカメラから見た位置をまぜてから画面へ写す（遠近どおり）。4 すみが分からない形の時だけ、前のやり方 */
+const BCAM = new Float32Array(12); let BOK = false;
+function bil(u, v) { u = (u - BU0) / BUS;
+  if (BOK) { const ax = BCAM[0] + (BCAM[3] - BCAM[0]) * u, ay = BCAM[1] + (BCAM[4] - BCAM[1]) * u, az = BCAM[2] + (BCAM[5] - BCAM[2]) * u, bx = BCAM[9] + (BCAM[6] - BCAM[9]) * u, by = BCAM[10] + (BCAM[7] - BCAM[10]) * u, bz = BCAM[11] + (BCAM[8] - BCAM[11]) * u;
+    const x = ax + (bx - ax) * v, y = ay + (by - ay) * v, z = az + (bz - az) * v; if (z > NEAR * .5) return [W / 2 + x * FOCAL / z, HORIZON - y * FOCAL / z]; }
+  return [lerp(lerp(SCR[0], SCR[2], u), lerp(SCR[6], SCR[4], u), v), lerp(lerp(SCR[1], SCR[3], u), lerp(SCR[7], SCR[5], u), v)]; }
 /* A wall, sign or floor tile that reaches behind the camera used to lose its pattern (windows, shop fronts, road marks)
    the moment one corner crossed the near plane, so buildings went plain strip by strip as you passed them.
    Here the visible part of the quad is cut out along u, projected on its own, and the pattern is drawn through it
