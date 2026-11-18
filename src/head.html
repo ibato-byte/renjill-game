@@ -553,4 +553,411 @@ html.calm .howanim .ha-cap span:first-child{opacity:1}
 @media (prefers-reduced-motion:no-preference){.fit.pop img.fit-f{animation:fitPop .38s cubic-bezier(.2,1.4,.4,1)}@keyframes fitPop{0%{transform:scale(.94,1.05)}60%{transform:scale(1.04,.97)}100%{transform:none}}}
 .shop-item[data-try]{cursor:pointer;transition:box-shadow .15s,background .15s}
 .shop-item.trying{box-shadow:inset 0 0 0 2px var(--tie);background:#FFF8E6}
+/* ==== HOME-V2 START ==== */
+/* ---- ホーム画面の一新（2026-11-19。オーナー：「メニュー画面を一新して、もっと高品質なデザインに」）----
+   部屋と 3 人を主役に。ベージュの大きな札をやめ、上に細い状態の帯・左右に絵のついた丸いボタン・下にキャラクターえらびとスタートだけの台。
+   ボタンの種類・id・動きは前と同じ（並びと見た目だけ）。絵のボタンは /home の道具（docs/HOME-2026-11-19.md）で作った SVG */
+#sTitle.home{padding:0;overflow-x:hidden;overflow-y:auto;align-items:stretch}
+#sTitle.home .logo{position:absolute;left:14px;top:calc(10px + env(safe-area-inset-top,0px));margin:0;padding:0;text-align:left;z-index:2;pointer-events:none}
+#sTitle.home .logo .k{font-size:10px;letter-spacing:.22em}
+#sTitle.home .logo h1{font-size:clamp(22px,6.6vw,30px);line-height:1.02;margin-top:2px;text-shadow:0 3px 0 var(--ink)}
+#sTitle.home .logo .ja{display:none}
+#sTitle.home .card{margin:0;width:100%;max-width:none;min-height:100%;flex:none;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;border-radius:0;padding:0;position:relative;right:auto;top:auto;transform:none;max-height:none;overflow:visible;
+  display:grid;grid-template-columns:76px minmax(0,1fr) 76px;grid-template-rows:auto auto auto auto minmax(8px,1fr) auto auto auto auto;gap:0;align-items:start}
+#sTitle.home .card::before{display:none}
+#sTitle.home .card::after{content:"";grid-column:1/-1;grid-row:6/10;align-self:stretch;justify-self:center;width:min(100%,520px);border-radius:28px 28px 0 0;z-index:0;
+  background:linear-gradient(180deg,rgba(255,252,246,.96),rgba(251,246,238,.98));box-shadow:0 -8px 28px rgba(59,42,32,.24),inset 0 1.5px 0 #fff}
+#sTitle.home .card>*{position:relative;z-index:1;min-width:0}
+/* 上の帯：ベスト・チモシー・音・設定 */
+#sTitle.home .card>.bank{grid-column:1/-1;grid-row:1;justify-content:flex-end;flex-wrap:nowrap;gap:6px;padding:calc(54px + env(safe-area-inset-top,0px)) 12px 0 150px;color:var(--ink)}
+#sTitle.home .bank>span:not(.tog){display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px 0 9px;border-radius:999px;background:rgba(255,252,246,.94);box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff;font-size:10px;white-space:nowrap}
+#sTitle.home .bank b{font-size:14px}
+#sTitle.home .bank img{width:18px;height:18px;vertical-align:0}
+#sTitle.home .bank .tog{display:inline-flex;gap:6px;margin:0}
+#sTitle.home .bank .tog .sub{width:32px;height:32px;min-height:0;min-width:0;padding:0;border-radius:50%;font-size:0;color:transparent;overflow:hidden;background:rgba(255,252,246,.94) center/20px no-repeat;box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff}
+#sTitle.home #btnMute{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 12.500h4.500L15.500 7v18l-6-5.500H5z%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M19.500 12a5.500 5.500 0 0 1 0 8M22.800 8.500a10 10 0 0 1 0 15%22/%3E%3C/svg%3E")}#sTitle.home #btnMute.off{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 12.500h4.500L15.500 7v18l-6-5.500H5z%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M20 12.500l7 7M27 12.500l-7 7%22 stroke=%22%23D9584C%22 stroke-width=%222.400%22/%3E%3C/svg%3E")}#sTitle.home #btnSet{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M16 4.500l2 .3.900 2.700 2.300 1 2.500-1.300 2.100 2.100-1.300 2.500 1 2.300 2.700.9v3l-2.700.9-1 2.300 1.300 2.500-2.100 2.100-2.500-1.300-2.300 1-.9 2.700h-3l-.9-2.700-2.300-1-2.500 1.300-2.100-2.100 1.300-2.500-1-2.300-2.700-.9v-3l2.700-.9 1-2.300L5.200 9.300l2.100-2.100 2.500 1.300 2.300-1 .9-2.700z%22 fill=%22%23FBF6EE%22 stroke-width=%221.700%22/%3E%3Ccircle cx=%2216%22 cy=%2216.500%22 r=%223.600%22 fill=%22%23E9B44C%22/%3E%3C/svg%3E")}
+/* 昇進の帯 */
+#sTitle.home .card>#tCareer{grid-column:1/-1;grid-row:2;padding:8px 12px 0}
+#sTitle.home #tCareer .career{background:rgba(255,252,246,.94);border-radius:999px;padding:5px 14px;box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff;row-gap:0}
+#sTitle.home #tCareer .career .cr-plant{display:none}
+/* まん中：はじめての人への説明／今日の目標のふきだし */
+#sTitle.home .card>.story{grid-column:2;grid-row:3;margin:10px 0 0;padding:8px 12px;border-radius:16px;background:rgba(255,252,246,.94);box-shadow:0 2px 0 rgba(59,42,32,.28);font-size:12px}
+#sTitle.home .card>#tToday{grid-column:2;grid-row:4;margin:10px 2px 0;padding:8px;border-radius:18px;background:rgba(255,252,246,.95);box-shadow:0 3px 0 rgba(59,42,32,.3),inset 0 1px 0 #fff;gap:5px;position:relative}
+#sTitle.home #tToday::after{content:"";position:absolute;left:50%;bottom:-9px;width:18px;height:18px;margin-left:-9px;background:rgba(255,252,246,.95);border-radius:0 0 5px 0;transform:rotate(45deg);box-shadow:3px 3px 0 rgba(59,42,32,.3)}
+#sTitle.home #tToday .tt-c{background:none;padding:2px 6px 4px}
+#sTitle.home #tToday .tt-ch{background:var(--cream);border-radius:10px;padding:5px 9px;font-size:11px}
+#sTitle.home .card>#tKeep,#sTitle.home .card>#tDayGoal,#sTitle.home .card>.last{display:none}
+#sTitle.home .card>#tDaily{grid-column:2;grid-row:4;margin:10px 2px 0;padding:6px 10px;border-radius:14px;background:rgba(255,252,246,.94);box-shadow:0 2px 0 rgba(59,42,32,.28)}
+#sTitle.home .card.tgrid>#tDaily{display:none}
+#sTitle.home .card>#tComm{grid-column:2;grid-row:5;align-self:end;justify-self:center;margin:0 0 10px}
+/* 左右の、絵のついた丸いボタン */
+#sTitle.home .card>.row,#sTitle.home .card>.row2{grid-row:3/6;align-self:end;justify-self:center;display:flex;flex-direction:column;gap:9px;padding:12px 0 14px}
+#sTitle.home .card>.row{grid-column:1}#sTitle.home .card>.row2{grid-column:3}
+#sTitle.home .row .mini,#sTitle.home .row2 .sub{width:68px;min-height:0;background:none;border-radius:0;padding:0;gap:3px;display:flex;flex-direction:column;align-items:center;overflow:visible;white-space:nowrap;
+  font-size:10px;font-weight:900;line-height:1.2;color:#fff}
+#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{content:"";display:block;width:50px;height:50px;margin:0;border-radius:50%;background:#FFFCF6 center/30px no-repeat;
+  box-shadow:0 3px 0 rgba(59,42,32,.42),0 6px 12px rgba(59,42,32,.18),inset 0 0 0 2.5px #fff,inset 0 -4px 0 rgba(214,162,60,.16)}
+#sTitle.home .row .mini em{font-size:10px;line-height:1.25;padding:1px 7px;border-radius:999px;background:rgba(59,42,32,.72);color:#fff;max-width:74px;overflow:hidden;text-overflow:ellipsis}
+#sTitle.home .row2 .sub{position:relative;isolation:isolate;width:auto;min-width:50px;max-width:76px;padding:54px 7px 1px;background:none;font-size:10px;line-height:1.25;overflow:visible;text-overflow:clip;display:block;align-self:center}
+#sTitle.home .row2 .sub::before{position:absolute;left:50%;top:0;margin-left:-25px}
+#sTitle.home .row2 .sub::after{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(1.25em + 2px);border-radius:999px;background:rgba(59,42,32,.72);z-index:-1}
+#sTitle.home #btnMissions::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%227%22 y=%226%22 width=%2218%22 height=%2221%22 rx=%223%22 fill=%22%23FBF6EE%22/%3E%3Crect x=%2212%22 y=%223.5%22 width=%228%22 height=%225%22 rx=%222%22 fill=%22%23E9B44C%22/%3E%3Cpath d=%22M11.5 15.5l2.6 2.6 5.6-5.8%22 stroke=%22%236DB36A%22 stroke-width=%222.6%22/%3E%3Cpath d=%22M11.5 22.5h9%22 stroke-width=%221.8%22/%3E%3C/svg%3E")}#sTitle.home #btnStamps::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4.5 9l7.5-3 8 3 7.5-3v17l-7.5 3-8-3-7.5 3z%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M12 6v17M20 9v17%22 stroke-width=%221.4%22 opacity=%22.55%22/%3E%3Cpath d=%22M16 21s5-4.6 5-8.4a5 5 0 0 0-10 0c0 3.800 5 8.400 5 8.400z%22 fill=%22%23D9584C%22/%3E%3Ccircle cx=%2216%22 cy=%2212.600%22 r=%221.700%22 fill=%22%23FBF6EE%22 stroke=%22none%22/%3E%3C/svg%3E")}#sTitle.home #btnZukan::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M16 9c-2.500-2-6-2.600-10-2v17c4-.6 7.500 0 10 2 2.500-2 6-2.600 10-2V7c-4-.6-7.500 0-10 2z%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M16 9v17%22 stroke-width=%221.6%22/%3E%3Cpath d=%22M8.500 19c0-4 2-6.500 5-7.500 0 4-1.500 6.500-5 7.500z%22 fill=%22%236DB36A%22 stroke-width=%221.5%22/%3E%3Cpath d=%22M19 13h4.500M19 17h4.500%22 stroke-width=%221.6%22 opacity=%22.7%22/%3E%3C/svg%3E")}
+#sTitle.home #btnShop::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 14v12h20V14%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M4 9.500L6.500 5h19L28 9.500v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z%22 fill=%22%23E9B44C%22/%3E%3Cpath d=%22M10 5.500v6M16 5.500v6M22 5.500v6%22 stroke-width=%221.3%22 opacity=%22.6%22/%3E%3Crect x=%2213%22 y=%2218%22 width=%226%22 height=%228%22 rx=%221%22 fill=%22%235B8DBF%22/%3E%3C/svg%3E")}#sTitle.home #btnHow::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211.500%22 fill=%22%235B8DBF%22/%3E%3Cpath d=%22M12.300 12.800a3.800 3.800 0 1 1 5.600 3.400c-1.200.7-1.900 1.400-1.900 2.800%22 stroke=%22%23FBF6EE%22 stroke-width=%222.600%22/%3E%3Ccircle cx=%2216%22 cy=%2222.700%22 r=%221.500%22 fill=%22%23FBF6EE%22 stroke=%22none%22/%3E%3C/svg%3E")}
+#sTitle.home #btnRank::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 11l5.500 5L16 7.500l5.500 8.500L27 11l-2.200 12.500H7.200z%22 fill=%22%23E9B44C%22/%3E%3Cpath d=%22M8 26.500h16%22 stroke-width=%222.400%22/%3E%3Ccircle cx=%2216%22 cy=%2218.500%22 r=%221.800%22 fill=%22%23D9584C%22 stroke=%22none%22/%3E%3C/svg%3E")}#sTitle.home #btnName::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%224.500%22 y=%229%22 width=%2223%22 height=%2216%22 rx=%223.500%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M4.500 13.500h23%22 stroke=%22none%22/%3E%3Cpath d=%22M5.500 9.800h21a2.500 2.500 0 0 1 1 2v2.200h-23v-2.200a2.500 2.500 0 0 1 1-2z%22 fill=%22%235B8DBF%22 stroke=%22none%22/%3E%3Crect x=%224.500%22 y=%229%22 width=%2223%22 height=%2216%22 rx=%223.500%22/%3E%3Cpath d=%22M13 5.500v5M19 5.500v5%22 stroke-width=%222.200%22/%3E%3Cpath d=%22M9.500 19.500h13%22 stroke-width=%222.400%22/%3E%3C/svg%3E")}#sTitle.home #btnChat::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 8.500a3.500 3.500 0 0 1 3.500-3.500h15A3.500 3.500 0 0 1 27 8.500v9a3.500 3.500 0 0 1-3.500 3.500H15l-6 5.500V21h-.5A3.500 3.500 0 0 1 5 17.500z%22 fill=%22%23FBF6EE%22/%3E%3Ccircle cx=%2211%22 cy=%2213%22 r=%221.600%22 fill=%22%233B2A20%22 stroke=%22none%22/%3E%3Ccircle cx=%2216%22 cy=%2213%22 r=%221.600%22 fill=%22%233B2A20%22 stroke=%22none%22/%3E%3Ccircle cx=%2221%22 cy=%2213%22 r=%221.600%22 fill=%22%233B2A20%22 stroke=%22none%22/%3E%3C/svg%3E")}
+#sTitle.home .row .mini .dot{top:0;right:8px;width:12px;height:12px;box-shadow:0 0 0 2px #fff}
+/* 下の台：キャラクターえらび・スタート・小さなボタン */
+#sTitle.home .card>.chars{grid-column:1/-1;grid-row:6;display:flex;justify-content:center;gap:14px;padding:16px 16px 22px;position:relative;justify-self:center;width:min(100%,520px);box-sizing:border-box;background-color:#FDF9F2;border-radius:28px 28px 0 0;box-shadow:inset 0 1.5px 0 #fff}
+#sTitle.home .chars .char{width:78px;border:0;background:none;box-shadow:none;border-radius:0;padding:0;gap:3px;align-items:center;text-align:center;position:static;flex:none}
+#sTitle.home .chars .char canvas{width:66px;height:66px;max-width:none;aspect-ratio:auto;border-radius:50%;background:radial-gradient(circle at 50% 35%,#fff,var(--cream));box-shadow:0 0 0 2.5px rgba(59,42,32,.16);transition:transform .16s cubic-bezier(.2,.9,.3,1.3),box-shadow .16s}
+#sTitle.home .chars .char[aria-pressed="true"] canvas{transform:scale(1.1);box-shadow:0 0 0 3px var(--tie),0 0 0 6px rgba(214,162,60,.25),0 4px 10px rgba(59,42,32,.2)}
+#sTitle.home .chars .char .nm{font-size:13px;margin-top:3px}
+#sTitle.home .chars .char:not([aria-pressed="true"]) .nm{opacity:.62}
+#sTitle.home .chars .char .role,#sTitle.home .chars .char .cbest{display:none}
+#sTitle.home .chars .char .perk{display:none;position:absolute;left:0;right:0;bottom:4px;text-align:center;font-size:11px;white-space:nowrap}
+#sTitle.home .chars .char .perk br{display:none}#sTitle.home .chars .char .perk span+span::before{content:"・"}
+#sTitle.home .chars .char[aria-pressed="true"] .perk{display:block}
+#sTitle.home .card>#btnCont{grid-column:1/-1;grid-row:7;justify-self:center;width:min(100% - 32px,440px);margin:0 0 8px}
+#sTitle.home .card>#btnStart{grid-column:1/-1;grid-row:8;justify-self:center;width:min(100% - 32px,440px);box-sizing:border-box;margin:0;border-radius:999px;font-size:26px;padding:13px 14px 14px;letter-spacing:.12em;color:#3B2A20;
+  background:linear-gradient(180deg,#FFE08A 0%,#F3C24F 38%,#D9A53C 100%);box-shadow:0 5px 0 #9A6F1C,0 12px 20px rgba(59,42,32,.22),inset 0 2px 0 rgba(255,255,255,.7),inset 0 -3px 0 rgba(154,111,28,.25)}
+#sTitle.home .card>#btnStart:active{transform:translateY(3px);box-shadow:0 2px 0 #9A6F1C,inset 0 2px 0 rgba(255,255,255,.7)}
+#sTitle.home .card>#tKeepBtns{grid-column:1/-1;grid-row:9;margin:0;padding:12px 12px calc(14px + env(safe-area-inset-bottom,0px));gap:8px}
+#sTitle.home #tKeepBtns .sub{display:inline-flex;align-items:center;gap:5px;background:var(--cream);border-radius:999px;padding:6px 12px 6px 8px;font-size:11px}
+#sTitle.home #tKeepBtns .sub::before{content:"";flex:none;width:18px;height:18px;background-position:center;background-size:18px;background-repeat:no-repeat}
+#sTitle.home #btnRecords::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 26.500h22%22/%3E%3Crect x=%227%22 y=%2217%22 width=%224.600%22 height=%229.500%22 rx=%221.200%22 fill=%22%23FBF6EE%22/%3E%3Crect x=%2213.700%22 y=%2211.500%22 width=%224.600%22 height=%2215%22 rx=%221.200%22 fill=%22%23E9B44C%22/%3E%3Crect x=%2220.400%22 y=%226%22 width=%224.600%22 height=%2220.500%22 rx=%221.200%22 fill=%22%23D9584C%22/%3E%3C/svg%3E")}#sTitle.home #btnPractice::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M9 28V4.500%22/%3E%3Cpath d=%22M9 6h13.500l-3 4.500 3 4.500H9z%22 fill=%22%236DB36A%22/%3E%3Cpath d=%22M5.500 28h8%22 stroke-width=%222.400%22/%3E%3C/svg%3E")}#sTitle.home #btnRev::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M24.500 16a8.500 8.500 0 1 1-2.700-6.200%22 stroke-width=%222.600%22/%3E%3Cpath d=%22M24.800 5v6h-6%22 fill=%22none%22 stroke-width=%222.600%22/%3E%3C/svg%3E")}
+/* 下の小さな文字（遊び方・公式サイト・SNS）は、台の下に続く */
+#sTitle.home>.small-print{position:static;background:rgba(251,246,238,.98);width:100%;margin:0;padding:6px 16px;box-sizing:border-box;text-align:center;flex:none}
+#sTitle.home>.small-print,#sTitle.home>.small-print a,#sTitle.home>.small-print span,#sTitle.home>.small-print b{color:var(--ink-soft);text-shadow:none}
+#sTitle.home>.small-print.fol{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+/* 横長の画面（PC・タブレット）：左右のボタンを大きく・間をあける */
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){
+  #sTitle.home .logo{left:max(2.4vw,22px);top:18px}
+  #sTitle.home .logo h1{font-size:clamp(30px,5.6vh,52px)}
+  #sTitle.home .card{grid-template-columns:208px minmax(0,1fr) 208px}
+  #sTitle.home .card>.row{display:grid;grid-template-columns:1fr 1fr;justify-items:center;justify-self:start;padding-left:max(1.2vw,10px)}
+  #sTitle.home .card>.row2{justify-self:end;padding-right:max(2vw,20px)}
+  #sTitle.home .card>.bank{padding:64px max(2vw,20px) 0 0}
+  #sTitle.home .card>#tCareer{justify-self:end;width:min(360px,34vw);padding:8px max(2vw,20px) 0 0;grid-column:2/-1}
+  #sTitle.home .card>#tToday,#sTitle.home .card>.story,#sTitle.home .card>#tDaily{justify-self:center;width:min(340px,100%);box-sizing:border-box}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:10px;padding-bottom:20px}
+  #sTitle.home .row .mini{width:96px}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:58px;height:58px;background-size:34px}
+  #sTitle.home .row2 .sub::before{margin-left:-29px}
+  #sTitle.home .row2 .sub{padding:62px 9px 2px;max-width:104px;font-size:11.5px}#sTitle.home .row2 .sub::after{height:calc(1.25em + 4px)}
+  #sTitle.home .row .mini em{font-size:11.5px;max-width:104px;padding:2px 9px}
+  #sTitle.home .card>.chars{padding-top:14px}
+}
+/* 横向きのスマホ（高さが低い）：スタートとキャラクターえらびを横に並べ、左右のボタンは 2 列に */
+@media (orientation:landscape) and (max-height:559px){
+  #sTitle.home .logo{left:12px;top:8px}
+  #sTitle.home .logo .k{display:none}
+  #sTitle.home .logo h1{font-size:22px}#sTitle.home .logo h1 br{display:none}
+  #sTitle.home .card{grid-template-columns:150px minmax(0,1fr) 150px}
+  #sTitle.home .card>.bank{padding:8px 120px 0 0}
+  #sTitle.home .card>#tCareer{display:none}
+  #sTitle.home .card>#tToday{justify-self:center;width:min(360px,100%);box-sizing:border-box;margin-top:8px}
+  #sTitle.home #tToday .tt-ch{display:none}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{display:grid;grid-template-columns:1fr 1fr;gap:6px 2px;padding:6px 4px 8px;align-self:end}
+  #sTitle.home .card>.row2{grid-template-columns:1fr 1fr}
+  #sTitle.home .row .mini{width:72px}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:42px;height:42px;background-size:26px}
+  #sTitle.home .row2 .sub{padding-top:46px}#sTitle.home .row2 .sub::before{margin-left:-21px}
+  #sTitle.home .card>.chars{grid-column:2;grid-row:8;justify-self:start;width:auto;padding:8px 0 20px 14px;gap:8px}
+  #sTitle.home .chars .char{width:56px}#sTitle.home .chars .char canvas{width:46px;height:46px}
+  #sTitle.home .chars .char .nm{font-size:11px;margin-top:1px}
+  #sTitle.home .chars .char .perk{bottom:3px;font-size:10px;left:14px;right:auto}
+  #sTitle.home .card>#btnStart{grid-column:2;grid-row:8;justify-self:end;align-self:center;width:46%;margin:0 14px 6px 0;font-size:20px;padding:10px}
+  #sTitle.home .card>#btnCont{grid-column:2;grid-row:7;width:60%;margin:6px 0 0;font-size:12px;padding:6px}
+  #sTitle.home .card>#tKeepBtns{display:none}
+  #sTitle.home .card::after{grid-column:2;grid-row:7/10;width:100%;border-radius:22px 22px 0 0}
+}
+
+/* お知らせの帯：下の台のすぐ上・まん中（場所は toastPlace が決める） */
+.ttoast.hm{top:var(--tt-top,54px)!important;bottom:auto!important;left:0!important;right:0!important;margin:0 auto!important;max-width:min(86vw,520px)!important;min-width:0!important}
+@media (max-width:359px){ #sTitle.home #tBestL{display:none} #sTitle.home .card>.bank{padding-left:118px;gap:5px} #sTitle.home .bank>span:not(.tog){padding:0 9px 0 7px} #sTitle.home .logo h1{font-size:23px} #sTitle.home .logo{left:10px} }
+/* ==== ブラッシュアップ A（docs/HOME-2026-11-19.md の 1〜25）==== */
+/* 1・2 丸いボタン：上から下へのやわらかい色・ボタンごとの色の輪 */
+#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{background-color:#FFFDF8;background-image:var(--ic),linear-gradient(180deg,#FFFFFF 0%,#FFF8EC 62%,#F6E7CC 100%);background-position:center,center;background-size:30px,100% 100%;background-repeat:no-repeat;
+  box-shadow:0 3px 0 rgba(59,42,32,.42),0 7px 14px rgba(59,42,32,.2),inset 0 0 0 2.5px #fff,inset 0 0 0 4px var(--ring,rgba(214,162,60,.28));transition:transform .12s cubic-bezier(.2,.9,.3,1.4),box-shadow .12s}
+#sTitle.home #btnMissions{--ic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%227%22 y=%226%22 width=%2218%22 height=%2221%22 rx=%223%22 fill=%22%23FBF6EE%22/%3E%3Crect x=%2212%22 y=%223.5%22 width=%228%22 height=%225%22 rx=%222%22 fill=%22%23E9B44C%22/%3E%3Cpath d=%22M11.5 15.5l2.6 2.6 5.6-5.8%22 stroke=%22%236DB36A%22 stroke-width=%222.6%22/%3E%3Cpath d=%22M11.5 22.5h9%22 stroke-width=%221.8%22/%3E%3C/svg%3E");--ring:rgba(109,179,106,.4)}#sTitle.home #btnStamps{--ic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4.5 9l7.5-3 8 3 7.5-3v17l-7.5 3-8-3-7.5 3z%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M12 6v17M20 9v17%22 stroke-width=%221.4%22 opacity=%22.55%22/%3E%3Cpath d=%22M16 21s5-4.6 5-8.4a5 5 0 0 0-10 0c0 3.800 5 8.400 5 8.400z%22 fill=%22%23D9584C%22/%3E%3Ccircle cx=%2216%22 cy=%2212.600%22 r=%221.700%22 fill=%22%23FBF6EE%22 stroke=%22none%22/%3E%3C/svg%3E");--ring:rgba(217,88,76,.34)}#sTitle.home #btnZukan{--ic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M16 9c-2.500-2-6-2.600-10-2v17c4-.6 7.500 0 10 2 2.500-2 6-2.600 10-2V7c-4-.6-7.500 0-10 2z%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M16 9v17%22 stroke-width=%221.6%22/%3E%3Cpath d=%22M8.500 19c0-4 2-6.500 5-7.500 0 4-1.500 6.500-5 7.500z%22 fill=%22%236DB36A%22 stroke-width=%221.5%22/%3E%3Cpath d=%22M19 13h4.500M19 17h4.500%22 stroke-width=%221.6%22 opacity=%22.7%22/%3E%3C/svg%3E");--ring:rgba(109,179,106,.4)}
+#sTitle.home #btnShop{--ic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 14v12h20V14%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M4 9.500L6.500 5h19L28 9.500v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z%22 fill=%22%23E9B44C%22/%3E%3Cpath d=%22M10 5.500v6M16 5.500v6M22 5.500v6%22 stroke-width=%221.3%22 opacity=%22.6%22/%3E%3Crect x=%2213%22 y=%2218%22 width=%226%22 height=%228%22 rx=%221%22 fill=%22%235B8DBF%22/%3E%3C/svg%3E");--ring:rgba(233,180,76,.5)}#sTitle.home #btnHow{--ic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211.500%22 fill=%22%235B8DBF%22/%3E%3Cpath d=%22M12.300 12.800a3.800 3.800 0 1 1 5.600 3.400c-1.200.7-1.900 1.400-1.900 2.800%22 stroke=%22%23FBF6EE%22 stroke-width=%222.600%22/%3E%3Ccircle cx=%2216%22 cy=%2222.700%22 r=%221.500%22 fill=%22%23FBF6EE%22 stroke=%22none%22/%3E%3C/svg%3E");--ring:rgba(91,141,191,.4)}
+#sTitle.home #btnRank{--ic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 11l5.500 5L16 7.500l5.500 8.500L27 11l-2.200 12.500H7.200z%22 fill=%22%23E9B44C%22/%3E%3Cpath d=%22M8 26.500h16%22 stroke-width=%222.400%22/%3E%3Ccircle cx=%2216%22 cy=%2218.500%22 r=%221.800%22 fill=%22%23D9584C%22 stroke=%22none%22/%3E%3C/svg%3E");--ring:rgba(233,180,76,.5)}#sTitle.home #btnName{--ic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect x=%224.500%22 y=%229%22 width=%2223%22 height=%2216%22 rx=%223.500%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M4.500 13.500h23%22 stroke=%22none%22/%3E%3Cpath d=%22M5.500 9.800h21a2.500 2.500 0 0 1 1 2v2.200h-23v-2.200a2.500 2.500 0 0 1 1-2z%22 fill=%22%235B8DBF%22 stroke=%22none%22/%3E%3Crect x=%224.500%22 y=%229%22 width=%2223%22 height=%2216%22 rx=%223.500%22/%3E%3Cpath d=%22M13 5.500v5M19 5.500v5%22 stroke-width=%222.200%22/%3E%3Cpath d=%22M9.500 19.500h13%22 stroke-width=%222.400%22/%3E%3C/svg%3E");--ring:rgba(91,141,191,.4)}#sTitle.home #btnChat{--ic:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 8.500a3.500 3.500 0 0 1 3.500-3.500h15A3.500 3.500 0 0 1 27 8.500v9a3.500 3.500 0 0 1-3.500 3.500H15l-6 5.500V21h-.5A3.500 3.500 0 0 1 5 17.500z%22 fill=%22%23FBF6EE%22/%3E%3Ccircle cx=%2211%22 cy=%2213%22 r=%221.600%22 fill=%22%233B2A20%22 stroke=%22none%22/%3E%3Ccircle cx=%2216%22 cy=%2213%22 r=%221.600%22 fill=%22%233B2A20%22 stroke=%22none%22/%3E%3Ccircle cx=%2221%22 cy=%2213%22 r=%221.600%22 fill=%22%233B2A20%22 stroke=%22none%22/%3E%3C/svg%3E");--ring:rgba(91,141,191,.4)}
+/* 3・4・5 押した時・マウスをのせた時・キーボードで選んだ時 */
+#sTitle.home .row .mini:active,#sTitle.home .row2 .sub:active{transform:none;filter:none}
+#sTitle.home .row .mini:active::before,#sTitle.home .row2 .sub:active::before{transform:translateY(2px) scale(.93);box-shadow:0 1px 0 rgba(59,42,32,.42),inset 0 0 0 2.5px #fff,inset 0 0 0 4px var(--ring,rgba(214,162,60,.28))}
+@media (hover:hover){#sTitle.home .row .mini:hover::before,#sTitle.home .row2 .sub:hover::before{transform:translateY(-2px);box-shadow:0 5px 0 rgba(59,42,32,.42),0 10px 18px rgba(59,42,32,.22),inset 0 0 0 2.5px #fff,inset 0 0 0 4px var(--ring,rgba(214,162,60,.28))}
+  #sTitle.home .chars .char:hover canvas{transform:scale(1.06)}#sTitle.home .chars .char[aria-pressed="true"]:hover canvas{transform:scale(1.12)}
+  #sTitle.home .card>#btnStart:hover{filter:brightness(1.04)}}
+#sTitle.home button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 6px rgba(53,95,134,.85);border-radius:14px}
+/* 6・7 出てくる時の動き（左右のボタンは外から、ふきだしはふわっと）。動きを減らす設定の人には出さない */
+@media (prefers-reduced-motion:no-preference){
+  #sTitle.home:not([hidden]) .row .mini{animation:hmL .42s cubic-bezier(.2,.9,.3,1.15) both}#sTitle.home:not([hidden]) .row2 .sub{animation:hmR .42s cubic-bezier(.2,.9,.3,1.15) both}
+  #sTitle.home .row .mini:nth-child(2),#sTitle.home .row2 .sub:nth-child(2){animation-delay:.05s}#sTitle.home .row .mini:nth-child(3),#sTitle.home .row2 .sub:nth-child(3){animation-delay:.1s}#sTitle.home .row .mini:nth-child(4){animation-delay:.15s}#sTitle.home .row .mini:nth-child(5){animation-delay:.2s}
+  #sTitle.home:not([hidden]) .card>#tToday{animation:hmPop .4s cubic-bezier(.2,.9,.3,1.25) .12s both;transform-origin:50% 100%}
+  #sTitle.home:not([hidden]) .card>.bank,#sTitle.home:not([hidden]) .card>#tCareer{animation:hmDown .36s ease-out both}
+}
+@keyframes hmL{from{transform:translateX(-26px);opacity:0}to{transform:none;opacity:1}}@keyframes hmR{from{transform:translateX(26px);opacity:0}to{transform:none;opacity:1}}
+@keyframes hmPop{from{transform:scale(.86);opacity:0}to{transform:none;opacity:1}}@keyframes hmDown{from{transform:translateY(-10px);opacity:0}to{transform:none;opacity:1}}
+/* 8・9 ふきだし：数字を大きく・棒を太く丸く */
+#sTitle.home #tToday .tt-c small{font-size:10px;letter-spacing:.02em}
+#sTitle.home #tToday .tt-c b{font-size:19px;line-height:1.2}
+#sTitle.home #tToday .tt-c i{height:6px;border-radius:999px;margin-top:3px;background:rgba(59,42,32,.12)}#sTitle.home #tToday .tt-c i u{border-radius:999px;min-width:6px}
+#sTitle.home #tToday .tt-c+.tt-c{box-shadow:-1px 0 0 rgba(59,42,32,.1)}
+#sTitle.home #tToday .tt-ch em{background:#fff;border-radius:999px;padding:1px 8px;box-shadow:inset 0 0 0 1.5px rgba(53,95,134,.25)}
+/* 10 台：上のふちに細い金の線 */
+#sTitle.home .card>.chars::before{content:"";position:absolute;left:50%;top:7px;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:linear-gradient(90deg,rgba(214,162,60,.0),rgba(214,162,60,.55),rgba(214,162,60,0))}
+/* 11・12 スタート：ときどき光のすじが走る（前の「光の輪がふくらむ」はやめる） */
+#sTitle.home .card>#btnStart{animation:none;text-shadow:0 1px 0 rgba(255,255,255,.55);
+  background-image:linear-gradient(100deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.6) 50%,rgba(255,255,255,0) 60%),linear-gradient(180deg,#FFE08A 0%,#F3C24F 38%,#D9A53C 100%);background-size:250% 100%,100% 100%;background-position:150% 0,0 0;background-repeat:no-repeat}
+@media (prefers-reduced-motion:no-preference){#sTitle.home:not([hidden]) .card>#btnStart{animation:hmShine 3.6s ease-in-out 1.2s infinite}}
+@keyframes hmShine{0%{background-position:150% 0,0 0}22%,100%{background-position:-50% 0,0 0}}
+/* 13・14・15 キャラクターえらび：選ぶとぽんとはずむ・選んでいない子は少しうすく・とくいなことは青い札に */
+@media (prefers-reduced-motion:no-preference){#sTitle.home .chars .char[aria-pressed="true"] canvas{animation:hmPick .34s cubic-bezier(.2,.9,.3,1.5)}}
+@keyframes hmPick{0%{transform:scale(.94)}60%{transform:scale(1.16)}100%{transform:scale(1.1)}}
+#sTitle.home .chars .char:not([aria-pressed="true"]) canvas{filter:saturate(.82)}
+#sTitle.home .chars .char .perk{left:50%;right:auto;transform:translateX(-50%);bottom:2px;padding:1px 10px;border-radius:999px;background:#EAF1F8;color:var(--badge-deep)}
+#sTitle.home .card>.chars{padding-bottom:26px}
+/* 16・17 上の帯：ベストに王冠・チモシーの数字をそろえる・昇進の棒を太く */
+#sTitle.home .bank>span:first-child::before{content:"";width:16px;height:16px;background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 11l5.500 5L16 7.500l5.500 8.500L27 11l-2.200 12.500H7.200z%22 fill=%22%23E9B44C%22/%3E%3Cpath d=%22M8 26.500h16%22 stroke-width=%222.400%22/%3E%3Ccircle cx=%2216%22 cy=%2218.500%22 r=%221.800%22 fill=%22%23D9584C%22 stroke=%22none%22/%3E%3C/svg%3E") center/16px no-repeat}
+#sTitle.home .bank b{font-variant-numeric:tabular-nums;letter-spacing:.01em}
+#sTitle.home #tCareer .career .cr-bar{height:9px;box-shadow:inset 0 1px 1px rgba(59,42,32,.18)}#sTitle.home #tCareer .career .cr-bar i{background:linear-gradient(180deg,#F6D06A,#D6A23C);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+#sTitle.home #tCareer .career small{opacity:.9}
+/* 18・19 題名：景色が明るくても読めるように、上にうすい影（横長の画面にも） */
+#sTitle.home .logo h1{filter:drop-shadow(0 2px 6px rgba(40,26,18,.35))}
+#sTitle.home::before{content:"";position:sticky;align-self:stretch;flex:0 0 200px;margin-bottom:-200px;top:0;height:200px;pointer-events:none;z-index:0;background:linear-gradient(180deg,rgba(43,29,18,.46),rgba(43,29,18,.18) 58%,rgba(43,29,18,0))}
+/* 20・21 下の小さなボタン・名前の札 */
+#sTitle.home #tKeepBtns .sub{box-shadow:inset 0 0 0 1.5px rgba(59,42,32,.1),0 2px 0 rgba(59,42,32,.12);min-height:34px}
+#sTitle.home .row .mini em,#sTitle.home .row2 .sub{letter-spacing:.02em}
+/* 22 新しいお知らせの赤い丸は、ゆっくり大きさが変わる */
+@media (prefers-reduced-motion:no-preference){#sTitle.home .row .mini .dot{animation:hmDot 1.6s ease-in-out infinite}}
+@keyframes hmDot{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+/* 23 言語のボタンを、上の帯と同じ形に */
+#sTitle.home .langtop{height:32px;padding:0 12px;font-size:12px;top:calc(12px + env(safe-area-inset-top,0px));right:12px;box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff;background:rgba(255,252,246,.94);border:0}
+/* 24 下の小さな文字：台との間に細い線 */
+#sTitle.home>.small-print:not(.fol){box-shadow:inset 0 1px 0 rgba(59,42,32,.1)}
+/* 25 横長の画面：台は下から少しうかせて、角を全部丸く */
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){
+  #sTitle.home .card{padding-bottom:16px;box-sizing:border-box}
+  #sTitle.home .card::after{border-radius:28px;margin-bottom:0;width:min(100%,480px)}
+  #sTitle.home .card>.chars{width:min(100%,480px)}
+  #sTitle.home .card>#tKeepBtns{padding-bottom:16px}
+  #sTitle.home .langtop{right:max(2vw,20px);top:16px}
+}
+/* 26 せまい画面（スマホ）では、ベストは王冠の絵と数字だけ（題名にかぶらない） */
+@media (max-width:480px){#sTitle.home #tBestL{display:none}}
+/* ==== ブラッシュアップ B（28〜60）==== */
+/* 28 言語のボタン：地球は、どの端末でも同じ絵に（前は端末ごとに形がちがう絵文字） */
+#sTitle.home .langtop>span[aria-hidden]{display:none}
+#sTitle.home .langtop::before{content:"";display:inline-block;width:18px;height:18px;margin-right:5px;vertical-align:-4px;background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211%22 fill=%22%235B8DBF%22/%3E%3Cpath d=%22M5 16h22M16 5c3.200 3 4.800 6.700 4.800 11S19.200 24 16 27c-3.200-3-4.800-6.700-4.800-11S12.800 8 16 5z%22 stroke=%22%23FBF6EE%22 stroke-width=%221.800%22 fill=%22none%22/%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211%22/%3E%3C/svg%3E") center/18px no-repeat}
+/* 29 設定の歯車は、のせると少し回る・30 音のボタンは押すとぽんと縮む */
+@media (hover:hover){#sTitle.home #btnSet:hover{transform:rotate(30deg)}}
+#sTitle.home .bank .tog .sub{transition:transform .2s cubic-bezier(.2,.9,.3,1.4)}#sTitle.home .bank .tog .sub:active{transform:scale(.88)}
+/* 31 ふきだしのチャレンジは 1 行に（長い時は「…」）。文字の量を減らす */
+#sTitle.home #tToday .tt-ch span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 32・33 キャラクターの名前：選んだ子は濃く、丸い顔のわくは金色のグラデーション */
+#sTitle.home .chars .char[aria-pressed="true"] .nm{color:var(--ink)}
+#sTitle.home .chars .char[aria-pressed="true"] canvas{background:radial-gradient(circle at 50% 30%,#fff,#FFF4DC 70%,#F6E2B5)}
+/* 34 途中のつづき（ある時だけ）：スタートの上の、白い細長いボタン */
+#sTitle.home .card>#btnCont{border-radius:999px;background:#fff;box-shadow:inset 0 0 0 2px var(--tie),0 2px 0 rgba(59,42,32,.18);font-size:13px;padding:9px 12px}
+/* 35 逆走デーのボタンは赤いふちで目立たせる */
+#sTitle.home #tKeepBtns #btnRev{box-shadow:inset 0 0 0 2px rgba(200,70,60,.55),0 2px 0 rgba(59,42,32,.12);color:#A63A30}
+/* 36 お知らせの帯：上の帯と同じ白い丸い札に（前は四角い黒っぽい帯） */
+.ttoast.hm{background:rgba(255,252,246,.97)!important;color:var(--ink)!important;border-radius:999px!important;box-shadow:0 3px 0 rgba(59,42,32,.3),0 8px 18px rgba(59,42,32,.18)!important;border:0!important;padding:8px 16px!important;font-size:13px!important;font-weight:900!important}
+.ttoast.hm .ja{color:var(--ink)!important}
+/* 37 台：上のほうを少し明るく（紙のようなやわらかさ） */
+#sTitle.home .card>.chars{background-image:radial-gradient(120% 70% at 50% 0%,#fff 0%,rgba(255,255,255,0) 70%)}
+/* 38 スタートを押した時：少し縮んで、色が深くなる */
+#sTitle.home .card>#btnStart:active{transform:translateY(3px) scale(.985);filter:saturate(1.1) brightness(.97)}
+/* 39 キャラクターえらびの、キーボードで選んだ時のわく */
+#sTitle.home .chars .char:focus-visible{box-shadow:none;outline:none}#sTitle.home .chars .char:focus-visible canvas{box-shadow:0 0 0 3px #fff,0 0 0 6px rgba(53,95,134,.85)}
+/* 40 背の低いスマホ（高さ 740 まで）：ふきだしのチャレンジの行はしまう（3 人の顔にかぶらない） */
+@media (max-aspect-ratio:4/5) and (max-height:740px){#sTitle.home #tToday .tt-ch{display:none}}
+/* 41 とても背の低いスマホ（高さ 640 まで）：丸いボタンを小さく・間をつめる */
+@media (max-aspect-ratio:4/5) and (max-height:640px){
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:42px;height:42px;background-size:26px,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:45px}#sTitle.home .row2 .sub::before{margin-left:-21px}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:5px;padding-bottom:8px}
+  #sTitle.home .chars .char canvas{width:54px;height:54px}#sTitle.home .card>.chars{padding-top:12px}
+  #sTitle.home .card>#btnStart{font-size:22px;padding:10px}
+}
+/* 42 ボタンの名前の札：字の太さをそろえる・少しだけ間をあける */
+#sTitle.home .row .mini em,#sTitle.home .row2 .sub{font-weight:800}
+/* 43 上の帯の数字：小さな影で、景色の上でもくっきり */
+#sTitle.home .bank b{text-shadow:0 1px 0 #fff}
+/* 44 昇進の札：名前（主任など）を少し大きく */
+#sTitle.home #tCareer .career .cr-t{font-size:15px}
+/* 45 ふきだしの角：右上に小さな金の点（「今日」の目じるし） */
+#sTitle.home .card>#tToday::before{content:"";position:absolute;top:-4px;right:14px;width:10px;height:10px;border-radius:50%;background:var(--tie);box-shadow:0 0 0 2px #fff}
+/* 46 ふきだしの目標を達成した時は、まわりが緑にかがやく */
+#sTitle.home #tToday:has(.tt-c.ok){box-shadow:0 3px 0 rgba(59,42,32,.3),0 0 0 3px rgba(109,179,106,.45),inset 0 1px 0 #fff}
+/* 47 横長の画面：ふきだしの字を大きく */
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){#sTitle.home #tToday .tt-c b{font-size:22px}#sTitle.home #tToday .tt-c small{font-size:11px}#sTitle.home #tToday .tt-ch{font-size:12px}}
+/* 48 台の上の金の線：横長の画面では、台の上のふちに */
+/* 49 ボタンの絵が読みこまれる前に、白い丸だけが一瞬出ないよう、丸は最初から色つき */
+#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{background-color:#FFF8EC}
+/* 50 画面を下へなぞった時（スマホ）：上の影はうすく */
+#sTitle.home.scrolled::before{opacity:.4}
+/* 51 スマホ：題名の「！」が上の帯にかくれないよう、題名を少し小さく */
+/* 52 英語など長い名前（How to play）も、札がボタンの幅からはみ出さない */
+#sTitle.home .card{grid-template-columns:82px minmax(0,1fr) 82px}
+#sTitle.home .row .mini{width:80px}#sTitle.home .row .mini em{max-width:80px}#sTitle.home .row2 .sub{max-width:80px}
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){#sTitle.home .card{grid-template-columns:208px minmax(0,1fr) 208px}#sTitle.home .row .mini{width:96px}#sTitle.home .row .mini em,#sTitle.home .row2 .sub{max-width:104px}}
+@media (orientation:landscape) and (max-height:559px){#sTitle.home .card{grid-template-columns:150px minmax(0,1fr) 150px}#sTitle.home .row .mini{width:72px}#sTitle.home .row .mini em,#sTitle.home .row2 .sub{max-width:72px}}
+/* ==== ブラッシュアップ C（54〜）==== */
+/* 54 はじめての人：「朝・道中・夜」は、3 つの小さな札を 1 列に（ふきだしの形・中は透けない白） */
+#sTitle.home .card>.story{padding:7px;gap:5px;position:relative;background:rgba(255,252,246,.96)}
+#sTitle.home .card>.story::after{content:"";position:absolute;left:50%;bottom:-8px;width:16px;height:16px;margin-left:-8px;background:rgba(255,252,246,.96);border-radius:0 0 4px 0;transform:rotate(45deg);box-shadow:3px 3px 0 rgba(59,42,32,.28)}
+#sTitle.home .story .stp{padding:4px 2px 5px;font-size:11px;background:var(--cream)}
+#sTitle.home .story .stp b{font-size:10px;padding:0 7px}
+/* 55 はじめての人：チャレンジの札はしまう（まず走ってみる。文字を減らす） */
+#sTitle.home .card:not(.tgrid)>#tDaily{display:none}
+/* 56 3 人の時（ポムに会った後）：顔の間を少しつめる */
+#sTitle.home .chars.three{gap:10px}
+/* 57 図鑑などの赤い丸：丸いボタンの右上に（名前の札ではなく、絵の丸につける） */
+#sTitle.home .row .mini .dot{top:2px;right:12px}
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){#sTitle.home .row .mini .dot{right:20px}}
+/* 58 小さなボタンの列がない時（はじめての人）：スタートの下にも余白（画面のふちにくっつかない） */
+#sTitle.home .card:not(:has(#tKeepBtns:not([hidden])))>#btnStart{margin-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+/* 59 たて長のタブレット（幅 600 以上）：ふきだしは まん中に はばをしぼり、丸いボタン・顔・スタートを大きく */
+@media (max-aspect-ratio:4/5) and (min-width:600px){
+  #sTitle.home .card{grid-template-columns:120px minmax(0,1fr) 120px}
+  #sTitle.home .card>#tToday,#sTitle.home .card>.story,#sTitle.home .card>#tDaily{justify-self:center;width:min(380px,100%);box-sizing:border-box}
+  #sTitle.home .row .mini{width:104px}#sTitle.home .row .mini em,#sTitle.home .row2 .sub{max-width:110px;font-size:12px}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:64px;height:64px;background-size:38px,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:68px}#sTitle.home .row2 .sub::before{margin-left:-32px}
+  #sTitle.home .chars .char{width:96px}#sTitle.home .chars .char canvas{width:82px;height:82px}#sTitle.home .chars .char .nm{font-size:15px}
+  #sTitle.home .card>#btnStart{font-size:30px;padding:16px}
+  #sTitle.home .logo h1{font-size:38px}
+  #sTitle.home .card>.bank{padding-left:220px;padding-right:128px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
+  #sTitle.home .card>#tCareer{padding-top:14px;padding-left:220px}
+}
+/* 60 大きな画面（PC の全画面など、幅 1500・高さ 900 以上）：全体を大きく（前は画面のわりに小さく見えた） */
+@media (min-aspect-ratio:5/4) and (min-width:1500px) and (min-height:900px){
+  #sTitle.home .card{grid-template-columns:260px minmax(0,1fr) 260px}
+  #sTitle.home .row .mini{width:118px}#sTitle.home .row .mini em,#sTitle.home .row2 .sub{max-width:124px;font-size:13px}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:74px;height:74px;background-size:44px,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:78px}#sTitle.home .row2 .sub::before{margin-left:-37px}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:16px}
+  #sTitle.home .card>#tToday{width:min(440px,100%)}#sTitle.home #tToday .tt-c b{font-size:28px}#sTitle.home #tToday .tt-c small{font-size:13px}#sTitle.home #tToday .tt-ch{font-size:14px}
+  #sTitle.home .card::after,#sTitle.home .card>.chars{width:min(100%,580px)}
+  #sTitle.home .chars .char{width:104px}#sTitle.home .chars .char canvas{width:88px;height:88px}#sTitle.home .chars .char .nm{font-size:16px}
+  #sTitle.home .card>#btnStart{width:min(100% - 32px,520px);font-size:32px;padding:16px}
+  #sTitle.home .bank>span:not(.tog){height:38px;font-size:12px;padding:0 14px 0 11px}#sTitle.home .bank b{font-size:18px}
+  #sTitle.home .bank .tog .sub{width:38px;height:38px;background-size:24px}
+  #sTitle.home .card>#tCareer{width:min(460px,34vw)}#sTitle.home #tCareer .career .cr-t{font-size:17px}
+  #sTitle.home .langtop{height:38px;font-size:14px}
+  #sTitle.home .logo h1{font-size:64px}
+}
+/* 62 背の低いスマホ（高さ 700 まで。iPhone SE など）：スタートが最初から見えるように、下の台は「顔の列」と「スタート」を横に並べる */
+@media (max-aspect-ratio:4/5) and (max-height:700px){
+  #sTitle.home .card>.chars{grid-row:8;justify-self:start;width:auto;padding:12px 0 10px 12px;gap:6px;background:none;box-shadow:none}
+  #sTitle.home .card>.chars::before{display:none}
+  #sTitle.home .chars .char{width:50px}#sTitle.home .chars .char canvas{width:44px;height:44px}#sTitle.home .chars .char .nm{font-size:11px;margin-top:1px}
+  #sTitle.home .chars .char[aria-pressed="true"] canvas{transform:scale(1.06)}
+  #sTitle.home .chars .char .perk{display:none!important}
+  #sTitle.home .card>#btnStart{grid-row:8;justify-self:end;align-self:center;width:calc(100% - 196px);min-width:120px;margin:6px 12px 0 0;font-size:20px;padding:11px 8px;letter-spacing:.06em}
+  #sTitle.home .card:has(.chars.three)>#btnStart{width:calc(100% - 250px)}
+  #sTitle.home .card>#btnCont{grid-row:7;margin-top:10px}
+  #sTitle.home .card::after{grid-row:7/10}
+  #sTitle.home .card>#tKeepBtns{padding-top:6px}
+  #sTitle.home .card:not(:has(#tKeepBtns:not([hidden])))>#btnStart{margin-bottom:6px}
+  #sTitle.home .card:not(:has(#tKeepBtns:not([hidden])))>.chars{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+}
+/* ==== ブラッシュアップ D（63〜）==== */
+/* 63 丸いボタン：左上に小さなつやの光（ふっくらした丸に） */
+#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{background-image:var(--ic),radial-gradient(60% 45% at 32% 22%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%),linear-gradient(180deg,#FFFFFF 0%,#FFF8EC 62%,#F6E7CC 100%);background-size:30px,100% 100%,100% 100%;background-position:center,center,center;background-repeat:no-repeat}
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{background-size:34px,100% 100%,100% 100%}}
+@media (max-aspect-ratio:4/5) and (min-width:600px){#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{background-size:38px,100% 100%,100% 100%}}
+@media (min-aspect-ratio:5/4) and (min-width:1500px) and (min-height:900px){#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{background-size:44px,100% 100%,100% 100%}}
+@media (max-aspect-ratio:4/5) and (max-height:640px){#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{background-size:26px,100% 100%,100% 100%}}
+@media (orientation:landscape) and (max-height:559px){#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{background-size:26px,100% 100%,100% 100%}}
+/* 64 ボタンの名前の札：うすい白いふちで、景色の上でもくっきり */
+#sTitle.home .row .mini em{box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+/* 65 上の帯の札：白からクリームへのやわらかい色 */
+#sTitle.home .bank>span:not(.tog),#sTitle.home #tCareer .career{background-color:#FDF8F0;background-image:linear-gradient(180deg,#FFFFFF,#FBF3E6)}
+/* 66 昇進の札の「Lv.4」は、小さな青い札に */
+#sTitle.home #tCareer .career .cr-lv{background:#EAF1F8;border-radius:999px;padding:0 7px;line-height:1.6}
+/* 67 選んでいない子の名前は、やわらかい色 */
+#sTitle.home .chars .char:not([aria-pressed="true"]) .nm{color:var(--ink-soft)}
+/* 68 PC：ボタンにマウスをのせると、指の形に */
+#sTitle.home button,#sTitle.home .chars .char{cursor:pointer}
+/* 69 スマホ：ボタンを押した時の、灰色の四角いちらつきを出さない（押した感じは、丸が沈む動きで伝える） */
+#sTitle.home button{-webkit-tap-highlight-color:transparent}
+/* 70 スマホ：ボタンを長押ししても、字が選ばれて青くならない */
+#sTitle.home .card{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* 71 スマホ：ホームを下へ引っぱっても、ページの読みこみ直し（引っぱって更新）にならない */
+#sTitle.home{overscroll-behavior:contain}
+/* 72 横向きのスマホ（画面のふちのカメラの切りかけ）：左右のボタンを、切りかけの内がわへ */
+@media (orientation:landscape) and (max-height:559px){#sTitle.home .card>.row{padding-left:max(4px,env(safe-area-inset-left,0px))}#sTitle.home .card>.row2{padding-right:max(4px,env(safe-area-inset-right,0px))}}
+/* 73 下の小さなボタン：PC でのせた時に少し浮く */
+@media (hover:hover){#sTitle.home #tKeepBtns .sub:hover{transform:translateY(-1px);box-shadow:inset 0 0 0 1.5px rgba(59,42,32,.14),0 3px 0 rgba(59,42,32,.14)}#sTitle.home .langtop:hover{filter:brightness(1.03)}}
+/* 74 キーボードで選んだ時のわく：下の小さなボタン・音・設定・言語にも */
+#sTitle.home #tKeepBtns .sub:focus-visible,#sTitle.home .bank .tog .sub:focus-visible,#sTitle.home .langtop:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 6px rgba(53,95,134,.85)}
+/* 75 韓国語・中国語：ボタンの名前を、単語のとちゅうで折り返さない */
+html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .sub{word-break:keep-all}
+/* 76 画面の色を強くする設定（ハイコントラスト）の人：丸いボタンにふちを出す */
+@media (forced-colors:active){#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{border:2px solid ButtonText;forced-color-adjust:none}#sTitle.home .card>#btnStart{border:2px solid ButtonText}}
+/* 77 チモシーの絵：小さなかげで浮かせる */
+#sTitle.home .bank img{filter:drop-shadow(0 1px 0 rgba(59,42,32,.25))}
+/* 78 歯車は押すと少し回る（手ごたえ） */
+#sTitle.home #btnSet:active{transform:rotate(45deg) scale(.9)}
+/* 79 選んでいない子の丸い顔のふちは、細くうすく（選んだ子の金のふちとの差をはっきり） */
+#sTitle.home .chars .char:not([aria-pressed="true"]) canvas{box-shadow:0 0 0 1.5px rgba(59,42,32,.14)}
+/* 80 下の小さな文字のリンク：下線はうすい色に */
+#sTitle.home>.small-print a{text-decoration-color:rgba(110,88,72,.4)}
+/* 81 題名：ホームが出る時、上からふわっとおりてくる */
+@media (prefers-reduced-motion:no-preference){#sTitle.home:not([hidden]) .logo{animation:hmDown .5s cubic-bezier(.2,.9,.3,1.1) both}}
+/* 82 とくいなことの青い札：キャラクターを選びかえると、ぽんと出る */
+@media (prefers-reduced-motion:no-preference){#sTitle.home .chars .char[aria-pressed="true"] .perk{animation:hmPerk .3s cubic-bezier(.2,.9,.3,1.4) both}}
+@keyframes hmPerk{from{transform:translateX(-50%) scale(.7);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+/* 83 新しいお知らせがあるボタンは、ときどき小さくはねて知らせる */
+@media (prefers-reduced-motion:no-preference){#sTitle.home .row .mini:has(.dot:not([hidden]))::before{animation:hmHop 4s ease-in-out 1.5s infinite}}
+@keyframes hmHop{0%,86%,100%{transform:none}90%{transform:translateY(-5px)}94%{transform:translateY(0)}97%{transform:translateY(-2px)}}
+/* 84 読み上げ：スマホで見えなくした「ベスト」は、札の名前（aria-label）として読む（src/7_ui.js） */
+/* 85 数字のはばをそろえる（ふきだし・昇進） */
+#sTitle.home #tToday b,#sTitle.home #tCareer small{font-variant-numeric:tabular-nums}
+/* 86 題名の 2 行目（ダッシュ！）：ふちを少し太く、景色の上でぱっと目に入る */
+#sTitle.home .logo h1 em{text-shadow:0 3px 0 var(--ink),0 0 2px var(--ink)}
+/* 87 ふきだし：「今日の目標」には的の絵、「今日のチモシー」には草の絵（字を読まなくても分かる） */
+#sTitle.home #tToday .tt-c small::before{content:"";display:inline-block;width:13px;height:13px;margin-right:3px;vertical-align:-2px;background:center/13px no-repeat}
+#sTitle.home #tToday .tt-c:nth-child(1) small::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2211%22 fill=%22%23FBF6EE%22/%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%227%22 fill=%22%23D9584C%22 stroke-width=%221.6%22/%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%223%22 fill=%22%23FBF6EE%22 stroke-width=%221.4%22/%3E%3C/svg%3E")}#sTitle.home #tToday .tt-c:nth-child(2) small::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M16 28V12%22 stroke=%22%236DB36A%22 stroke-width=%222.4%22/%3E%3Cpath d=%22M16 14c-1-5 1-9 5-10 1 5-1 9-5 10zM16 19c-4-3-8-3-10-1 2 4 6 4 10 1zM16 22c3-3 7-4 10-2-2 4-6 4-10 2z%22 fill=%22%236DB36A%22 stroke=%22%233B2A20%22 stroke-width=%221.4%22/%3E%3C/svg%3E")}
+/* 88 選んだ子の丸い顔の下に、やわらかい影（台の上に立っているように） */
+#sTitle.home .chars .char[aria-pressed="true"] canvas{box-shadow:0 0 0 3px var(--tie),0 0 0 6px rgba(214,162,60,.25),0 9px 10px -6px rgba(59,42,32,.4)}
+/* 89 横向きのスマホ：ふきだしのはばをしぼって、まん中に */
+@media (orientation:landscape) and (max-height:559px){#sTitle.home .card>#tToday{width:min(320px,100%)}}
+/* 90 PC：題名のかげを深く（大きな画面でも、景色にうもれない） */
+@media (min-aspect-ratio:5/4) and (min-width:900px){#sTitle.home .logo h1{text-shadow:0 4px 0 var(--ink);filter:drop-shadow(0 4px 10px rgba(40,26,18,.35))}}
+/* 91 背の低い PC の画面（高さ 760 まで）：下の台をつめて、スタートが最初から見えるように（前はスタートが下で切れていた） */
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px) and (max-height:760px){
+  #sTitle.home .card>.chars{padding-top:10px;padding-bottom:22px}
+  #sTitle.home .chars .char{width:64px}#sTitle.home .chars .char canvas{width:54px;height:54px}#sTitle.home .chars .char .nm{font-size:12px}
+  #sTitle.home .card>#btnStart{font-size:22px;padding:10px}
+  #sTitle.home .card>#tKeepBtns{padding-top:8px;padding-bottom:10px}
+  #sTitle.home #tToday .tt-ch{display:none}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:50px;height:50px;background-size:30px,100% 100%,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:53px}#sTitle.home .row2 .sub::before{margin-left:-25px}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:7px;padding-bottom:10px}
+}
+/* 92 PC：音・設定（絵だけのボタン）は、マウスをのせると名前が出る（src/7_ui.js の title） */
+/* 93 お知らせの帯：2 行になる時は、行の長さをそろえる */
+.ttoast.hm .ja{text-wrap:balance}
+/* 94 せまいスマホ（幅 360 まで）：お知らせの帯の字を少し小さく */
+@media (max-width:360px){.ttoast.hm{font-size:12px!important;padding:7px 13px!important}}
+/* 95 題名の上の小さな字（レンとジルの）：字の間を少しつめて、題名とまとまりよく */
+#sTitle.home .logo .k{letter-spacing:.14em;margin-left:2px}
+/* 96 せまいスマホ：数字が大きい（ベスト 123,456 など）時、上の帯の札が題名にかぶらず、次の行へ回る */
+@media (max-width:400px){#sTitle.home .card>.bank{flex-wrap:wrap;row-gap:6px;padding-left:146px}}
+@media (max-width:359px){#sTitle.home .card>.bank{padding-left:124px}}
+/* 97 直し：横向きのスマホで「きろく」「練習・場所えらび」が出ていなかった（押せない）。台の下に小さく出す */
+@media (orientation:landscape) and (max-height:559px){
+  #sTitle.home .card>#tKeepBtns:not([hidden]){display:flex;grid-column:2;grid-row:9;padding:0 12px 10px;gap:6px}
+  #sTitle.home #tKeepBtns .sub{font-size:10px;padding:4px 10px 4px 6px;min-height:32px}
+  #sTitle.home .card>.chars{padding-bottom:8px}
+}
+/* 98 直し：横向きのスマホで、とくいなことの札がとなりの子の名前にかぶっていた。横向きでは札をしまう（文字を減らす） */
+@media (orientation:landscape) and (max-height:559px){#sTitle.home .chars .char .perk{display:none!important}}
+/* 99 まだ走っていない人には、ベストの「0」の札を出さない（数字のない札は、文字が 1 つ減るだけ） */
+#sTitle.home .bank>span.zero{display:none}
+/* 100 CrazyGames ではじめての人の画面：台の下のすき間をそろえる */
+.portal-cg.cg-fresh #sTitle.home .card>#btnStart{margin-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+/* ==== HOME-V2 END ==== */
 </style>

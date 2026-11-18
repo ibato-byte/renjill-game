@@ -18,6 +18,7 @@ function applyLang() {
   $('#lbScore').textContent = tr('スコア', 'SCORE'); $('#lbTime').textContent = tr('時刻', 'TIME'); $('#lbHay').textContent = tr('チモシー', 'HAY'); $('#resBest').textContent = lab('NEW BEST!');
   $('#btnChat').textContent = $('#btnChat2').textContent = tr('ジルに聞く', 'Ask Jill');
   ['btnMute', 'btnMute2'].forEach(id => $('#' + id).textContent = SV.mute ? t('soundOff') : t('soundOn'));
+  { const m = $('#btnMute'); m.classList.toggle('off', !!SV.mute); m.setAttribute('aria-label', m.textContent); m.setAttribute('aria-pressed', SV.mute ? 'false' : 'true'); /* 読み上げ：音が出ているかを伝える */ m.title = m.textContent; $('#btnSet').title = tr('設定', 'Settings'); /* PC：絵だけのボタンに、マウスをのせると名前が出る */ $('#btnSet').setAttribute('aria-label', tr('設定', 'Settings')); } /* ホームでは、音と設定は絵のボタン（字は読み上げ用に残す） */
 }
 // the character cards are narrow: put each part ("課長" / "ホーランドロップ") on its own line, never split a word
 function cardTxt(sel, txt) { const el = $(sel); el.textContent = ''; String(txt).split(/\s*[・：:·]\s*/).forEach((p, i) => { if (i) el.appendChild(document.createElement('br')); const s = document.createElement('span'); s.textContent = p; el.appendChild(s); }); }
@@ -27,7 +28,7 @@ function refreshTitle() {
   refreshNameBtn();
   { const lv = plantLv(); if (lv > (SV.plantLv || 0)) { SV.plantLv = lv; save(); setTimeout(() => toastTitle(t('plantUp')), 1600); } } // 観葉植物が育った（B-12）
   applyLang();
-  $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
+  $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); { const bp = $('#tBest').parentNode; if (bp) { bp.setAttribute('aria-label', t('best') + ' ' + fmt(SV.best)); bp.classList.toggle('zero', !SV.best); } } /* まだ走っていない人には、ベストの「0」の札を出さない（ホーム） */ $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
   { const dly = dailyToday(), done = SV.dailyDone === dly.key; $('#tDaily').textContent = (tr('チャレンジ：', 'Challenge: ')) + L(dly.c.t(dly.n)) + (done ? ' ✓' : (tr('（+300本・お守り）', ' (+300 hay, charm)'))); }
   { const q = $('#btnQuick'); if (q) q.remove(); } // 1分ダッシュ（2026-11-08）はやめた（2026-11-15 オーナーの判断）
   try { commShow(); commFetch(); } catch (e) { } // みんなの集計（B-45・47）
@@ -634,6 +635,7 @@ function toastSubBack() { try { if (!document.querySelector('.ttoast[data-sub]')
 /* お知らせは、題名のロゴ（チモシーダッシュ！）にかぶせない（毎日の出社ボーナスが、ロゴの1行目をかくしていた：2026-11-15）。
    ロゴの下の一言の帯の上に重ねる（同じ形の帯なので、帯の中身が入れかわったように見える）。帯が見えない画面（横向きなど）では、ロゴより上か、今までの位置 */
 function toastPlace(d) { try { const sub = $('#tSub'), logo = $('#tLogo'), app = $('#app').getBoundingClientRect(); const h = d.offsetHeight || 36;
+    { const dock = $('#sTitle.home .chars'), cr = $('#sTitle.home #tCareer'); if (dock && dock.offsetParent && !$('#sTitle').hidden) { const c = cr && cr.offsetParent && cr.getBoundingClientRect().height > 8 ? cr.getBoundingClientRect() : null, r = dock.getBoundingClientRect(); d.classList.add('hm'); d.style.setProperty('--tt-top', Math.max(8, Math.round(c ? c.bottom - app.top + 8 : r.top - app.top - h - 16)) + 'px'); return; } } /* 新しいホーム（2026-11-19）：お知らせは、昇進の帯のすぐ下・まん中に出す（左右のボタンやスタートにかぶせない。昇進の帯がない横向きは、台のすぐ上） */
     const sr = sub && sub.offsetParent ? sub.getBoundingClientRect() : null, lr = logo && logo.offsetParent ? logo.getBoundingClientRect() : null;
     let top = null;
     if (sr && sr.height > 8 && sr.top > 0 && sr.bottom < app.bottom) { top = sr.top + sr.height / 2 - h / 2; d.style.minWidth = Math.min(Math.round(sr.width), Math.round(app.width * .86)) + 'px'; sub.style.visibility = 'hidden'; d.dataset.sub = '1'; } /* 帯の上に重ねる間、下の帯の字はかくす（2つの文が重なって読めなかった） */
