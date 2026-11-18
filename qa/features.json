@@ -1400,6 +1400,8 @@
       "name": "メンテナンスの終了予定の時刻（予定を過ぎたら出さない）",
       "file": "src/7_ui.js",
       "has": "id=\"maintEnd\""
-    }
+    },
+    {"name": "新しいホーム画面（部屋が主役・絵のボタン）", "file": "src/body.html", "has": "<section id=\"sTitle\" class=\"screen home\">"},
+    {"name": "ホーム画面の見た目（絵のボタン）", "file": "src/head.html", "has": "/* ==== HOME-V2 START ==== */"}
   ]
 }
