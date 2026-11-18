@@ -19,8 +19,10 @@ const { chromium } = require('playwright'); const path = require('path');
       const lum = q => { const g = c.getContext('2d'), R = Math.max(6, q.k * .25 * dpr) | 0, d = g.getImageData(Math.max(0, q.x * dpr - R) | 0, Math.max(0, q.y * dpr - R) | 0, R * 2, R * 2).data; let s = 0, n = 0; for (let i = 0; i < d.length; i += 16) { s += d[i] * .3 + d[i + 1] * .59 + d[i + 2] * .11; n++; } return s / n; }, lit = q => (lum(q) + lum({ x: q.x, y: q.fy, k: q.k })) / 2; // 体と足もと（光のたまり）の平均。白い子（ポム）は体だけだと明るさの上がり方が小さいため
       const W = innerWidth, Hh = innerHeight, S = Math.min(W, Hh) * .25, spots = [[S * .3, S * .3], [W - S * .3, S * .3], [S * .3, Hh * .5], [W - S * .3, Hh * .5], [W * .5, Hh * .7]].map(([x, y]) => ({ x, y, k: S }));
       const sat = q => { const g = c.getContext('2d'), d = g.getImageData(Math.max(0, (q.x - q.k * .45) * dpr) | 0, Math.max(0, (q.fy - q.k * 1.05) * dpr) | 0, q.k * .9 * dpr | 0, q.k * 1.05 * dpr | 0).data; let S = 0, n = 0; for (let i = 0; i < d.length; i += 8) { const mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]); S += mx ? (mx - mn) / mx : 0; n++; } return S / n; };
+      const pn = performance.now.bind(performance), dn = Date.now, T0 = pn(), D0 = dn(); performance.now = () => T0; Date.now = () => D0;   // 比べる 2 回の絵は同じ瞬間にする（2026-11-18：選んだ子が跳ねる間に描くと、位置がずれて明るさが 103% などになり、時々落ちていた）
       H.ev('render()'); const satOn = sat(P); window.__tlOff = 1; H.ev('render()'); const satOff = sat(P); window.__tlOff = 0;
       H.ev('render()'); const on = [lit(P), lit(F), M ? lit(M) : null], eon = spots.map(lum); window.__tlOff = 1; H.ev('render()'); const off = [lit(P), lit(F), M ? lit(M) : null], eoff = spots.map(lum); window.__tlOff = 0;
+      performance.now = pn; Date.now = dn;
       return { n1, P, F, M, on, off, eon, eoff, satOn, satOff, W: innerWidth }; });
     const tag = `${w}×${h} ${ch}：`;
     if (!(r.n1 > 3)) bad.push(tag + 'ホーム画面で光を描いていない');
