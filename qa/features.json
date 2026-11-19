@@ -1194,7 +1194,7 @@
     {
       "name": "箱の上の面を描かない（ふとん）",
       "file": "src/4_render.js",
-      "has": "if (b.noTop) return boxFaces("
+      "has": "if (b.noTop) return boxFaces0("
     },
     {
       "name": "ホーム画面で跳ねるのは選んだ子だけ",
@@ -1401,7 +1401,55 @@
       "file": "src/7_ui.js",
       "has": "id=\"maintEnd\""
     },
-    {"name": "遠くの町の絵は、向きが少し変わってもずらしてはる（曲がる時・階段で止まらない）", "file": "src/4b_patterns.js", "has": "const MX = Math.round(.12 * FOCAL * DPR);"},
-    {"name": "赤い電波塔の屋上のまわり（地面・ビル・公園の木）", "file": "src/3_world.js", "has": "[T-R1〜R5 2026-11-19"}
+    {
+      "name": "遠くの町の絵は、向きが少し変わってもずらしてはる（曲がる時・階段で止まらない）",
+      "file": "src/4b_patterns.js",
+      "has": "const MX = Math.round(.12 * FOCAL * DPR);"
+    },
+    {
+      "name": "赤い電波塔の屋上のまわり（地面・ビル・公園の木）",
+      "file": "src/3_world.js",
+      "has": "[T-R1〜R5 2026-11-19"
+    },
+    {
+      "name": "走り出す前の準備は、先の道の絵が全部できるまで待つ（スマホは長くても4秒）",
+      "file": "src/7_ui.js",
+      "has": "warmDone = !!texWarm("
+    },
+    {
+      "name": "画質の自動調整は、準備中・走り出し直後・一瞬の引っかかりを数えない",
+      "file": "src/7_ui.js",
+      "has": "G.prepEndT || 0) > 1500"
+    },
+    {
+      "name": "走っている間の絵の見張りは1秒に2枚だけ（毎秒の引っかかりをなくす）",
+      "file": "src/2b_bunny.js",
+      "has": "PIC_ROT = (PIC_ROT + 2) % list.length"
+    },
+    {
+      "name": "描く順の表・箱の面の表を使い回す（毎コマのごみを減らす）",
+      "file": "src/4_render.js",
+      "has": "function dput(a, b, c)"
+    },
+    {
+      "name": "箱の面の模様は描く向きで合わせる（模様の向きの入れ物を通さない）",
+      "file": "src/4_render.js",
+      "has": "function fillMapped(pat, a, b, c, d, e, f)"
+    },
+    {
+      "name": "止まっている箱の面・線の切れはしを覚えて使う",
+      "file": "src/4_render.js",
+      "has": "function linePieces(l)"
+    },
+    {
+      "name": "スコアの枠の幅合わせは変わった時だけ",
+      "file": "src/6_game.js",
+      "has": "FIT.lk = lk; /* [軽く 3-20]"
+    },
+    {
+      "name": "遠くの町の絵は描かれている上の部分だけをはる",
+      "file": "src/4b_patterns.js",
+      "has": "const sh = Math.min(c.height, Math.ceil((k.hz + .06 * FOCAL + 6) * DPR))"
+    }
   ]
 }
