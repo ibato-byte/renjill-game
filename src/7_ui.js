@@ -359,13 +359,18 @@ function prepRun() { let el = document.getElementById('prepCue'); if (!el) { el 
   try { el.querySelector('img').src = SPR_URL.hay; } catch (e) { } const bar = el.querySelector('b'); bar.style.width = '5%'; el.className = 'show';
   /* 2026-11-18 オーナー「描く量を減らして現実味を落とすのは避けて。開始前のローディングで対応して」：走り出す前に、時間をかけて全部用意する（長くても 1.5 秒）。
      ①はじめの道と次の 2 本の道の絵・建物の正面・物の面・明るさごとの絵 ②空から見る町の地面の絵（昼と夜）③路面・雲の絵。用意している間は、ゲームは止めておく（G.prepHold） */
-  requestAnimationFrame(() => requestAnimationFrame(() => { startRun(); G.prepHold = 1.5; const t0 = performance.now();
-    const jobs = [() => { if (!FTEX.asphalt) buildFloorTex(); }, () => { if (!CLOUD_SPR.length) buildCloudSprites(); }, () => { if (typeof aerGet === 'function') aerGet(false); }, () => { if (typeof aerGet === 'function') aerGet(true); }, () => { if (typeof aerFine === 'function') { aerFine(false, true); aerFine(false, false); } }, () => { if (typeof aerFine === 'function') { aerFine(true, true); aerFine(true, false); } }];
-    let k = 0, warmN = 0; const total = jobs.length + 8;
-    const step = () => { const t1 = performance.now(); try { if (k < jobs.length) jobs[k++](); else { texWarm(45); warmN++; } } catch (e) { reportErr(e); if (k < jobs.length) k++; else warmN = 99; }
-      bar.style.width = Math.min(100, 5 + (k + warmN) / total * 95) + '%';
-      const done = (k >= jobs.length && (warmN >= 8 || !Object.keys(SPR_PEND).length && warmN >= 3)) || performance.now() - t0 > 1500;
-      if (!done) requestAnimationFrame(step); else { bar.style.width = '100%'; G.prepHold = 0; setTimeout(() => { el.className = ''; }, 150); } };
+  /* [軽く 2] 2026-11-19 オーナー「スマホでめちゃくちゃ止まりやすい。最初やゲームを始める前にしっかりロードの時間を作っていい。品質は絶対に落とさず」：
+     決まった回数で打ち切らず、先の道の絵が「全部できた」と分かるまで用意する（スマホは長くても 4 秒、パソコンは 2.5 秒）。
+     そのあと、本番と同じ絵を裏で数コマ描いて（遠くの町・やわらかい光・路面の模様の下ごしらえ）、走り出した最初の数秒の引っかかりもなくす */
+  requestAnimationFrame(() => requestAnimationFrame(() => { startRun(); const phone = typeof FAC_PHONE !== 'undefined' && FAC_PHONE, cap = phone ? 4000 : 2500; G.prepHold = cap / 1000 + .5; const t0 = performance.now();
+    const jobs = [() => { if (!FTEX.asphalt) buildFloorTex(); }, () => { if (!CLOUD_SPR.length) buildCloudSprites(); }, () => { if (typeof aerGet === 'function') aerGet(false); }, () => { if (typeof aerGet === 'function') aerGet(true); }, () => { if (typeof aerFine === 'function') { aerFine(false, true); aerFine(false, false); } }, () => { if (typeof aerFine === 'function') { aerFine(true, true); aerFine(true, false); } }, () => { if (!G.fork && G.segs.length - G.ci < 4) ensureSegs(); }];
+    let k = 0, warmDone = false, warmN = 0, draw0 = -1;
+    const step = () => { try { if (k < jobs.length) jobs[k++](); else if (!warmDone) { warmN++; warmDone = !!texWarm(phone ? 34 : 40); } } catch (e) { reportErr(e); if (k < jobs.length) k++; else warmDone = true; }
+      const el2 = performance.now() - t0; if (warmDone && draw0 < 0) draw0 = G.drawN || 0; const drawn = draw0 < 0 ? 0 : (G.drawN || 0) - draw0;
+      const frac = k < jobs.length ? k / jobs.length * .35 : warmDone ? .9 + Math.min(1, drawn / 6) * .1 : .35 + Math.min(.55, warmN * .02);
+      bar.style.width = Math.min(100, 5 + Math.max(frac, el2 / cap * .9) * 95) + '%';
+      const done = (warmDone && drawn >= 6) || el2 > cap;
+      if (!done) requestAnimationFrame(step); else { bar.style.width = '100%'; G.prepHold = 0; G.prepEndT = performance.now(); setTimeout(() => { el.className = ''; }, 150); } };
     step(); })); }
 $('#btnName').onclick = () => openName(0);
 $('#btnChat').onclick = chatOpen; $('#btnChat2').onclick = chatOpen; $('#chatClose').onclick = chatClose;
@@ -470,7 +475,8 @@ function frameBody(now) {
   const raw = (now - last) / 1000; let dt = Math.min(.05, Math.max(0, raw)); last = now;
   /* 画面の更新（60/90/120 回/秒）に合わせて、コマの間隔のゆらぎ（15ms・18ms…）をならす。走る速さは同じまま、流れる景色のかくつきが減る（2026-11-15） */
   if (raw > .004 && raw < .05) { FT_AVG = FT_AVG ? FT_AVG + (raw - FT_AVG) * .08 : raw; if (Math.abs(raw - FT_AVG) < FT_AVG * .22) { FT_DEBT += raw - FT_AVG; if (Math.abs(FT_DEBT) > .03) FT_DEBT = 0; dt = Math.max(0, FT_AVG + FT_DEBT * .1); FT_DEBT -= FT_DEBT * .1; } else FT_AVG += (raw - FT_AVG) * .2; } // never backwards (the first frame after a countdown can be stamped a hair before it)
-  if (G.mode === 'play' && raw < .25) { perfAcc += raw; perfN++; if (perfN >= 90) { const avg = perfAcc / perfN; perfAcc = perfN = 0; qualityStep(avg); } }
+  /* [軽く 2] 画質の自動調整は「ずっと重い」時だけ：準備中・走り出してすぐの 1.5 秒・一瞬だけの引っかかり（ふだんの 2.5 倍以上）は数えない。たまたまの 1 コマで画質を下げない */
+  if (G.mode === 'play' && raw < .25 && !G.prepHold && performance.now() - (G.prepEndT || 0) > 1500 && !(FT_AVG && raw > FT_AVG * 2.5 && raw > .03)) { perfAcc += raw; perfN++; if (perfN >= 90) { const avg = perfAcc / perfN; perfAcc = perfN = 0; qualityStep(avg); } }
   TEXN = 0; TEXB = performance.now() + 3; wakeTick(now); if (G.mode === 'play') cpTick(now);
   { let bad = null; if (G.mode !== 'pause' && G.mode !== 'dead' && G.mode !== 'result') { try { update(dt); } catch (e) { bad = e; } }
     if (bad) reportErr(bad); runGuard(Math.min(.1, Math.max(0, raw)), bad); } // a broken frame still draws, and the safety net looks at every frame
