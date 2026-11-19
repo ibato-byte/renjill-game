@@ -440,3 +440,14 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
 @media (orientation:landscape) and (max-height:559px){#sTitle.home .card>.quiet{grid-column:2;grid-row:9;margin:2px 14px 4px auto;font-size:11px}#sTitle.home .card::after{grid-row:7/11}}
 @media (max-aspect-ratio:4/5) and (max-height:700px){#sTitle.home .card:has(>.quiet)>.chars{padding-bottom:2px}#sTitle.home .card:has(>.quiet)>#btnStart{margin-bottom:0}#sTitle.home .card>.quiet{margin:0 12px calc(4px + env(safe-area-inset-bottom,0px))}}
 #sTitle.home .logo .k{position:relative;z-index:1}
+/* 2026-11-20：SNS の新作の札（.feedcard）は、半分すけた白だったので、うしろの部屋の色しだいで字が読みにくかった（CI の contrast で 1.5）。すけない白に */
+#sTitle.home .feedcard{background-color:#FDF9F2}
+/* 2026-11-20：SNS の新作の札は、パソコン・横向きで左上の題字に重なっていた（並びの場所が決まっていなかった）。今日の目標の上・まん中に置く。
+   はじめての人（お話の 1 行が出ている間）は、お話を先に見せ、札は出さない（文字を増やさない） */
+#sTitle.home .card>.feedcard{grid-column:2;grid-row:3;justify-self:center;align-self:start;margin:10px 0 0;max-width:min(100%,360px);box-sizing:border-box;position:relative;z-index:1}
+#sTitle.home .card:has(>.story:not([hidden]))>.feedcard{display:none}
+@media (max-aspect-ratio:4/5) and (max-height:700px){#sTitle.home .card>.feedcard{display:none}} /* 背の低いスマホは場所が足りない（題名・左右のボタンに重なる）ので出さない */
+#sTitle.home .feedcard b{flex:1 1 auto;min-width:6em;white-space:normal;text-wrap:balance;line-height:1.25}#sTitle.home .feedcard small{flex:none}#sTitle.home .feedcard i{flex:none}
+/* 札の中は「NEW｜SNSの新作／題名（2 行まで折り返す）｜▶」の 3 列。長い題名でもはみ出さない */
+#sTitle.home .card>.feedcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:8px;row-gap:0;align-items:center;text-align:left}
+#sTitle.home .feedcard .newtag{grid-column:1;grid-row:1/3}#sTitle.home .feedcard small{grid-column:2;grid-row:1;line-height:1.2}#sTitle.home .feedcard b{grid-column:2;grid-row:2;min-width:0}#sTitle.home .feedcard i{grid-column:3;grid-row:1/3}
