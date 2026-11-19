@@ -6,7 +6,9 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const rand = (a, b) => a + Math.random() * (b - a);
 const pick = a => a[(Math.random() * a.length) | 0];
 function wpick(list) { let t = 0; for (const e of list) t += e[1]; let r = Math.random() * t; for (const e of list) { r -= e[1]; if (r <= 0) return e[0]; } return list[0][0]; }
-const hexRgb = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+/* [軽く 3-29] 色の文字を数にする答えを覚えておく（毎コマ同じ色を何百回も読み直していた）。返すのは毎回新しい写し（受け取った側が書きかえても大丈夫） */
+const HEXC = new Map();
+const hexRgb = h => { let c = HEXC.get(h); if (!c) { c = [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; if (HEXC.size > 4000) HEXC.clear(); HEXC.set(h, c); } return [c[0], c[1], c[2]]; };
 const fmt = n => Math.floor(n).toLocaleString(({ ja: 'ja-JP', en: 'en-US', zh: 'zh-TW', ko: 'ko-KR' })[LANG] || 'en-US');
 function todayStr() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
 function clockStr(min) { min = Math.floor(min) % 1440; return Math.floor(min / 60) + ':' + String(min % 60).padStart(2, '0'); }

@@ -55,11 +55,14 @@ let BU0 = 0, BUS = 1; // u remap while a quad that is partly behind the camera i
 /* [2026-11-19 オーナー「電車の横の壁の絵が、通りすぎると上にぐにゃっと歪む」] 前は画面の上の 4 すみを、そのまま直線でまぜていた（遠近を無視）。
    ななめに見る近い壁ほど、窓や広告が手前へずれ、カメラの横を通る時（壁の一部だけが見える時）は大きく上へゆがんでいた。
    いまは、4 すみのカメラから見た位置をまぜてから画面へ写す（遠近どおり）。4 すみが分からない形の時だけ、前のやり方 */
+/* [軽く 3-3] bil の答えは、使い回す 128 個の入れ物に順に入れて返す（前は呼ぶたびに新しい入れ物を作り、1 コマに数千個のごみになっていた。答えはすぐ使うので、128 個先まで上書きされない） */
+const BILR = Array.from({ length: 128 }, () => [0, 0]); let BILI = 0;
+function bilOut(x, y) { const o = BILR[BILI = (BILI + 1) & 127]; o[0] = x; o[1] = y; return o; }
 const BCAM = new Float32Array(12); let BOK = false;
 function bil(u, v) { u = (u - BU0) / BUS;
   if (BOK) { const ax = BCAM[0] + (BCAM[3] - BCAM[0]) * u, ay = BCAM[1] + (BCAM[4] - BCAM[1]) * u, az = BCAM[2] + (BCAM[5] - BCAM[2]) * u, bx = BCAM[9] + (BCAM[6] - BCAM[9]) * u, by = BCAM[10] + (BCAM[7] - BCAM[10]) * u, bz = BCAM[11] + (BCAM[8] - BCAM[11]) * u;
-    const x = ax + (bx - ax) * v, y = ay + (by - ay) * v, z = az + (bz - az) * v; if (z > NEAR * .5) return [W / 2 + x * FOCAL / z, HORIZON - y * FOCAL / z]; }
-  return [lerp(lerp(SCR[0], SCR[2], u), lerp(SCR[6], SCR[4], u), v), lerp(lerp(SCR[1], SCR[3], u), lerp(SCR[7], SCR[5], u), v)]; }
+    const x = ax + (bx - ax) * v, y = ay + (by - ay) * v, z = az + (bz - az) * v; if (z > NEAR * .5) return bilOut(W / 2 + x * FOCAL / z, HORIZON - y * FOCAL / z); }
+  return bilOut(lerp(lerp(SCR[0], SCR[2], u), lerp(SCR[6], SCR[4], u), v), lerp(lerp(SCR[1], SCR[3], u), lerp(SCR[7], SCR[5], u), v)); }
 /* A wall, sign or floor tile that reaches behind the camera used to lose its pattern (windows, shop fronts, road marks)
    the moment one corner crossed the near plane, so buildings went plain strip by strip as you passed them.
    Here the visible part of the quad is cut out along u, projected on its own, and the pattern is drawn through it
@@ -83,6 +86,7 @@ function bpathAdd(u0, v0, u1, v1) { const a = bil(u0, v0), b = bil(u1, v0), c = 
 function bquad(u0, v0, u1, v1, fill) { const a = bil(u0, v0), b = bil(u1, v0), c = bil(u1, v1), d = bil(u0, v1); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); }
 function bpath(u0, v0, u1, v1) { const a = bil(u0, v0), b = bil(u1, v0), c = bil(u1, v1), d = bil(u0, v1); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath(); }
 // text laid onto the current projected quad (affine approximation)
+const QVERT = { vert: true }, QFLAT = { vert: false }, QFONT = '900 60px "Zen Maru Gothic","Hiragino Sans",sans-serif', QW = new Map();
 function qtext(txt, u0, v0, u1, v1, color, o) {
   o = o || {};
   const tl = bil(u0, v1), tr = bil(u1, v1), bl = bil(u0, v0);
@@ -92,7 +96,7 @@ function qtext(txt, u0, v0, u1, v1, color, o) {
   ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const chars = [...txt];
   if (o.vert) { const n = chars.length, sz = Math.min(80, 92 / n * 1); ctx.font = `900 ${sz * 1.0}px "Zen Maru Gothic","Hiragino Sans",sans-serif`; chars.forEach((ch, i) => { ctx.save(); ctx.translate(50, (i + .5) * 100 / n); ctx.scale(1, (100 / n) / sz * .9); ctx.fillText(ch, 0, 0); ctx.restore(); }); }
-  else { ctx.font = `900 60px "Zen Maru Gothic","Hiragino Sans",sans-serif`; const w = ctx.measureText(txt).width; ctx.translate(50, 52); ctx.scale(Math.min(1.4, 88 / w), 1.25); ctx.fillText(txt, 0, 0); }
+  else { ctx.font = QFONT; let w = QW.get(txt); if (w === undefined) { w = ctx.measureText(txt).width; if (QW.size > 400) QW.clear(); QW.set(txt, w); } /* [軽く 3-6] 看板の字の幅は 1 回だけはかって覚える */ ctx.translate(50, 52); ctx.scale(Math.min(1.4, 88 / w), 1.25); ctx.fillText(txt, 0, 0); }
   ctx.restore();
 }
 
@@ -124,9 +128,9 @@ const c255 = x => x > 255 ? 255 : x < 0 ? 0 : x | 0; // out-of-range rgb() value
 const RGBS = new Map(); /* [軽く] 色の文字（rgb(…)）を作り直さず使い回す。同じ文字だとブラウザの色の読み取りも速い */
 function rgbStr(r, g, b) { const key = (r << 16) | (g << 8) | b; let v = RGBS.get(key); if (v === undefined) { if (RGBS.size > 30000) RGBS.clear(); v = `rgb(${r},${g},${b})`; RGBS.set(key, v); } return v; }
 function fogged(c, k, d, glow) { const t = fogK(d), f = LT.fog; let r, g, b; if (glow) { r = c[0]; g = c[1]; b = c[2]; } else { const a = LT.amb; r = c[0] * k * a[0]; g = c[1] * k * a[1]; b = c[2] * k * a[2]; } return rgbStr(c255(r + (f[0] - r) * t), c255(g + (f[1] - g) * t), c255(b + (f[2] - b) * t)); }
-const TC = new Map(); let TCK = '';
+const TC = new Map(), TA = [NaN, NaN, NaN]; let TCK = '';
 function tint(hex) { // apply the current light to a literal color (for patterns)
-  const key = LT.amb.map(x => x.toFixed(2)).join(); if (key !== TCK) { TC.clear(); TCK = key; }
+  const am = LT.amb; if (am[0] !== TA[0] || am[1] !== TA[1] || am[2] !== TA[2]) { TA[0] = am[0]; TA[1] = am[1]; TA[2] = am[2]; const key = am.map(x => x.toFixed(2)).join(); if (key !== TCK) { TC.clear(); TCK = key; } } /* [軽く 3-2] 明るさが前と同じなら、目印の文字を作り直さない（1 コマに数千回呼ばれていた） */
   let s = TC.get(hex); if (!s) { const c = lit(C(hex), 1); s = `rgb(${c255(c[0])},${c255(c[1])},${c255(c[2])})`; TC.set(hex, s); } return s;
 }
 
@@ -141,9 +145,17 @@ function sunK(n) {
   const nx = n[0], nz = n.length === 3 ? n[2] : n[1]; if (n.length === 3 && Math.abs(n[1]) > .7) return 1 + .06 * SUN.k;
   const dp = nx * SUND[0] + nz * SUND[1]; return 1 + SUN.k * (dp > 0 ? dp * .16 : dp * .2);
 }
+/* [軽く 3-10] 箱の 6 つの面は、箱と場所が前と同じなら、前に作った物をそのまま使う（止まっている箱は毎コマ作り直していた。動く箱は今までどおり） */
+/* [軽く 3-11] 物の深さだけが要る時は、入れ物を作らずに求める（segPos と同じ式） */
+function segDepth(sg, s, lat) { const x = sg.sx + sg.f[0] * s + sg.r[0] * lat, z = sg.sz + sg.f[1] * s + sg.r[1] * lat; return (x - CAM.x) * CAM.s + (z - CAM.z) * CAM.c; }
 function boxFaces(seg, b, ds, dl, dy) {
-  const s0 = b.s0 + ds, s1 = b.s1 + ds, l0 = b.l0 + dl, l1 = b.l1 + dl, y0 = b.y0 + dy, y1 = b.y1 + dy, f = seg.f, r = seg.r;
-  if (b.noTop) return boxFaces(seg, Object.assign({}, b, { noTop: 0 }), ds, dl, dy).filter(fc => !fc.top); // 上の面を描かない箱（ホーム画面の敷きぶとん：上の面は床の絵＝シーツと掛けぶとん）
+  const s0 = b.s0 + ds, s1 = b.s1 + ds, l0 = b.l0 + dl, l1 = b.l1 + dl, y0 = b.y0 + dy, y1 = b.y1 + dy;
+  const k = b.__bk; if (k && k[0] === seg && k[1] === s0 && k[2] === s1 && k[3] === l0 && k[4] === l1 && k[5] === y0 && k[6] === y1 && k[8] === !!b.noTop) return k[7];
+  const fs = boxFaces0(seg, b, s0, s1, l0, l1, y0, y1), kk = k || (b.__bk = []); kk[0] = seg; kk[1] = s0; kk[2] = s1; kk[3] = l0; kk[4] = l1; kk[5] = y0; kk[6] = y1; kk[7] = fs; kk[8] = !!b.noTop; return fs;
+}
+function boxFaces0(seg, b, s0, s1, l0, l1, y0, y1) {
+  const f = seg.f, r = seg.r;
+  if (b.noTop) return boxFaces0(seg, Object.assign({}, b, { noTop: 0 }), s0, s1, l0, l1, y0, y1).filter(fc => !fc.top); // 上の面を描かない箱（ホーム画面の敷きぶとん：上の面は床の絵＝シーツと掛けぶとん）
   return [
     { v: quad(seg, [[s0, l0, y1], [s0, l1, y1], [s1, l1, y1], [s1, l0, y1]]), n: [0, 1, 0], sh: FACE_SH.top, top: 1 },
     { v: quad(seg, [[s0, l0, y0], [s0, l1, y0], [s0, l1, y1], [s0, l0, y1]]), n: [-f[0], 0, -f[1]], sh: FACE_SH.front, front: 1 },
@@ -154,7 +166,7 @@ function boxFaces(seg, b, ds, dl, dy) {
   ];
 }
 function faceVisible(fc) { const v = fc.v; const cx = (v[0] + v[6]) / 2, cy = (v[1] + v[7]) / 2, cz = (v[2] + v[8]) / 2; const n = fc.n3 || fc.n; return n.length === 3 ? (CAM.x - cx) * n[0] + (CAM.y - cy) * n[1] + (CAM.z - cz) * n[2] > 0 : (CAM.x - cx) * n[0] + (CAM.z - cz) * n[1] > 0; }
-function spriteAt(x, y, z) { tc(x, y, z, TMP, 0); const zc = TMP[2]; if (zc < NEAR || zc > FAR) return null; return { sx: W / 2 + TMP[0] * FOCAL / zc, sy: HORIZON - TMP[1] * FOCAL / zc, k: FOCAL / zc, z: zc }; }
+function spriteAt(x, y, z) { tc(x, y, z, TMP, 0); const zc = TMP[2]; if (zc < NEAR || zc > FAR) return null; return { sx: W / 2 + TMP[0] * FOCAL / zc, sy: HORIZON - TMP[1] * FOCAL / zc, k: FOCAL / zc, z: zc }; } // 答えは毎回新しい入れ物（受け取った側が、あとで使うことがある）
 /* a fine material grain laid over near box faces (wood, paint, fabric all read as surfaces rather than flat blocks) */
 let GRAINP = null;
 function grainPattern() { if (GRAINP) return GRAINP; const c = document.createElement('canvas'); c.width = c.height = 96; const g = c.getContext('2d') || noCtx(), r = rnd(11);
@@ -195,13 +207,13 @@ function matFace(fc, b, sg, fd) {
   const wl = b.l1 - b.l0, ws = b.s1 - b.s0, wy = b.y1 - b.y0, top = fc.top || fc.n[1] === -1;
   const wu = top ? wl : (fc.front || fc.n.length === 3 && !fc.sideL && !fc.sideR) ? wl : (fc.sideL || fc.sideR) ? ws : wl, wv = top ? ws : wy;
   const T = .55, ru = Math.max(.25, wu / T) * 128, rv = Math.max(.25, wv / T) * 128;
-  MAT_M.a = (SCR[2] - SCR[0]) / ru; MAT_M.b = (SCR[3] - SCR[1]) / ru; MAT_M.c = (SCR[6] - SCR[0]) / rv; MAT_M.d = (SCR[7] - SCR[1]) / rv; MAT_M.e = SCR[0]; MAT_M.f = SCR[1];
-  if (!isFinite(MAT_M.a + MAT_M.b + MAT_M.c + MAT_M.d)) return;
-  pat.setTransform(MAT_M); ctx.fillStyle = pat; ctx.globalAlpha *= clamp(1.15 - fd / 30, .25, 1); ctx.fill(); ctx.globalAlpha = BOXA;
+  const a = (SCR[2] - SCR[0]) / ru, bb = (SCR[3] - SCR[1]) / ru, c = (SCR[6] - SCR[0]) / rv, d = (SCR[7] - SCR[1]) / rv;
+  if (!isFinite(a + bb + c + d)) return;
+  ctx.globalAlpha = BOXA * clamp(1.15 - fd / 30, .25, 1); fillMapped(pat, a, bb, c, d, SCR[0], SCR[1]); ctx.globalAlpha = BOXA; /* [軽く 3-17] 今の透け具合は覚えている数（BOXA）から求める（読むたびにごみが出ていた） */
 }
 let BOXA = 1;
 // a painting laid on a box face in true perspective: the face is cut into narrow vertical strips, each mapped on its own
-const FI = new Float32Array(3);
+const FI = new Float32Array(3), FIG = new Float64Array(11 * 11 * 2);
 function faceImage(img, flip, v) {
   if (!img || !img.width) return; // a picture the phone had no memory for: the plain box face stays
   const L = litSprite(img, LT.amb), IW = L.width, IH = L.height;
@@ -214,25 +226,44 @@ function faceImage(img, flip, v) {
     tc(bx + (tx - bx) * s, by + (ty - by) * s, bz + (tz - bz) * s, FI, 0); if (FI[2] < NEAR) return null; return [W / 2 + FI[0] * FOCAL / FI[2], HORIZON - FI[1] * FOCAL / FI[2]]; };
   const c00 = Q(0, 0), c10 = Q(1, 0), c01 = Q(0, 1), c11 = Q(1, 1); if (!c00 || !c10 || !c01 || !c11) return;
   const sw = Math.max(Math.hypot(c10[0] - c00[0], c10[1] - c00[1]), Math.hypot(c11[0] - c01[0], c11[1] - c01[1])), sh = Math.max(Math.hypot(c01[0] - c00[0], c01[1] - c00[1]), Math.hypot(c11[0] - c10[0], c11[1] - c10[1]));
-  let N = clamp(Math.ceil(sw / 28), 1, 10), M = clamp(Math.ceil(sh / 34), 1, 10); while (N * M > 48) { if (N >= M) N--; else M--; } const G2 = []; // 1 面あたり三角 96 まで（電車など、近くの大きな面がたくさんあっても重くしない）
-  for (let j = 0; j <= M; j++) { const row = []; for (let i = 0; i <= N; i++) row.push(Q(i / N, 1 - j / M)); G2.push(row); } // row 0 = top of the picture
-  const tri = (p0, p1, p2, t0, t1, t2) => { if (!p0 || !p1 || !p2) return;
-    const cx = (p0[0] + p1[0] + p2[0]) / 3, cy = (p0[1] + p1[1] + p2[1]) / 3, gr = q => { const dx = q[0] - cx, dy = q[1] - cy, l = Math.hypot(dx, dy) || 1; return [q[0] + dx / l * .9, q[1] + dy / l * .9]; }; // a hair bigger, so no hairline seams
-    const du1 = t1[0] - t0[0], dv1 = t1[1] - t0[1], du2 = t2[0] - t0[0], dv2 = t2[1] - t0[1], det = du1 * dv2 - du2 * dv1; if (Math.abs(det) < 1e-6) return;
-    const x1 = p1[0] - p0[0], y1 = p1[1] - p0[1], x2 = p2[0] - p0[0], y2 = p2[1] - p0[1];
+  let N = clamp(Math.ceil(sw / 28), 1, 10), M = clamp(Math.ceil(sh / 34), 1, 10); while (N * M > 48) { if (N >= M) N--; else M--; } // 1 面あたり三角 96 まで（電車など、近くの大きな面がたくさんあっても重くしない）
+  /* [軽く 3-27] ます目の点・三角の計算は、使い回す数の表で行う（前は点ごと・三角ごとに入れ物を作り、1 面で数百個のごみ。貼り方は同じ） */
+  const GX = FIG, NN = N + 1; let k = 0; for (let j = 0; j <= M; j++) for (let i = 0; i <= N; i++, k += 2) { const q = Q(i / N, 1 - j / M); if (q) { GX[k] = q[0]; GX[k + 1] = q[1]; } else { GX[k] = NaN; GX[k + 1] = NaN; } } // row 0 = top of the picture
+  const tp = PAT_OK ? texPat(L) : null;
+  const tri = (i0, j0, i1, j1, i2, j2) => { const o0 = (j0 * NN + i0) * 2, o1 = (j1 * NN + i1) * 2, o2 = (j2 * NN + i2) * 2;
+    const p0x = GX[o0], p0y = GX[o0 + 1], p1x = GX[o1], p1y = GX[o1 + 1], p2x = GX[o2], p2y = GX[o2 + 1]; if (p0x !== p0x || p1x !== p1x || p2x !== p2x) return;
+    const t0u = IW * i0 / N, t0v = IH * j0 / M, t1u = IW * i1 / N, t1v = IH * j1 / M, t2u = IW * i2 / N, t2v = IH * j2 / M;
+    const cx = (p0x + p1x + p2x) / 3, cy = (p0y + p1y + p2y) / 3; // a hair bigger, so no hairline seams
+    const du1 = t1u - t0u, dv1 = t1v - t0v, du2 = t2u - t0u, dv2 = t2v - t0v, det = du1 * dv2 - du2 * dv1; if (Math.abs(det) < 1e-6) return;
+    const x1 = p1x - p0x, y1 = p1y - p0y, x2 = p2x - p0x, y2 = p2y - p0y;
     const A = (x1 * dv2 - x2 * dv1) / det, B = (y1 * dv2 - y2 * dv1) / det, C = (x2 * du1 - x1 * du2) / det, D = (y2 * du1 - y1 * du2) / det;
-    const a = gr(p0), b = gr(p1), c = gr(p2), E = p0[0] - A * t0[0] - C * t0[1], F = p0[1] - B * t0[0] - D * t0[1]; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.closePath();
-    if (!texFill(L, A, B, C, D, E, F)) { ctx.save(); ctx.clip(); ctx.transform(A, B, C, D, E, F); ctx.drawImage(L, 0, 0); ctx.restore(); } };
-  for (let j = 0; j < M; j++) for (let i = 0; i < N; i++) { const T = (ii, jj) => [IW * ii / N, IH * jj / M];
-    tri(G2[j][i], G2[j][i + 1], G2[j + 1][i + 1], T(i, j), T(i + 1, j), T(i + 1, j + 1)); tri(G2[j][i], G2[j + 1][i + 1], G2[j + 1][i], T(i, j), T(i + 1, j + 1), T(i, j + 1)); }
+    const E = p0x - A * t0u - C * t0v, F = p0y - B * t0u - D * t0v; ctx.beginPath();
+    let dx = p0x - cx, dy = p0y - cy, l = Math.hypot(dx, dy) || 1; ctx.moveTo(p0x + dx / l * .9, p0y + dy / l * .9);
+    dx = p1x - cx; dy = p1y - cy; l = Math.hypot(dx, dy) || 1; ctx.lineTo(p1x + dx / l * .9, p1y + dy / l * .9);
+    dx = p2x - cx; dy = p2y - cy; l = Math.hypot(dx, dy) || 1; ctx.lineTo(p2x + dx / l * .9, p2y + dy / l * .9); ctx.closePath();
+    if (tp) fillMapped(tp, A, B, C, D, E, F); else { ctx.save(); ctx.clip(); ctx.transform(A, B, C, D, E, F); ctx.drawImage(L, 0, 0); ctx.restore(); } };
+  for (let j = 0; j < M; j++) for (let i = 0; i < N; i++) { tri(i, j, i + 1, j, i + 1, j + 1); tri(i, j, i + 1, j + 1, i, j + 1); }
 }
+let BOXG = null, BOXM = null, BFN = 0; const BM = new Float64Array(6); const BFACES = [], BFPOOL = [], byDepth0 = (a, b) => b[0] - a[0], byKey3 = (a, b) => b.d > a.d ? 1 : b.d < a.d ? -1 : 0;
+/* [軽く 3-13] 箱の面に模様・絵を貼る時は、模様の向きを（模様の入れ物ではなく）描く向きのほうで合わせる。
+   箱を描いている間の描く向き（BOXM）は決まっているので、それに掛け合わせて、ぬったら戻す。前は 1 面ごとに向きの入れ物を通して渡し、
+   そのたびに小さなごみが十数個出ていた（見た目は同じ） */
+function boxM() { if (!BOXM) { const T = ctx.getTransform(); BM[0] = T.a; BM[1] = T.b; BM[2] = T.c; BM[3] = T.d; BM[4] = T.e; BM[5] = T.f; BOXM = BM; } return BOXM; } // 描く向きは数字の表で覚える（読むたびのごみを出さない）
+function fillMapped(pat, a, b, c, d, e, f) { const M = boxM();
+  ctx.setTransform(M[0] * a + M[2] * b, M[1] * a + M[3] * b, M[0] * c + M[2] * d, M[1] * c + M[3] * d, M[0] * e + M[2] * f + M[4], M[1] * e + M[3] * f + M[5]);
+  if (pat.setTransform && pat.__mt) { pat.setTransform(PATI); pat.__mt = 0; } ctx.fillStyle = pat; ctx.fill(); ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); }
+function bfPut(fc, b) { let e = BFPOOL[BFN]; if (!e) e = BFPOOL[BFN] = { d: 0.5, fc: null, b: null }; BFN++; e.d = depthOf(fc.v); e.fc = fc; e.b = b; BFACES.push(e); }
+/* [軽く 3-9] 箱の上のふちの光の色（16 段の明るさ）は、作っておいた文字を使う（前は面ごとに文字を作っていた。見分けのつかない差） */
+const TOPHL = Array.from({ length: 101 }, (_, k) => `rgba(255,250,240,${(.22 * k / 100).toFixed(3)})`);
 function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
-  const faces = [];
-  if (cache) { for (const [fc, b] of cache) { if (faceVisible(fc)) faces.push([depthOf(fc.v), fc, b]); } }
-  else for (const b of list) { for (const fc of boxFaces(sg, b, ds, dl, dy)) if (faceVisible(fc)) faces.push([depthOf(fc.v), fc, b]); }
-  faces.sort((a, b) => b[0] - a[0]);
+  BOXM = null; // the drawing's own scale (taken once per call, when first needed)
+  /* [軽く 3-5] 見える面の表は、使い回す入れ物に入れる（1 コマに数百個の新しい入れ物を作っていた）。表そのものも使い回す（この中から自分をまた呼ぶことはない） */
+  const faces = BFACES; faces.length = 0; BFN = 0;
+  if (cache) { for (const [fc, b] of cache) { if (faceVisible(fc)) bfPut(fc, b); } }
+  else for (const b of list) { for (const fc of boxFaces(sg, b, ds, dl, dy)) if (faceVisible(fc)) bfPut(fc, b); }
+  faces.sort(byKey3); /* [軽く 3-8] 並べかえのくらべは、大小だけを 1・-1・0 で返す（小数のひき算の答えは、そのたびにごみが出ていた。順番は前と同じ） */
   ctx.globalAlpha = alpha; BOXA = alpha; ctx.lineJoin = 'round'; let PEND = null;
-  for (const [fd, fc, b] of faces) {
+  for (const e of faces) { const fd = e.d, fc = e.fc, b = e.b;
     const m = project(fc.v); if (!m) continue; const am = Math.abs(m); let ar = 0; for (let i = 0, j = am - 1; i < am; j = i++) ar += (SCR[j * 2] + SCR[i * 2]) * (SCR[j * 2 + 1] - SCR[i * 2 + 1]); ar = Math.abs(ar) * .5;
     if (ar < .02) continue; /* 面積がほぼ 0（真横から見た面）だけ省く */
     const glow = b.glow && (LT.night > .3 || b.glow === 1);
@@ -245,23 +276,29 @@ function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
     if (fd < 34 && !glow && m === 4) matFace(fc, b, sg, fd);
     if (fd < 28 && m === 4 && !glow && !fc.top) { // soft light: a little brighter at the top of a face, darker at its foot
       let y0 = 1e9, y1 = -1e9; for (let i = 0; i < 4; i++) { y0 = Math.min(y0, SCR[i * 2 + 1]); y1 = Math.max(y1, SCR[i * 2 + 1]); }
-      if (y1 - y0 > 14) { const gr = ctx.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, 'rgba(255,255,255,.10)'); gr.addColorStop(.6, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(20,15,30,.22)'); ctx.fillStyle = gr; ctx.fill(); } }
+      if (y1 - y0 > 14) { /* [軽く 3-1] 同じ光のぐあいの色の帯を 1 本だけ作り、面の高さに合わせて伸ばして使う（前は面ごと・コマごとに作っていた：1 コマ 150 本ほど。見た目は同じ） */
+        if (!BOXG) { BOXG = ctx.createLinearGradient(0, 0, 0, 1); BOXG.addColorStop(0, 'rgba(255,255,255,.10)'); BOXG.addColorStop(.6, 'rgba(0,0,0,0)'); BOXG.addColorStop(1, 'rgba(20,15,30,.22)'); }
+        const M = boxM(), h = y1 - y0; ctx.setTransform(M[0], M[1], M[2] * h, M[3] * h, M[4] + M[2] * y0, M[5] + M[3] * y0); ctx.fillStyle = BOXG; ctx.fill(); ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); } }
     if (fd < 30 && !b.noEdge) { ctx.strokeStyle = 'rgba(40,30,24,.08)'; ctx.lineWidth = 1; ctx.stroke(); }
-    if (fc.top && m === 4 && fd < 22 && !glow) { ctx.strokeStyle = `rgba(255,250,240,${(.22 * (1 - fd / 22)).toFixed(3)})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(SCR[0], SCR[1]); ctx.lineTo(SCR[2], SCR[3]); ctx.stroke(); }
+    if (fc.top && m === 4 && fd < 22 && !glow) { ctx.strokeStyle = TOPHL[Math.round(clamp(1 - fd / 22, 0, 1) * 100)]; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(SCR[0], SCR[1]); ctx.lineTo(SCR[2], SCR[3]); ctx.stroke(); }
     if (b.face && m === 4 && fd < (b.faceN ? 120 : 50) && (b.faceAll ? (fc.front || fc.back || fc.sideL || fc.sideR) : b.faceFront ? fc.front : b.faceSide ? (b.faceSide === 'L' ? fc.sideL : fc.sideR) : (fc.sideL || fc.sideR))) faceImage(paintFace(b.faceN && LT.night > .4 ? b.faceN : b.face, b.faceW, b.faceH), fc.sideL, fc.v); // 電車（faceN）は遠くからも絵で。先頭の顔は前の面（faceFront）
     if (b.face2 && m === 4 && fd < 50 && !fc.top && (b.face2F ? (fc.front || fc.back) : !(b.faceSide === 'L' ? fc.sideL : fc.sideR) && (fc.front || fc.back || fc.sideL || fc.sideR))) faceImage(paintFace(b.face2, b.face2W || 200, b.face2H || 200), fc.sideL, fc.v); // 2026-11-17：主な面とちがう絵を、ほかの横の面に（たんすの横の板）
     if (m === 4 && fd < 45) {
       if (b.pat === 'vend' && (fc.sideL || fc.sideR || fc.front)) vendFace(b);
-      if (b.txt && (fc.front || (b.vert && (fc.sideL || fc.sideR)))) qtext(b.txt, .08, .06, .92, .94, b.tc || (hexRgb(b.c)[0] + hexRgb(b.c)[1] < 260 ? '#FBF6EE' : '#2B1A12'), { vert: b.vert });
+      if (b.txt && (fc.front || (b.vert && (fc.sideL || fc.sideR)))) qtext(b.txt, .08, .06, .92, .94, b.tc || b.tcA || (b.tcA = hexRgb(b.c)[0] + hexRgb(b.c)[1] < 260 ? '#FBF6EE' : '#2B1A12'), b.vert ? QVERT : QFLAT);
     }
   }
   if (PEND) { ctx.fillStyle = PEND; ctx.fill(); }
   ctx.globalAlpha = 1;
 }
-function vendFace(b) { bquad(.08, .45, .92, .95, '#FFFFFF'); for (let r = 0; r < 3; r++) for (let k = 0; k < 5; k++) bquad(.12 + k * .16, .5 + r * .14, .22 + k * .16, .6 + r * .14, ['#C8463C', '#F2C230', '#4E77A0', '#5F9E5A', '#E86A75'][(r + k) % 5]); bquad(.3, .1, .7, .3, '#2B2B2B'); }
+const VENDC = ['#C8463C', '#F2C230', '#4E77A0', '#5F9E5A', '#E86A75'];
+function vendFace(b) { bquad(.08, .45, .92, .95, '#FFFFFF'); for (let r = 0; r < 3; r++) for (let k = 0; k < 5; k++) bquad(.12 + k * .16, .5 + r * .14, .22 + k * .16, .6 + r * .14, VENDC[(r + k) % 5]); bquad(.3, .1, .7, .3, '#2B2B2B'); }
 
 /* ================= frame ================= */
-const DRAW = [];
+const DRAW = [], DPOOL = []; let DN = 0; const byE0 = (a, b) => b[0] > a[0] ? 1 : b[0] < a[0] ? -1 : 0;
+/* [軽く 3-4] 描く順の表の 1 行（深さ・種類・物）は、使い回す入れ物に入れる（前は 1 コマに数百個の新しい入れ物を作っていた） */
+function dput(a, b, c) { let e = DPOOL[DN]; if (!e) e = DPOOL[DN] = [0, 0, null]; DN++; e[0] = a; e[1] = b; e[2] = c; DRAW.push(e); }
+function dclear() { DRAW.length = 0; DN = 0; }
 const IN_K = k => k === 'room' || k === 'train' || k === 'glass';
 /* 外から建物の中へ曲がった時：カメラが半分以上まわったら、うしろの外の道は描かない（2026-11-16 オーナー「曲がり角で壁が透けて先が見える」。
    中に入ったのに、入り口の横から前の通りの建物や看板が見えていた） */
@@ -300,7 +337,7 @@ function titleLight() {
 let PAT_OK = (() => { try { const c = document.createElement('canvas'); c.width = c.height = 2; const p = c.getContext('2d').createPattern(c, 'no-repeat'); return !!(p && typeof p.setTransform === 'function' && typeof DOMMatrix !== 'undefined'); } catch (e) { return false; } })();
 const PATF = new Map(), PATM = PAT_OK ? new DOMMatrix() : null, PATI = PAT_OK ? new DOMMatrix() : null;
 function texPat(img) { let p = PATF.get(img); if (p === undefined) { try { p = img && img.width && img.height ? ctx.createPattern(img, 'no-repeat') : null; } catch (e) { p = null; } PATF.set(img, p); } return p; }
-function texFill(img, A, B, C, D, E, F) { if (!PAT_OK) return false; const p = texPat(img); if (!p) return false; PATM.a = A; PATM.b = B; PATM.c = C; PATM.d = D; PATM.e = E; PATM.f = F; p.setTransform(PATM); ctx.fillStyle = p; ctx.fill(); return true; } // いまの形（path）を、絵でぬる
+function texFill(img, A, B, C, D, E, F) { if (!PAT_OK) return false; const p = texPat(img); if (!p) return false; PATM.a = A; PATM.b = B; PATM.c = C; PATM.d = D; PATM.e = E; PATM.f = F; p.setTransform(PATM); p.__mt = 1; ctx.fillStyle = p; ctx.fill(); return true; } // いまの形（path）を、絵でぬる
 function render() {
   PATF.clear();
   const seg = G.segs[G.ci] || G.segs[0]; if (!seg) return;
@@ -338,17 +375,23 @@ function occAt(d) {
   const prev = OCC.m[i]; let j = i; while (j < OCC.n - 1 && OCC.d[j] < d) j++; const gy = OCC.y[j];
   return prev < gy - 1.5 ? prev : Infinity;
 }
+/* [軽く 3-14] 線（線路・電線・手すり）を 4m ごとに分けた切れはしは、線ごとに 1 回だけ作って覚える（前は毎コマ作り直していた） */
+function linePieces(l) { const a = l.a, b = l.b, k = l.__pk;
+  if (k && k[0] === a[0] && k[1] === a[1] && k[2] === a[2] && k[3] === b[0] && k[4] === b[1] && k[5] === b[2] && k[6] === l.c && k[7] === l.w && k[8] === l.glowN) return l.__pc;
+  const len = Math.abs(b[0] - a[0]), n = Math.max(1, Math.ceil(len / 4)), out = [];
+  for (let i = 0; i < n; i++) { const t0 = i / n, t1 = (i + 1) / n; out.push(n === 1 ? l : { a: [a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0, a[2] + (b[2] - a[2]) * t0], b: [a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1, a[2] + (b[2] - a[2]) * t1], c: l.c, w: l.w, glowN: l.glowN }); }
+  l.__pk = [a[0], a[1], a[2], b[0], b[1], b[2], l.c, l.w, l.glowN]; l.__pc = out; return out; }
 function occDraw(d, fn) { const y = occAt(d); if (y === Infinity) return fn(); if (y <= 0) return; ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, y); ctx.clip(); try { fn(); } finally { ctx.restore(); } }
 const PROF = {}; let PT = 0; const pm = k => { if (!PROF.on) return; const t = performance.now(); PROF[k] = (PROF[k] || 0) + t - PT; PT = t; };
 function drawSegment(sg, isCur) {
   LC = sg.th.lc || '#80C241'; if (isCur) buildOcc(sg); const oc = isCur && OCC.on;
   const near = d => d > -8 && d < FAR + 8; if (PROF.on) PT = performance.now();
   // floor
-  DRAW.length = 0;
+  dclear();
   const skyRM = curSeg().th.sky && rmFrame(curSeg()); /* [M64] 空を飛んでいる間は、本物の地図の川があるので、着地する公園の手前の立体の水面は描かない（色がちがい、川の上に板がういて見えた） */
-  for (const p of sg.floor) { if (skyRM && p.far) continue; const d = depthOf(p.v); if (d >= FAR + 8 || depthMax(p.v) < -.5) continue; DRAW.push([p.dec ? d - (p.dec === 'futonD' || p.dec === 'zabuTop' ? 4.6 : .8) : p.soft ? d - 4 - (p.sb || 0) : d, p]); } // やわらかい物（soft）とその上の絵は、まわりの畳より後に描く（畳にかくれない）
+  for (const p of sg.floor) { if (skyRM && p.far) continue; const d = depthOf(p.v); if (d >= FAR + 8 || depthMax(p.v) < -.5) continue; dput(p.dec ? d - (p.dec === 'futonD' || p.dec === 'zabuTop' ? 4.6 : .8) : p.soft ? d - 4 - (p.sb || 0) : d, p); } // やわらかい物（soft）とその上の絵は、まわりの畳より後に描く（畳にかくれない）
   const patFar = typeof lowQ !== 'undefined' && lowQ > 1 ? 55 : 999;
-  DRAW.sort((a, b) => b[0] - a[0]);
+  DRAW.sort(byE0);
   const isW = p => p.pat === 'sea' || p.pat === 'water';
   let wPolys = null;
   for (const [d, p] of DRAW) { if (!isW(p)) continue; const m = project(p.v); if (!m) continue; pathPoly(Math.abs(m)); ctx.fillStyle = waterFill(p, d); ctx.fill(); if (m === 4 && d < patFar) floorPattern(p, d);
@@ -360,12 +403,12 @@ function drawSegment(sg, isCur) {
   objShadows(sg);
   if (isCur) drawShadows(sg); pm('shade');
   // walls, ceilings, decorations
-  DRAW.length = 0;
+  dclear();
   const wing = wingOn(sg), cap = wing || capOn(sg);
-  for (const w of sg.walls) { if (skyRM && w.far) continue; /* [M67] 空から見る間は、着地の公園のうしろの町の正面（うすいかべ）を描かない（上から見ると屋根の無い板に見えた） */ if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; DRAW.push([d, 1, w]); }
+  for (const w of sg.walls) { if (skyRM && w.far) continue; /* [M67] 空から見る間は、着地の公園のうしろの町の正面（うすいかべ）を描かない（上から見ると屋根の無い板に見えた） */ if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; dput(d, 1, w); }
   const behind = G.segs.indexOf(sg) >= 0 && G.segs.indexOf(sg) < G.ci; // 曲がり終えた角の矢印の看板は描かない（横に浮いた板に見えていた）
-  for (const e of sg.decos) { if (e.sign && behind) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (e.glow || e.pat === 'bigscreen' ? FAR : lowQ ? 70 : 90)) continue; /* [R14] 光る大画面は遠くでも見える */ DRAW.push([d - 1.6, 2, e]); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
-  DRAW.sort((a, b) => b[0] - a[0]);
+  for (const e of sg.decos) { if (e.sign && behind) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (e.glow || e.pat === 'bigscreen' ? FAR : lowQ ? 70 : 90)) continue; /* [R14] 光る大画面は遠くでも見える */ dput(d - 1.6, 2, e); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
+  DRAW.sort(byE0);
   for (const [d, t, w] of DRAW) {
     if (oc && occAt(d - 2) !== Infinity) { occDraw(d - 2, () => drawWallItem(d, t, w)); continue; }
     drawWallItem(d, t, w);
@@ -374,10 +417,9 @@ function drawSegment(sg, isCur) {
   // 坂の向こうの線（ガードレール・手すり）も、坂のかげに隠す（2026-11-09：渋谷の上り坂で、先の下り坂のガードレールが透けて見えた）。長い線は 4m ごとに分けて、それぞれの奥行きで
   const cur0 = G.segs[G.ci], walled = !isCur && cur0 && cur0 !== sg && cur0.th.kind === 'room' && G.segs.indexOf(sg) > G.ci; /* [T6] 部屋（塔の入口の建物など）の中にいる時は、この先の場所の線（塔の骨組み・手すり）を描かない（壁ごしに透けて見えた） */
   if (walled) { } else
-  if (oc) { for (const l of sg.lines) { const len = Math.abs(l.b[0] - l.a[0]), n = Math.max(1, Math.ceil(len / 4));
-      for (let k = 0; k < n; k++) { const t0 = k / n, t1 = (k + 1) / n, piece = n === 1 ? l : { a: [l.a[0] + (l.b[0] - l.a[0]) * t0, l.a[1] + (l.b[1] - l.a[1]) * t0, l.a[2] + (l.b[2] - l.a[2]) * t0], b: [l.a[0] + (l.b[0] - l.a[0]) * t1, l.a[1] + (l.b[1] - l.a[1]) * t1, l.a[2] + (l.b[2] - l.a[2]) * t1], c: l.c, w: l.w, glowN: l.glowN };
-        const pm2 = segPos(sg, (piece.a[0] + piece.b[0]) / 2, (piece.a[1] + piece.b[1]) / 2), d = (pm2[0] - CAM.x) * CAM.s + (pm2[1] - CAM.z) * CAM.c; G.occLines = (G.occLines || 0) + 1;
-        occDraw(d, () => drawLine(sg, piece)); } } }
+  if (oc) { for (const l of sg.lines) { const ps = linePieces(l);
+      for (const piece of ps) { const d = segDepth(sg, (piece.a[0] + piece.b[0]) / 2, (piece.a[1] + piece.b[1]) / 2); G.occLines = (G.occLines || 0) + 1;
+        const y = occAt(d); if (y === Infinity) drawLine(sg, piece); else if (y > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, y); ctx.clip(); try { drawLine(sg, piece); } finally { ctx.restore(); } } } } } /* occDraw と同じ（入れ物を作らない形） */
   else for (const l of sg.lines) drawLine(sg, l);
   pm('lines');
   drawObjects(sg, isCur, oc);
@@ -398,30 +440,30 @@ const obstacleHintQ = [];
 function drawObjects(sg, isCur, oc) {
   obstacleHintQ.length = 0;
   // objects
-  DRAW.length = 0;
+  dclear();
   for (const o of sg.obs) {
     if (o.dead > .9) continue;
     const mid = segPos(sg, (o.s0 + o.s1) / 2 + (o.ds || 0) + (o.dead ? o.dead * 6 + 3 : 0), (o.l0 + o.l1) / 2);
     const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d < -3 || d > FAR) continue;
-    DRAW.push([d, 3, o]);
+    dput(d, 3, o);
   }
-  if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) DRAW.push([m.cross ? d + 8 : d, 8, m]); } // 橋の上の電車は、橋げた・かべ高欄より先に描く（下から見上げても、電車の床下は橋げたにかくれる。2026-11-17）
-  for (const p of sg.props) { if (p.nodraw) continue; const mid = segPos(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d < -3 || d > (p.big ? FAR : lowQ ? 60 : 85)) continue; DRAW.push([d, 6, p]); }
-  for (const s of sg.spr) { if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const p = segPos(sg, s.s, s.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > (s.far ? FAR : 80)) continue; DRAW.push([d, 7, s]); }
+  if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) dput(m.cross ? d + 8 : d, 8, m); } // 橋の上の電車は、橋げた・かべ高欄より先に描く（下から見上げても、電車の床下は橋げたにかくれる。2026-11-17）
+  for (const p of sg.props) { if (p.nodraw) continue; const d = segDepth(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); if (d < -3 || d > (p.big ? FAR : lowQ ? 60 : 85)) continue; dput(d, 6, p); }
+  for (const s of sg.spr) { if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const d = segDepth(sg, s.s, s.lat); if (d < .5 || d > (s.far ? FAR : 80)) continue; dput(d, 7, s); }
   // pigeons on the street: they peck about and fly off as you run up (2026-11-08)
   // rain: puddles on the street that splash when you run through (2026-11-08)
   if (sg.puddles === undefined && G.weather === 'rain') sg.puddles = puddlesFor(sg);
-  if (sg.puddles && G.weather === 'rain') for (const q of sg.puddles) { const p = segPos(sg, q.s, q.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > 70) continue; DRAW.push([d + 4, 10, q]); }
+  if (sg.puddles && G.weather === 'rain') for (const q of sg.puddles) { const d = segDepth(sg, q.s, q.lat); if (d < .5 || d > 70) continue; dput(d + 4, 10, q); }
   if (sg.birds === undefined) sg.birds = birdsFor(sg);
   if (sg.birds && lowQ < 2) for (const b of sg.birds) { if (isCur && !b.fly && G.mode === 'play' && G.s > b.s - 5 && G.s < b.s + 2) b.fly = G.t; const fy = b.fly ? G.t - b.fly : 0; if (fy > 2.5) continue;
-    const p = segPos(sg, b.s + fy * 3, b.lat + b.dir * fy * 2.2); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .8 || d > 60) continue; DRAW.push([d, 9, b]); }
+    const d = segDepth(sg, b.s + fy * 3, b.lat + b.dir * fy * 2.2); if (d < .8 || d > 60) continue; dput(d, 9, b); }
   if (isCur || G.turnT > 0) for (const it of sg.items) {
     if (it.got || (isCur && it.s < G.s - 3)) continue; /* 取りのがした物も、カメラの後ろに行くまで見えたまま（すぐ消えない） */
-    const p = segPos(sg, it.s, it.lat); const d = (p[0] - CAM.x) * CAM.s + (p[1] - CAM.z) * CAM.c; if (d < .5 || d > 75) continue;
-    DRAW.push([d, 4, it]);
+    const d = segDepth(sg, it.s, it.lat); if (d < .5 || d > 75) continue;
+    dput(d, 4, it);
   }
-  if (isCur && G.player.show) { DRAW.push([G.player.depth, 5, G.player]); if (G.follow.show) DRAW.push([G.follow.depth, 5, G.follow]); if ((G.pom.on || G.pom.title) && G.pom.show) DRAW.push([G.pom.depth, 5, G.pom]); if (G.pomPeek && G.pomPeek.seg === sg && G.pomPeek.b.show) DRAW.push([G.pomPeek.b.depth, 5, G.pomPeek.b]); }
-  DRAW.sort((a, b) => b[0] - a[0]);
+  if (isCur && G.player.show) { dput(G.player.depth, 5, G.player); if (G.follow.show) dput(G.follow.depth, 5, G.follow); if ((G.pom.on || G.pom.title) && G.pom.show) dput(G.pom.depth, 5, G.pom); if (G.pomPeek && G.pomPeek.seg === sg && G.pomPeek.b.show) dput(G.pomPeek.b.depth, 5, G.pomPeek.b); }
+  DRAW.sort(byE0);
   pm('sort');
   for (const e of DRAW) {
     if (oc && e[1] !== 5 && occAt(e[0]) !== Infinity) { occDraw(e[0], () => drawObj(e, sg)); continue; }
@@ -456,14 +498,15 @@ function obstacleHint(o, sg, d) {
 /* 通りすぎた物（自分よりカメラ側）はうすく：近くの大きな物が前をふさがない */
 function passFade(d) { const pd = G.player.depth || 0; if (G.mode !== 'play' || pd < 1.5 || d >= pd - .8) return 1; G.passFadeN = (G.passFadeN || 0) + 1; return clamp(.3 + .7 * d / (pd - .8), .3, 1); }
 function drawObstacle(o, sg, d) {
-  obstacleHintQ.push([o, sg, d]);
   if (o.art && drawArt(o, sg, d)) return; // the illustrations are one image each: cheaper than boxes, so always used
   if (!o.mv && !o.dead) { if (!o.fc) { o.fc = []; for (const b of o.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) o.fc.push([fc, b]); } drawBoxes(null, sg, d, passFade(d), 0, 0, 0, o.fc); return; }
   const lift = o.dead ? o.dead * o.dead * 9 : 0, side = o.dead ? o.dead * 7 * (o.vx || 1) : 0;
   drawBoxes(o.bx, sg, d, o.dead ? clamp(1 - o.dead * 1.2, 0, 1) : 1, (o.ds || 0) + (o.dead ? o.dead * 6 : 0), side, lift);
 }
+const SPA = [0, 0, 0], SPB = [0, 0, 0];
+function segPosTo(seg, s, lat, o) { o[0] = seg.sx + seg.f[0] * s + seg.r[0] * lat; o[1] = seg.sz + seg.f[1] * s + seg.r[1] * lat; o[2] = segE(seg, s); return o; } // segPos と同じ（答えを o に入れる）
 function drawLine(sg, l) {
-  const a = segPos(sg, l.a[0], l.a[1]), b = segPos(sg, l.b[0], l.b[1]);
+  const a = segPosTo(sg, l.a[0], l.a[1], SPA), b = segPosTo(sg, l.b[0], l.b[1], SPB); /* [軽く 3-15] 入れ物を使い回す */
   tc(a[0], l.a[2] + a[2], a[1], TMP, 0); tc(b[0], l.b[2] + b[2], b[1], TMP, 3);
   let z0 = TMP[2], z1 = TMP[5]; if (z0 < NEAR && z1 < NEAR) return; if (z0 > 95 && z1 > 95) return;
   let x0 = TMP[0], y0 = TMP[1], x1 = TMP[3], y1 = TMP[4];
@@ -537,10 +580,11 @@ function drawItem(it, sg, d) {
 function objShadows(sg) {
   ctx.fillStyle = 'rgba(30,22,16,.16)';
   const one = (s0, s1, l0, l1) => {
-    const p = segPos(sg, (s0 + s1) / 2, (l0 + l1) / 2), sp = spriteAt(p[0], p[2], p[1]); if (!sp || sp.z > 55) return;
+    const p = segPosTo(sg, (s0 + s1) / 2, (l0 + l1) / 2, SPA), sp = spriteAt(p[0], p[2], p[1]); if (!sp || sp.z > 55) return; /* [軽く 3-24] 入れ物・関数を毎回作らない（同じかげ） */
     const rx = Math.min(3, (l1 - l0) / 2 + .15) * sp.k, ry = Math.min(2, (s1 - s0) / 2 + .1) * sp.k * .35;
-    const fill = () => { ctx.fillStyle = 'rgba(30,22,16,.16)'; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, Math.max(1, ry), 0, 0, Math.PI * 2); ctx.fill(); };
-    if (sg === G.segs[G.ci] && OCC.on) occDraw(sp.z, fill); else fill(); // 坂の頂上の向こうの物のかげは、手前の坂に重ねない
+    let y = Infinity; if (sg === G.segs[G.ci] && OCC.on) { y = occAt(sp.z); if (y <= 0) return; } // 坂の頂上の向こうの物のかげは、手前の坂に重ねない
+    if (y !== Infinity) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, y); ctx.clip(); }
+    ctx.fillStyle = 'rgba(30,22,16,.16)'; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, Math.max(1, ry), 0, 0, Math.PI * 2); ctx.fill(); if (y !== Infinity) ctx.restore();
   };
   for (const o of sg.obs) if (!o.dead && !o.full && o.k !== 'high' && o.top < 3.5) one(o.s0 + (o.ds || 0), o.s1 + (o.ds || 0), o.l0, o.l1);
   for (const p of sg.props) if (!p.big && p.bx[0] && p.bx[0].y0 <= .05) one(p.s0, p.s1, p.l0, p.l1);

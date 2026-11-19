@@ -850,7 +850,7 @@ function drawCharCard(cv, who, t) {
    there, but with nothing in them. The stage is drawn fresh every frame, so it carried on, but the characters are kept pictures and
    stayed invisible, in the run and on the title, until the page was loaded again. Once a second the pictures in use are looked at;
    an empty one means: paint them again (and, when the item pictures are empty too, every other kept picture as well). */
-const PIC_SEEN = new Set(); let PIC_NEXT = 0, PIC_FIX = 0, PIC_BAD = 0, PIC_WAIT = 1000;
+const PIC_SEEN = new Set(); let PIC_NEXT = 0, PIC_FIX = 0, PIC_BAD = 0, PIC_WAIT = 1000, PIC_ROT = 0;
 const PIC_PROBE = (() => { try { const c = document.createElement('canvas'); c.width = c.height = 16; return c.getContext('2d', { willReadFrequently: true }); } catch (e) { return null; } })();
 function picBlank(img) { // true: nothing in it / false: something is drawn / null: cannot tell (then nothing is done)
   if (!img) return null; if (!img.width || !img.height) return true; if (!PIC_PROBE) return null;
@@ -859,7 +859,9 @@ function picBlank(img) { // true: nothing in it / false: something is drawn / nu
 function picCheck(now, force) {
   if (!force && now < PIC_NEXT) return; PIC_NEXT = now + PIC_WAIT;
   let bad = PIC_BAD; const list = [...PIC_SEEN]; PIC_SEEN.clear(); for (const w of ['ren', 'jill', 'pom']) if (BUN[w] && BUN[w].front_open) list.push(BUN[w].front_open);
-  if (!bad) for (const f of list) if (picBlank(f) === true) { bad = 1; break; }
+  /* [軽く 2] 走っている間は、1 秒に 2 枚だけ（順番に）見る。絵を読み出すたびにスマホの描く仕事が一度止まるので、15 枚まとめて見ると毎秒の引っかかりになっていた（見張る絵の数は変わらない） */
+  const few = !force && typeof G !== 'undefined' && G.mode === 'play' && list.length > 2; let chk = list; if (few) { PIC_ROT = (PIC_ROT + 2) % list.length; chk = [list[PIC_ROT], list[(PIC_ROT + 1) % list.length]]; }
+  if (!bad) for (const f of chk) if (picBlank(f) === true) { bad = 1; break; }
   if (!bad) { PIC_WAIT = 1000; return; }
   picRepair(); PIC_WAIT = PIC_BAD ? Math.min(8000, PIC_WAIT * 2) : 1000; PIC_NEXT = now + PIC_WAIT; // no picture memory yet: again in a moment, a little later each time
 }

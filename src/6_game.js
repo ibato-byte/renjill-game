@@ -993,7 +993,9 @@ const HUDC = {};
 const EL = {}; const el = id => EL[id] || (EL[id] = document.getElementById(id));
 function setCls(id, c, on) { const k = id + '.' + c; on = !!on; if (HUDC[k] !== on) { HUDC[k] = on; const e = el(id); if (e) e.classList.toggle(c, on); } }
 function setStyle(id, prop, v) { const k = id + '#' + prop; if (HUDC[k] !== v) { HUDC[k] = v; const e = el(id); if (e) e.style[prop] = v; } }
-function setText(id, v) { if (HUDC[id] !== v) { HUDC[id] = v; const e = document.getElementById(id); if (e) e.textContent = v; } }
+/* [軽く 3-21] 数字が変わった時は、字の部品を作り直さず、中の字だけを書きかえる（毎コマ変わるスコアで、毎コマ新しい部品ができていた） */
+const HUDE = {}; let POWK = null;
+function setText(id, v) { if (HUDC[id] !== v) { HUDC[id] = v; let e = HUDE[id]; if (!e || !e.isConnected) e = HUDE[id] = document.getElementById(id); if (e) { const f = e.firstChild; if (f && f.nodeType === 3 && !f.nextSibling && v !== '') f.nodeValue = v; else e.textContent = v; } } }
 // the score box shares the top row with the clock and the hay: when the number gets long (7 digits and up) or the place name is long, its digits shrink to fit
 let FIT = { k: '', n: 0 };
 /* 結果画面の大きな点数：桁が増えても枠に入るよう、文字を小さくする（8桁で下2桁がはみ出していた。2026-11-09 の報告。qa/resfit） */
@@ -1001,7 +1003,7 @@ function fitResScore(e) { if (!e) return; const box = e.parentElement; if (!box)
   const avail = box.clientWidth - 8, w = e.scrollWidth; if (w > avail && w > 0) e.style.fontSize = (parseFloat(getComputedStyle(e).fontSize) * avail / w * .98).toFixed(1) + 'px'; }
 function fitScore() {
   const sc = el('hScore'), hy = el('hHay'), top = sc && sc.closest('.hud-top'); if (!top || !hy) return;
-  const lk = sc.textContent.length + '|' + hy.textContent.length; if ((FIT.n = (FIT.n + 1) % 12) && FIT.k && lk === FIT.lk) return; FIT.lk = lk; // a new digit refits at once (no frame where the boxes overlap); the rest is checked every 12 frames
+  const ck = el('hClock'), lk = sc.textContent.length + '|' + hy.textContent.length + '|' + (ck ? ck.textContent.length : 0) + '|' + innerWidth + 'x' + innerHeight; if (FIT.k && lk === FIT.lk) return; FIT.lk = lk; /* [軽く 3-20] 字の数・画面の大きさが変わった時だけはかり直す（前は 12 コマごとに画面の並びを読み、書いた直後の並べ直しを毎回起こしていた） */ // a new digit refits at once (no frame where the boxes overlap); the rest is checked every 12 frames
   const clock = top.querySelector('.clock'), k = sc.textContent.length + '|' + hy.textContent.length + '|' + clock.offsetWidth + '|' + top.clientWidth; if (k === FIT.k) return; FIT.k = k;
   const gap = parseFloat(getComputedStyle(top).columnGap) || 8, half = (top.clientWidth - clock.offsetWidth) / 2 - gap;
   for (const [e, pad] of [[sc, 22], [hy, 22 + 32]]) { e.style.fontSize = ''; const base = parseFloat(getComputedStyle(e).fontSize), avail = half - pad; if (e.scrollWidth > avail) e.style.fontSize = Math.max(10, Math.floor(base * avail / e.scrollWidth)) + 'px'; }
@@ -1026,14 +1028,12 @@ function hud() {
   if (pct >= 15 && !G.gaugeTold && SV.runs <= 3) { G.gaugeTold = 1; banner('', t('gaugeHint'), ''); }
   if (!G.bestTold && SV.best > 500 && G.score > SV.best) { bestPhoto(); G.bestTold = 1; bannerNow('NEW BEST!', t('newBestRun'), 'good'); react('cheer', 1); SFX.best(); react('sparkle', 1); if (!OPT().calm) { burst(W / 2, H * .3, '#F2C230', 40); burst(W / 2, H * .3, '#E86A75', 24); burst(W / 2, H * .3, '#6FC3DF', 18); } }
   if (G.fever <= 0 && pct >= 80 && !G.soonTold) { G.soonTold = 1; banner('ALMOST!', t('feverSoon'), 'good'); }
-  const on = Object.keys(G.pow).filter(k => G.pow[k] > 0);
-  const key = on.join(',') + (G.shield ? ',s' : '');
-  const box = $('#pows');
-  if (box.dataset.k !== key) { box.dataset.k = key; box.innerHTML = on.map(k => `<div class="pow"><b class="ring" data-p="${k}"><img src="${SPR_URL[POW[k].ico]}" alt=""></b></div>`).join('') + (G.shield ? `<div class="pow"><img src="${SPR_URL.clover}" alt=""></div>` : ''); }
-  if (on.length) box.querySelectorAll('.ring[data-p]').forEach(u => { const k = u.dataset.p; u.style.setProperty('--p', (G.pow[k] / powDur(k) * 100).toFixed(1)); u.classList.toggle('low', G.pow[k] < 1.5); }); // 残り時間は丸いゲージ（C-70）
+  let key = ''; for (const k in G.pow) if (G.pow[k] > 0) key += (key ? ',' : '') + k; if (G.shield) key += ',s'; /* [軽く 3-28] 毎コマの表・文字・画面の部品さがしをやめ、変わった時だけ作り直す */
+  if (POWK !== key) { POWK = key; const on = Object.keys(G.pow).filter(k => G.pow[k] > 0), box = $('#pows'); box.dataset.k = key; box.innerHTML = on.map(k => `<div class="pow"><b class="ring" data-p="${k}"><img src="${SPR_URL[POW[k].ico]}" alt=""></b></div>`).join('') + (G.shield ? `<div class="pow"><img src="${SPR_URL.clover}" alt=""></div>` : ''); }
+  if (key && key !== ',s') $('#pows').querySelectorAll('.ring[data-p]').forEach(u => { const k = u.dataset.p; u.style.setProperty('--p', (G.pow[k] / powDur(k) * 100).toFixed(1)); u.classList.toggle('low', G.pow[k] < 1.5); }); // 残り時間は丸いゲージ（C-70）
   setText('combo', G.combo >= 5 ? t('comboN', G.combo) : '');
   const h = $('#hint');
-  if (G.hint > 0 && G.hint < 7) { h.style.opacity = 1; setText('hint', G.hint > 3.5 ? t('hintMove') : t('hintTurn')); } else h.style.opacity = 0;
+  if (G.hint > 0 && G.hint < 7) { if (HUDC.hintO !== 1) { HUDC.hintO = 1; h.style.opacity = 1; } setText('hint', G.hint > 3.5 ? t('hintMove') : t('hintTurn')); } else if (HUDC.hintO !== 0) { HUDC.hintO = 0; h.style.opacity = 0; } /* [軽く 3-22] 同じ値を毎コマ書かない */
   routeBar(); kpHud();
 }
 // a slim one-line banner low on the screen, below the runners (not over the road ahead); one message at a time
@@ -1377,6 +1377,7 @@ function roomBreak(e, fits) {
 function roomName(th) { return roomNames(th)[0]; }
 function layoutHud() {
   const now = performance.now(); if (now - HUDL < 100) return; HUDL = now;
+  const fc0 = el('forkCards'); if (!fc0 || fc0.hidden) return; /* [軽く 3-7] 画面の並びを読むのは、分かれ道のカードが出ている時だけ（前は 1 秒に 10 回、画面の並べ直しを起こしていた。いまの帯は下に固定で、位置を読む必要がない） */
   const b = el('banner'); if (!b) return; let y = 0;
   for (const id of ['routeBar', 'feverBar', 'lives', 'pows', 'bossBar']) { const e = el(id); if (!e || e.hidden || e.offsetParent === null) continue; const r = e.getBoundingClientRect(); if (r.height > 1 && r.width > 1) y = Math.max(y, r.bottom); }
   const pr = (b.offsetParent || document.body).getBoundingClientRect(), z = parseFloat(getComputedStyle(b).zoom) || 1, top = Math.max(y - pr.top + 8, 60);
