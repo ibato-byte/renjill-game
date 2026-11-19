@@ -13,11 +13,12 @@ function applyLang() {
   $('#tMis').textContent = t('missions'); $('#tSta').textContent = t('stamps'); $('#tBook').textContent = t('book'); $('#tShop').textContent = t('shop'); $('#tHow').textContent = t('how');
   $('#tBestL').textContent = t('best'); $('#sTitle .chars').setAttribute('aria-label', t('pickChar')); $('#sResult .shbtns').setAttribute('aria-label', tr('友だちに挑戦状を送ろう', 'Challenge a friend')); $('#sResult .shbtns').setAttribute('role', 'group'); $('#chatIn').setAttribute('aria-label', tr('ゲームについて質問してね', 'Ask about the game')); $('#btnRank').textContent = tr('ランキング', 'Ranking'); $('#btnRank2').textContent = tr('ランキングをもっと見る', 'See the full ranking');  { const lt = $('#btnLangTop'); if (lt) lt.setAttribute('aria-label', t('langLbl', LANG_NAME[LANG])); } $('#pauseBtn').setAttribute('aria-label', t('pauseLbl')); $('#btnSet').setAttribute('aria-label', t('settings')); $('#btnSet').title = t('settings'); for (const id of ['pClose', 'chatClose']) $('#' + id).setAttribute('aria-label', t('close')); $('#tPause').textContent = t('pause'); $('#btnQuit').textContent = t('quit');
   $('#btnRvNo').textContent = t('seeResult'); $('#btnMenu').textContent = t('menu'); { const m = $('#tResMore'); if (m) m.textContent = t('resMore'); } $('#tCopy').textContent = t('copy'); { const sb = $('#tShareBar'); if (sb) sb.textContent = tr('友だちに挑戦状を送ろう', 'Challenge a friend');} $('#tShare').textContent = t('share'); $('#tShareImg').textContent = t('shareImg');
-  $('#tKick').textContent = tr('レンとジルの', 'REN & JILL'); $('#tLogo').innerHTML = tr('チモシー<br><em>ダッシュ！</em>', 'HAY<br><em>DASH!</em>'); $('#tSub').textContent = t('tagline'); document.title = t('gameTitle');
+  $('#tKick').textContent = tr('レンとジルの', 'REN & JILL'); logoBuild(); $('#tSub').textContent = t('tagline'); document.title = t('gameTitle');
   $('#nmRen').textContent = tr('レン', 'REN'); $('#nmJill').textContent = tr('ジル', 'JILL'); $('#nmPom').textContent = tr('ポム', 'POM'); $('#btnStart').textContent = t('start'); $('#btnAgain').textContent = t('again'); $('#btnResume').textContent = t('resume'); $('#tPauseH').textContent = lab('PAUSE'); $('#tPause').hidden = $('#tPause').textContent === $('#tPauseH').textContent;
   $('#lbScore').textContent = tr('スコア', 'SCORE'); $('#lbTime').textContent = tr('時刻', 'TIME'); $('#lbHay').textContent = tr('チモシー', 'HAY'); $('#resBest').textContent = lab('NEW BEST!');
   $('#btnChat').textContent = $('#btnChat2').textContent = tr('ジルに聞く', 'Ask Jill');
   ['btnMute', 'btnMute2'].forEach(id => $('#' + id).textContent = SV.mute ? t('soundOff') : t('soundOn'));
+  { const m = $('#btnMute'); m.classList.toggle('off', !!SV.mute); m.setAttribute('aria-label', m.textContent); m.setAttribute('aria-pressed', SV.mute ? 'false' : 'true'); /* 読み上げ：音が出ているかを伝える */ m.title = m.textContent; $('#btnSet').title = tr('設定', 'Settings'); /* PC：絵だけのボタンに、マウスをのせると名前が出る */ $('#btnSet').setAttribute('aria-label', tr('設定', 'Settings')); } /* ホームでは、音と設定は絵のボタン（字は読み上げ用に残す） */
 }
 // the character cards are narrow: put each part ("課長" / "ホーランドロップ") on its own line, never split a word
 function cardTxt(sel, txt) { const el = $(sel); el.textContent = ''; String(txt).split(/\s*[・：:·]\s*/).forEach((p, i) => { if (i) el.appendChild(document.createElement('br')); const s = document.createElement('span'); s.textContent = p; el.appendChild(s); }); }
@@ -27,7 +28,7 @@ function refreshTitle() {
   refreshNameBtn();
   { const lv = plantLv(); if (lv > (SV.plantLv || 0)) { SV.plantLv = lv; save(); setTimeout(() => toastTitle(t('plantUp')), 1600); } } // 観葉植物が育った（B-12）
   applyLang();
-  $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
+  $('#tBest').textContent = fmt(SV.best); $('#tBank').textContent = fmt(SV.bank); { const bp = $('#tBest').parentNode; if (bp) { bp.setAttribute('aria-label', t('best') + ' ' + fmt(SV.best)); bp.classList.toggle('zero', !SV.best); } } /* まだ走っていない人には、ベストの「0」の札を出さない（ホーム） */ $('#tCareer').innerHTML = careerHTML(); feedCard(); chalCard();
   { const dly = dailyToday(), done = SV.dailyDone === dly.key; $('#tDaily').textContent = (tr('チャレンジ：', 'Challenge: ')) + L(dly.c.t(dly.n)) + (done ? ' ✓' : (tr('（+300本・お守り）', ' (+300 hay, charm)'))); }
   { const q = $('#btnQuick'); if (q) q.remove(); } // 1分ダッシュ（2026-11-08）はやめた（2026-11-15 オーナーの判断）
   try { commShow(); commFetch(); } catch (e) { } // みんなの集計（B-45・47）
@@ -633,7 +634,18 @@ function toastNext() { const msg = TOASTQ[0]; if (msg == null) return; const d =
 function toastSubBack() { try { if (!document.querySelector('.ttoast[data-sub]')) $('#tSub').style.visibility = ''; } catch (e) { } }
 /* お知らせは、題名のロゴ（チモシーダッシュ！）にかぶせない（毎日の出社ボーナスが、ロゴの1行目をかくしていた：2026-11-15）。
    ロゴの下の一言の帯の上に重ねる（同じ形の帯なので、帯の中身が入れかわったように見える）。帯が見えない画面（横向きなど）では、ロゴより上か、今までの位置 */
+/* 2026-11-19 題字（ロゴ）：オーナー「タイトルのデザインを、他のゲームを調べて、このゲームに一番合う形に。AI っぽさをなくして」。
+   文字を 1 字ずつ少し傾け・上下させて手で書いたような弾みを出し、のばす棒「ー」はチモシーの穂、「！」は課長のネクタイにする（docs/LOGO-2026-11-19.md） */
+function logoBuild() { const h = $('#tLogo'); if (!h) return; const ja = LANG === 'ja', W = { ja: [['チ', 'モ', 'シ', 'ー'], ['ダ', 'ッ', 'シ', 'ュ']], en: [['H', 'A', 'Y'], ['D', 'A', 'S', 'H']], zh: [['牧', '草'], ['衝', '刺']], ko: [['건', '초'], ['대', '시']] }[LANG] || [['H', 'A', 'Y'], ['D', 'A', 'S', 'H']], l1 = W[0], l2 = W[1];
+  const sp = a => a.map((c, i) => `<span class="c c${i + 1}">${c}</span>`).join('');
+  h.classList.toggle('kana', ja); h.setAttribute('aria-label', l1.join('') + (ja ? '' : ' ') + l2.join('') + (ja ? '！' : '!'));
+  h.innerHTML = `<span class="ln l1" aria-hidden="true">${sp(l1)}<i class="hay"></i></span><br><em class="ln l2" aria-hidden="true">${sp(l2)}<i class="tie"></i></em>`; }
 function toastPlace(d) { try { const sub = $('#tSub'), logo = $('#tLogo'), app = $('#app').getBoundingClientRect(); const h = d.offsetHeight || 36;
+    { const dock = $('#sTitle.home .chars'), cr = $('#sTitle.home #tCareer'); if (dock && dock.offsetParent && !$('#sTitle').hidden) { const c = cr && cr.offsetParent && cr.getBoundingClientRect().height > 8 ? cr.getBoundingClientRect() : null, r = dock.getBoundingClientRect(); d.classList.add('hm'); let tt = c ? c.bottom - app.top + 8 : r.top - app.top - h - 16;
+        /* 2026-11-19：背の低いスマホ（320×568）では、昇進の帯の下に出すと左の「ミッション」にかかった。その時は、左右のボタンの間の幅にしぼって、今日の目標の下に出す */
+        const mb = $('#btnMissions'), mr = mb && mb.offsetParent ? mb.getBoundingClientRect() : null, td = $('#tToday'); d.classList.remove('hmn');
+        if (c && mr && tt + app.top + h > mr.top - 4) { d.classList.add('hmn'); const tr2 = td && td.offsetParent ? td.getBoundingClientRect() : null; tt = (tr2 ? tr2.bottom : c.bottom) - app.top + 12; }
+        d.style.setProperty('--tt-top', Math.max(8, Math.round(tt)) + 'px'); return; } } /* 新しいホーム（2026-11-19）：お知らせは、昇進の帯のすぐ下・まん中に出す（左右のボタンやスタートにかぶせない。昇進の帯がない横向きは、台のすぐ上） */
     const sr = sub && sub.offsetParent ? sub.getBoundingClientRect() : null, lr = logo && logo.offsetParent ? logo.getBoundingClientRect() : null;
     let top = null;
     if (sr && sr.height > 8 && sr.top > 0 && sr.bottom < app.bottom) { top = sr.top + sr.height / 2 - h / 2; d.style.minWidth = Math.min(Math.round(sr.width), Math.round(app.width * .86)) + 'px'; sub.style.visibility = 'hidden'; d.dataset.sub = '1'; } /* 帯の上に重ねる間、下の帯の字はかくす（2つの文が重なって読めなかった） */

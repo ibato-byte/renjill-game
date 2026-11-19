@@ -202,7 +202,7 @@ function buildFloorTex() {
   FTEX.fabric = mkT((g, r) => { for (let i = 0; i < 256; i += 3) { g.fillStyle = 'rgba(100,100,100,.25)'; g.fillRect(i, 0, 1, 256); g.fillStyle = 'rgba(160,160,160,.2)'; g.fillRect(0, i, 256, 1); } specks(g, r, 900, 105, 150, 1); }, 8);
   for (const k in FTEX) FTEX[k] = { img: FTEX[k], pat: ctx.createPattern(FTEX[k], 'repeat') };
 }
-const FTEX_OF = { road: 'asphalt', hokoten: 'asphalt', scramble: 'asphalt', stone: 'stone', plaza: 'stone', gravel: 'stone', walk: 'stone', brickroad: 'stone', petalstone: 'stone', petals: 'stone', lawn: 'stone', leaves: 'stone', grid: 'stone', boards: 'wood', planks: 'wood', tatami: 'fabric', carpet: 'fabric', rug: 'fabric' };
+const FTEX_OF = { road: 'asphalt', hokoten: 'asphalt', scramble: 'asphalt', stone: 'stone', plaza: 'stone', gravel: 'stone', walk: 'stone', brickroad: 'stone', petalstone: 'stone', petals: 'stone', lawn: 'stone', leaves: 'stone', grid: 'stone', boards: 'wood', planks: 'wood', tatami: 'fabric', tatamiM: 'fabric', yose: 'wood', carpet: 'fabric', rug: 'fabric' };
 // draw a texture into a screen triangle with an exact affine map from texture coords
 function texTri(x0, y0, x1, y1, x2, y2, u0, v0, u1, v1, u2, v2, pat) {
   const du1 = u1 - u0, dv1 = v1 - v0, du2 = u2 - u0, dv2 = v2 - v0, det = du1 * dv2 - du2 * dv1; if (Math.abs(det) < 1e-6) return;
@@ -229,7 +229,7 @@ function floorTexture(p, d, m, sg) {
   // a big near quad (or one cut by the camera): short sub-quads in world space, each with its own affine map
   if (p.a == null || !sg) return;
   const camS = (CAM.x - sg.sx) * sg.f[0] + (CAM.z - sg.sz) * sg.f[1], b2 = p.b;
-  const l0 = p.mid ? -ROAD : p.sd < 0 ? -HW : ROAD, l1 = p.mid ? ROAD : p.sd < 0 ? -ROAD : HW;
+  const l0 = p.l0 != null ? p.l0 : p.mid ? -ROAD : p.sd < 0 ? -HW : ROAD, l1 = p.l1 != null ? p.l1 : p.mid ? ROAD : p.sd < 0 ? -ROAD : HW;
   let a2 = p.a; const vv = [];
   if (m !== 4) { a2 = 0; for (const step of [.5, 1.2, 2.2, 3.5]) { const t = Math.max(p.a, camS + step); if (b2 - t < .2) break; vv.length = 0; for (const [ss, ll] of [[t, l0], [t + .3, l0], [t + .3, l1], [t, l1]]) { const w = segPos(sg, ss, ll); vv.push(w[0], w[2], w[1]); } if (project(vv) === 4) { a2 = t; break; } } if (!a2) return; }
   for (let s0 = a2; s0 < b2 - .01; s0 += .5) { const s1 = Math.min(s0 + .5, b2); vv.length = 0; for (const [ss, ll] of [[s0, l0], [s1, l0], [s1, l1], [s0, l1]]) { const w = segPos(sg, ss, ll); vv.push(w[0], w[2], w[1]); }

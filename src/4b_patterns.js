@@ -148,6 +148,23 @@ function floorPattern(p, d) {
         ctx.globalAlpha = a * .06; ctx.beginPath(); ctx.strokeStyle = T('#4A4422'); for (let k = 1; k < 8; k++) bline(0, .03 + k * .94 / 8, 1, .03 + k * .94 / 8); ctx.stroke();
         if (d < 9) { ctx.globalAlpha = a * .18; for (let k = 0; k < 40; k++) { const u = r(), v = .03 + r() * .94; bquad(u, v, u + .011, v + .05 + r() * .1, T(r() < .5 ? '#A9B46E' : '#D6C27A')); } }
         ctx.globalAlpha = a * .07; bquad(.2, .03, .45, .97, '#FFFFFF'); } ctx.beginPath(); break;
+    /* 2026-11-19 ホーム画面の畳（オーナー「畳をもう少しブラッシュアップ」）：1 枚ずつ本当の大きさで敷いた畳（tatamiLay）。
+       u＝畳の長い向き（1 枚 1.76m、p.u0〜p.u1 がこの面に入っている所）、v＝短い向き（0.88m）
+       [T1] 縁（へり）は長い辺だけ（短い辺には付かない）。幅は本物の約 2.8cm [T2] 縁の布の織りのかすかな光 [T3] 短い辺の合わせ目の細いかげ
+       [T4] い草の目は短い辺と平行（縁から縁へ渡る）。1 枚に 64 目 [T5] 目の向きの違う列は、光の返り方が違って、明るさが 1 列おきに変わる */
+    case 'tatamiM': { const ML = 1.76, uw = Math.max(.01, p.u1 - p.u0), U = u => (u - p.u0) / uw, hw = .032;
+      ctx.globalAlpha = a * (p.row % 2 ? .1 : .06); bquad(0, hw, 1, 1 - hw, p.row % 2 ? '#FFF6D8' : '#5C5226'); // [T5]
+      if (d < 18) { const n = 64; ctx.lineWidth = Math.max(.35, 1.5 / Math.max(d, 1)); ctx.globalAlpha = a * (d < 7 ? .12 : .15) * clamp((18 - d) / 6, 0, 1); ctx.strokeStyle = T('#6A6232'); ctx.beginPath();
+        for (let k = 1; k < n; k++) { const um = k / n; if (um <= p.u0 || um >= p.u1) continue; bline(U(um), hw, U(um), 1 - hw); } ctx.stroke(); // [T4]
+        ctx.globalAlpha = a * .05; ctx.beginPath(); ctx.strokeStyle = T('#4A4422'); for (let k = 1; k < 6; k++) { const v = hw + k * (1 - 2 * hw) / 6; bline(0, v, 1, v); } ctx.stroke(); // 経糸（たて糸）のかすかな線
+        if (d < 9) { const r = rnd(p.ti * 41 + 7); ctx.globalAlpha = a * .07; for (let k = 0; k < 30; k++) { const um = p.u0 + r() * uw, v = hw + r() * (1 - 2 * hw); bquad(U(um), v, U(Math.min(p.u1, um + .006)), Math.min(1 - hw, v + .1 + r() * .2), T(r() < .5 ? '#A9B46E' : '#D6C27A')); } } } // い草 1 本ずつの色むら
+      ctx.globalAlpha = a * .92; bquad(0, 0, 1, hw, T('#28302A')); bquad(0, 1 - hw, 1, 1, T('#28302A')); // [T1]
+      ctx.globalAlpha = a * .32; bquad(0, hw * .3, 1, hw * .45, T('#62705A')); bquad(0, 1 - hw * .45, 1, 1 - hw * .3, T('#62705A')); // [T2]
+      ctx.globalAlpha = a * .3; bquad(0, hw, 1, hw + .008, T('#3A3A1E')); bquad(0, 1 - hw - .008, 1, 1 - hw, T('#3A3A1E')); // 縁と畳表との段の細いかげ（両側）
+      { const du = .0025 / (ML * uw); ctx.globalAlpha = a * .4; if (p.u0 < .001) bquad(0, 0, du, 1, T('#3E3A1C')); if (p.u1 > .999) bquad(1 - du * .6, 0, 1, 1, T('#7A6E3A')); } // [T3]
+      ctx.beginPath(); break; }
+    /* [T6] 壁ぎわの畳寄せ（畳と壁のすき間をうめる細い木）：木目と、畳との境のかげ */
+    case 'yose': ctx.globalAlpha = a * .5; ctx.strokeStyle = T('#5A3C22'); bline(0, .35, 1, .35); bline(0, .7, 1, .7); ctx.stroke(); ctx.beginPath(); ctx.globalAlpha = a * .6; bquad(0, p.sd < 0 ? .9 : 0, 1, p.sd < 0 ? 1 : .1, T('#2E2416')); break;
     case 'boards': ctx.strokeStyle = T('#6B4631'); for (let k = 1; k < 8; k++) bline(0, k / 8, 1, k / 8); { const v = (p.ti * 3 % 8) / 8; bline(.5, v, .5, v + 1 / 8); } break;
     case 'rug': ctx.globalAlpha = a * .7; ctx.strokeStyle = T('#F2C230'); bline(0, .15, 1, .15); bline(0, .85, 1, .85); ctx.stroke(); ctx.beginPath(); ctx.strokeStyle = T('#7A2E24'); bline(0, .5, 1, .5); break;
     case 'grid': ctx.globalAlpha = a * .3; ctx.strokeStyle = T('#8F8676'); for (let k = 0; k <= 4; k++) bline(0, k / 4, 1, k / 4); bline(0, 0, 0, 1); bline(.5, 0, .5, 1); break;

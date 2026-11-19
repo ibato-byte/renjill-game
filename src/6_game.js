@@ -80,7 +80,24 @@ function setupTitle() {
 // the boss's bedroom at 8:00, laid out by hand: the futon he has just left, his jacket waiting, the morning sun through the shoji
 const PLANT_STEPS = [0, 300, 2000, 8000, 30000];
 function plantLv() { const h = (SV.totals || {}).hay || 0; let lv = 0; while (lv < PLANT_STEPS.length - 1 && h >= PLANT_STEPS[lv + 1]) lv++; return lv; }
+/* 2026-11-19 オーナー「スタート画面の畳をもう少しブラッシュアップ。畳について学んで」：前は 1.8m×2.6m の大きな板に線を引いた床だった。
+   [T7] 本当の大きさ（東京の家の江戸間：176×88cm）で 1 枚ずつ敷く [T8] 祝儀敷き：1 列ごとに半分ずらし、4 枚の角が 1 点に集まらない（十字の目地を作らない）
+   [T9] 畳の色は 1 枚ずつ少しちがう（い草は張り替えた年で色が変わる）[T10] 窓（障子）の側の畳は、日に焼けて黄色っぽい
+   [T6] 壁ぎわの余りは、細い木の畳寄せ */
+function tatamiLay(seg) {
+  const ML = 1.76, MW = .88, rows = Math.floor(2 * HW / MW), edge = (2 * HW - rows * MW) / 2, fS = seg.fS, fE = seg.fE, r = rnd(1907), base = C(seg.th.road[0]);
+  seg.floor = seg.floor.filter(p => p.dec || (p.pat !== 'tatami'));
+  let ti = 0;
+  for (let row = 0; row < rows; row++) { const l0 = -HW + edge + row * MW, l1 = l0 + MW, off = row % 2 ? ML / 2 : 0;
+    for (let a = fS - off; a < fE - .01; a += ML) { const s0 = Math.max(a, fS), s1 = Math.min(a + ML, fE); if (s1 - s0 < .04) continue;
+      const sun = clamp((-.4 - (l0 + l1) / 2) / 3.6, 0, 1) * clamp(1 - Math.abs((s0 + s1) / 2 - 3.2) / 6, 0, 1), age = r(), j = 1 + (r() - .5) * .04; // [T10] lat < 0 が障子の側
+      const c = [base[0] * j * (1 + sun * .05 + age * .03), base[1] * j * (1 - age * .02), base[2] * j * (1 - sun * .14 - age * .06)].map(x => Math.min(255, x));
+      seg.floor.push({ v: quad(seg, [[s0, l0, 0], [s1, l0, 0], [s1, l1, 0], [s0, l1, 0]]), c, pat: 'tatamiM', ti: ti++, a: s0, b: s1, l0, l1, row, u0: (s0 - a) / ML, u1: (s1 - a) / ML }); } }
+  if (edge > .02) for (const sd of [-1, 1]) { const l0 = sd < 0 ? -HW : HW - edge, l1 = sd < 0 ? -HW + edge : HW;
+    for (let a = fS, i = 0; a < fE - .01; a += 3, i++) { const b = Math.min(a + 3, fE); seg.floor.push({ v: quad(seg, [[a, l0, 0], [b, l0, 0], [b, l1, 0], [a, l1, 0]]), c: [176, 132, 86], pat: 'yose', ti: i, a, b, l0, l1, sd }); } }
+}
 function buildTitleRoom(seg) {
+  tatamiLay(seg);
   const sp = (type, v, s, lat, w, h, y) => seg.spr.push({ lat, s, y: y || 0, w, h, img: artKey(type, v || ''), keep: 1, gnd: w * .4 });
   const dec = (type, sd, s, w, y0, y1, extra) => { const lat = sd * (HW - .03), n = [-sd * seg.r[0], -sd * seg.r[1]], a = s, b = s + w; const pts = sd < 0 ? [[a, lat, y0], [b, lat, y0], [b, lat, y1], [a, lat, y1]] : [[b, lat, y0], [a, lat, y0], [a, lat, y1], [b, lat, y1]]; seg.decos.push(Object.assign({ v: quad(seg, pts), n, pat: type, v2: 1, seg, w }, extra || {})); };
   // the camera looks back down the room, so lat > 0 is screen-left. Right wall (lat < 0): two shoji windows the sun comes through, his jacket on a hook
