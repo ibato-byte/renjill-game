@@ -33,7 +33,9 @@ let fails = 0; const F = (s, m) => { fails++; console.log('  FAIL', s, m); };
     if (S.iframe) { require('fs').writeFileSync(require('path').resolve(__dirname, '../dist') + '/_frame.html', `<body style=margin:0><iframe id=f sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads" src="test.html" style="width:100%;height:100vh;border:0"></iframe>`); await page.goto('file://' + require('path').resolve(__dirname, '../dist') + '/_frame.html'); await page.waitForTimeout(1500); fr = page.frames().find(f => f.url().endsWith('test.html')); }
     else { await page.goto(URL0); await page.waitForTimeout(1200); }
     await fr.evaluate(() => { const H = window.__hayDash; H.SV.tutDone = 1; H.SV.nickAsked = 1; document.getElementById('btnStart').click(); });
-    await page.waitForTimeout(2500);
+    /* 走り出す前の準備（PERF2：絵が全部できるまで、スマホは長くて 4 秒）が終わって、点が入り始めるまで待つ（前は 2.5 秒と決め打ちで、準備が長い時に 0 点のまま終わっていた） */
+    for (let i = 0; i < 40; i++) { const ok = await fr.evaluate(() => { const G = window.__hayDash.ev('G'); return G.mode === 'play' && !G.prepHold && G.score > 0; }).catch(() => false); if (ok) break; await page.waitForTimeout(250); }
+    await page.waitForTimeout(1000);
     await fr.evaluate(() => window.__hayDash.ev('G.invT = 0; G.lives = 0; endRun()')); await page.waitForTimeout(2000);
     const info = await fr.evaluate(() => ({ x: document.getElementById('shX').href, line: document.getElementById('shLine').href, fb: document.getElementById('shFb').href, more: document.getElementById('tCopy').textContent, files: !!window.__hayDash.ev('G.shareFiles'), txt: window.__hayDash.ev('G.lastShare') }));
     console.log('==', S.n, '| more-label:', info.more, '| files ready:', info.files);
