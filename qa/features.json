@@ -1402,6 +1402,26 @@
       "has": "id=\"maintEnd\""
     },
     {"name": "遠くの町の絵は、向きが少し変わってもずらしてはる（曲がる時・階段で止まらない）", "file": "src/4b_patterns.js", "has": "const MX = Math.round(.12 * FOCAL * DPR);"},
-    {"name": "赤い電波塔の屋上のまわり（地面・ビル・公園の木）", "file": "src/3_world.js", "has": "[T-R1〜R5 2026-11-19"}
+    {"name": "赤い電波塔の屋上のまわり（地面・ビル・公園の木）", "file": "src/3_world.js", "has": "[T-R1〜R5 2026-11-19"},
+    {
+      "name": "新しいホーム画面（部屋が主役・絵のボタン）",
+      "file": "src/body.html",
+      "has": "<section id=\"sTitle\" class=\"screen home\">"
+    },
+    {
+      "name": "ホーム画面の見た目（絵のボタン）",
+      "file": "src/head.html",
+      "has": "/* ==== HOME-V2 START ==== */"
+    },
+    {
+      "name": "ホーム画面の畳を本当の大きさで1枚ずつ（祝儀敷き・縁は長い辺だけ）",
+      "file": "src/6_game.js",
+      "has": "function tatamiLay(seg)"
+    },
+    {
+      "name": "題字（ロゴ）：1字ずつの弾み・ネクタイの「！」・チモシーの穂",
+      "file": "src/7_ui.js",
+      "has": "function logoBuild()"
+    }
   ]
 }
