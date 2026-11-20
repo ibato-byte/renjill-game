@@ -1570,6 +1570,21 @@
       "name": "箱の材質も小さな絵",
       "file": "src/4_render.js",
       "has": "[遠く A16]"
+    },
+    {
+      "name": "たて長のスマホのホームでは 3 人の足もとが下の台のすぐ上（札にかくれない）",
+      "file": "src/6_game.js",
+      "has": "function titleTallPitch(P, gy)"
+    },
+    {
+      "name": "iPhone のホーム：新作の札は 1 行・今日の目標の長い数は小さく・題字に札がかからない",
+      "file": "tools/home/home.css",
+      "has": "[H18]"
+    },
+    {
+      "name": "今日の目標の数の長さで字の大きさを変える",
+      "file": "src/6e_keep.js",
+      "has": "[ホーム iPhone H17]"
     }
   ]
 }
