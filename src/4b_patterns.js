@@ -115,6 +115,8 @@ function roadWear(p, d, a, T) { const r = rnd(p.ti * 31 + 7 + ((p.a || 0) * 13 |
   roadMarks(p, d, a, T, r, near);
   ctx.globalAlpha = a; }
 /* 2026-11-17 景色 51〜62：東京の道の路面（マンホール・側溝・路面の数字と矢印・ひし形・水たまり）。タイル 1 枚＝長さ 1.5m・はば 5.2m（u＝進む向き、v＝横） */
+const STEPN_TEX = new Map();
+function stepNumTex(n, big) { const key = n + (big ? 'b' : ''); let c = STEPN_TEX.get(key); if (c) return c; c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); if (g) { g.fillStyle = '#FFFFFF'; g.font = '900 ' + Math.round((big ? 96 : 70) * 2.56) + 'px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(n), 128, 138, 246); } STEPN_TEX.set(key, c); return c; }
 function roadPaint(fn, u0, u1, v0, v1) { const o = bil(u1, v0), x = bil(u1, v1), y = bil(u0, v0); ctx.save(); ctx.transform((x[0] - o[0]) / 100, (x[1] - o[1]) / 100, (y[0] - o[0]) / 100, (y[1] - o[1]) / 100, o[0], o[1]); fn(); ctx.restore(); } // 100×100 の箱に描くと、路面に寝かせて貼れる（上＝進む先）
 function roadMarks(p, d, a, T, r, near) { const ti = p.ti, night = LT.night > .5, paint = T('#E9E8E1');
   if (ti % 13 === 6) { const v = [.175, .5, .825][(ti >> 2) % 3], ru = .2, rv = .058, ring = (k, rr, ss) => { const c = bil(.5 + Math.cos(k) * rr, v + Math.sin(k) * ss); return c; }, disc = (rr, ss, fill) => { ctx.beginPath(); for (let k = 0; k <= 24; k++) { const c = ring(k / 24 * 6.2832, rr, ss); k ? ctx.lineTo(c[0], c[1]) : ctx.moveTo(c[0], c[1]); } ctx.fillStyle = fill; ctx.fill(); };
@@ -217,7 +219,7 @@ function floorPattern(p, d) {
         const sf = LODOFF ? 1 : clamp((sp - 2.5) / 4.5, 0, 1) * clamp(1.3 - run * 2.2, .22, 1); /* 1 コマに半段進むと、段の線が 1 コマごとに入れかわる（いちばんチカチカする）ので、0.15 段から少しずつ */
         if (sf > 0) { ctx.globalAlpha = Math.min(1, a * 1.4) * sf; ctx.strokeStyle = T('#4F555B'); for (let k = 0; k < 6; k++) bline(k / 6, 0, k / 6, 1); ctx.stroke(); ctx.globalAlpha = a * .22 * sf; for (let k = 0; k < 6; k++) bquad(k / 6, 0, k / 6 + .05, 1, '#FFFFFF'); }
         ctx.globalAlpha = Math.min(1, a * 1.4) * (LODOFF ? 1 : clamp((sp * 6 - 3) / 6, 0, 1)); ctx.beginPath(); ctx.strokeStyle = T('#F2C230'); bline(0, .02, 1, .02); bline(0, .98, 1, .98); } /* [19] 段の先の、明るい段鼻 */
-      if (p.stepN && d < 40) { ctx.stroke(); ctx.globalAlpha = a * (p.stepBig ? .95 : .7); const big = p.stepBig; roadPaint(() => { ctx.fillStyle = '#FFFFFF'; ctx.font = '900 ' + (big ? 96 : 70) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(p.stepN), 50, 54, 96); }, .1, .9, big ? .3 : .38, big ? .7 : .62); ctx.beginPath(); ctx.globalAlpha = Math.min(1, a * 1.4); } // [17] [18]
+      if (p.stepN && d < 40) { ctx.stroke(); ctx.globalAlpha = a * (p.stepBig ? .95 : .7); const big = p.stepBig; roadPaint(() => { ctx.drawImage(stepNumTex(p.stepN, big), 0, 0, 100, 100); }, .1, .9, big ? .3 : .38, big ? .7 : .62); /* [塔 F9] 2026-11-20：段の数（20・73・333…）は毎コマ字をかき直していたので、大きさが少し変わるたびに字のふちが変わり、数字の半分がチカチカした。前もって絵にしておき、その絵を貼る */ ctx.beginPath(); ctx.globalAlpha = Math.min(1, a * 1.4); } // [17] [18]
       break;
     case 'water': case 'sea': { ctx.globalAlpha = .5; ctx.strokeStyle = LT.night > .5 ? 'rgba(255,220,160,.5)' : 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.4; const o = (G.t * .15) % .25;
       for (let k = 0; k < 4; k++) { const v = (k * .25 + o) % 1; bline(.1 + (k % 2) * .3, v, .35 + (k % 2) * .3, v + .02); }

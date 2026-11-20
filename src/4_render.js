@@ -499,6 +499,7 @@ function drawSegment(sg, isCur) {
   drawObjects(sg, isCur, oc);
 }
 function drawWallItem(d, t, w) {
+  if (w.bf && (CAM.x - w.v[0]) * w.n[0] + (CAM.z - w.v[2]) * w.n[1] < 0) return; /* [塔 S1] 2026-11-21：外向きのかべ（屋上の建物の外かべなど）は、うら側から見る時は描かない（かべは床より後に描くので、屋上に立つと、床の下にあるはずの外かべが床の上にかぶり、地面が透けたように見えた） */
   { const m = project(w.v); if (!m) return;
     if (t === 1) {
       pathPoly(Math.abs(m));
