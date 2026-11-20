@@ -751,9 +751,12 @@ function placeCamera(dt) {
   G.fovK = lerp(G.fovK || 0, (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0, Math.min(1, dt * 4)); G.skyK = lerp(G.skyK || 0, seg.th.sky && !(P.hawkRel > .3) ? 1 : 0, Math.min(1, dt * 1.5)); FOCAL = BASEF * (1 - .09 * G.fovK - .07 * G.skyK); /* [F10] 空へ飛び出すと、見える広さが少しずつ広がる（ひらけた感じ）。着地の前にもどる */
   /* [降りる時 D4] 階段（段と踊り場がくり返す道）では、カメラの高さを前後 3m の平均の高さに合わせる。前は段ごとの高さの変わり目でカメラが小きざみに上下し、画面の道全体がガクガク動いて見えた */
   const flt = seg.hp && seg.hp.shape === 'flights', eAt = flt ? (q => (segE(seg, q - 1.5) + segE(seg, q - .75) + segE(seg, q) + segE(seg, q + .75) + segE(seg, q + 1.5)) / 5) : (q => segE(seg, q));
-  const eC = eAt(G.s - 2.5), ePc = flt ? eAt(G.s) : eP, slope = clamp((eAt(Math.min(seg.len, G.s + 14)) - ePc) / 14, -.3, .3);
+  /* [空 K1] 2026-11-20 オーナー「スカイツリーから飛び立った時に、スマホでもウェブでもキャラクターが画面から消えて下の方に行ってしまう」：
+     空の道は 451m を 220m でおりる急な坂なので、2.5m うしろの高さに合わせたカメラは、レンたちより 6m 以上も高く（さらにおくれて）、3 人が画面の下へ消えていた。
+     空の上では、カメラの高さはレンたちの今の高さに合わせ、おくれもなくす */
+  const skyCam = !!seg.th.sky, eC = skyCam ? eAt(G.s) : eAt(G.s - 2.5), ePc = flt ? eAt(G.s) : eP, slope = clamp((eAt(Math.min(seg.len, G.s + 14)) - ePc) / 14, -.3, .3);
   const camNew = G.camE == null;
-  G.camE = G.camE == null ? eC : lerp(G.camE, Math.max(eC, ePc - .4), Math.min(1, dt * 10)); G.camSl = lerp(G.camSl || 0, slope, Math.min(1, dt * 3));
+  G.camE = G.camE == null || skyCam ? eC : lerp(G.camE, Math.max(eC, ePc - .4), Math.min(1, dt * 10)); G.camSl = lerp(G.camSl || 0, slope, Math.min(1, dt * 3));
   /* 2026-11-15（オーナーの報告：電車や室内で天井が低く見える・ジャンプすると天井から飛び出る）
      縦長のスマホはカメラが高い（2026-11-14 は 2.75m、11-16 からは 2.45m）ので、天井（2.9〜3m）のすぐ下をはうように見えていた。ジャンプするとカメラが天井をつきぬけた。
      天井のある場所では ①カメラの高さを「天井より CAM_CEIL_GAP 下」までにする ②ジャンプでカメラが上がる分は、天井の手前でなめらかに止める ③それでも天井より上には絶対に出さない */

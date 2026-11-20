@@ -103,8 +103,17 @@ function newSeg(prev, step, opts) {
   seg.spr = seg.spr.filter(sp => sp.keep || terrOK(seg, sp.s, sp.lat));
   seg.props = seg.props.filter(p => p.big || terrOK(seg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2));
   if (!opts.empty && !th.noObs) (th.sky ? skyItems : populate)(seg);
+  markFloorOverlays(seg);
   return seg;
 }
+/* [塔 F8] 2026-11-20 オーナー「タワーに登る時のマット・アイテム・障害物がチカチカ」：床の上に少しだけ浮かせて重ねた板（入口の赤いマット・ガラスの床のふちの帯・屋上の石の通路・
+   園路のふち石のつなぎ目など）は、下の床と同じ「近い順」にならべて描いていたので、カメラが少し動くたびに、マットと下の床の前後が入れかわり、マットが出たり消えたりした。
+   道を作った時に、下の床と重なって 0.2m より低く浮いた板を見つけ、「いつも下の床の後に描く板（soft）」にする */
+function markFloorOverlays(seg) { const R = []; for (const f of seg.floor) { if (f.far || f.dec || f.soft || !f.v || f.v.length < 9) continue; let s0 = 1e9, s1 = -1e9, l0 = 1e9, l1 = -1e9, y = 0; const n = f.v.length / 3;
+    for (let i = 0; i < f.v.length; i += 3) { const dx = f.v[i] - seg.sx, dz = f.v[i + 2] - seg.sz, a = dx * seg.f[0] + dz * seg.f[1], b = dx * seg.r[0] + dz * seg.r[1]; if (a < s0) s0 = a; if (a > s1) s1 = a; if (b < l0) l0 = b; if (b > l1) l1 = b; y += f.v[i + 1] / n; } R.push([s0, s1, l0, l1, y, f]); }
+  R.sort((a, b) => a[0] - b[0]); let m = 0;
+  for (let i = 0; i < R.length; i++) { const A = R[i]; for (let j = i + 1; j < R.length && R[j][0] < A[1] - .05; j++) { const B = R[j]; if (Math.min(A[3], B[3]) - Math.max(A[2], B[2]) < .05) continue; const dy = B[4] - A[4]; if (Math.abs(dy) < .002 || Math.abs(dy) > .2) continue; const top = dy > 0 ? B[5] : A[5]; if (!top.soft) { top.soft = 1; m++; } } }
+  seg.ovlN = m; }
 
 /* ---------- territory ----------
    At a corner the plane is split along the 45° line through the junction: everything on this stretch's
@@ -1032,6 +1041,11 @@ function courseExtras(seg) { const th = seg.th, L = seg.len, t = seg.tid, H = se
     for (let a = 20; a < L - 10; a += 30) { const q = (((a / 30) | 0) % 2 ? -1 : 1) * (HW + 1.1); bx.push({ l0: q - .22, l1: q + .22, s0: a, s1: a + .44, y0: 0, y1: .75, c: '#5A6670' }, { l0: q - .26, l1: q + .26, s0: a - .04, s1: a + .48, y0: .75, y1: .82, c: '#3E4850' }); } /* [C24] 公園のごみ箱（灰色の筒とふた） */
     seg.props.push(mkProp(seg, bx, { big: 1 }));
     for (let a = 4; a < L - 4; a += 3.5) for (const sd of [-1, 1]) seg.floor.push({ v: quad(seg, [[a, sd * (ROAD + .02), .011], [a + .12, sd * (ROAD + .02), .011], [a + .12, sd * (ROAD - .25), .011], [a, sd * (ROAD - .25), .011]]), c: C('#8A847A'), pat: null, ti: 0 }); } /* [C25] 園路のふちの、石のふち石のつなぎ目 */
+  if (t === 'tland' || t === 'sland') { /* [着地 G5〜G7] 公園の森：芝生のふち（左右 26〜28m）に木を 2 列ならべ、芝生の四角い角が、上空から見ても見えないようにする。
+       芝生の中にも、木のかたまりを 3 つ（本物の芝公園・隅田公園は木の多い公園）。木は「遠くからも描く木」（降りる時に急に出てこない） */
+    for (const sd of [-1, 1]) for (let a = -12; a < L + 12; a += 5.5) for (const q of [26.5, 23]) { const lat = sd * (q + rand(-1.2, 1.2)); if (Math.abs(lat) < HW + 9) continue; seg.spr.push({ lat, s: a + rand(-1.5, 1.5), y: 0, h: rand(8, 12), w: rand(7, 10), img: 'canopy_green', trunk: 1, far: 1 }); }
+    for (const [a0, sd, n] of [[L * .18, 1, 6], [L * .45, -1, 7], [L * .8, 1, 5]]) for (let k = 0; k < n; k++) seg.spr.push({ lat: sd * (HW + 12 + rand(-3, 4)), s: a0 + rand(-7, 7), y: 0, h: rand(7, 11), w: rand(6, 9), img: 'canopy_green', trunk: 1, far: 1 });
+  }
   if (t === 'tland' || t === 'sland') { /* [着地 G1〜G3] 2026-11-20 オーナー「降りるときの道路がやすっぽい」：上空から見ると、公園は一色の緑に、一色の茶色い道が 1 本のびているだけだった。
        上から見ても形がわかる大きさの模様をつける（細かい模様は遠くでつぶれるので、太い帯で）。ほかの床と重ならない帯だけを、いつも床の後に同じ順で描く（soft） */
     for (const sd of [-1, 1]) for (let a = -14; a < L + 4; a += 6) seg.floor.push({ v: quad(seg, [[a, sd * (ROAD + .02), .008], [a + 6, sd * (ROAD + .02), .008], [a + 6, sd * (ROAD + .42), .008], [a, sd * (ROAD + .42), .008]]), c: C('#C4B691'), pat: null, soft: 1 }); /* [G1] 園路の両わきの、太めの石のふち（上空からも道のふちがくっきり） */
