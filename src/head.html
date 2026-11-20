@@ -1075,5 +1075,15 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
 @media (orientation:portrait) and (max-width:599px){#sTitle.home .card>#tToday{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}#sTitle.home #tToday .tt-ch{grid-column:1/-1}
   #sTitle.home #tToday .tt-c b.nl{font-size:14px}#sTitle.home #tToday .tt-c b.nxl{font-size:12px}}
 @media (orientation:portrait) and (max-width:380px){#sTitle.home #tToday .tt-c b.nl{font-size:13px}#sTitle.home #tToday .tt-c b.nxl{font-size:11px}}
+/* [H22〜H25] 2026-11-20 オーナー（iPhone の写真）「スライドしてボタンなどがズレるのではなく、1 画面に収まるように」「不要なものを削除したり、表記をシンプルにしたりしていい」
+   スマホのたて画面では、ホーム画面を 1 画面にして、指でずらしても動かないようにする。下にかくれていた小さなリンク（遊び方・公式サイト・SNS）は設定の中にもあるので、ホームからは外す。
+   SNS の新作の札も外す（1 行に入りきらず「…」で切れていた。新作は設定・お知らせから見られる） */
+@media (orientation:portrait) and (max-width:599px){
+  #sTitle.home{overflow:hidden;overscroll-behavior:none}
+  #sTitle.home .small-print{display:none}
+  #sTitle.home .card>.feedcard{display:none}
+  #sTitle.home .card.tgrid{max-height:100%;box-sizing:border-box}
+}
+@media (orientation:portrait) and (max-width:599px){.ttoast.hm.hmn.hmw{max-width:calc(100vw - 184px)!important}} /* [H26] 今日の目標の下に出すお知らせは、左右のボタンにかからない細いはば */
 /* ==== HOME-V2 END ==== */
 </style>
