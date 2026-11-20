@@ -674,12 +674,19 @@ function skyline3dCached(seg, layer) { const k = SK3C[layer] || (SK3C[layer] = {
      ・目の高さが 1m 変わっても、0.6 ドットも動かない → 1m ごとに描きなおす
      ・横の向きが少し変わった時は、横にずらしてはる（ずれは 1 ドット以下）。曲がっている間は 1 コマおきに描きなおす
      ・夜の飛行機よけの赤い明かりの点滅は、夜だけ描きなおす */
-  const hz = HORIZON - Math.tan(CAM.pitch) * FOCAL, night = LT.night > .4 ? 1 : 0, key = [seg.id, Math.round(CAM.x / 3), Math.round(CAM.z / 3), Math.round(CAM.y), night, (LT.amb || []).map(x => Math.round(x * 40)).join(), W, H, FOCAL | 0, typeof lowQ !== 'undefined' ? lowQ : 0, LT.night > .3 ? Math.floor((G.t || 0) * 1.2) % 2 : 0].join('|');
+  const hz = HORIZON - Math.tan(CAM.pitch) * FOCAL, night = LT.night > .4 ? 1 : 0, am = LT.amb || [1, 1, 1];
+  /* [軽く 3-32] 描きなおすかどうかの目印は、文字にせず数のままくらべる（前は毎コマ 2 回、長い文字を作っていた。くらべる中身は同じ） */
+  const K = SK3K; K[0] = seg.id; K[1] = Math.round(CAM.x / 3); K[2] = Math.round(CAM.z / 3); K[3] = Math.round(CAM.y); K[4] = night; K[5] = Math.round(am[0] * 40); K[6] = Math.round(am[1] * 40); K[7] = Math.round(am[2] * 40); K[8] = W; K[9] = H; K[10] = FOCAL | 0; K[11] = typeof lowQ !== 'undefined' ? lowQ : 0; K[12] = LT.night > .3 ? Math.floor((G.t || 0) * 1.2) % 2 : 0;
+  const kk = k.kn || (k.kn = []); let same = kk.length === K.length; if (same) for (let i = 0; i < K.length; i++) if (kk[i] !== K[i]) { same = false; break; }
   const dyaw = angDiff(CAM.yaw, k.yaw), turning = G.turnT > 0, tol = turning ? (k.age < 1 ? .05 : 0) : .012;
-  if (key !== k.key || Math.abs(dyaw) > tol) { const g = c.getContext('2d'); if (!g) { skyline3d(seg, layer); return; } g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(DPR, 0, 0, DPR, MX, 0); skyline3d(seg, layer, g); k.key = key; k.yaw = CAM.yaw; k.hz = hz; k.age = 0; }
+  if (!same || k.key === '' || Math.abs(dyaw) > tol) { for (let i = 0; i < K.length; i++) kk[i] = K[i]; const g = c.getContext('2d'); if (!g) { skyline3d(seg, layer); return; } g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.setTransform(DPR, 0, 0, DPR, MX, 0); skyline3d(seg, layer, g); k.key = 'ok'; k.yaw = CAM.yaw; k.hz = hz; k.age = 0; }
   else k.age++;
   const ox = -angDiff(CAM.yaw, k.yaw) * FOCAL * DPR, oy = (hz - k.hz) * DPR;
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(c, Math.round((ox - MX) * 4) / 4, Math.round(oy * 4) / 4); ctx.restore(); }
+  /* [軽く 3-33] 遠くの町の絵は、地平線より少し下（目の高さの分のずれ＋余り）までしか描かれていない。はる時は、その上の部分だけをはる
+     （前は画面いっぱいの絵を 2 枚はっていた。下の 6 割は透明で、スマホの描く部品の手間だけかかっていた。見た目は同じ） */
+  const sh = Math.min(c.height, Math.ceil((k.hz + .06 * FOCAL + 6) * DPR)); if (sh <= 0) return;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(c, 0, 0, c.width, sh, Math.round((ox - MX) * 4) / 4, Math.round(oy * 4) / 4, c.width, sh); ctx.restore(); }
+const SK3K = [];
 
 function skyline(seg, yb, layer) {
   const N = LT.night, sc = seg.th.climb ? .6 : layer ? 1 : .7;
@@ -957,11 +964,14 @@ const LIT_CACHE = new WeakMap(); // weak: when a building texture is dropped, it
 // all shaded copies together stay under a pixel budget (phones run out of canvas memory at dusk, when every picture gets re-shaded)
 const LIT_PHONE = navigator.maxTouchPoints >= 1 && Math.min(screen.width, screen.height) < 820, LIT_MAXDIM = LIT_PHONE ? 320 : 4096; const LIT_LIST = []; let LIT_PX = 0; const LIT_MAXPX = LIT_PHONE ? 7e6 : 16e6;
 function litEvict() { while (LIT_LIST.length && LIT_PX > LIT_MAXPX) { const e = LIT_LIST.shift(); LIT_PX -= e.px; const m = LIT_CACHE.get(e.img); if (m) { if (m[e.k] === e.c) delete m[e.k]; if (m.last === e.c) m.last = null; } try { e.c.width = e.c.height = 0; } catch (x) { } } }
+/* [軽く 3-19] 明るさの段（4 段・16 段）と目印の文字は、明るさが変わった時だけ作り直す（前は絵を 1 枚描くたびに作っていた：1 コマ数百回） */
+const LITK = { 4: { a: [NaN, NaN, NaN], q: [1, 1, 1], k: '', none: true }, 16: { a: [NaN, NaN, NaN], q: [1, 1, 1], k: '', none: true } };
+function litKey(amb, st) { const e = LITK[st], a = e.a; if (amb[0] !== a[0] || amb[1] !== a[1] || amb[2] !== a[2]) { a[0] = amb[0]; a[1] = amb[1]; a[2] = amb[2]; const q = [0, 1, 2].map(i => Math.round(Math.min(1, amb[i]) * st) / st); e.q = q; e.k = q.join(','); e.none = q[0] >= 1 && q[1] >= 1 && q[2] >= .95; } return e; }
 function litSprite(img, amb, force, full) {
   if (!img || !img.width) return img; // a picture already freed: nothing to shade
-  const st = full ? 16 : 4, q = amb.map(x => Math.round(Math.min(1, x) * st) / st); if (q[0] >= 1 && q[1] >= 1 && q[2] >= .95) return img; // coarse steps: few shades per picture. The runners (full) take fine steps: with 1/4 steps a mild evening light [.90,.87,.87] rounded to [1,.75,.75] and the bunnies turned red at 18:00 (2026-11-15)
+  const st = full ? 16 : 4, L = litKey(amb, st), q = L.q; if (L.none) return img; // coarse steps: few shades per picture. The runners (full) take fine steps: with 1/4 steps a mild evening light [.90,.87,.87] rounded to [1,.75,.75] and the bunnies turned red at 18:00 (2026-11-15)
   let m = LIT_CACHE.get(img); if (!m) { m = {}; LIT_CACHE.set(img, m); }
-  const k = q.join(','); if (m[k]) return m[k];
+  const k = L.k; if (m[k]) return m[k];
   if (!force && !texOK() && m.last) return m.last; TEXN++; // over this frame's budget: the previous shade for one more frame
   const ks = full ? 1 : Math.min(1, LIT_MAXDIM / Math.max(img.width, img.height)); // phones keep shaded copies at a reduced size: many more fit in memory, and they are drawn small anyway
   const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.width * ks)); c.height = Math.max(1, Math.round(img.height * ks)); const g = c.getContext('2d'); if (!g) { noCtx(); return img; } // out of picture memory: the unshaded picture (never a throw, never a blank kept)

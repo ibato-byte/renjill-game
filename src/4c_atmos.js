@@ -81,10 +81,12 @@ function buildCloudSprites() {
   }
 }
 const TINT_CACHE = new Map();
+const TINTK = { a: [NaN, NaN, NaN], q: [255, 255, 255], k: '' };
 function tintedSprite(img, rgb) {
   if (!img || !img.width) return img;
-  const q = rgb.map(x => Math.min(255, Math.round(x / 12) * 12)); if (q[0] >= 252 && q[1] >= 252 && q[2] >= 252) return img;
-  let m = TINT_CACHE.get(img); if (!m) { m = {}; TINT_CACHE.set(img, m); } const k = q.join(','); if (m[k]) return m[k];
+  const T = TINTK; if (rgb[0] !== T.a[0] || rgb[1] !== T.a[1] || rgb[2] !== T.a[2]) { T.a[0] = rgb[0]; T.a[1] = rgb[1]; T.a[2] = rgb[2]; T.q = [0, 1, 2].map(i => Math.min(255, Math.round(rgb[i] / 12) * 12)); T.k = T.q.join(','); } /* [軽く 3-25] 色の目印は、色が変わった時だけ作る */
+  const q = T.q; if (q[0] >= 252 && q[1] >= 252 && q[2] >= 252) return img;
+  let m = TINT_CACHE.get(img); if (!m) { m = {}; TINT_CACHE.set(img, m); } const k = T.k; if (m[k]) return m[k];
   const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); if (!g) { noCtx(); return img; } // out of picture memory: the untinted picture, never a blank one kept
   g.drawImage(img, 0, 0); g.globalCompositeOperation = 'multiply'; g.fillStyle = rgbS(q); g.fillRect(0, 0, c.width, c.height); g.globalCompositeOperation = 'destination-in'; g.drawImage(img, 0, 0);
   const keys = Object.keys(m); while (keys.length > 3) { const kk = keys.shift(), o = m[kk]; delete m[kk]; try { o.width = o.height = 0; } catch (e) { } } m[k] = c; return c;
@@ -113,11 +115,14 @@ const SHQ = new Float64Array(12);
 /* 2026-11-17 オーナー：「坂を走る時に地面が透けて先が見えてしまう」。原因：建物のかげ・壁ぎわのかげは、床を描いたあとに上から重ねていた。
    坂の頂上の向こう（本当は見えない所）のかげまで、手前の上り坂の上に重なり、「向こうの道がうす黒く透けて見える」形になっていた。
    いまいる道に坂がある時は、頂上の線より上だけに描く（障害物・人と同じ「坂のかくし」occDraw を使う） */
+const SHQV = new Float64Array(12);
+function shqPt(sg, s, l, o) { SHQV[o] = sg.sx + sg.f[0] * s + sg.r[0] * l; SHQV[o + 1] = segE(sg, s) + .012; SHQV[o + 2] = sg.sz + sg.f[1] * s + sg.r[1] * l; }
+function shqDraw(v) { const m = project(v); if (!m) return; pathPoly(Math.abs(m)); ctx.fill(); }
 function shadeQuad(sg, a, b, l0, l1) {
   if (sg === G.segs[G.ci] && OCC.on && b - a > 3.01) { for (let x = a; x < b - .01; x += 3) shadeQuad(sg, x, Math.min(b, x + 3), l0, l1); return; } // 坂では 3m ずつ（頂上の手前の分は消さない）
-  const p = [[a, l0], [b, l0], [b, l1], [a, l1]]; const v = []; for (const [s, l] of p) { const q = segPos(sg, s, l); v.push(q[0], q[2] + .012, q[1]); }
-  const draw = () => { const m = project(v); if (!m) return; pathPoly(Math.abs(m)); ctx.fill(); };
-  if (sg === G.segs[G.ci] && OCC.on) { const fs = ctx.fillStyle; occDraw(depthOf(v), () => { ctx.fillStyle = fs; draw(); }); } else draw();
+  /* [軽く 3-16] かげの四角の 4 すみは、使い回す入れ物に入れる（前は 1 つのかげに入れ物を 6 つ作っていた。形は同じ） */
+  const v = SHQV; shqPt(sg, a, l0, 0); shqPt(sg, b, l0, 3); shqPt(sg, b, l1, 6); shqPt(sg, a, l1, 9);
+  if (sg === G.segs[G.ci] && OCC.on) { const y = occAt(depthOf(v)); if (y <= 0) return; if (y === Infinity) { shqDraw(v); return; } const fs = ctx.fillStyle; ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, y); ctx.clip(); try { ctx.fillStyle = fs; shqDraw(v); } finally { ctx.restore(); } } else shqDraw(v);
 }
 function streetShade(sg) {
   const th = sg.th, k = th.kind, room = k === 'room' || k === 'train' || k === 'glass';
@@ -239,11 +244,11 @@ function floorTexture(p, d, m, sg) {
 }
 
 /* ---- water: the sky mirrored, deeper near the camera, with the sun's glitter path ---- */
-let WATER_G = null, WATER_K = '';
+let WATER_G = null, WATER_K = ''; const WK = [];
 function waterFill(p, d) {
   const hz = HORIZON - Math.tan(CAM.pitch) * FOCAL, N = LT.night;
-  const key = [hz | 0, LT.bot.map(x => x | 0).join(), N.toFixed(2), G.weather].join('|');
-  if (key !== WATER_K) { WATER_K = key;
+  const b = LT.bot, k0 = hz | 0, k1 = b[0] | 0, k2 = b[1] | 0, k3 = b[2] | 0, k4 = Math.round(N * 100), k5 = G.weather; /* [軽く 3-23] 目印は数のままくらべる（水の面 1 枚ごとに文字を作っていた） */
+  if (WK[0] !== k0 || WK[1] !== k1 || WK[2] !== k2 || WK[3] !== k3 || WK[4] !== k4 || WK[5] !== k5 || !WATER_G) { WK[0] = k0; WK[1] = k1; WK[2] = k2; WK[3] = k3; WK[4] = k4; WK[5] = k5;
     const base = p.c, sky = LT.bot, deep = [base[0] * .55 * LT.amb[0], base[1] * .62 * LT.amb[1], base[2] * .7 * LT.amb[2]];
     const g = ctx.createLinearGradient(0, hz, 0, H);
     g.addColorStop(0, rgbS(mixRGB(sky, base, .25 + N * .5))); g.addColorStop(.25, rgbS(mixRGB(sky, base, .62))); g.addColorStop(1, rgbS(deep));
