@@ -1279,7 +1279,7 @@
     {
       "name": "赤い電波塔：入口の建物・屋上・踊り場のある外階段・500 段からの通路",
       "file": "src/1b_places.js",
-      "has": "{ t: 'tlobby', d: 5 }, { t: 'troof', d: 4 }, { t: 'tstair', d: 12 }, { t: 'tpass', d: 4 }"
+      "has": "{ t: 'tlobby', d: 5, turn: 1 }, { t: 'troof', d: 4, turn: -1 }, { t: 'tstair', d: 12, straightOut: 1 }, { t: 'tpass', d: 4, turn: -1 }"
     },
     {
       "name": "ポムは四つ足で低く走る（二足歩行に見えた）",
@@ -1364,7 +1364,7 @@
     {
       "name": "押上の電波塔：4 階の入口と四季のエレベーター・展望回廊の坂",
       "file": "src/1b_places.js",
-      "has": "{ t: 'slobby', d: 5 }"
+      "has": "{ t: 'slobby', d: 5, turn: -1 }"
     },
     {
       "name": "やわらかい布団・座布団（角の丸い、ふくらんだ形）",
@@ -1570,6 +1570,61 @@
       "name": "箱の材質も小さな絵",
       "file": "src/4_render.js",
       "has": "[遠く A16]"
+    },
+    {
+      "name": "電波塔コースの曲がる向きを決める（塔の向きの矛盾をなくす）",
+      "file": "src/1b_places.js",
+      "has": "{ t: 'troof', d: 4, turn: -1 }"
+    },
+    {
+      "name": "コースの道の向きは実際に曲がった向きから",
+      "file": "src/4b_patterns.js",
+      "has": "function segFace(seg)"
+    },
+    {
+      "name": "決めた曲がる向き（step.turn）",
+      "file": "src/3_world.js",
+      "has": "step.turn ? step.turn :"
+    },
+    {
+      "name": "オオタカで降りる時にぐるっと1回転（前半で回り終える）",
+      "file": "src/6_game.js",
+      "has": "function skySpinU(seg)"
+    },
+    {
+      "name": "回っている間は遠くの景色を見る",
+      "file": "src/6_game.js",
+      "has": "CAM.pitch = lerp(CAM.pitch, .07, lk)"
+    },
+    {
+      "name": "屋上の外かべは曲がり角の手前で止める",
+      "file": "src/3_world.js",
+      "has": "const aEnd = seg.turn ? L - 2 * HW - .5 : L + 8;"
+    },
+    {
+      "name": "屋上のまん中の通路は曲がり角の手前で止める",
+      "file": "src/3_world.js",
+      "has": "const pE = seg.turn ? L - 2 * HW - .3 : L - 2;"
+    },
+    {
+      "name": "曲がる間はとなりの道のチモシーだけ描く",
+      "file": "src/4_render.js",
+      "has": "(G.turnT > 0 && (iRel === 1 || iRel === -1)) || nxS"
+    },
+    {
+      "name": "金網の柱を遠くで少しずつ間引く",
+      "file": "src/4_render.js",
+      "has": "if (l.pi != null && !LODOFF)"
+    },
+    {
+      "name": "エレベーターの塔の赤白の帯を重ねない",
+      "file": "src/3_world.js",
+      "has": "[42, 46, '#EDEDEA']].map(([y0, y1, c])"
+    },
+    {
+      "name": "着地の公園：石のふち・芝生のしま・花だん",
+      "file": "src/3_world.js",
+      "has": "[着地 G1〜G3]"
     },
     {
       "name": "たて長のスマホのホームでは 3 人の足もとが下の台のすぐ上（札にかくれない）",
