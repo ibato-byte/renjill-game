@@ -1654,7 +1654,7 @@
     {
       "name": "お知らせは今日の目標の下の細いはば",
       "file": "src/7_ui.js",
-      "has": "d.classList.toggle('hmw', tall && !fv)"
+      "has": "d.classList.toggle('hmw', tall && !fv && roomOk)"
     }
   ]
 }
