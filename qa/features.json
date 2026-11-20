@@ -1585,6 +1585,21 @@
       "name": "今日の目標の数の長さで字の大きさを変える",
       "file": "src/6e_keep.js",
       "has": "[ホーム iPhone H17]"
+    },
+    {
+      "name": "スマホのホームは 1 画面（指でずらしても動かない）",
+      "file": "tools/home/home.css",
+      "has": "#sTitle.home{overflow:hidden;overscroll-behavior:none}"
+    },
+    {
+      "name": "スマホのホームから下の小さなリンクと新作の札を外す",
+      "file": "tools/home/home.css",
+      "has": "#sTitle.home .small-print{display:none}"
+    },
+    {
+      "name": "お知らせは今日の目標の下の細いはば",
+      "file": "src/7_ui.js",
+      "has": "d.classList.toggle('hmw', tall && !fv)"
     }
   ]
 }
