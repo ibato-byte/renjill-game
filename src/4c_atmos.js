@@ -154,7 +154,8 @@ function diffusion() {
   try { const g = gfxMode(); if (g === 'low' || (g !== 'high' && RES_K < 1) || DIF_K <= 0) return;
     const sw = Math.max(24, Math.round(cv.width / 7)), sh = Math.max(24, Math.round(cv.height / 7));
     if (!DIFC || DIFC.width !== sw || DIFC.height !== sh) { DIFC = document.createElement('canvas'); DIFC.width = sw; DIFC.height = sh; DIFG = DIFC.getContext('2d', { alpha: false }) || DIFC.getContext('2d'); if (!DIFG) { DIF_K = 0; return; } }
-    DIF_N = (DIF_N + 1) % 2; if (DIF_N === 0 || DIFC.__fresh !== 1) { DIFC.__fresh = 1; /* [軽く] やわらかい光のもと（明るい所だけの小さな絵）は 2 コマに 1 回だけ作り直す（ぼかした光なので、1 コマ前の物で見分けがつかない。画面の絵を読む重い処理が半分に） */
+    const sgD = G.segs && G.segs[G.ci], every = LT.night > .3 || !!(sgD && sgD.th && (sgD.th.climb || sgD.th.sky)); /* [塔 F10] 2026-11-21：2 コマに 1 回だけ作り直すと、夜や塔で明るい物（段の数・明かり）が速く動く時、1 コマ前の場所にうすい「残り」が出て、1 コマおきにチカチカした。夜と塔では毎コマ作り直す */
+    DIF_N = (DIF_N + 1) % 2; if (every || DIF_N === 0 || DIFC.__fresh !== 1) { DIFC.__fresh = 1; /* [軽く] やわらかい光のもと（明るい所だけの小さな絵）は 2 コマに 1 回だけ作り直す（ぼかした光なので、1 コマ前の物で見分けがつかない。画面の絵を読む重い処理が半分に） */
     DIFG.globalCompositeOperation = 'copy'; DIFG.globalAlpha = 1; DIFG.imageSmoothingEnabled = true; DIFG.drawImage(cv, 0, 0, sw, sh);
     DIFG.globalCompositeOperation = 'multiply'; DIFG.drawImage(DIFC, 0, 0); DIFG.drawImage(DIFC, 0, 0); } /* 自分どうしを 2 回掛けて、とても明るい所だけを残す（全体が白っぽくならない） */
     const a = (LT.night > .5 ? .42 : LT.indoor ? .16 : .2) * DIF_K;
