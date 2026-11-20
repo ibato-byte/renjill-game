@@ -1085,5 +1085,9 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
   #sTitle.home .card.tgrid{max-height:100%;box-sizing:border-box}
 }
 @media (orientation:portrait) and (max-width:599px){.ttoast.hm.hmn.hmw{max-width:calc(100vw - 184px)!important}} /* [H26] 今日の目標の下に出すお知らせは、左右のボタンにかからない細いはば */
+/* [H29] 2026-11-20：はば 320 の小さいスマホで、今日の目標の数（29,000・0/300）が右で切れていた。数を小さく */
+@media (orientation:portrait) and (max-width:340px){#sTitle.home #tToday .tt-c b{font-size:14px}#sTitle.home #tToday .tt-c b.nl{font-size:12px}#sTitle.home #tToday .tt-c b.nxl{font-size:10.5px}#sTitle.home #tToday .tt-c small{font-size:9px;letter-spacing:-.02em}}
+@media (orientation:portrait) and (max-width:340px){#sTitle.home .card>#tToday{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);column-gap:6px}}
+@media (orientation:portrait) and (max-width:340px){#sTitle.home .card>#tToday{width:calc(100vw - 132px)!important;max-width:none!important;box-sizing:border-box;padding-left:8px;padding-right:8px}}
 /* ==== HOME-V2 END ==== */
 </style>

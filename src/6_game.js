@@ -140,8 +140,12 @@ let TITLE_PITCH = .2, TITLE_WIDE = -.9;
 let TITLE_DOCK = { y: 0, t: -1 };
 function titleTallPitch(P, gy) {
   if (G.mode !== 'title') return TITLE_PITCH;
-  if (G.t - TITLE_DOCK.t > .5 || G.t < TITLE_DOCK.t) { TITLE_DOCK.t = G.t; const d = document.querySelector('#sTitle.home:not([hidden]) .card>.chars'), a = $('#app'); if (d && d.offsetParent && a) { const r = d.getBoundingClientRect(), ar = a.getBoundingClientRect(); TITLE_DOCK.y = r.top - ar.top; } else TITLE_DOCK.y = 0; }
-  const want = TITLE_DOCK.y - 10; if (!(want > H * .45) || P.wx == null) return TITLE_PITCH; /* 台がない・台が上すぎる時は今までどおり */
+  if (G.t - TITLE_DOCK.t > .5 || G.t < TITLE_DOCK.t) { TITLE_DOCK.t = G.t; const d = document.querySelector('#sTitle.home:not([hidden]) .card>.chars'), a = $('#app'); if (d && d.offsetParent && a) { const r = d.getBoundingClientRect(), ar = a.getBoundingClientRect(); TITLE_DOCK.y = r.top - ar.top; const td = $('#sTitle.home #tToday'), tr = td && td.offsetParent ? td.getBoundingClientRect() : null; TITLE_DOCK.top = tr && tr.height > 8 ? tr.bottom - ar.top : 0; } else TITLE_DOCK.y = 0; }
+  let want = TITLE_DOCK.y - 10; /* [ホーム iPhone H27] 2026-11-20 オーナー「スマホの画面の時にキャラクターが中心に来るように」：今日の目標の札と下の台の間があいている背の高いスマホでは、
+     3 人の体のまん中が、そのあいた所のまん中に来るように、足もとを少し上げる（レンの背の高さは、画面のはばの約 0.32） */
+  if (TITLE_DOCK.top > 0 && W < 600 && H > W * 1.25) { const mid = (TITLE_DOCK.top + TITLE_DOCK.y) / 2, feet = mid + W * .16 + 8; if (feet < want) want = Math.max(feet, TITLE_DOCK.top + W * .32 + 16); }
+  TITLE_DOCK.feet = want; /* お知らせの置き場所（3 人の頭にかからないか）に使う */
+  if (!(want > H * .45) || P.wx == null) return TITLE_PITCH; /* 台がない・台が上すぎる時は今までどおり */
   /* 足もと（地面の高さ）の点が、画面の want の高さに来る上下の向きを、その場で求める */
   const dx = P.wx - CAM.x, dz = P.wz - CAM.z, fw = dx * Math.sin(CAM.yaw) + dz * Math.cos(CAM.yaw), dy = (gy || 0) - CAM.y; /* はねる高さは入れない（カメラがはねに合わせてゆれない） */ if (!(fw > .5)) return TITLE_PITCH;
   const ang = Math.atan2(-dy, fw), off = Math.atan((want - HORIZON) / FOCAL); /* 足もとは目の高さより ang だけ下。画面で地平線より off だけ下に見せたい */
