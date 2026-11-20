@@ -379,8 +379,8 @@ NIGHT.west.push('shimokita'); NIGHT.bay.push('tsukishima'); NIGHT.east.push('ter
    同じ方角の物は、どの場所から見ても同じ向きに見える（空の上でぐるっと見回すと、本物と同じ順に並ぶ） */
 Object.assign(THEMES, {
   tfoot:  { ja: '芝公園・赤い電波塔の足もと', lbl: '電波塔の足もと', lblEn: 'Foot of the red tower', en: 'Shiba Park, foot of the red tower', kind: 'street', len: [100, 110], road: ['#C9C2B6', '#BFB8AB'], rpat: 'plaza', side: ['#7FA35E', '#77995A'], spat: 'lawn', curb: '#9A9384',
-    fac: { style: 'park' }, town: 1, props: [['tree', 3], ['pinetree', 1], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'suitcase'], tree: 'green', flat: 1, course: 'tower', face: 20,
-    lm: [{ t: 'tower', brg: 20, sc: 1.25, grow: 1.7 }], arrive: { ja: '見上げると、赤と白の鉄の塔', en: 'Look up: a tower of red and white steel' } },
+    fac: { style: 'park' }, town: 1, props: [['tree', 3], ['pinetree', 1], ['lampC', 2], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'suitcase'], tree: 'green', flat: 1, course: 'tower', face: 250, /* [塔 L3] 塔の階段（250）と同じ向きから近づく：塔に向かってまっすぐ → 右 → 左で、階段は塔の正面 */
+    lm: [{ t: 'tower', brg: 250, sc: 1.25, grow: 1.7 }], arrive: { ja: '見上げると、赤と白の鉄の塔', en: 'Look up: a tower of red and white steel' } },
   tdeck:  { ja: '赤い電波塔・展望台（地上150m）', lbl: '150mの展望台', lblEn: '150 m deck', en: 'Red tower, 150 m deck', kind: 'glass', truss: 'red', len: [100, 108], road: ['#8C939A', '#858C93'], rpat: 'lookdown', side: ['#C9CDD2', '#C1C5CA'], spat: 'tile', climb: [150, 150], view: 'city',
     wall: '#F2F3F4', ceil: '#E9ECEF', core: 1, coreC: '#E2DED6', wdeco: ['elevator', 'towerposter', 'menuboard', 'quizpanel'], props: [['scopeS', 2]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'tower', face: 135, grab: 1,
     lm: [{ t: 'skytree', brg: 46, sc: .9 }, { t: 'clock', brg: 38, sc: .7 }, { t: 'yagura', brg: 13, sc: .8 }, { t: 'tocho', brg: 305, sc: .7 }, { t: 'hills', brg: 282, sc: 1.2 }],
@@ -393,7 +393,7 @@ Object.assign(THEMES, {
     arrive: { ja: '正面入口から中へ。チケット売り場とエレベーター', en: 'In through the front doors: tickets and elevators' } },
   troof:  { ja: '赤い電波塔・入口の建物の屋上', lbl: '外階段の入口', lblEn: 'Stair gate', en: 'Red tower, rooftop stair gate', kind: 'deck', len: [58, 64], road: ['#B9B4AA', '#B0ABA0'], rpat: 'plaza', side: ['#A9A49A', '#A09B90'], spat: 'plaza', climb: [20, 20], view: 'city', rail: '#E6E8EA', roofLegs: 1, face: 250,
     props: [], obs: ['bench', 'cone', 'rope'], course: 'tower', lm: [{ t: 'hills', sc: 1.2, brg: 282 }, { t: 'tocho', sc: .6, brg: 305 }],
-    arrive: { ja: '屋上。真上に塔の脚。外階段の入口は右手', en: 'The rooftop, under the tower legs. The stair gate is on the right' } },
+    arrive: { ja: '屋上。真上に塔の脚。外階段の入口は左手', en: 'The rooftop, under the tower legs. The stair gate is on the left' } },
   tstair: { ja: '赤い電波塔・外階段', lbl: '外階段', lblEn: 'Outdoor stairs', en: 'Red tower, outdoor stairs', kind: 'deck', len: [262, 270], road: ['#B4563E', '#AC4F38'], rpat: 'stairs', side: ['#9A4632', '#92402D'], spat: 'stairs', climb: [20, 125], view: 'city', rail: '#D9452B', beams: '#D9452B', mesh: 1, landings: 1, flights: { a: 12, P: 7.6, F: 2.2, R: 3.5, n: 30 } /* [H2] 外階段 約600段：20 段（3.5m）ごとに踊り場、30 回で地上 20m → 125m（本当に 105m 登る） */, face: 250,
     props: [], obs: ['cone', 'rope'], course: 'tower', lm: [{ t: 'fuji', sc: .9, brg: 250 }, { t: 'hills', sc: 1.3, brg: 282 }, { t: 'tocho', sc: .7, brg: 305 }],
     arrive: { ja: '金網の中の赤い階段。約600段', en: 'Red stairs inside wire mesh: about 600 steps' } },
@@ -457,9 +457,10 @@ for (const k in THEMES) { const th = THEMES[k]; if (th.kind !== 'street' || !th.
   else if (['neon', 'luxury', 'glass', 'station'].includes(st)) th.props = th.props.concat([['busstop', 1], ['hydrant', 1]], ['glass', 'station', 'luxury'].includes(st) ? [['bollard', 2], ['areamap', 1]] : []); /* 131〜135 車止め・案内地図 */ }
 // 点数で 1 回ずつ（1 回の遊びで）。赤い電波塔は外階段（約600段）を自分の足で。押上の電波塔の階段は一般には開いていないので、エレベーター（約50秒）で 350m へ
 const COURSES = {
-  tower: { at: 100000, steps: [{ t: 'tfoot', d: 8 }, { t: 'tlobby', d: 5 }, { t: 'troof', d: 4 }, { t: 'tstair', d: 12 }, { t: 'tpass', d: 4 }, { t: 'tdeck', d: 10 }, { t: 'hawk', d: 3 }, { t: 'tland', d: 8 }], ja: '赤い電波塔へ！', en: 'To the red tower!' },
+  /* [塔 L1] 2026-11-20 オーナー「東京タワーが正面に見えていたのに、右に曲がったらまた見える矛盾」：曲がる向きを決める。塔へまっすぐ（入口の建物）→ 右へ（屋上。塔は左手）→ 左へ（塔の階段。塔は正面）→ まっすぐ → 左へ（展望台） */
+  tower: { at: 100000, steps: [{ t: 'tfoot', d: 8, straightOut: 1 }, { t: 'tlobby', d: 5, turn: 1 }, { t: 'troof', d: 4, turn: -1 }, { t: 'tstair', d: 12, straightOut: 1 }, { t: 'tpass', d: 4, turn: -1 }, { t: 'tdeck', d: 10 }, { t: 'hawk', d: 3 }, { t: 'tland', d: 8 }], ja: '赤い電波塔へ！', en: 'To the red tower!' },
   asakusa: { at: 500000, steps: [{ t: 'asakusa', d: 8 }, { t: 'nakamise', d: 10 }, { t: 'hozomon', d: 8 }, { t: 'hondo', d: 10 }, { t: 'denboin', d: 8 }], ja: '浅草寺へ！', en: 'To Senso-ji!' },
-  skytree: { at: 300000, steps: [{ t: 'sfoot', d: 8 }, { t: 'slobby', d: 5 }, { t: 'selev', d: 2 }, { t: 'sdeck', d: 10 }, { t: 'selev2', d: 2 }, { t: 'skytree', d: 10 }, { t: 'hawk2', d: 4 }, { t: 'sland', d: 8 }], ja: '押上の電波塔へ！', en: 'To the Oshiage tower!' },
+  skytree: { at: 300000, steps: [{ t: 'sfoot', d: 8, straightOut: 1 }, { t: 'slobby', d: 5, turn: -1 }, { t: 'selev', d: 2 }, { t: 'sdeck', d: 10, turn: -1 }, { t: 'selev2', d: 2 }, { t: 'skytree', d: 10 }, { t: 'hawk2', d: 4 }, { t: 'sland', d: 8 }], ja: '押上の電波塔へ！', en: 'To the Oshiage tower!' },
 };
 
 Object.assign(THEMES, {

@@ -710,7 +710,13 @@ function skyline(seg, yb, layer) {
   }
 }
 // 本当の方角（brg）がある目印は、その道の向き（th.face）との差で置く（2026-11-17：塔の上で見回すと、本物と同じ順・同じ向きに並ぶ）
-function lmAngle(seg, lm) { const th = seg.th; return lm.brg != null && th.face != null ? (lm.brg - th.face) * Math.PI / 180 : (lm.off || 0) + (seg.lmOff || 0) * .3; }
+/* [塔 L2] 2026-11-20：コースの道の「本当の向き」（face）は、場所ごとに決めた数ではなく、コースの最初の道の向き＋実際に曲がった向きから求める。
+   前は、曲がる向き（右・左）がその時しだいなのに、向きの数は決まっていたので、右に曲がっても左に曲がっても同じ方角に塔・山が出て、「正面に見えていた塔が、曲がってもまた正面に見える」ことがあった */
+function segFace(seg) { if (seg.faceD !== undefined) return seg.faceD; const th = seg.th, co = seg.step && seg.step.co; let f = th.face != null ? th.face : null;
+  /* エレベーターの中は外が見えないので、出たときの向きは場所で決めた向きにもどしてよい。それ以外は、一つ前の道の向き＋曲がった向き */
+  if (co && !seg.step.co0 && !th.lift) { const i = G.segs.indexOf(seg), pv = i > 0 ? G.segs[i - 1] : null; if (pv && pv.step && pv.step.co === co) { const fp = segFace(pv); if (fp != null) f = ((fp + (seg.dir - pv.dir) * 90) % 360 + 360) % 360; } }
+  return seg.faceD = f; }
+function lmAngle(seg, lm) { const f = segFace(seg); return lm.brg != null && f != null ? (lm.brg - f) * Math.PI / 180 : (lm.off || 0) + (seg.lmOff || 0) * .3; }
 /* 2026-11-17 オーナー「右に曲がっても左に曲がっても、正面に見えていたタワーや皇居などが見えるのはおかしい」：
    目印（塔・城・山など）は、場所ごとに「その道の正面から少し横」に置いていたので、角を曲がって次の道に入ると、また正面に出ていた。
    → 一度見えた目印は、世界の中の向きを覚えておく（LM_WORLD）。角を曲がっても同じ向きにあり続ける＝右に曲がれば左うしろへ流れて見えなくなる。

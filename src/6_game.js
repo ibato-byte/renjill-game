@@ -47,11 +47,11 @@ function ensureSegs(max) {
       const nf = G.courseQ && G.courseQ.length ? null : G.plan[0] && G.plan[0].fork; // 電波塔コースの途中では、分かれ道にしない
       G.distEst = G.dist + (G.segs.length - G.ci) * 90; G.speedEst = Math.min(MAXSPD + 1, G.speed + 1.2);
       // after a fork's own street only a fork can follow (it has no corner of its own); should a plain street ever come next, it turns
-      const skyT = t2 => { const h = t2 && THEMES[t2.t]; return !!(h && h.sky); }, liftT = t2 => { const h = t2 && THEMES[t2.t]; return !!(h && h.lift); }, toSky = skyT(G.courseQ && G.courseQ[0]), straight = !nf && (skyT(step) || toSky || liftT(step)); /* 2026-11-17 オーナー「高い所から飛ぶ瞬間が曲がり角でおかしい・着地で道が向きに合わせて動くのもおかしい」：空へ飛び出す展望台と、空の道は、角で曲がらずにまっすぐつなぐ */
+      const skyT = t2 => { const h = t2 && THEMES[t2.t]; return !!(h && h.sky); }, liftT = t2 => { const h = t2 && THEMES[t2.t]; return !!(h && h.lift); }, toSky = skyT(G.courseQ && G.courseQ[0]), straight = !nf && (skyT(step) || toSky || liftT(step) || !!step.straightOut); /* 2026-11-17 オーナー「高い所から飛ぶ瞬間が曲がり角でおかしい・着地で道が向きに合わせて動くのもおかしい」：空へ飛び出す展望台と、空の道は、角で曲がらずにまっすぐつなぐ */
       const sg = newSeg(last, step, { t0, day: G.planDay, fork: nf || null, straight, toSky, turnIn: last && last.fork ? (Math.random() < .5 ? -1 : 1) : undefined });
       if (nf) sg.forkLbl = forkLabels(nf, G.planDay);
       if (step.st) sg.stName = LANG === 'ja' || LANG === 'zh' ? step.st : stEn(step.st); // station names: kanji for Japanese/Chinese readers, romaji otherwise
-      G.segs.push(sg); G.planClock = sg.t1; built++;
+      G.segs.push(sg); G.planClock = sg.t1; built++; if (sg.step && sg.step.co) segFace(sg); /* [塔 L2] 一つ前の道がまだあるうちに向きを決めておく */
     } catch (e) { (fromQ ? G.courseQ : G.plan).unshift(step); G.segFails = (G.segFails || 0) + 1; G.segDue = Math.max(G.segDue || 0, .25); reportErr(e); break; }
   }
   while (G.ci > 1) { G.segs.shift(); G.ci--; }
@@ -739,7 +739,11 @@ function update(dt) {
 /* [降りる時 D1] 2026-11-20 オーナー「高い所から下に降りる時に、道路が動いてしまう」：オオタカと降りる間、カメラが 1 回転（360 度）していたので、
    下に見える着地の道（公園の小道）が、画面の中をぐるっと流れて「道が動く」ように見えた。回るのをやめ、左右を少し見わたす（±20 度）だけにして、
    後半（着地の道がはっきり見えてから）はまっすぐ前を向いたままにする */
-function skySpin(seg) { if (!seg || !seg.th.sky) return 0; const u = clamp((G.s - 10) / Math.max(30, seg.len * .5 - 10), 0, 1); return Math.sin(u * Math.PI * 2) * .35 * (1 - sstep(u)); }
+/* [降りる時 S1] 2026-11-20 オーナー「前は景色をぐるっと見てから降りていたのに、真下にまっすぐ降りるようになった。前の方がよかった」：1 回転を元にもどす。
+   ただし ①回るのは前半（道の長さの 55% まで）で終わらせ、後半は着地の道をまっすぐ見る ②回っている間はカメラを水平近くまで上げて（下の道ではなく）遠くの景色を見る（S2） */
+function skySpinU(seg) { if (!seg || !seg.th.sky) return -1; return clamp((G.s - 10) / Math.max(40, seg.len * .55 - 10), 0, 1); }
+function skySpin(seg) { const u = skySpinU(seg); return u < 0 ? 0 : Math.PI * 2 * sstep(u); }
+function skyLookK(seg) { const u = skySpinU(seg); if (u <= 0 || u >= 1) return 0; return sstep(clamp(u * 5, 0, 1)) * sstep(clamp((1 - u) * 3.5, 0, 1)); }
 function placeCamera(dt) {
   const seg = curSeg(), P = G.player, F = G.follow;
   const p = segPos(seg, G.s, G.lat);
@@ -773,7 +777,7 @@ function placeCamera(dt) {
   G.camH = camNew || G.camH == null ? camT : lerp(G.camH, camT, Math.min(1, dt * 5));
   let camUp = G.y * .6 + sh * .5; if (ceilH && camUp > 0) { const room = Math.max(.05, ceilH - CAM_CEIL_MIN - G.camH); camUp = room * (1 - Math.exp(-camUp / room)); }
   CAM.y = G.camE + G.camH + camUp; if (ceilH) CAM.y = Math.min(CAM.y, G.camE + ceilH - CAM_CEIL_MIN + .08);
-  CAM.yaw = G.camYaw; CAM.pitch = .19 + .04 * clamp((G.camH - 2.1) / .35, 0, 1) - G.camSl * .55 + Math.min(.1, G.y * .03);
+  CAM.yaw = G.camYaw; CAM.pitch = .19 + .04 * clamp((G.camH - 2.1) / .35, 0, 1) - G.camSl * .55 + Math.min(.1, G.y * .03); { const lk = skyLookK(seg); if (lk > 0) CAM.pitch = lerp(CAM.pitch, .07, lk); } /* [降りる時 S2] 回っている間は遠くの景色を見る（着地の道が画面を横切って流れて見えない） */
   camPrep();
   P.depth = (P.wx - CAM.x) * CAM.s + (P.wz - CAM.z) * CAM.c; F.depth = (F.wx - CAM.x) * CAM.s + (F.wz - CAM.z) * CAM.c;
   if (F.tuck) F.depth = P.depth + .3;

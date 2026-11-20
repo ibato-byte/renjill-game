@@ -165,7 +165,7 @@ function aerialCity(seg, yb, alt, hz) {
   const N = LT.night, night = N > .4, cs = Math.sin(CAM.yaw), cc = Math.cos(CAM.yaw), th = seg.th, cx0 = CAM.x, cz0 = CAM.z, camH = alt + 2.4, F = FOCAL;
   const lowq = typeof lowQ !== 'undefined' && lowQ, det = aerGet(night), mac = AER.mac[night ? 'n' : 'd'];
   const fog = night ? [30, 38, 68] : [LT.bot[0] * .92, LT.bot[1] * .94, LT.bot[2] * .97];
-  const bay = th.bay, face = th.face != null ? th.face : 0, dirA = seg.dir * Math.PI / 2;
+  const bay = th.bay, face = th.face != null ? segFace(seg) : 0, dirA = seg.dir * Math.PI / 2; /* [塔 L2] 地図の向きも、実際に曲がった向きから */
   // 町の「基準の点」：場所ごとに決まった所（塔の足もと）を原点にする。どの場所から見ても同じ町が同じ所にある
   const ox = seg.sx, oz = seg.sz, rx = cx0 - ox, rz = cz0 - oz;
   const P = (wx, wz, y) => { const dx = wx - cx0, dz = wz - cz0, d = dx * cs + dz * cc; if (d < 1) return null; const l = dx * cc - dz * cs; return [W / 2 + l / d * F, hz + (camH - (y || 0)) / d * F, d]; };
