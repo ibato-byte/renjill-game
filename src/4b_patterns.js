@@ -189,9 +189,12 @@ function floorPattern(p, d) {
       4 枚に 1 枚だけ（全部ガラスだと、暗い横じまが階段に見えた） */
       if (p.lowOnly ? !p.low : (p.ti % 16 !== 5 && p.ti % 16 !== 6)) { /* [H23] 押上は、いちばん下のフロア（340）だけガラスの床 */ /* [T5] ガラスの床は 4 か所だけ（24m ごとに 3m。本物も、展望台の床のガラスは数か所） */ ctx.globalAlpha = a * .25; ctx.strokeStyle = T('#8F8676'); for (let k = 0; k <= 2; k++) bline(0, k / 2, 1, k / 2); bline(0, 0, 0, 1); if (d < 30) { const _ga = ctx.globalAlpha; ctx.stroke(); ctx.beginPath(); ctx.globalAlpha = _ga * LODK(30, d); ctx.globalAlpha = a * .16; ctx.strokeStyle = T('#5E636A'); for (let k = -3; k <= 3; k++) { const c = k / 4; bline(Math.max(0, c), Math.max(0, -c), Math.min(1, 1 + c), Math.min(1, 1 - c)); const e = .5 + k / 4 + .5; bline(Math.max(0, e - 1), Math.min(1, e), Math.min(1, e), Math.max(0, e - 1)); } ctx.stroke(); ctx.beginPath(); ctx.globalAlpha = a * .1; bquad(0, 0, 1, .5, p.ti % 2 ? '#FFFFFF' : '#000000');  ctx.globalAlpha = _ga; } break; } /* [T4] ガラスでない所：網目の柄のじゅうたん（ななめの細い線）と、1 枚ごとの毛並みのむら */
       ctx.globalAlpha = a * .95; const r2 = rnd(p.ti * 13 + 5), roof = ['#8E8C86', '#A7A49C', '#7E7C78', '#9C968A', '#B5B2AA', '#6F8A5E'];
-      for (const [u0, u1] of [[.22, .5], [.5, .78]]) { bquad(u0, .08, u1, .92, T(LT.night > .4 ? '#1E2433' : '#56626E'));
-        for (let k = 0; k < (d < 20 ? 6 : 3); k++) { const u = u0 + .03 + r2() * (u1 - u0 - .12), v = .12 + r2() * .66; bquad(u, v, u + .03 + r2() * .06, v + .06 + r2() * .12, T(LT.night > .4 ? (k % 3 ? '#2A3044' : '#C9A15A') : roof[k % roof.length])); }
-        ctx.globalAlpha = a * .2; bquad(u0 + .02, .1, u0 + .07, .9, '#FFFFFF'); ctx.globalAlpha = a * .95; }
+      /* [塔 G1] 2026-11-20 オーナー「タワーでの、地面が透けて見えるバグ」：ガラスの床が道のはばいっぱいの帯で、上から見る町が床の横じまのように見え、床がぬけているように見えた。
+         本物の展望台の「ルックダウンウィンドウ」のように、窓ぎわ（片がわ）だけの、ステンレスの枠で囲んだ正方形 2 枚にする */
+      const sv = p.ti % 2 ? [.08, .4] : [.6, .92];
+      for (const [u0, u1] of [[.24, .5], [.5, .76]]) { ctx.globalAlpha = a * .95; bquad(u0 - .015, sv[0] - .03, u1 + .015, sv[1] + .03, T('#C9CDD2')); bquad(u0, sv[0], u1, sv[1], T(LT.night > .4 ? '#1E2433' : '#56626E'));
+        for (let k = 0; k < (d < 20 ? 5 : 2); k++) { const u = u0 + .03 + r2() * (u1 - u0 - .12), v = sv[0] + .03 + r2() * (sv[1] - sv[0] - .14); bquad(u, v, u + .03 + r2() * .06, v + .04 + r2() * .08, T(LT.night > .4 ? (k % 3 ? '#2A3044' : '#C9A15A') : roof[k % roof.length])); }
+        ctx.globalAlpha = a * .22; bquad(u0 + .02, sv[0] + .02, u0 + .06, sv[1] - .02, '#FFFFFF'); ctx.globalAlpha = a * .95; }
       ctx.strokeStyle = T('#D5DADF'); ctx.lineWidth *= 1.8; bline(.22, .08, .22, .92); bline(.5, .08, .5, .92); bline(.78, .08, .78, .92); bline(.22, .08, .78, .08); bline(.22, .92, .78, .92); break; }
     case 'lawn': ctx.globalAlpha = a * .5; bquad(0, 0, 1, .5, T('#8DB26A')); break;
     case 'sand': ctx.globalAlpha = a * .45; for (let k = 0; k < 7; k++) bquad((k * .41 + p.ti * .13) % .9, (k * .67) % .9, (k * .41 + p.ti * .13) % .9 + .05, (k * .67) % .9 + .03, T('#C9B48A')); break;
@@ -206,7 +209,14 @@ function floorPattern(p, d) {
     case 'planks': ctx.strokeStyle = T('#B9B2A5'); for (let k = 1; k < 7; k++) bline(0, k / 7, 1, k / 7); bline(.5, 0, .5, 1); break;
     case 'stairs': ctx.globalAlpha = Math.min(1, a * 1.4);
       if (p.land) { /* コース 15：踊り場（平らな鉄の板。すべり止めの点、まわりの白い線） */ ctx.globalAlpha = a * .25; bquad(0, .03, 1, .97, '#FFFFFF'); if (d < 22) { ctx.globalAlpha = a * .35 * LODK(22, d); for (let i = 0; i < 6; i++) for (let j = 0; j < 14; j++) bquad(i / 6 + .06, .06 + j * .065, i / 6 + .1, .075 + j * .065, T('#3A3E44')); } ctx.globalAlpha = a * .8; ctx.strokeStyle = T('#F4F4F0'); ctx.beginPath(); bline(0, .03, 1, .03); bline(0, .97, 1, .97); break; }
-      ctx.strokeStyle = T('#4F555B'); for (let k = 0; k < 6; k++) bline(k / 6, 0, k / 6, 1); ctx.stroke(); ctx.globalAlpha = a * .22; for (let k = 0; k < 6; k++) bquad(k / 6, 0, k / 6 + .05, 1, '#FFFFFF'); ctx.globalAlpha = Math.min(1, a * 1.4); ctx.beginPath(); ctx.strokeStyle = T('#F2C230'); bline(0, .02, 1, .02); bline(0, .98, 1, .98); /* [19] 段の先の、明るい段鼻 */
+      { /* [塔 F6] 2026-11-20 オーナー「タワーを登る時にチカチカ」：段の線（6 段ごとのくり返し）は、遠くで線と線の間が 2〜3 ドットになり、登るたびに縞がちらついた
+           （500 段からの通路で 1 コマ 600 点以上）。画面で段の間が 7 ドットより細い所は、段の線・白い光・黄色い段鼻を少しずつうすくする（近くの段はそのまま） */
+        let y0 = 1e9, y1 = -1e9; for (let i = 1; i < 8; i += 2) { y0 = Math.min(y0, SCR[i]); y1 = Math.max(y1, SCR[i]); } const sp = (y1 - y0) / 6, run = G.mode === 'play' ? (G.speed || 0) / 60 / .3 : 0; /* 段の奥行きは約 0.3m（本物の外階段） */
+        /* [塔 F7] 走って登ると、1 コマに進む長さが段の間と同じくらいになり、段の線が止まって見えたり、1 コマごとに入れかわったりした（ストロボのように見える）。
+           1 コマに 0.35 段より多く進む時は、本物の目と同じように段の線をぼかす（うすく）。止まっている時・ゆっくりの時はくっきり */
+        const sf = LODOFF ? 1 : clamp((sp - 2.5) / 4.5, 0, 1) * clamp(1.3 - run * 2.2, .22, 1); /* 1 コマに半段進むと、段の線が 1 コマごとに入れかわる（いちばんチカチカする）ので、0.15 段から少しずつ */
+        if (sf > 0) { ctx.globalAlpha = Math.min(1, a * 1.4) * sf; ctx.strokeStyle = T('#4F555B'); for (let k = 0; k < 6; k++) bline(k / 6, 0, k / 6, 1); ctx.stroke(); ctx.globalAlpha = a * .22 * sf; for (let k = 0; k < 6; k++) bquad(k / 6, 0, k / 6 + .05, 1, '#FFFFFF'); }
+        ctx.globalAlpha = Math.min(1, a * 1.4) * (LODOFF ? 1 : clamp((sp * 6 - 3) / 6, 0, 1)); ctx.beginPath(); ctx.strokeStyle = T('#F2C230'); bline(0, .02, 1, .02); bline(0, .98, 1, .98); } /* [19] 段の先の、明るい段鼻 */
       if (p.stepN && d < 40) { ctx.stroke(); ctx.globalAlpha = a * (p.stepBig ? .95 : .7); const big = p.stepBig; roadPaint(() => { ctx.fillStyle = '#FFFFFF'; ctx.font = '900 ' + (big ? 96 : 70) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(p.stepN), 50, 54, 96); }, .1, .9, big ? .3 : .38, big ? .7 : .62); ctx.beginPath(); ctx.globalAlpha = Math.min(1, a * 1.4); } // [17] [18]
       break;
     case 'water': case 'sea': { ctx.globalAlpha = .5; ctx.strokeStyle = LT.night > .5 ? 'rgba(255,220,160,.5)' : 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.4; const o = (G.t * .15) % .25;

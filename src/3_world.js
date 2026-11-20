@@ -103,8 +103,17 @@ function newSeg(prev, step, opts) {
   seg.spr = seg.spr.filter(sp => sp.keep || terrOK(seg, sp.s, sp.lat));
   seg.props = seg.props.filter(p => p.big || terrOK(seg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2));
   if (!opts.empty && !th.noObs) (th.sky ? skyItems : populate)(seg);
+  markFloorOverlays(seg);
   return seg;
 }
+/* [塔 F8] 2026-11-20 オーナー「タワーに登る時のマット・アイテム・障害物がチカチカ」：床の上に少しだけ浮かせて重ねた板（入口の赤いマット・ガラスの床のふちの帯・屋上の石の通路・
+   園路のふち石のつなぎ目など）は、下の床と同じ「近い順」にならべて描いていたので、カメラが少し動くたびに、マットと下の床の前後が入れかわり、マットが出たり消えたりした。
+   道を作った時に、下の床と重なって 0.2m より低く浮いた板を見つけ、「いつも下の床の後に描く板（soft）」にする */
+function markFloorOverlays(seg) { const R = []; for (const f of seg.floor) { if (f.far || f.dec || f.soft || !f.v || f.v.length < 9) continue; let s0 = 1e9, s1 = -1e9, l0 = 1e9, l1 = -1e9, y = 0; const n = f.v.length / 3;
+    for (let i = 0; i < f.v.length; i += 3) { const dx = f.v[i] - seg.sx, dz = f.v[i + 2] - seg.sz, a = dx * seg.f[0] + dz * seg.f[1], b = dx * seg.r[0] + dz * seg.r[1]; if (a < s0) s0 = a; if (a > s1) s1 = a; if (b < l0) l0 = b; if (b > l1) l1 = b; y += f.v[i + 1] / n; } R.push([s0, s1, l0, l1, y, f]); }
+  R.sort((a, b) => a[0] - b[0]); let m = 0;
+  for (let i = 0; i < R.length; i++) { const A = R[i]; for (let j = i + 1; j < R.length && R[j][0] < A[1] - .05; j++) { const B = R[j]; if (Math.min(A[3], B[3]) - Math.max(A[2], B[2]) < .05) continue; const dy = B[4] - A[4]; if (Math.abs(dy) < .002 || Math.abs(dy) > .2) continue; const top = dy > 0 ? B[5] : A[5]; if (!top.soft) { top.soft = 1; m++; } } }
+  seg.ovlN = m; }
 
 /* ---------- territory ----------
    At a corner the plane is split along the 45° line through the junction: everything on this stretch's
@@ -1016,7 +1025,7 @@ function courseExtras(seg) { const th = seg.th, L = seg.len, t = seg.tid, H = se
        屋上（地上 20m）のまわりが、700m 先の遠い町まで何もない平らな地面だった。屋上の建物のかべ・下の道・まわりのビル（立体の箱と窓の絵）・公園の木を置く */
     for (const sd of [-1, 1]) { const aEnd = seg.turn ? L - 2 * HW - .5 : L + 8; for (let a = 1; a < aEnd; a += 3) addWallQuadO(seg, sd, a, Math.min(a + 3, aEnd), G0, -.02, .02, C('#C9C4BA'), { far: 1 }); } /* [塔 F1] 2026-11-20：曲がり角の外かべ（両側）は、曲がった先の階段の入口の手前で止める（かべは床より後に描くので、角で階段の上に、ベージュのぎざぎざの板がかぶって見えた） [T-R1] 屋上の建物そのものの外かべ（手すりの下へ、地面まで）。曲がり角（道の始まりより手前）には置かない：曲がる時にカメラが通りぬけて、画面が灰色になった */
     for (const sd of [-1, 1]) for (let a = 1; a < L + 40; a += 15) { const pg = terrClip(seg, [[a, sd * (HW + .05)], [a + 15, sd * (HW + .05)], [a + 15, sd * 90], [a, sd * 90]]); if (pg) seg.floor.push({ v: quad(seg, pg.map(q => [q[0], q[1], G0 - .02])), c: C(((a / 15) | 0) % 2 ? '#8E8B85' : '#928F89'), pat: null, far: 1 }); } /* [T-R2] 下の地面（道の色。前は景色の色のまま、何もない面）。20m 下なので模様はつけない（軽く） */
-    for (const sd of [-1, 1]) for (let a = 6; a < L + 20; a += rand(18, 26)) { const w = rand(10, 16), d = rand(10, 16), hh = Math.round(rand(14, 46)), off = sd < 0 ? rand(26, 34) : rand(34, 44), lc = sd * (HW + off + w / 2), seed = (Math.random() * 1e5) | 0, style = pick(['mixed', 'glass', 'mixed', 'luxury']), cc = C(pick(['#C9C4BA', '#B9C2CA', '#D6D0C4', '#A9B3BC']));
+    for (const sd of [-1, 1]) for (let a = 6; a < (sd === seg.turn ? L - 2 * HW - 18 : L + 20); a += rand(18, 26)) { /* [塔 C1] 2026-11-20：曲がる側のビルは、曲がった先の外階段の通り道の手前で止める（外階段の両がわに、灰色のビルのかべがせまって、谷の底を登るように見えた） */ const w = rand(10, 16), d = rand(10, 16), hh = Math.round(rand(14, 46)), off = sd < 0 ? rand(26, 34) : rand(34, 44), lc = sd * (HW + off + w / 2), seed = (Math.random() * 1e5) | 0, style = pick(['mixed', 'glass', 'mixed', 'luxury']), cc = C(pick(['#C9C4BA', '#B9C2CA', '#D6D0C4', '#A9B3BC']));
       bx.push(B(lc, a, w, d, G0, G0 + hh, pick(['#B9B4AA', '#AEB4BA', '#C2BCB0', '#A3ABB3'])), B(lc, a - .2, w + .4, d + .4, G0 + hh, G0 + hh + .5, '#8E9196'));
       if (hh > 24) bx.push(B(lc, a + d * .3, w * .4, d * .3, G0 + hh + .5, G0 + hh + 3, '#9DA2A8')); /* [T-R3] まわりのビル：立体の箱（上から見える屋上と機械室） */
       addWallQuadO(seg, sd, a, a + d, G0, G0 + hh, off - .04, cc, { pat: 'fac', st: style, h: hh, w: d, seed, k: 0, first: true, fv: seed % 8, fw: d, fh: hh, fm: '', fu0: 0, fu1: 1, fy0: 0, fy1: 1, far: 1 }); } /* [T-R4] 道に向いた面には、窓の絵（1 枚で。遠いので分けなくてよい・軽い） */
@@ -1032,6 +1041,11 @@ function courseExtras(seg) { const th = seg.th, L = seg.len, t = seg.tid, H = se
     for (let a = 20; a < L - 10; a += 30) { const q = (((a / 30) | 0) % 2 ? -1 : 1) * (HW + 1.1); bx.push({ l0: q - .22, l1: q + .22, s0: a, s1: a + .44, y0: 0, y1: .75, c: '#5A6670' }, { l0: q - .26, l1: q + .26, s0: a - .04, s1: a + .48, y0: .75, y1: .82, c: '#3E4850' }); } /* [C24] 公園のごみ箱（灰色の筒とふた） */
     seg.props.push(mkProp(seg, bx, { big: 1 }));
     for (let a = 4; a < L - 4; a += 3.5) for (const sd of [-1, 1]) seg.floor.push({ v: quad(seg, [[a, sd * (ROAD + .02), .011], [a + .12, sd * (ROAD + .02), .011], [a + .12, sd * (ROAD - .25), .011], [a, sd * (ROAD - .25), .011]]), c: C('#8A847A'), pat: null, ti: 0 }); } /* [C25] 園路のふちの、石のふち石のつなぎ目 */
+  if (t === 'tland' || t === 'sland') { /* [着地 G5〜G7] 公園の森：芝生のふち（左右 26〜28m）に木を 2 列ならべ、芝生の四角い角が、上空から見ても見えないようにする。
+       芝生の中にも、木のかたまりを 3 つ（本物の芝公園・隅田公園は木の多い公園）。木は「遠くからも描く木」（降りる時に急に出てこない） */
+    for (const sd of [-1, 1]) for (let a = -12; a < L + 12; a += 5.5) for (const q of [26.5, 23]) { const lat = sd * (q + rand(-1.2, 1.2)); if (Math.abs(lat) < HW + 9) continue; seg.spr.push({ lat, s: a + rand(-1.5, 1.5), y: 0, h: rand(8, 12), w: rand(7, 10), img: 'canopy_green', trunk: 1, far: 1 }); }
+    for (const [a0, sd, n] of [[L * .18, 1, 6], [L * .45, -1, 7], [L * .8, 1, 5]]) for (let k = 0; k < n; k++) seg.spr.push({ lat: sd * (HW + 12 + rand(-3, 4)), s: a0 + rand(-7, 7), y: 0, h: rand(7, 11), w: rand(6, 9), img: 'canopy_green', trunk: 1, far: 1 });
+  }
   if (t === 'tland' || t === 'sland') { /* [着地 G1〜G3] 2026-11-20 オーナー「降りるときの道路がやすっぽい」：上空から見ると、公園は一色の緑に、一色の茶色い道が 1 本のびているだけだった。
        上から見ても形がわかる大きさの模様をつける（細かい模様は遠くでつぶれるので、太い帯で）。ほかの床と重ならない帯だけを、いつも床の後に同じ順で描く（soft） */
     for (const sd of [-1, 1]) for (let a = -14; a < L + 4; a += 6) seg.floor.push({ v: quad(seg, [[a, sd * (ROAD + .02), .008], [a + 6, sd * (ROAD + .02), .008], [a + 6, sd * (ROAD + .42), .008], [a, sd * (ROAD + .42), .008]]), c: C('#C4B691'), pat: null, soft: 1 }); /* [G1] 園路の両わきの、太めの石のふち（上空からも道のふちがくっきり） */
@@ -1154,14 +1168,14 @@ function buildDeck(seg, s0, lEnd, rEnd) {
     const stepAt = a => { const up = segE(seg, a) - segE(seg, 0), tot = Math.max(1, segE(seg, L) - segE(seg, 0)); return Math.round(up / tot * 600); }; /* [H19] 段の数は、本当に登った高さから（20 段＝3.5m ごと）。前は道の長さの割合で数えていて、踊り場でも数がふえた */
     for (const f of seg.floor) if (f.mid && !f.land && f.ti % 6 === 3) { const n = stepAt(f.a); if (n > 0 && n < 600) f.stepN = n; }
     for (const [n, lab] of [[333, '333'], [500, '500']]) { let best = null; for (const f of seg.floor) if (f.mid && !f.land && (!best || Math.abs(stepAt(f.a) - n) < Math.abs(stepAt(best.a) - n))) best = f; if (best) { best.stepN = n; best.stepBig = 1; } } }
-  if (th.roofLegs) { const sa = L * .3, lt = -(HW + 6), bx = [/* [T-R6 2026-11-19] 塔の脚：赤（インターナショナルオレンジ）と白の帯。[塔 F5] 2026-11-20：前は赤い柱の上に、少しだけ大きい白い帯の箱を重ねていたので、曲がる時に赤と白の面の前後が毎コマ入れかわり、大きな柱がチカチカした。帯ごとに積み重ねた箱にする（重ならない） */ ...[[-20, 10, '#D24A30'], [10, 14, '#EDEDEA'], [14, 26, '#D24A30'], [26, 30, '#EDEDEA'], [30, 42, '#D24A30'], [42, 46, '#EDEDEA']].map(([y0, y1, c]) => Object.assign(B(lt, sa, 6, 7, y0, y1, c), y1 < 46 ? { noTop: 1 } : {})), B(lt + 2.2, sa - .5, 2.2, 8, -.2, .02, '#B0ABA0'), B(lt + 3.02, sa + 1.2, .06, 2.2, 0, 2.4, '#3B4652'), B(lt + 3.03, sa + 1.25, .05, 2.1, 2.45, 2.75, '#E6B84A'), B(lt + 3.02, sa + 4, .06, 2.2, 0, 2.4, '#3B4652')];
+  if (th.roofLegs) { const sa = L * .22, lt = -(HW + 9), /* [塔 C2] 屋上のエレベーターの塔を、道から 3m はなし、入口に近い方へ（前は、入口の建物から屋上へ曲がる時に、カメラのすぐ横を大きな赤い柱が通りすぎた） */ bx = [/* [T-R6 2026-11-19] 塔の脚：赤（インターナショナルオレンジ）と白の帯。[塔 F5] 2026-11-20：前は赤い柱の上に、少しだけ大きい白い帯の箱を重ねていたので、曲がる時に赤と白の面の前後が毎コマ入れかわり、大きな柱がチカチカした。帯ごとに積み重ねた箱にする（重ならない） */ ...[[-20, 10, '#D24A30'], [10, 14, '#EDEDEA'], [14, 26, '#D24A30'], [26, 30, '#EDEDEA'], [30, 42, '#D24A30'], [42, 46, '#EDEDEA']].map(([y0, y1, c]) => Object.assign(B(lt, sa, 6, 7, y0, y1, c), y1 < 46 ? { noTop: 1 } : {})), B(lt + 2.2, sa - .5, 2.2, 8, -.2, .02, '#B0ABA0'), B(lt + 3.02, sa + 1.2, .06, 2.2, 0, 2.4, '#3B4652'), B(lt + 3.03, sa + 1.25, .05, 2.1, 2.45, 2.75, '#E6B84A'), B(lt + 3.02, sa + 4, .06, 2.2, 0, 2.4, '#3B4652')];
     for (let y = 4; y < 46; y += 4) bx.push(B(lt + 3.01, sa + .2, .04, 6.6, y, y + .18, '#B9BEC4')); for (const ds of [.15, 6.85]) bx.push(B(lt + 3.01, sa + ds - .12, .05, .24, -20, 46, '#AEB4BA'));
     seg.props.push(mkProp(seg, bx, { big: 1 })); } /* [T13] 屋上のエレベーターの塔：塔のまん中へまっすぐのびる、白いエレベーターの筒（地面から屋上をつきぬけて上へ。屋上の手すりの外へ出る短い通路の先に 2 つの扉と、扉の上の明かりの帯、階ごとの横の線） */
   if (th.roofLegs) { /* コース 23〜28：屋上 [23] 真上にのびる塔の 4 本の脚（赤と白の鉄骨） [24] 脚をつなぐ斜めの筋交い [25] 白い手すり [26] 外階段の入口の門 [27] 門の上の看板「外階段 入口 約 600 段」 [28] 係員の立つ台 */
     const red = '#D9452B', wh = '#F2F2F0'; for (const sd of [-1, 1]) for (const [sa, k] of [[-6, 1], [L * .45, -1], [L + 8, 1]]) { for (let j = 0; j < 6; j++) { const y0 = j * 9, y1 = y0 + 9, t0 = j / 6, t1 = (j + 1) / 6, lat0 = sd * (HW + 9 - t0 * 7), lat1 = sd * (HW + 9 - t1 * 7); seg.lines.push({ a: [sa + k * t0 * 3, lat0, y0], b: [sa + k * t1 * 3, lat1, y1], c: j % 2 ? wh : red, w: 1.1 }); }
         for (let j = 0; j < 3; j++) seg.lines.push({ a: [sa, sd * (HW + 9 - j * 2.3), j * 18], b: [sa + 14 * k, sd * (HW + 8 - j * 2.3), j * 18 + 14], c: red, w: .4 }); }
-    const g0 = L - 9; for (const sd of [-1, 1]) seg.lines.push({ a: [g0, sd * 2.9, 0], b: [g0, sd * 2.9, 3.0], c: red, w: .22 }); seg.lines.push({ a: [g0, -2.9, 3.0], b: [g0, 2.9, 3.0], c: red, w: .22 });
-    seg.decos.push({ v: quad(seg, [[g0 - .05, -2.2, 3.05], [g0 - .05, 2.2, 3.05], [g0 - .05, 2.2, 3.95], [g0 - .05, -2.2, 3.95]]), n: [-seg.f[0], -seg.f[1]], pat: 'gatesign', seg, w: 4.4 });
+    const g0 = L - 9, gh = 4.3; /* [塔 C3] 2026-11-20：外階段の入口の門を 3.0m → 4.3m に高く（前は、門をくぐる時に看板「外階段 入口 約600段」がカメラの目の前を通り、画面いっぱいに字が出た） */ for (const sd of [-1, 1]) seg.lines.push({ a: [g0, sd * 2.9, 0], b: [g0, sd * 2.9, gh], c: red, w: .22 }); seg.lines.push({ a: [g0, -2.9, gh], b: [g0, 2.9, gh], c: red, w: .22 });
+    seg.decos.push({ v: quad(seg, [[g0 - .05, -2.2, gh + .05], [g0 - .05, 2.2, gh + .05], [g0 - .05, 2.2, gh + .95], [g0 - .05, -2.2, gh + .95]]), n: [-seg.f[0], -seg.f[1]], pat: 'gatesign', seg, w: 4.4 });
     for (const sd of [-1, 1]) { const k = (Math.random() * PEOPLE.length) | 0; seg.spr.push({ lat: sd * 3.5, s: g0 - .6, y: 0, w: .8, h: 1.75, img: artKey('walker', k + '.0.0'), gnd: .3, keep: 1 }); } } // [T2] 外階段の入口の門の両わきに、係の人
   if (th.boat) { // the boat: white hull edges, cabin at the end
     for (const sd of [-1, 1]) for (let a = s0; a < L + HW; a += 6) { const lat = sd * (ROAD + .45);

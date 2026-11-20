@@ -158,7 +158,16 @@ function realMapLayer(seg, o) {
   const segD = (px, pz, a, b) => { const dx = b[0] - a[0], dz = b[1] - a[1], t = clamp(((px - a[0]) * dx + (pz - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1); return Math.hypot(px - a[0] - dx * t, pz - a[1] - dz * t); };
   const lines = [[M.water2, 30], [M.water, 30], [M.rail && [M.rail, M.railW || 30], 20], [M.rail2 && [M.rail2, 24], 20], ...(M.hwy || []).map(l => [[l, 22], 15]), ...(M.roads || []).map(l => [[l, 30], 12])].filter(x => x[0]).map(([[ln, w], pad]) => [ln.map(q => Wk(q[0], q[1])), w / 2 + pad]);
   const onLine = (wx, wz) => lines.some(([ln, r]) => { for (let i = 0; i + 1 < ln.length; i++) if (segD(wx, wz, ln[i], ln[i + 1]) < r) return true; return false; }); /* [M44] 川・線路・首都高・大通りの上には、作り物のビルを立てない（川の中にビルが立っていた） */
-  return { water, planes, stand, onLine, near: (wx, wz) => onLine(wx, wz) || M.bld.some(b => { const [x, z] = Wk(b[0], b[1]); return Math.hypot(wx - x, wz - z) < 120; }) || (M.park || []).some(pk => { const c = pk.reduce((a, q) => [a[0] + q[0] / pk.length, a[1] + q[1] / pk.length], [0, 0]); const [x, z] = Wk(c[0], c[1]); return Math.hypot(wx - x, wz - z) < 260; }) };
+  /* [着地 A8〜A10] 2026-11-20：本物の地図の公園（芝公園・浜離宮・皇居・上野・隅田公園など）は、一色の緑の板だった。上から見て森に見えるよう、中に木を植える。
+     [A8] 公園の形の中に 24m ごとに木（少しずらす）。川・線路・大通りの上には植えない [A9] 1.5km より遠い木は描かない（遠くは森の色だけで十分・軽く）
+     [A10] 着地する公園のまん中（作り物の森と芝生がある所）には植えない（2 重にならない） */
+  const parkTrees = (P2, park, draw) => { if (lowq || night && camH > 300) return; let T = seg.__rmT; const key = sx + ',' + sy + ',' + rot + ',' + ox + ',' + oz;
+    if (!T || T.key !== key) { T = { key, pts: [] }; const inPoly = (pg, x, y) => { let c = false; for (let i = 0, j = pg.length - 1; i < pg.length; j = i++) { const [xi, yi] = pg[i], [xj, yj] = pg[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+      for (const pk of M.park || []) { let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const [x, y] of pk) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+        for (let x = x0; x <= x1; x += .024) for (let y = y0; y <= y1; y += .024) { const h1 = acHash(Math.round(x * 1000), Math.round(y * 1000), 41), h2 = acHash(Math.round(x * 1000), Math.round(y * 1000), 43), px = x + (h1 - .5) * .02, py = y + (h2 - .5) * .02; if (!inPoly(pk, px, py)) continue; const [wx, wz] = Wk(px, py); if (onLine(wx, wz)) continue; T.pts.push([wx, wz, 7 + h1 * 6, (h2 * 3) | 0]); } }
+      seg.__rmT = T; }
+    for (const [wx, wz, r, c] of T.pts) { if (park) { const qx = wx - park.x, qz = wz - park.z, f = qx * park.fx + qz * park.fz, l = qx * park.ux + qz * park.uz; if (((f - 40) / 262) ** 2 + (l / 192) ** 2 < 1) continue; } const dx = wx - cx0, dz = wz - cz0, d = dx * cs + dz * cc; if (d < 4 || d > 1500) continue; if (Math.abs(dx * cc - dz * cs) > d * (W / 2 / F + .2) + 30) continue; draw(wx, wz, r, c, d); } };
+  return { water, planes, stand, onLine, parkTrees, near: (wx, wz) => onLine(wx, wz) || M.bld.some(b => { const [x, z] = Wk(b[0], b[1]); return Math.hypot(wx - x, wz - z) < 120; }) || (M.park || []).some(pk => { const c = pk.reduce((a, q) => [a[0] + q[0] / pk.length, a[1] + q[1] / pk.length], [0, 0]); const [x, z] = Wk(c[0], c[1]); return Math.hypot(wx - x, wz - z) < 260; }) };
 }
 /* [M7] お寺の本堂：低い基壇・白いかべ・大きな黒い瓦の屋根（四方へ下がる形） */
 function rmTemple(o, s, night, mixC) { const { P, yb } = o, { wx, wz, bw, bd, tall, rot } = s, cr = Math.cos(rot), sr = Math.sin(rot), at = (x, z) => [wx + x * cr + z * sr, wz - x * sr + z * cr];
