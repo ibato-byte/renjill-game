@@ -146,7 +146,7 @@ function streetShade(sg) {
 }
 
 /* ---- finishing: lens vignette, gentle contrast, a little film grain ---- */
-let GRAIN = null, VIG = null, VIGK = '';
+let GRAIN = null, VIG = null, VIGK = '', GRAINF = 0, GRAINX = 0, GRAINY = 0;
 /* 2026-11-15：やわらかい光（アニメの撮影でいう「ディフュージョン」）。画面を小さく写し取り、明るい所だけを残して、ぼかして上から明るく重ねる。
    窓・照明・空・白い物のまわりが、ふわっとにじむ。軽いモード・細かさを下げている時は使わない（設定「画質：きれい」では常に） */
 let DIFC = null, DIFG = null, DIF_K = 1, DIF_N = 0;
@@ -174,7 +174,7 @@ function postFX() {
     g.addColorStop(0, LT.night > .5 ? 'rgba(60,80,160,.35)' : 'rgba(90,130,200,.22)'); g.addColorStop(1, LT.night > .5 ? 'rgba(255,170,90,.18)' : 'rgba(255,200,140,.22)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over'; }
   if (!GRAIN) { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d') || noCtx(), d = g.createImageData(128, 128), r = rnd(3);
     for (let i = 0; i < d.data.length; i += 4) { const v = 128 + (r() - .5) * 90; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } g.putImageData(d, 0, 0); GRAIN = ctx.createPattern(c, 'repeat'); }
-  ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .07; ctx.fillStyle = GRAIN; { const calm = OPT().calm, ox = calm ? 0 : (Math.random() * 128) | 0, oy = calm ? 0 : (Math.random() * 128) | 0; ctx.translate(-ox, -oy); ctx.fillRect(0, 0, W + 128, H + 128); ctx.translate(ox, oy); } ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; /* ざらつきは毎コマ場所を変える（止まっていると、画面のよごれに見える）。「動きをひかえめ」では動かさない */
+  ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .07; ctx.fillStyle = GRAIN; { const calm = OPT().calm; if (!calm && (LODOFF || (GRAINF = (GRAINF + 1) % 4) === 0)) { GRAINX = (Math.random() * 128) | 0; GRAINY = (Math.random() * 128) | 0; } const ox = calm ? 0 : GRAINX, oy = calm ? 0 : GRAINY; /* [ざらつき N3] 画面のざらつきは、毎コマ（1 秒 60 回）ではなく 4 コマに 1 回（1 秒 15 回、フィルムと同じくらい）だけ場所を変える。毎コマ変わると、平らな床や壁がザワザワとチカチカして見えた */ ctx.translate(-ox, -oy); ctx.fillRect(0, 0, W + 128, H + 128); ctx.translate(ox, oy); } ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; /* ざらつきは毎コマ場所を変える（止まっていると、画面のよごれに見える）。「動きをひかえめ」では動かさない */
 }
 
 /* ---- tree crowns with light from above: dark inner mass, lit clumps, sky gaps ---- */
@@ -207,6 +207,9 @@ function buildFloorTex() {
   FTEX.fabric = mkT((g, r) => { for (let i = 0; i < 256; i += 3) { g.fillStyle = 'rgba(100,100,100,.25)'; g.fillRect(i, 0, 1, 256); g.fillStyle = 'rgba(160,160,160,.2)'; g.fillRect(0, i, 256, 1); } specks(g, r, 900, 105, 150, 1); }, 8);
   for (const k in FTEX) FTEX[k] = { img: FTEX[k], pat: ctx.createPattern(FTEX[k], 'repeat') };
 }
+function ftexMip(key, lv) { const t = FTEX[key]; if (!lv) return t.pat; const m = t.mips || (t.mips = []); if (m[lv]) return m[lv];
+  let c = t.img; for (let i = 0; i < lv; i++) { const n = document.createElement('canvas'); n.width = n.height = Math.max(8, c.width >> 1); const g = n.getContext('2d'); if (!g) return t.pat; g.imageSmoothingQuality = 'high'; g.drawImage(c, 0, 0, n.width, n.height); c = n; }
+  m[lv] = ctx.createPattern(c, 'repeat') || t.pat; return m[lv]; }
 const FTEX_OF = { road: 'asphalt', hokoten: 'asphalt', scramble: 'asphalt', stone: 'stone', plaza: 'stone', gravel: 'stone', walk: 'stone', brickroad: 'stone', petalstone: 'stone', petals: 'stone', lawn: 'stone', leaves: 'stone', grid: 'stone', boards: 'wood', planks: 'wood', tatami: 'fabric', tatamiM: 'fabric', yose: 'wood', carpet: 'fabric', rug: 'fabric' };
 // draw a texture into a screen triangle with an exact affine map from texture coords
 function texTri(x0, y0, x1, y1, x2, y2, u0, v0, u1, v1, u2, v2, pat) {
@@ -221,7 +224,10 @@ function texTri(x0, y0, x1, y1, x2, y2, u0, v0, u1, v1, u2, v2, pat) {
 function floorTexture(p, d, m, sg) {
   const key = FTEX_OF[p.pat] || (p.pat === 'sea' || p.pat === 'water' ? null : 'stone'); if (!key || d > 22) return;
   if (!FTEX.asphalt) buildFloorTex();
-  const pat = FTEX[key].pat, alpha = clamp(1 - d / 22, 0, 1) * (key === 'asphalt' ? .85 : .6), px = 110;
+  /* [遠く A15] 床の地の模様（アスファルトのつぶ・石・木目・布）は 1m に 110 ドットの細かい絵で、5〜20m 先では何倍にも縮まり、つぶがキラキラとチカチカした。
+     遠さに合わせて、前もってなめらかに縮めた絵（1/2・1/4・1/8）を使う */
+  const ppt = FOCAL / Math.max(1, d) / 110, lv = LODOFF ? 0 : ppt > .5 ? 0 : ppt > .25 ? 1 : ppt > .125 ? 2 : 3, TS = 256 >> lv;
+  const pat = ftexMip(key, lv), alpha = clamp(1 - d / 22, 0, 1) * (key === 'asphalt' ? .85 : .6), px = 110 / (1 << lv);
   const one = (ox, e01, e03) => { // texture over the quad currently in SCR
     const a = (SCR[2] - SCR[0]) / e01, b = (SCR[3] - SCR[1]) / e01, c = (SCR[6] - SCR[0]) / e03, dd = (SCR[7] - SCR[1]) / e03;
     ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = alpha;
@@ -230,7 +236,7 @@ function floorTexture(p, d, m, sg) {
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; };
   const v = p.v, e01 = Math.hypot(v[3] - v[0], v[5] - v[2]) * px, e03 = Math.hypot(v[9] - v[0], v[11] - v[2]) * px;
   let miny = 1e9, maxy = -1e9; if (m === 4) for (let i = 0; i < 4; i++) { miny = Math.min(miny, SCR[i * 2 + 1]); maxy = Math.max(maxy, SCR[i * 2 + 1]); }
-  if (m === 4 && maxy - miny < H * .16) { one((p.a || 0) * px % 256, e01, e03); return; }
+  if (m === 4 && maxy - miny < H * .16) { one((p.a || 0) * px % TS, e01, e03); return; }
   // a big near quad (or one cut by the camera): short sub-quads in world space, each with its own affine map
   if (p.a == null || !sg) return;
   const camS = (CAM.x - sg.sx) * sg.f[0] + (CAM.z - sg.sz) * sg.f[1], b2 = p.b;
@@ -239,7 +245,7 @@ function floorTexture(p, d, m, sg) {
   if (m !== 4) { a2 = 0; for (const step of [.5, 1.2, 2.2, 3.5]) { const t = Math.max(p.a, camS + step); if (b2 - t < .2) break; vv.length = 0; for (const [ss, ll] of [[t, l0], [t + .3, l0], [t + .3, l1], [t, l1]]) { const w = segPos(sg, ss, ll); vv.push(w[0], w[2], w[1]); } if (project(vv) === 4) { a2 = t; break; } } if (!a2) return; }
   for (let s0 = a2; s0 < b2 - .01; s0 += .5) { const s1 = Math.min(s0 + .5, b2); vv.length = 0; for (const [ss, ll] of [[s0, l0], [s1, l0], [s1, l1], [s0, l1]]) { const w = segPos(sg, ss, ll); vv.push(w[0], w[2], w[1]); }
     if (project(vv) !== 4) continue;
-    one(s0 * px % 256, (s1 - s0) * px, (l1 - l0) * px);
+    one(s0 * px % TS, (s1 - s0) * px, (l1 - l0) * px);
     if (m !== 4) floorPattern(p, Math.max(d, 2)); }
 }
 

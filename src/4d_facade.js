@@ -485,8 +485,12 @@ function drawFacImg(w, dist, night, aMul) {
   const Pt = (u, t, o) => { const bx = lerp(C[0][0], C[1][0], u), by = lerp(C[0][1], C[1][1], u), bz = lerp(C[0][2], C[1][2], u), tx = lerp(C[3][0], C[2][0], u), ty = lerp(C[3][1], C[2][1], u), tz = lerp(C[3][2], C[2][2], u); tc(lerp(bx, tx, t), lerp(by, ty, t), lerp(bz, tz, t), FS, o); };
   const sx = [0, 0, 0, 0], sy = [0, 0, 0, 0], M0 = ctx.getTransform ? ctx.getTransform() : null;
   const fa = (1 - fogK(dist) * .92) * aMul; if (fa < .03) return; ctx.globalAlpha = fa; /* [R1] 遠くの壁の絵も、もやの濃さに合わせてうすく（前は 75m で急に簡単な絵、95m で無地に変わり「途中で消える」ように見えた） */
+  const imgB = img0 && (night ? img0 : litSprite(img0, LT.amb)), IWB = imgB ? imgB.width : IW;
   for (let ci = 0; ci < cols; ci++) {
     const uL = lerp(ua, ub, ci / cols), uR = lerp(ua, ub, (ci + 1) / cols);
+    /* [遠く A7] ななめに見る壁は、横方向に絵がぎゅっと縮む。前は壁のいちばん近い所の遠さだけで小さくした絵を選んでいたので、ななめの壁の窓の列が細かすぎて、走るとチカチカした。
+       分けた 1 列ごとに、画面での横の縮み方と遠さから、ちょうどよい大きさの絵を選ぶ */
+    if (!LODOFF && imgB) { Pt(uL, .5, 0); Pt(uR, .5, 3); const z0 = FS[2], z1 = FS[5]; if (z0 > NEAR && z1 > NEAR) { const px = Math.hypot(FS[0] * FOCAL / z0 - FS[3] * FOCAL / z1, FS[1] * FOCAL / z0 - FS[4] * FOCAL / z1), twb = Math.abs((w.fu1 - w.fu0) * (uR - uL)) * IWB, pH = twb > .5 ? px / twb : 1, pV = FOCAL / Math.max(.5, Math.min(z0, z1)) / FAC_P; img = facMip(imgB, Math.min(pH * FACB, pV)); IW = img.width; IH = img.height; } }
     const tu0 = (w.fu0 + (w.fu1 - w.fu0) * uL) * IW, tu1 = (w.fu0 + (w.fu1 - w.fu0) * uR) * IW, tw = tu1 - tu0; if (Math.abs(tw) < .3) continue;
     for (let k = 0; k < rows; k++) {
       const t0 = k / rows, t1 = (k + 1) / rows; Pt(uL, t0, 0); Pt(uR, t0, 3); Pt(uR, t1, 6); Pt(uL, t1, 9); /* [軽く 3-18] ます目の 4 すみは、入れ物を作らずに直接求める（前は 1 ます 5 個の入れ物：1 コマ数百個） */
@@ -503,15 +507,19 @@ function drawFacImg(w, dist, night, aMul) {
         ctx.save(); ctx.clip(); } else if (!M0) ctx.save();
       ctx.transform(a, b, -c, -d, E, F); // texture y grows downward, the wall's v grows upward
       const ux = Math.min(tu0, tu1), uw = Math.abs(tw);
-      ctx.drawImage(img, ux, ty0, uw, th, ux, ty0, uw, th);
+      /* [壁 S3] 切り抜かずに貼るます目は、となりのます目との間に 1 ドットより細いすき間ができ、うしろ（空・別のビル）が細い縦線になって、走るとチカチカした。
+         右と上へ 0.7 ドット分だけ長く貼って重ねる（同じ絵が続くので見た目は同じ） */
+      if (!LODOFF && (noClip || para)) { const ex = Math.min(2, .7 / Math.max(.05, Math.hypot(a, b))), ey = Math.min(2, .7 / Math.max(.05, Math.hypot(c, d))), uw2 = Math.min(uw + ex, IW - ux), y0 = Math.max(0, ty0 - ey), th2 = th + (ty0 - y0); ctx.drawImage(img, ux, y0, uw2, th2, ux, y0, uw2, th2); }
+      else ctx.drawImage(img, ux, ty0, uw, th, ux, ty0, uw, th);
       if (M0 && (noClip || para)) ctx.setTransform(M0); else ctx.restore(); /* [軽く] 切り抜きのないます目は、保存・復元（重い）をせず、ゆがめた向きだけ戻す */
     }
   }
   ctx.globalAlpha = 1;
 }
 const FAC_MIP = new WeakMap();
+let FACB = .6; /* ななめの壁の絵の小ささの目安（小さいほど、なめらかな絵を選ぶ） */
 function facMip(img, ppx) { if (ppx > .55 || !img || img.width < 64) return img; let m = FAC_MIP.get(img); if (!m) { m = []; FAC_MIP.set(img, m); }
-  const lv = ppx > .28 ? 0 : 1; if (!m[lv]) { const src = lv ? facMip(img, .4) : img, c = document.createElement('canvas'); c.width = Math.max(8, src.width >> 1); c.height = Math.max(8, src.height >> 1); const g = c.getContext('2d'); if (!g) return img; g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height); c.__half = (lv + 1); m[lv] = c; }
+  const lv = ppx > .28 ? 0 : ppx > .14 || LODOFF ? 1 : 2; /* [遠く A8] とても小さく見える壁のために、もう 1 段小さい絵（1/8） */ if (!m[lv]) { const src = lv === 2 ? facMip(img, .2) : lv ? facMip(img, .4) : img, c = document.createElement('canvas'); c.width = Math.max(8, src.width >> 1); c.height = Math.max(8, src.height >> 1); const g = c.getContext('2d'); if (!g) return img; g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height); c.__half = (lv + 1); m[lv] = c; }
   return m[lv]; }
 
 const SPR_PEND = {};

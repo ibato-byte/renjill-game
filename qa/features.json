@@ -1475,6 +1475,101 @@
       "name": "遠くの町の絵は描かれている上の部分だけをはる",
       "file": "src/4b_patterns.js",
       "has": "const sh = Math.min(c.height, Math.ceil((k.hz + .06 * FOCAL + 6) * DPR))"
+    },
+    {
+      "name": "箱の面の順番を平らな面の前後で決める（チカチカ）",
+      "file": "src/4_render.js",
+      "has": "function faceOrderFix(faces)"
+    },
+    {
+      "name": "床の上の平らな絵はいつも同じ順（チカチカ）",
+      "file": "src/4_render.js",
+      "has": "function floorLayers()"
+    },
+    {
+      "name": "地平線より下をまず床の色でぬる（床のすき間）",
+      "file": "src/4b_patterns.js",
+      "has": "[床 B1]"
+    },
+    {
+      "name": "坂の道の平らな絵も、となり合う組は同じ順（チカチカ）",
+      "file": "src/4_render.js",
+      "has": "function floorRuns()"
+    },
+    {
+      "name": "床と壁の板の合わせ目を同じ色でふさぐ（床が透ける）",
+      "file": "src/4_render.js",
+      "has": "[床 S1]"
+    },
+    {
+      "name": "エレベーターより先の上の階は乗るまで描かない（床に町が重なる）",
+      "file": "src/4_render.js",
+      "has": "[床 L1]"
+    },
+    {
+      "name": "階段ではカメラの高さを前後の平均に（降りる時に道が動く）",
+      "file": "src/6_game.js",
+      "has": "[降りる時 D4]"
+    },
+    {
+      "name": "遠くで省く細かい絵は手前でうすく出る（パッと出ない）",
+      "file": "src/4_render.js",
+      "has": "function LODK(T, d)"
+    },
+    {
+      "name": "遠くの小さな飾り・模様の線は細く（ざらざら・チカチカ）",
+      "file": "src/4_render.js",
+      "has": "[遠く A1]"
+    },
+    {
+      "name": "道ばたの絵・取る物・箱の絵は遠くで小さくした絵を使う",
+      "file": "src/4_render.js",
+      "has": "function sprMip(img, dw)"
+    },
+    {
+      "name": "看板の小さな字は前もって絵にして貼る（字がゆれない）",
+      "file": "src/4_render.js",
+      "has": "function qtextTex(txt, color, vert, R)"
+    },
+    {
+      "name": "ななめの壁は列ごとにちょうどよい大きさの絵",
+      "file": "src/4d_facade.js",
+      "has": "[遠く A7]"
+    },
+    {
+      "name": "遠くのしまもようはまざった色に（横断歩道）",
+      "file": "src/4_render.js",
+      "has": "function stripeF(sp)"
+    },
+    {
+      "name": "壁・天井の模様は出る手前でうすく",
+      "file": "src/4_render.js",
+      "has": "[近づく G14]"
+    },
+    {
+      "name": "画面のざらつきは 4 コマに 1 回だけ動かす",
+      "file": "src/4c_atmos.js",
+      "has": "[ざらつき N3]"
+    },
+    {
+      "name": "道の傷・しみは遠くでも同じ数を使う（位置が入れかわらない）",
+      "file": "src/4b_patterns.js",
+      "has": "[道 R1]"
+    },
+    {
+      "name": "切った電車の箱を使い回す（順番がゆれない）",
+      "file": "src/4_render.js",
+      "has": "[電車 M1]"
+    },
+    {
+      "name": "床の地の模様は遠さに合った小さな絵",
+      "file": "src/4c_atmos.js",
+      "has": "function ftexMip(key, lv)"
+    },
+    {
+      "name": "箱の材質も小さな絵",
+      "file": "src/4_render.js",
+      "has": "[遠く A16]"
     }
   ]
 }

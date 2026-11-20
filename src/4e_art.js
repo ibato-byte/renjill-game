@@ -934,7 +934,7 @@ function drawArt(o, sg, d) {
   const img = make(o, LT.night > .35); if (!img) return false;
   const ww = (o.artW || (o.l1 - o.l0)) * sp.k, hh = (o.artH || o.top || 1) * sp.k;
   ctx.globalAlpha = (o.dead ? clamp(1 - o.dead * 1.2, 0, 1) : passFade(d)) * (1 - fogK(d) * .9);
-  ctx.drawImage(litSprite(img, LT.amb), sp.sx - ww / 2, sp.sy - hh, ww, hh);
+  ctx.drawImage(sprMip(litSprite(img, LT.amb), ww), sp.sx - ww / 2, sp.sy - hh, ww, hh); /* [遠く A19] じゃま物の絵（自転車・カートなど）も、遠くではなめらかに縮めた絵で（細いフレームがチカチカしない） */
   if (LT.night > .3 && (o.art === 'car' || o.art === 'supercar' || o.art === 'kick' || o.art === 'bike') && !o.dead) { // headlights at night, and their light on the road
     ctx.globalCompositeOperation = 'lighter';
     const hy = sp.sy - hh * (o.art === 'car' ? .4 : o.art === 'supercar' ? .38 : .5), lights = o.art === 'car' || o.art === 'supercar' ? [-.33, .33] : [0];
