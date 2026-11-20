@@ -1594,7 +1594,7 @@
     {
       "name": "回っている間は遠くの景色を見る",
       "file": "src/6_game.js",
-      "has": "CAM.pitch = lerp(CAM.pitch, .07, lk)"
+      "has": "CAM.pitch = lerp(CAM.pitch, W > H ? .13 : .07, lk)"
     },
     {
       "name": "屋上の外かべは曲がり角の手前で止める",
@@ -1625,6 +1625,66 @@
       "name": "着地の公園：石のふち・芝生のしま・花だん",
       "file": "src/3_world.js",
       "has": "[着地 G1〜G3]"
+    },
+    {
+      "name": "空の上のカメラの高さはレンたちの今の高さ（押上から飛び立つと画面の下へ消えた）",
+      "file": "src/6_game.js",
+      "has": "const skyCam = !!seg.th.sky"
+    },
+    {
+      "name": "段の線は遠くと走っている時にうすく（登る時のちらつき）",
+      "file": "src/4b_patterns.js",
+      "has": "clamp(1.3 - run * 2.2, .22, 1)"
+    },
+    {
+      "name": "床に重ねたマット・帯はいつも下の床の後に描く",
+      "file": "src/3_world.js",
+      "has": "function markFloorOverlays(seg)"
+    },
+    {
+      "name": "空の上からは着地する公園の先を描かない",
+      "file": "src/4_render.js",
+      "has": "if (cur.th.sky && G.mode !== 'title' && segE(cur, G.s) - segE(cur, cur.len) > 22) return G.ci + 1;"
+    },
+    {
+      "name": "着地の公園：ふちの森と木のかたまり",
+      "file": "src/3_world.js",
+      "has": "[着地 G5〜G7]"
+    },
+    {
+      "name": "上空から見た園路：分かれる道・S 字の小道",
+      "file": "src/4g_aerial.js",
+      "has": "[着地 A1〜A6]"
+    },
+    {
+      "name": "本物の地図の公園に木を植える",
+      "file": "src/4i_realmap.js",
+      "has": "const parkTrees = (P2, park, draw) =>"
+    },
+    {
+      "name": "外階段の入口の門を高く",
+      "file": "src/3_world.js",
+      "has": "const g0 = L - 9, gh = 4.3;"
+    },
+    {
+      "name": "ポムのオオタカはジルと反対がわ",
+      "file": "src/6_game.js",
+      "has": "G.lat + (G.lat > .5 ? 1.5 : -1.5)"
+    },
+    {
+      "name": "展望台のガラスの床は枠つきの正方形 2 枚",
+      "file": "src/4b_patterns.js",
+      "has": "const sv = p.ti % 2 ? [.08, .4] : [.6, .92];"
+    },
+    {
+      "name": "遠くのチモシーは回り方を小さく",
+      "file": "src/4_render.js",
+      "has": "clamp((34 - d) / 16, .15, 1)"
+    },
+    {
+      "name": "上空から見た池・芝生のしま・夜の街灯",
+      "file": "src/4g_aerial.js",
+      "has": "[着地 A14]"
     },
     {
       "name": "たて長のスマホのホームでは 3 人の足もとが下の台のすぐ上（札にかくれない）",
