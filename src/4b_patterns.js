@@ -189,9 +189,12 @@ function floorPattern(p, d) {
       4 枚に 1 枚だけ（全部ガラスだと、暗い横じまが階段に見えた） */
       if (p.lowOnly ? !p.low : (p.ti % 16 !== 5 && p.ti % 16 !== 6)) { /* [H23] 押上は、いちばん下のフロア（340）だけガラスの床 */ /* [T5] ガラスの床は 4 か所だけ（24m ごとに 3m。本物も、展望台の床のガラスは数か所） */ ctx.globalAlpha = a * .25; ctx.strokeStyle = T('#8F8676'); for (let k = 0; k <= 2; k++) bline(0, k / 2, 1, k / 2); bline(0, 0, 0, 1); if (d < 30) { const _ga = ctx.globalAlpha; ctx.stroke(); ctx.beginPath(); ctx.globalAlpha = _ga * LODK(30, d); ctx.globalAlpha = a * .16; ctx.strokeStyle = T('#5E636A'); for (let k = -3; k <= 3; k++) { const c = k / 4; bline(Math.max(0, c), Math.max(0, -c), Math.min(1, 1 + c), Math.min(1, 1 - c)); const e = .5 + k / 4 + .5; bline(Math.max(0, e - 1), Math.min(1, e), Math.min(1, e), Math.max(0, e - 1)); } ctx.stroke(); ctx.beginPath(); ctx.globalAlpha = a * .1; bquad(0, 0, 1, .5, p.ti % 2 ? '#FFFFFF' : '#000000');  ctx.globalAlpha = _ga; } break; } /* [T4] ガラスでない所：網目の柄のじゅうたん（ななめの細い線）と、1 枚ごとの毛並みのむら */
       ctx.globalAlpha = a * .95; const r2 = rnd(p.ti * 13 + 5), roof = ['#8E8C86', '#A7A49C', '#7E7C78', '#9C968A', '#B5B2AA', '#6F8A5E'];
-      for (const [u0, u1] of [[.22, .5], [.5, .78]]) { bquad(u0, .08, u1, .92, T(LT.night > .4 ? '#1E2433' : '#56626E'));
-        for (let k = 0; k < (d < 20 ? 6 : 3); k++) { const u = u0 + .03 + r2() * (u1 - u0 - .12), v = .12 + r2() * .66; bquad(u, v, u + .03 + r2() * .06, v + .06 + r2() * .12, T(LT.night > .4 ? (k % 3 ? '#2A3044' : '#C9A15A') : roof[k % roof.length])); }
-        ctx.globalAlpha = a * .2; bquad(u0 + .02, .1, u0 + .07, .9, '#FFFFFF'); ctx.globalAlpha = a * .95; }
+      /* [塔 G1] 2026-11-20 オーナー「タワーでの、地面が透けて見えるバグ」：ガラスの床が道のはばいっぱいの帯で、上から見る町が床の横じまのように見え、床がぬけているように見えた。
+         本物の展望台の「ルックダウンウィンドウ」のように、窓ぎわ（片がわ）だけの、ステンレスの枠で囲んだ正方形 2 枚にする */
+      const sv = p.ti % 2 ? [.08, .4] : [.6, .92];
+      for (const [u0, u1] of [[.24, .5], [.5, .76]]) { ctx.globalAlpha = a * .95; bquad(u0 - .015, sv[0] - .03, u1 + .015, sv[1] + .03, T('#C9CDD2')); bquad(u0, sv[0], u1, sv[1], T(LT.night > .4 ? '#1E2433' : '#56626E'));
+        for (let k = 0; k < (d < 20 ? 5 : 2); k++) { const u = u0 + .03 + r2() * (u1 - u0 - .12), v = sv[0] + .03 + r2() * (sv[1] - sv[0] - .14); bquad(u, v, u + .03 + r2() * .06, v + .04 + r2() * .08, T(LT.night > .4 ? (k % 3 ? '#2A3044' : '#C9A15A') : roof[k % roof.length])); }
+        ctx.globalAlpha = a * .22; bquad(u0 + .02, sv[0] + .02, u0 + .06, sv[1] - .02, '#FFFFFF'); ctx.globalAlpha = a * .95; }
       ctx.strokeStyle = T('#D5DADF'); ctx.lineWidth *= 1.8; bline(.22, .08, .22, .92); bline(.5, .08, .5, .92); bline(.78, .08, .78, .92); bline(.22, .08, .78, .08); bline(.22, .92, .78, .92); break; }
     case 'lawn': ctx.globalAlpha = a * .5; bquad(0, 0, 1, .5, T('#8DB26A')); break;
     case 'sand': ctx.globalAlpha = a * .45; for (let k = 0; k < 7; k++) bquad((k * .41 + p.ti * .13) % .9, (k * .67) % .9, (k * .41 + p.ti * .13) % .9 + .05, (k * .67) % .9 + .03, T('#C9B48A')); break;

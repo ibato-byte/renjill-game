@@ -213,6 +213,7 @@ function aerialCity(seg, yb, alt, hz) {
     const ring = (f0, l0, rf, rl, n) => Array.from({ length: n }, (_, i) => { const a = i / n * Math.PI * 2; return [f0 + Math.cos(a) * rf * (1 + .08 * Math.sin(a * 5)), l0 + Math.sin(a) * rl * (1 + .08 * Math.cos(a * 3))]; });
     poly(ring(40, 0, 260, 190, 28), night ? '#14261C' : '#4E7A44'); // [D7] 公園の森（外がわ）
     poly(ring(60, 0, 150, 70, 22), night ? '#1C3224' : '#7FA35E'); // [D8] まん中の芝生の広場
+    if (!night) for (let k = -2; k <= 2; k += 2) { const l0 = k * 22 - 7, l1 = k * 22 + 7, hf = 150 * Math.sqrt(Math.max(0, 1 - (Math.max(Math.abs(l0), Math.abs(l1)) / 70) ** 2)) - 6; if (hf > 10) poly([[60 - hf, l0], [60 + hf, l0], [60 + hf, l1], [60 - hf, l1]], '#87AC66'); } /* [着地 A11] 芝生の広場の、刈りあとのしま（上から見て手入れされた芝生） */
     { /* [着地 A1〜A6] 2026-11-20 オーナー「降りる時にすごく安っぽい道路が出てきてから、通常のコースに戻る」：前は、はば 8m・長さ 630m のまっすぐな砂の帯が 1 本と、
          それに直角の帯が 1 本だけで、上から見ると「作り物の道」だった。本物の公園の園路のように：
          [A1] 着地する道は、着地の公園（立体の道）と同じはば 5.2m・同じ長さだけ。うしろ（飛んできた方）へはのばさない
@@ -225,8 +226,11 @@ function aerialCity(seg, yb, alt, hz) {
       const main = [[-10, 0], [130, 0]], b1 = arc(130, 0, 250, -95, 22, 8), b2 = arc(130, 0, 240, 110, -26, 8), cross = arc(70, -170, 95, 170, 30, 12);
       for (const [ln, w] of [[main, 6.2], [b1, 4.3], [b2, 4.3], [cross, 3.8]]) curve(ln, w, pe);
       for (const [ln, w] of [[main, 5.2], [b1, 3.5], [b2, 3.5], [cross, 3]]) curve(ln, w, pc);
-      poly(ring(130, 0, 9, 9, 14), pc); /* 道が分かれる所の、丸い小さな広場 */ }
+      poly(ring(130, 0, 9, 9, 14), pc); /* 道が分かれる所の、丸い小さな広場 */
+      if (night) for (const [ln, gap] of [[main, 22], [b1, 26], [b2, 26], [cross, 30]]) { let acc = 0; for (let i = 0; i + 1 < ln.length; i++) { const [f0, l0] = ln[i], [f1, l1] = ln[i + 1], L = Math.hypot(f1 - f0, l1 - l0); for (let u = gap - acc; u < L; u += gap) { const t = u / L, q = Q(lerp(f0, f1, t), lerp(l0, l1, t) + 3, 4); if (!q || q[1] < yb) continue; const r = clamp(1.2 * F / q[2], .6, 4); ctx.fillStyle = 'rgba(255,214,150,.35)'; ctx.beginPath(); ctx.arc(q[0], q[1], r * 3, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(255,236,190,.95)'; ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fill(); } acc = (acc + L) % gap; } } /* [着地 A14] 夜は、園路にそって街灯の光（上からも道の形がわかる） */ }
+    poly(ring(150, 90, 38, 26, 16), night ? '#2A2A26' : '#B8B0A0'); /* [着地 A12] 池のまわりの石のふち */
     poly(ring(150, 90, 34, 22, 16), night ? '#152436' : '#5F8FA8'); // [D10] 池
+    if (!night) { poly(ring(146, 84, 14, 6, 10), 'rgba(255,255,255,.22)'); } /* [着地 A13] 池の水面の、空のうつりこみ */
     if (RM && RM.water) try { RM.water(); } catch (e) { }
     const rv = rmFrame(seg) ? 0 : (th.riv || 0); /* [M40] 本物の地図の隅田川があるので、作り物の川は描かない（2 本が重なっていた） */ if (rv) { const n0 = rv * 16, n1 = rv * 100; poly([[-3000, n0 - rv * 6], [3000, n0 - rv * 6], [3000, n0], [-3000, n0]], night ? '#4A4A4A' : '#B9B4A8'); poly([[-3000, n0], [3000, n0], [3000, n1], [-3000, n1]], night ? '#0E1630' : '#58798F'); poly([[-3000, n1], [3000, n1], [3000, n1 + rv * 8], [-3000, n1 + rv * 8]], night ? '#4A4A4A' : '#B9B4A8'); /* [R9] 押上のオオタカ：着地する公園のわきに、本当に川（向こう岸は 100m 先。着地した場所の川とそろえる・両岸のコンクリートの護岸） */
       for (let k = 0; k < 3; k++) { const f0 = -600 + k * 700, w2 = 12; poly([[f0, n0], [f0 + w2, n0], [f0 + w2, n1], [f0, n1]], night ? '#3A3C48' : ['#C8C3B4', '#7EA0C4', '#C9564A'][k]); } /* [R10] 川にかかる橋（色のちがう 3 本） */

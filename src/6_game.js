@@ -740,7 +740,7 @@ function placeCamera(dt) {
   F.fly = P.fly; if (P.fly) { F.wy = G.ey + G.y - .3; }
   const strIn = !seg.first && seg.turnIn === 0 && !seg.prevFork; /* [F7] まっすぐつながった道（展望台 → 空 → 着地・エレベーター）：うしろの仲間は、つなぎ目の手前にいても見える（前は道の頭で消え、空へ飛び立つ時にジルが画面から消えた） */
   F.show = !F.off && (strIn || G.s - F.back > (seg.first ? -14 : HW + .3));
-  { const M = G.pom; if (M.on) { const mp = skyF ? segPos(seg, G.s - 1.6, G.lat + (G.lat > .5 ? -.9 : .9)) : segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * (M.who === 'pom' ? .012 : .05)); if (M.who === 'pom' && !M.air && !P.fly) M.lat += Math.sin(M.ph * .5) * .0035; /* ちょこまか：走りながら、ごく小さく左右にゆれる */ if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = strIn || G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
+  { const M = G.pom; if (M.on) { const mp = skyF ? segPos(seg, G.s - .9, G.lat + (G.lat > .5 ? 1.5 : -1.5)) /* [空 K2] 2026-11-20：ポムのオオタカは、ジルと反対がわのレンの横に（前はレンのすぐうしろ・ジルと同じがわで、カメラから見るとレンの頭の上にポムのオオタカが重なった） */ : segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * (M.who === 'pom' ? .012 : .05)); if (M.who === 'pom' && !M.air && !P.fly) M.lat += Math.sin(M.ph * .5) * .0035; /* ちょこまか：走りながら、ごく小さく左右にゆれる */ if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = strIn || G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
   if (P.hawk && !(P.hawkRel > .2)) { const sw = k => .3 + Math.sin(G.t * 2.1 + k) * .07 * (1 + (P.hawkRel || 0) * 3); /* [D2] 着地の前は羽ばたきが強くなり、少し上下が大きい */ P.wy = G.ey + G.y + sw(0); F.wy = fp[2] + sw(1.3); if (G.pom.on) G.pom.wy += sw(2.1) - (G.pom.air ? 0 : Math.abs(Math.sin(G.pom.ph)) * .012); } // オオタカの羽ばたきで、ゆっくり上下
   const ty = seg.dir * Math.PI / 2 + skySpin(seg); let dy = ty - G.camYaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
   G.camYaw += dy * Math.min(1, dt * 9);
@@ -764,7 +764,7 @@ function placeCamera(dt) {
   G.camH = camNew || G.camH == null ? camT : lerp(G.camH, camT, Math.min(1, dt * 5));
   let camUp = G.y * .6 + sh * .5; if (ceilH && camUp > 0) { const room = Math.max(.05, ceilH - CAM_CEIL_MIN - G.camH); camUp = room * (1 - Math.exp(-camUp / room)); }
   CAM.y = G.camE + G.camH + camUp; if (ceilH) CAM.y = Math.min(CAM.y, G.camE + ceilH - CAM_CEIL_MIN + .08);
-  CAM.yaw = G.camYaw; CAM.pitch = .19 + .04 * clamp((G.camH - 2.1) / .35, 0, 1) - G.camSl * .55 + Math.min(.1, G.y * .03); { const lk = skyLookK(seg); if (lk > 0) CAM.pitch = lerp(CAM.pitch, .07, lk); } /* [降りる時 S2] 回っている間は遠くの景色を見る（着地の道が画面を横切って流れて見えない） */
+  CAM.yaw = G.camYaw; CAM.pitch = .19 + .04 * clamp((G.camH - 2.1) / .35, 0, 1) - G.camSl * (skyCam ? .22 : .55) + Math.min(.1, G.y * .03); /* [空 K4] 空の上は、カメラがレンたちと同じ高さなので、坂の分だけ下を向きすぎない（パソコンの横長の画面で、レンの頭が画面の上のはしに近づいた） */ { const lk = skyLookK(seg); if (lk > 0) CAM.pitch = lerp(CAM.pitch, W > H ? .13 : .07, lk); } /* [空 K3] 横長の画面（パソコン）は上下に見える広さがせまいので、上げすぎない（レンの頭が画面の上のはしに近づいた） */ /* [降りる時 S2] 回っている間は遠くの景色を見る（着地の道が画面を横切って流れて見えない） */
   camPrep();
   P.depth = (P.wx - CAM.x) * CAM.s + (P.wz - CAM.z) * CAM.c; F.depth = (F.wx - CAM.x) * CAM.s + (F.wz - CAM.z) * CAM.c;
   if (F.tuck) F.depth = P.depth + .3;
