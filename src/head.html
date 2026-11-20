@@ -849,7 +849,8 @@ html.calm .howanim .ha-cap span:first-child{opacity:1}
   #sTitle.home .logo h1{font-size:64px}
 }
 /* 62 背の低いスマホ（高さ 700 まで。iPhone SE など）：スタートが最初から見えるように、下の台は「顔の列」と「スタート」を横に並べる */
-@media (max-aspect-ratio:4/5) and (max-height:700px){
+/* [ホーム iPhone H12] 2026-11-20：キャラクターえらびとスタートを横にならべる台は、高さ 780 まで（前は 700 まで。Safari の 430×739 などで、下の小さなボタンが画面の下で半分に切れていた） */
+@media (max-aspect-ratio:4/5) and (max-height:780px){
   #sTitle.home .card>.chars{grid-row:8;justify-self:start;width:auto;padding:12px 0 10px 12px;gap:6px;background:none;box-shadow:none}
   #sTitle.home .card>.chars::before{display:none}
   #sTitle.home .chars .char{width:50px}#sTitle.home .chars .char canvas{width:44px;height:44px}#sTitle.home .chars .char .nm{font-size:11px;margin-top:1px}
@@ -995,7 +996,7 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
 #sTitle.home .card>#tKeepBtns{grid-row:10}
 #sTitle.home .card::after{grid-row:6/11}
 @media (orientation:landscape) and (max-height:559px){#sTitle.home .card>.quiet{grid-column:2;grid-row:9;margin:2px 14px 4px auto;font-size:11px}#sTitle.home .card::after{grid-row:7/11}}
-@media (max-aspect-ratio:4/5) and (max-height:700px){#sTitle.home .card:has(>.quiet)>.chars{padding-bottom:2px}#sTitle.home .card:has(>.quiet)>#btnStart{margin-bottom:0}#sTitle.home .card>.quiet{margin:0 12px calc(4px + env(safe-area-inset-bottom,0px))}}
+@media (max-aspect-ratio:4/5) and (max-height:780px){#sTitle.home .card:has(>.quiet)>.chars{padding-bottom:2px}#sTitle.home .card:has(>.quiet)>#btnStart{margin-bottom:0}#sTitle.home .card>.quiet{margin:0 12px calc(4px + env(safe-area-inset-bottom,0px))}}
 #sTitle.home .logo .k{position:relative;z-index:1}
 /* 2026-11-20：SNS の新作の札（.feedcard）は、半分すけた白だったので、うしろの部屋の色しだいで字が読みにくかった（CI の contrast で 1.5）。すけない白に */
 #sTitle.home .feedcard{background-color:#FDF9F2}
@@ -1008,5 +1009,85 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
 /* 札の中は「NEW｜SNSの新作／題名（2 行まで折り返す）｜▶」の 3 列。長い題名でもはみ出さない */
 #sTitle.home .card>.feedcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:8px;row-gap:0;align-items:center;text-align:left}
 #sTitle.home .feedcard .newtag{grid-column:1;grid-row:1/3}#sTitle.home .feedcard small{grid-column:2;grid-row:1;line-height:1.2}#sTitle.home .feedcard b{grid-column:2;grid-row:2;min-width:0}#sTitle.home .feedcard i{grid-column:3;grid-row:1/3}
+/* ==== 2026-11-20 iPhone のホーム画面（オーナー「iPhone 画面で見たときに、スタート画面で色々重なりまくって見づらい」）====
+   調べたこと：iPhone の Safari は上下のバーの分だけ高さが減る（390×664・375×548 など）。この高さで、SNS の新作の札・今日の目標・お知らせが、
+   3 人の真上にかさなり、下の台（スタート）が画面の外に切れ、下の小さなボタンが半分だけ見えていた */
+@media (orientation:portrait) and (max-width:599px){
+  /* [H2・H3] SNS の新作の札：背の低いスマホでかくす決まりが、あとの「display:grid」に負けて出ていた。2 行の大きな札をやめ、1 行の細い札にする */
+  #sTitle.home .card>.feedcard{margin:8px 2px 0;padding:5px 8px 5px 6px;border-radius:999px;max-width:100%;justify-self:stretch;column-gap:6px;box-shadow:0 2px 0 rgba(59,42,32,.28)}
+  #sTitle.home .feedcard small{display:none}
+  #sTitle.home .feedcard b{grid-row:1/3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;line-height:1.3;text-wrap:nowrap}
+  #sTitle.home .feedcard .newtag{font-size:9px;padding:2px 6px}
+  #sTitle.home .feedcard i{font-size:11px}
+  /* [H4] 今日の目標：ふきだしのしっぽ（何も指していなかった）をやめ、うすく小さく */
+  #sTitle.home .card>#tToday{margin:7px 2px 0;padding:5px 6px;border-radius:16px}
+  #sTitle.home #tToday::after{display:none}
+  /* [H5] 「今日のチモシー」が幅 375 で「チモシ／ー」と 2 行に切れていた → 1 行で、字を少し小さく */
+  #sTitle.home #tToday .tt-c small{white-space:nowrap;font-size:10px;letter-spacing:0}
+  #sTitle.home #tToday .tt-c b{font-size:20px;line-height:1.1}
+  /* [H6] おしごとの 1 行（チモシーの列を2回…）は大きな字で 3 行に折り返していた → 小さな字で 2 行まで（字は切らない） */
+  #sTitle.home #tToday .tt-ch{display:flex;align-items:center;gap:6px;padding:3px 8px;font-size:10px;line-height:1.3}
+  #sTitle.home #tToday .tt-ch span{flex:1 1 auto;min-width:0;text-wrap:balance}
+  #sTitle.home #tToday .tt-ch em{flex:none}
+}
+/* [H7] とても背の低いスマホ（iPhone SE の Safari：高さ 548）では、新作の札は出さない（あとに書いて、上の display:grid に負けないように） */
+@media (orientation:portrait) and (max-width:599px) and (max-height:600px){#sTitle.home .card>.feedcard{display:none}}
+/* [H8] 背の低いスマホ（高さ 600 まで）：左右の丸いボタンを小さく・間をつめ、下の台（スタート）が画面に入るように */
+@media (max-aspect-ratio:4/5) and (max-height:600px){
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:36px;height:36px;background-size:22px,100% 100%,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:38px}#sTitle.home .row2 .sub::before{margin-left:-18px}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:3px;padding-top:6px;padding-bottom:6px}
+  #sTitle.home .row .mini em,#sTitle.home .row2 .sub{font-size:9px}
+  #sTitle.home .card>#tCareer{padding-top:6px}
+}
+/* [H10] 今日の目標の右上の金の点（目じるし）は、スマホでは新作の札にふれて、よごれのように見えた → スマホでは出さない */
+@media (orientation:portrait) and (max-width:599px){#sTitle.home .card>#tToday::before{display:none}}
+/* [H13] 高さ 601〜700 のスマホ（iPhone の Safari：390×664・393×659 など）：左右の丸いボタンを少し小さく・間をつめ、下の小さなボタン（きろく・練習）まで画面に入れる */
+@media (max-aspect-ratio:4/5) and (min-height:601px) and (max-height:700px){
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:40px;height:40px;background-size:24px,100% 100%,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:42px}#sTitle.home .row2 .sub::before{margin-left:-20px}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:3px;padding-top:6px;padding-bottom:6px}
+}
+/* [H11] たて長のスマホのお知らせ：左右のボタンの間の幅いっぱいの、1 行の細い札に（前は幅 144 で 2〜3 行になり、新作の札と今日の目標の両方にかかっていた） */
+@media (orientation:portrait) and (max-width:599px){.ttoast.hm.hmn{max-width:calc(100vw - 124px)!important;border-radius:14px!important;font-size:11px!important;padding:6px 10px!important;line-height:1.3;text-wrap:balance}}
+/* [H14] 幅 340 までのスマホ（iPhone SE 初代など）：上の帯のチモシーの数が 2 段目に落ち、音・設定のボタンとならんでいた → 札を少しつめて 1 段に */
+@media (orientation:portrait) and (max-width:340px){#sTitle.home .card>.bank{padding-left:112px;gap:4px}#sTitle.home .bank>span:not(.tog){padding:0 8px 0 7px;gap:3px}#sTitle.home .bank b{font-size:13px}}
+/* [H15] 幅 380 までのスマホ：お知らせの字をほんの少し小さく（最後の 1 字だけが 2 行目に落ちていた） */
+@media (orientation:portrait) and (max-width:380px){.ttoast.hm.hmn{font-size:10.5px!important;padding:6px 8px!important}}
+/* [H16] 幅 380 までのスマホ：今日の目標の 2 つの数（74,000 と 0/300）がくっついて 1 つの数に見えた → 数を少し小さくし、間をあける */
+@media (orientation:portrait) and (max-width:380px){#sTitle.home #tToday .tt-c b{font-size:17px}#sTitle.home #tToday{column-gap:10px}}
+/* [H17] 今日の目標の数が長い時（29,000,000 など）は字を小さく。数は 1 行で、となりの列にはみ出さない */
+#sTitle.home #tToday .tt-c{min-width:0}
+#sTitle.home #tToday .tt-c b{white-space:nowrap;overflow:hidden;text-overflow:clip}
+#sTitle.home #tToday .tt-c b.nl{font-size:.8em}#sTitle.home #tToday .tt-c b.nxl{font-size:.66em}
+@media (orientation:portrait) and (max-width:599px){#sTitle.home #tToday .tt-c b.nl{font-size:16px}#sTitle.home #tToday .tt-c b.nxl{font-size:13px}}
+@media (orientation:portrait) and (max-width:380px){#sTitle.home #tToday .tt-c b.nl{font-size:14px}#sTitle.home #tToday .tt-c b.nxl{font-size:12px}}
+/* [H18] 上の帯：ベストの数が長い（48,519,125 など）と、札が左へのびて題字の上にかかり、題字がかくれていた。題字の横に入りきらない札は 2 段目へ */
+@media (orientation:portrait) and (max-width:599px){#sTitle.home .card>.bank{flex-wrap:wrap;row-gap:6px;align-content:flex-start}}
+/* [H19] 右の丸いボタンの名前（「名前：れいまるKing」など長い名前）が画面の右はしで切れていた → 76 ドットの中で 2 行に折り返す（字は切らない）。名前の札の地も 2 行分に */
+@media (orientation:portrait) and (max-width:599px){#sTitle.home .row2 .sub{max-width:76px;white-space:normal;overflow-wrap:anywhere;line-height:1.2}#sTitle.home .row2 .sub::after{top:52px;height:auto;border-radius:9px}}
+@media (max-aspect-ratio:4/5) and (min-height:601px) and (max-height:700px) and (max-width:599px){#sTitle.home .row2 .sub::after{top:40px}}
+@media (max-aspect-ratio:4/5) and (max-height:600px) and (max-width:599px){#sTitle.home .row2 .sub::after{top:36px}}
+/* [H20] みんなの集計（今日いちばん走られた場所・みんなで集めたチモシー）：3 人の足もとに重なっていた → スマホでは今日の目標のすぐ下に、小さく 1〜2 行で。背の低いスマホでは出さない */
+@media (orientation:portrait) and (max-width:599px){#sTitle.home .card>#tComm{grid-row:5;align-self:start;margin:6px 0 0;font-size:10px;line-height:1.35;text-align:center}}
+@media (orientation:portrait) and (max-width:599px) and (max-height:799px){#sTitle.home .card>#tComm{display:none!important}}
+/* [H21] 今日の目標の列を広く（長い目標の数が切れないように。チモシーの列は 0/300 が入る幅） */
+@media (orientation:portrait) and (max-width:599px){#sTitle.home .card>#tToday{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}#sTitle.home #tToday .tt-ch{grid-column:1/-1}
+  #sTitle.home #tToday .tt-c b.nl{font-size:14px}#sTitle.home #tToday .tt-c b.nxl{font-size:12px}}
+@media (orientation:portrait) and (max-width:380px){#sTitle.home #tToday .tt-c b.nl{font-size:13px}#sTitle.home #tToday .tt-c b.nxl{font-size:11px}}
+/* [H22〜H25] 2026-11-20 オーナー（iPhone の写真）「スライドしてボタンなどがズレるのではなく、1 画面に収まるように」「不要なものを削除したり、表記をシンプルにしたりしていい」
+   スマホのたて画面では、ホーム画面を 1 画面にして、指でずらしても動かないようにする。下にかくれていた小さなリンク（遊び方・公式サイト・SNS）は設定の中にもあるので、ホームからは外す。
+   SNS の新作の札も外す（1 行に入りきらず「…」で切れていた。新作は設定・お知らせから見られる） */
+@media (orientation:portrait) and (max-width:599px){
+  #sTitle.home{overflow:hidden;overscroll-behavior:none}
+  #sTitle.home .small-print{display:none}
+  #sTitle.home .card>.feedcard{display:none}
+  #sTitle.home .card.tgrid{max-height:100%;box-sizing:border-box}
+}
+@media (orientation:portrait) and (max-width:599px){.ttoast.hm.hmn.hmw{max-width:calc(100vw - 184px)!important}} /* [H26] 今日の目標の下に出すお知らせは、左右のボタンにかからない細いはば */
+/* [H29] 2026-11-20：はば 320 の小さいスマホで、今日の目標の数（29,000・0/300）が右で切れていた。数を小さく */
+@media (orientation:portrait) and (max-width:340px){#sTitle.home #tToday .tt-c b{font-size:14px}#sTitle.home #tToday .tt-c b.nl{font-size:12px}#sTitle.home #tToday .tt-c b.nxl{font-size:10.5px}#sTitle.home #tToday .tt-c small{font-size:9px;letter-spacing:-.02em}}
+@media (orientation:portrait) and (max-width:340px){#sTitle.home .card>#tToday{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);column-gap:6px}}
+@media (orientation:portrait) and (max-width:340px){#sTitle.home .card>#tToday{width:calc(100vw - 132px)!important;max-width:none!important;box-sizing:border-box;padding-left:8px;padding-right:8px}}
 /* ==== HOME-V2 END ==== */
 </style>

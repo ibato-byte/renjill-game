@@ -1685,6 +1685,36 @@
       "name": "上空から見た池・芝生のしま・夜の街灯",
       "file": "src/4g_aerial.js",
       "has": "[着地 A14]"
+    },
+    {
+      "name": "たて長のスマホのホームでは 3 人の足もとが下の台のすぐ上（札にかくれない）",
+      "file": "src/6_game.js",
+      "has": "function titleTallPitch(P, gy)"
+    },
+    {
+      "name": "iPhone のホーム：新作の札は 1 行・今日の目標の長い数は小さく・題字に札がかからない",
+      "file": "tools/home/home.css",
+      "has": "[H18]"
+    },
+    {
+      "name": "今日の目標の数の長さで字の大きさを変える",
+      "file": "src/6e_keep.js",
+      "has": "[ホーム iPhone H17]"
+    },
+    {
+      "name": "スマホのホームは 1 画面（指でずらしても動かない）",
+      "file": "tools/home/home.css",
+      "has": "#sTitle.home{overflow:hidden;overscroll-behavior:none}"
+    },
+    {
+      "name": "スマホのホームから下の小さなリンクと新作の札を外す",
+      "file": "tools/home/home.css",
+      "has": "#sTitle.home .small-print{display:none}"
+    },
+    {
+      "name": "お知らせは今日の目標の下の細いはば",
+      "file": "src/7_ui.js",
+      "has": "d.classList.toggle('hmw', tall && !fv && roomOk)"
     }
   ]
 }
