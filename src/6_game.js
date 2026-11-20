@@ -720,7 +720,10 @@ function update(dt) {
   hud();
 }
 // 空の上：おりながら、カメラが 1 回ぐるっと回る（東京を 360 度見わたす。終わりは進む向きにもどる）
-function skySpin(seg) { if (!seg || !seg.th.sky) return 0; const u = clamp((G.s - 10) / Math.max(40, seg.len - 70), 0, 1); return Math.PI * 2 * sstep(u); }
+/* [降りる時 D1] 2026-11-20 オーナー「高い所から下に降りる時に、道路が動いてしまう」：オオタカと降りる間、カメラが 1 回転（360 度）していたので、
+   下に見える着地の道（公園の小道）が、画面の中をぐるっと流れて「道が動く」ように見えた。回るのをやめ、左右を少し見わたす（±20 度）だけにして、
+   後半（着地の道がはっきり見えてから）はまっすぐ前を向いたままにする */
+function skySpin(seg) { if (!seg || !seg.th.sky) return 0; const u = clamp((G.s - 10) / Math.max(30, seg.len * .5 - 10), 0, 1); return Math.sin(u * Math.PI * 2) * .35 * (1 - sstep(u)); }
 function placeCamera(dt) {
   const seg = curSeg(), P = G.player, F = G.follow;
   const p = segPos(seg, G.s, G.lat);
@@ -742,9 +745,11 @@ function placeCamera(dt) {
   const sh = G.shake > 0 ? Math.sin(G.t * 60) * .09 * G.shake : 0, sway = seg.th.kind === 'train' && !OPT().calm ? Math.sin(G.t * 1.7) * .05 + Math.sin(G.t * .63 + 1) * .025 + (G.jolt || 0) * Math.sin(G.t * 38) * .35 : 0; /* [85] 2 つの周期の重なった横ゆれ ＋ 継ぎ目の小さなガタン */
   CAM.x = G.rx - fx * dist + Math.cos(G.camYaw) * (sh + sway); CAM.z = G.rz - fz * dist - Math.sin(G.camYaw) * (sh + sway);
   G.fovK = lerp(G.fovK || 0, (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0, Math.min(1, dt * 4)); G.skyK = lerp(G.skyK || 0, seg.th.sky && !(P.hawkRel > .3) ? 1 : 0, Math.min(1, dt * 1.5)); FOCAL = BASEF * (1 - .09 * G.fovK - .07 * G.skyK); /* [F10] 空へ飛び出すと、見える広さが少しずつ広がる（ひらけた感じ）。着地の前にもどる */
-  const eC = segE(seg, G.s - 2.5), slope = clamp((segE(seg, Math.min(seg.len, G.s + 14)) - eP) / 14, -.3, .3);
+  /* [降りる時 D4] 階段（段と踊り場がくり返す道）では、カメラの高さを前後 3m の平均の高さに合わせる。前は段ごとの高さの変わり目でカメラが小きざみに上下し、画面の道全体がガクガク動いて見えた */
+  const flt = seg.hp && seg.hp.shape === 'flights', eAt = flt ? (q => (segE(seg, q - 1.5) + segE(seg, q - .75) + segE(seg, q) + segE(seg, q + .75) + segE(seg, q + 1.5)) / 5) : (q => segE(seg, q));
+  const eC = eAt(G.s - 2.5), ePc = flt ? eAt(G.s) : eP, slope = clamp((eAt(Math.min(seg.len, G.s + 14)) - ePc) / 14, -.3, .3);
   const camNew = G.camE == null;
-  G.camE = G.camE == null ? eC : lerp(G.camE, Math.max(eC, eP - .4), Math.min(1, dt * 10)); G.camSl = lerp(G.camSl || 0, slope, Math.min(1, dt * 3));
+  G.camE = G.camE == null ? eC : lerp(G.camE, Math.max(eC, ePc - .4), Math.min(1, dt * 10)); G.camSl = lerp(G.camSl || 0, slope, Math.min(1, dt * 3));
   /* 2026-11-15（オーナーの報告：電車や室内で天井が低く見える・ジャンプすると天井から飛び出る）
      縦長のスマホはカメラが高い（2026-11-14 は 2.75m、11-16 からは 2.45m）ので、天井（2.9〜3m）のすぐ下をはうように見えていた。ジャンプするとカメラが天井をつきぬけた。
      天井のある場所では ①カメラの高さを「天井より CAM_CEIL_GAP 下」までにする ②ジャンプでカメラが上がる分は、天井の手前でなめらかに止める ③それでも天井より上には絶対に出さない */

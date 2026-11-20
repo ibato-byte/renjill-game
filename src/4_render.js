@@ -1,5 +1,7 @@
 /* ================= tiny 3D renderer on Canvas 2D ================= */
 const cv = $('#cv'), ctx = cv.getContext('2d', { alpha: false }) || cv.getContext('2d'); /* 透けない画面として描く（ブラウザが重ね合わせを省けるので軽い） */
+/* [遠く A1] 線の太さの倍率（ふだんは 1）。遠くの小さな飾りを描く間だけ 1 より小さくする */
+let LWK = 1; { const LWD = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'lineWidth'); if (LWD && LWD.set) try { Object.defineProperty(ctx, 'lineWidth', { configurable: true, get() { return LWD.get.call(this) / LWK; }, set(v) { LWD.set.call(this, LWK === 1 ? v : v * LWK); } }); } catch (e) { } }
 /* 絵の保存（save）の深さを数える：だれか 1 人の絵を描く途中で失敗しても、そこまでの save を戻して、ほかの人は描く（2026-11-15：紙飛行機の絵の失敗で、仲間まで消えた） */
 let CTXD = 0; { const sv0 = ctx.save.bind(ctx), rs0 = ctx.restore.bind(ctx); ctx.save = () => { CTXD++; sv0(); }; ctx.restore = () => { if (CTXD > 0) CTXD--; rs0(); }; }
 let W = 0, H = 0, DPR = 1, FOCAL = 400, BASEF = 400, HORIZON = 0;
@@ -81,22 +83,32 @@ function clippedPattern(q, fn) {
   ctx.save(); pathPoly(4); ctx.clip(); BU0 = ua; BUS = ub - ua;
   try { fn(); } finally { BU0 = 0; BUS = 1; ctx.restore(); }
 }
+/* [遠く A13] しまもよう（横断歩道・スクランブル交差点など）のしまの間かくが、画面で何ドットか。小さすぎる時は、しまをうすくして、まざった色の面にかえる */
+function spanUV(du, dv) { const a = bil(.5, .5), ax = a[0], ay = a[1], b = bil(.5 + du, .5 + dv); return Math.hypot(b[0] - ax, b[1] - ay); }
+function stripeF(sp) { return LODOFF ? 1 : clamp((sp - 2) / 3, 0, 1); }
 function bline(u0, v0, u1, v1) { const a = bil(u0, v0), b = bil(u1, v1); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
 function bpathAdd(u0, v0, u1, v1) { const a = bil(u0, v0), b = bil(u1, v0), c = bil(u1, v1), d = bil(u0, v1); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath(); } /* bquad の、ぬらずに形だけ足す版（同じ色をまとめて 1 回でぬる） */
 function bquad(u0, v0, u1, v1, fill) { const a = bil(u0, v0), b = bil(u1, v0), c = bil(u1, v1), d = bil(u0, v1); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); }
 function bpath(u0, v0, u1, v1) { const a = bil(u0, v0), b = bil(u1, v0), c = bil(u1, v1), d = bil(u0, v1); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath(); }
 // text laid onto the current projected quad (affine approximation)
 const QVERT = { vert: true }, QFLAT = { vert: false }, QFONT = '900 60px "Zen Maru Gothic","Hiragino Sans",sans-serif', QW = new Map();
+/* [字 T2] 看板の小さな字は、前もって小さな絵にしておき、それを貼る（その場で小さく書くと、走るたびに字の形がゆれてチカチカした）。大きく見える近い看板は今までどおり、その場で書く */
+const QTEX = new Map(); try { document.fonts && document.fonts.addEventListener('loadingdone', () => { QTEX.clear(); QW.clear(); }); } catch (e) { } /* 字体が読みこまれたら作り直す */
+function qtextPaint(g, txt, color, vert) { g.fillStyle = color; g.textAlign = 'center'; g.textBaseline = 'middle'; const chars = [...txt];
+  if (vert) { const n = chars.length, sz = Math.min(80, 92 / n * 1); g.font = `900 ${sz * 1.0}px "Zen Maru Gothic","Hiragino Sans",sans-serif`; chars.forEach((ch, i) => { g.save(); g.translate(50, (i + .5) * 100 / n); g.scale(1, (100 / n) / sz * .9); g.fillText(ch, 0, 0); g.restore(); }); }
+  else { g.font = QFONT; let w = QW.get(txt); if (w === undefined) { w = g.measureText(txt).width; if (QW.size > 400) QW.clear(); QW.set(txt, w); } g.translate(50, 52); g.scale(Math.min(1.4, 88 / w), 1.25); g.fillText(txt, 0, 0); } }
+function qtextTex(txt, color, vert, R) { const k = R + '|' + (vert ? 1 : 0) + '|' + color + '|' + txt; let c = QTEX.get(k); if (c) return c;
+  if (QTEX.size > 360) QTEX.clear(); c = document.createElement('canvas'); c.width = c.height = R; const g = c.getContext('2d'); if (!g) return null; g.scale(R / 100, R / 100); qtextPaint(g, txt, color, vert); QTEX.set(k, c); return c; }
 function qtext(txt, u0, v0, u1, v1, color, o) {
   o = o || {};
   const tl = bil(u0, v1), tr = bil(u1, v1), bl = bil(u0, v0);
-  const ax = tr[0] - tl[0], ay = tr[1] - tl[1], bx = bl[0] - tl[0], by = bl[1] - tl[1];
-  if (Math.abs(ax * by - ay * bx) < 40) return; // too small to read
-  ctx.save(); ctx.transform(ax / 100, ay / 100, bx / 100, by / 100, tl[0], tl[1]);
-  ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  const chars = [...txt];
-  if (o.vert) { const n = chars.length, sz = Math.min(80, 92 / n * 1); ctx.font = `900 ${sz * 1.0}px "Zen Maru Gothic","Hiragino Sans",sans-serif`; chars.forEach((ch, i) => { ctx.save(); ctx.translate(50, (i + .5) * 100 / n); ctx.scale(1, (100 / n) / sz * .9); ctx.fillText(ch, 0, 0); ctx.restore(); }); }
-  else { ctx.font = QFONT; let w = QW.get(txt); if (w === undefined) { w = ctx.measureText(txt).width; if (QW.size > 400) QW.clear(); QW.set(txt, w); } /* [軽く 3-6] 看板の字の幅は 1 回だけはかって覚える */ ctx.translate(50, 52); ctx.scale(Math.min(1.4, 88 / w), 1.25); ctx.fillText(txt, 0, 0); }
+  const ax = tr[0] - tl[0], ay = tr[1] - tl[1], bx = bl[0] - tl[0], by = bl[1] - tl[1], ar = Math.abs(ax * by - ay * bx);
+  if (ar < 40) return; // too small to read
+  const ga = ctx.globalAlpha, fa = LODOFF ? 1 : clamp((ar - 40) / 80, 0, 1); /* [字 T1] 読める大きさになる所（面積 40〜120）で、うすく出る（前はパッと出た） */
+  ctx.save(); ctx.transform(ax / 100, ay / 100, bx / 100, by / 100, tl[0], tl[1]); if (fa < 1) ctx.globalAlpha = ga * fa;
+  const big = Math.max(Math.hypot(ax, ay), Math.hypot(bx, by));
+  const bd = big * (typeof DPR !== 'undefined' ? DPR : 1), tex = !LODOFF && bd < 120 && typeof color === 'string' ? qtextTex(txt, color, !!o.vert, bd < 14 ? 16 : bd < 28 ? 32 : bd < 60 ? 64 : 128) : null;
+  if (tex) ctx.drawImage(tex, 0, 0, 100, 100); else qtextPaint(ctx, txt, color, !!o.vert);
   ctx.restore();
 }
 
@@ -192,7 +204,7 @@ function matTex(kind) {
   else if (kind === 'foliage') { for (let i = 0; i < 160; i++) { const x = r() * 128, y = r() * 128; g.fillStyle = r() < .5 ? `rgba(20,50,20,${(.12 + r() * .18).toFixed(3)})` : `rgba(200,240,160,${(.08 + r() * .14).toFixed(3)})`; g.beginPath(); g.ellipse(x, y, 4 + r() * 5, 2 + r() * 3, r() * 3, 0, Math.PI * 2); g.fill(); } }
   else if (kind === 'paper') { for (let y = 2; y < 128; y += 4) { g.fillStyle = `rgba(120,110,90,${(.05 + r() * .06).toFixed(3)})`; g.fillRect(0, y, 128, 1); } dot(120, .02, .03, 1, 1); }
   else if (kind === 'stone') { dot(700, .03, .08, 1.2, 1.2); g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 1; for (let k = 0; k < 4; k++) { g.beginPath(); let x = r() * 128, y = r() * 128; g.moveTo(x, y); for (let j = 0; j < 4; j++) { x += (r() - .5) * 30; y += (r() - .5) * 30; g.lineTo(x, y); } g.stroke(); } }
-  MAT_TEX[kind] = ctx.createPattern(c, 'repeat'); return MAT_TEX[kind];
+  MAT_TEX[kind] = ctx.createPattern(c, 'repeat'); if (MAT_TEX[kind]) MAT_TEX[kind].__img = c; return MAT_TEX[kind];
 }
 function matOf(b, sg) {
   if (b.mat) return b.mat; const [R, Gc, Bc] = hexRgb(b.c), mx = Math.max(R, Gc, Bc) / 255, mn = Math.min(R, Gc, Bc) / 255, l = (mx + mn) / 2, sat = mx === mn ? 0 : (mx - mn) / (1 - Math.abs(2 * l - 1));
@@ -203,20 +215,22 @@ function matOf(b, sg) {
 }
 const MAT_M = new DOMMatrix();
 function matFace(fc, b, sg, fd) {
-  const pat = matTex(matOf(b, sg)); if (!pat.setTransform) return;
+  let pat = matTex(matOf(b, sg)); if (!pat.setTransform) return; let mk = 1;
   const wl = b.l1 - b.l0, ws = b.s1 - b.s0, wy = b.y1 - b.y0, top = fc.top || fc.n[1] === -1;
   const wu = top ? wl : (fc.front || fc.n.length === 3 && !fc.sideL && !fc.sideR) ? wl : (fc.sideL || fc.sideR) ? ws : wl, wv = top ? ws : wy;
   const T = .55, ru = Math.max(.25, wu / T) * 128, rv = Math.max(.25, wv / T) * 128;
-  const a = (SCR[2] - SCR[0]) / ru, bb = (SCR[3] - SCR[1]) / ru, c = (SCR[6] - SCR[0]) / rv, d = (SCR[7] - SCR[1]) / rv;
+  let a = (SCR[2] - SCR[0]) / ru, bb = (SCR[3] - SCR[1]) / ru, c = (SCR[6] - SCR[0]) / rv, d = (SCR[7] - SCR[1]) / rv;
   if (!isFinite(a + bb + c + d)) return;
-  ctx.globalAlpha = BOXA * clamp(1.15 - fd / 30, .25, 1); fillMapped(pat, a, bb, c, d, SCR[0], SCR[1]); ctx.globalAlpha = BOXA; /* [軽く 3-17] 今の透け具合は覚えている数（BOXA）から求める（読むたびにごみが出ていた） */
+  /* [遠く A16] 箱の面の材質（木目・布・石のつぶ）も、画面で 1 ドットより細かく縮む時は、なめらかに縮めた絵を使う（ななめの面・遠くの面がキラキラしない） */
+  if (!LODOFF && pat.__img) { const sc = Math.min(Math.hypot(a, bb), Math.hypot(c, d)); if (sc < .5) { const lv = sc < .125 ? 3 : sc < .25 ? 2 : 1, m = pat.__mips || (pat.__mips = []); if (!m[lv]) { let cc = pat.__img; for (let i = 0; i < lv; i++) { const n = document.createElement('canvas'); n.width = n.height = Math.max(8, cc.width >> 1); const g = n.getContext('2d'); if (!g) { cc = null; break; } g.imageSmoothingQuality = 'high'; g.drawImage(cc, 0, 0, n.width, n.height); cc = n; } m[lv] = cc ? ctx.createPattern(cc, 'repeat') : null; } if (m[lv] && m[lv].setTransform) { pat = m[lv]; mk = 1 << lv; a *= mk; bb *= mk; c *= mk; d *= mk; } } }
+  ctx.globalAlpha = BOXA * clamp(1.15 - fd / 30, .25, 1) * LODK(34, fd); /* [近づく G3] */ fillMapped(pat, a, bb, c, d, SCR[0], SCR[1]); ctx.globalAlpha = BOXA; /* [軽く 3-17] 今の透け具合は覚えている数（BOXA）から求める（読むたびにごみが出ていた） */
 }
 let BOXA = 1;
 // a painting laid on a box face in true perspective: the face is cut into narrow vertical strips, each mapped on its own
 const FI = new Float32Array(3), FIG = new Float64Array(11 * 11 * 2);
 function faceImage(img, flip, v) {
   if (!img || !img.width) return; // a picture the phone had no memory for: the plain box face stays
-  const L = litSprite(img, LT.amb), IW = L.width, IH = L.height;
+  let L = litSprite(img, LT.amb), IW = L.width, IH = L.height;
   // world corners: bottom-start, bottom-end, top-start, top-end (start = the image's left edge)
   let B0 = [v[0], v[1], v[2]], B1 = [v[3], v[4], v[5]], T1 = [v[6], v[7], v[8]], T0 = [v[9], v[10], v[11]];
   if (flip) { [B0, B1] = [B1, B0]; [T0, T1] = [T1, T0]; }
@@ -226,6 +240,7 @@ function faceImage(img, flip, v) {
     tc(bx + (tx - bx) * s, by + (ty - by) * s, bz + (tz - bz) * s, FI, 0); if (FI[2] < NEAR) return null; return [W / 2 + FI[0] * FOCAL / FI[2], HORIZON - FI[1] * FOCAL / FI[2]]; };
   const c00 = Q(0, 0), c10 = Q(1, 0), c01 = Q(0, 1), c11 = Q(1, 1); if (!c00 || !c10 || !c01 || !c11) return;
   const sw = Math.max(Math.hypot(c10[0] - c00[0], c10[1] - c00[1]), Math.hypot(c11[0] - c01[0], c11[1] - c01[1])), sh = Math.max(Math.hypot(c01[0] - c00[0], c01[1] - c00[1]), Math.hypot(c11[0] - c10[0], c11[1] - c10[1]));
+  { const L2 = sprMip(L, Math.max(sw, sh * IW / Math.max(1, IH))); if (L2 !== L) { L = L2; IW = L.width; IH = L.height; } } /* [遠く A12] 箱にはった絵（たんす・電車の顔・自動販売機）も、遠くでは小さくした絵で */
   let N = clamp(Math.ceil(sw / 28), 1, 10), M = clamp(Math.ceil(sh / 34), 1, 10); while (N * M > 48) { if (N >= M) N--; else M--; } // 1 面あたり三角 96 まで（電車など、近くの大きな面がたくさんあっても重くしない）
   /* [軽く 3-27] ます目の点・三角の計算は、使い回す数の表で行う（前は点ごと・三角ごとに入れ物を作り、1 面で数百個のごみ。貼り方は同じ） */
   const GX = FIG, NN = N + 1; let k = 0; for (let j = 0; j <= M; j++) for (let i = 0; i <= N; i++, k += 2) { const q = Q(i / N, 1 - j / M); if (q) { GX[k] = q[0]; GX[k + 1] = q[1]; } else { GX[k] = NaN; GX[k + 1] = NaN; } } // row 0 = top of the picture
@@ -255,6 +270,44 @@ function fillMapped(pat, a, b, c, d, e, f) { const M = boxM();
 function bfPut(fc, b) { let e = BFPOOL[BFN]; if (!e) e = BFPOOL[BFN] = { d: 0.5, fc: null, b: null }; BFN++; e.d = depthOf(fc.v); e.fc = fc; e.b = b; BFACES.push(e); }
 /* [軽く 3-9] 箱の上のふちの光の色（16 段の明るさ）は、作っておいた文字を使う（前は面ごとに文字を作っていた。見分けのつかない差） */
 const TOPHL = Array.from({ length: 101 }, (_, k) => `rgba(255,250,240,${(.22 * k / 100).toFixed(3)})`);
+/* [ちらつき F1] 2026-11-20 オーナー「障害物や壁がチカチカする」：箱の面は「面のまん中までの深さ」の順に描いていた。重ねた箱（いすの座面と台、看板と柱など）では、
+   となりあう面の深さがほぼ同じで、カメラが少しゆれるだけで順番が入れかわり、面がチカチカしていた（調べた 40 の場所で 2,000 組以上）。
+   深さの順に並べたあと、画面で重なる 2 つの面だけ「どちらの面の平らな面のどちら側にあるか」で確かめ、うしろの面を先に描く（面の形で決まる順番なので、ゆれても入れかわらない） */
+const FOP = new Float64Array(4 * 1024), FOB = new Float64Array(4 * 1024), FOIN = new Int32Array(1024), FODONE = new Uint8Array(1024), FOX = new Int32Array(1024), FOOD = new Int32Array(1024), FOST = new Int32Array(1024), FOADJ = new Int32Array(65536), FOE = [], FOOUT = [], FOSUB = [];
+function planeOf(v) { const ax = v[3] - v[0], ay = v[4] - v[1], az = v[5] - v[2], bx = v[9] - v[0], by = v[10] - v[1], bz = v[11] - v[2]; let nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx; const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l; const r = new Float64Array(4); r[0] = nx; r[1] = ny; r[2] = nz; r[3] = -(nx * v[0] + ny * v[1] + nz * v[2]); return r; } // [F6] 面の平らな向きは、面ごとに 1 回だけ求めて覚える
+function facePlane(i, v) { const ax = v[3] - v[0], ay = v[4] - v[1], az = v[5] - v[2], bx = v[9] - v[0], by = v[10] - v[1], bz = v[11] - v[2]; let nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx; const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
+  const o = i * 4; FOP[o] = nx; FOP[o + 1] = ny; FOP[o + 2] = nz; FOP[o + 3] = -(nx * v[0] + ny * v[1] + nz * v[2]); }
+function sideOf(i, v, cs) { const o = i * 4, nx = FOP[o], ny = FOP[o + 1], nz = FOP[o + 2], dd = FOP[o + 3]; let pos = 0, neg = 0; for (let k = 0; k < v.length; k += 3) { const s = (nx * v[k] + ny * v[k + 1] + nz * v[k + 2] + dd) * cs; if (s > .004) pos++; else if (s < -.004) neg++; } return neg === 0 && pos > 0 ? 1 : pos === 0 && neg > 0 ? -1 : 0; } // 1: 全部カメラ側 / -1: 全部うしろ / 0: またがる・面の上
+function camSide(i) { const o = i * 4, s = FOP[o] * CAM.x + FOP[o + 1] * CAM.y + FOP[o + 2] * CAM.z + FOP[o + 3]; return s >= 0 ? 1 : -1; }
+let FONEAR = 35; let SIDN = 0; const sid = b => b.__sid || (b.__sid = ++SIDN);
+function boxTouch(a, b) { const t = .03; return a.s0 < b.s1 + t && b.s0 < a.s1 + t && a.l0 < b.l1 + t && b.l0 < a.l1 + t && a.y0 < b.y1 + t && b.y0 < a.y1 + t; }
+function faceOrderFix(faces) { const n0 = Math.min(faces.length, 1024); let any = false;
+  /* [F5] 軽く：遠くの面（35m より先）は小さく、入れかわっても目立たないので、近い面だけ調べる（面は遠い順なので、近い面は表のうしろの方） */
+  let st = 0; while (st < n0 && faces[st].d > FONEAR) st++; if (n0 - st < 2) return false;
+  if (st > 0) { const sub = FOSUB; sub.length = 0; for (let i = st; i < n0; i++) sub.push(faces[i]); const r = faceOrderFix(sub); if (r) for (let i = st; i < n0; i++) faces[i] = sub[i - st]; return r; }
+  const n = n0;
+  for (let i = 0; i < n; i++) { const e = faces[i], v = e.fc.v; e.ix = i; const pl = e.fc.__pl || (e.fc.__pl = planeOf(v)); const o4 = i * 4; FOP[o4] = pl[0]; FOP[o4 + 1] = pl[1]; FOP[o4 + 2] = pl[2]; FOP[o4 + 3] = pl[3]; const m = project(v); const o = i * 4; if (!m) { FOB[o] = 1e9; FOB[o + 1] = 1e9; FOB[o + 2] = -1e9; FOB[o + 3] = -1e9; continue; }
+    const am = Math.abs(m); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let k = 0; k < am; k++) { const x = SCR[k * 2], y = SCR[k * 2 + 1]; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } FOB[o] = x0; FOB[o + 1] = y0; FOB[o + 2] = x1; FOB[o + 3] = y1; }
+  // before(a, b)：a は b より先に描く（a が b のうしろ）とはっきり言えるか
+  const before = (a, b) => { const A = faces[a], B = faces[b]; const ia = A.ix, ib = B.ix, ca = camSide(ia), cb = camSide(ib); const s1 = sideOf(ia, B.fc.v, ca), s2 = sideOf(ib, A.fc.v, cb); return (s1 === 1 || s2 === -1) && !(s1 === -1 || s2 === 1); };
+  const ov = (a, b) => { const p = faces[a].ix * 4, q = faces[b].ix * 4; return Math.min(FOB[p + 2], FOB[q + 2]) - Math.max(FOB[p], FOB[q]) > .5 && Math.min(FOB[p + 3], FOB[q + 3]) - Math.max(FOB[p + 1], FOB[q + 1]) > .5; };
+  /* 重なる 2 面の「うしろ・まえ」が言える組だけを決まりにして、決まりを守る中で深さの順に並べる（決まりが言えない組は、今までどおり深さの順）。
+     [F3] 大きな建物（面が数百）でも重くならないよう、画面の左右で重なる組だけを、左のはしの順に調べる */
+  if (n > 900) return false;
+  for (let i = 0; i < n; i++) { FOX[i] = i; FOIN[i] = 0; FOOD[i] = 0; } FOE.length = 0;
+  const xs = FOX.subarray(0, n); xs.sort((p, q) => FOB[p * 4] - FOB[q * 4]);
+  for (let a = 0; a < n; a++) { const i0 = xs[a], x1 = FOB[faces[i0].ix * 4 + 2]; if (FOB[i0 * 4] > 1e8) continue;
+    for (let c = a + 1; c < n; c++) { const j0 = xs[c]; if (FOB[j0 * 4] > x1) break; const i = Math.min(i0, j0), j = Math.max(i0, j0); if (faces[i].b === faces[j].b || !ov(i, j)) continue;
+      if (before(j, i)) { FOE.push(j, i); any = true; } else if (before(i, j)) FOE.push(i, j);
+      else if (boxTouch(faces[i].b, faces[j].b)) { if (sid(faces[i].b) > sid(faces[j].b)) { FOE.push(j, i); any = true; } else FOE.push(i, j); } } } // [F2] めりこんだ箱どうし（柱と帯など）は、どちらが前とも言えない。いつも同じ順（あとから作った箱を上）にして、入れかわらないように
+  if (!any) return false;
+  const E = FOE.length >> 1; for (let k = 0; k < E; k++) { FOOD[FOE[k * 2]]++; FOIN[FOE[k * 2 + 1]]++; }
+  let acc = 0; for (let i = 0; i < n; i++) { FOST[i] = acc; acc += FOOD[i]; FOOD[i] = FOST[i]; } for (let k = 0; k < E; k++) FOADJ[FOOD[FOE[k * 2]]++] = FOE[k * 2 + 1]; // 決まりの表（i → 後に描く面）
+  const out = FOOUT; out.length = 0; FODONE.fill(0, 0, n); let lo = 0;
+  for (let step = 0; step < n; step++) { let pick = -1; for (let i = lo; i < n; i++) if (!FODONE[i] && FOIN[i] === 0) { pick = i; break; } if (pick < 0) for (let i = 0; i < n; i++) if (!FODONE[i]) { pick = i; break; } // 輪になった時は、いちばん遠い面から
+    FODONE[pick] = 1; out.push(faces[pick]); for (let k = FOST[pick]; k < FOOD[pick]; k++) FOIN[FOADJ[k]]--; while (lo < n && FODONE[lo]) lo++; if (pick > lo) { for (let k = FOST[pick]; k < FOOD[pick]; k++) if (FOADJ[k] < pick && FOIN[FOADJ[k]] === 0) { lo = Math.min(lo, FOADJ[k]); } } }
+  for (let i = 0; i < n; i++) faces[i] = out[i];
+  return any; }
 function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
   BOXM = null; // the drawing's own scale (taken once per call, when first needed)
   /* [軽く 3-5] 見える面の表は、使い回す入れ物に入れる（1 コマに数百個の新しい入れ物を作っていた）。表そのものも使い回す（この中から自分をまた呼ぶことはない） */
@@ -262,6 +315,7 @@ function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
   if (cache) { for (const [fc, b] of cache) { if (faceVisible(fc)) bfPut(fc, b); } }
   else for (const b of list) { for (const fc of boxFaces(sg, b, ds, dl, dy)) if (faceVisible(fc)) bfPut(fc, b); }
   faces.sort(byKey3); /* [軽く 3-8] 並べかえのくらべは、大小だけを 1・-1・0 で返す（小数のひき算の答えは、そのたびにごみが出ていた。順番は前と同じ） */
+  if (faces.length > 1) faceOrderFix(faces);
   ctx.globalAlpha = alpha; BOXA = alpha; ctx.lineJoin = 'round'; let PEND = null;
   for (const e of faces) { const fd = e.d, fc = e.fc, b = e.b;
     const m = project(fc.v); if (!m) continue; const am = Math.abs(m); let ar = 0; for (let i = 0, j = am - 1; i < am; j = i++) ar += (SCR[j * 2] + SCR[i * 2]) * (SCR[j * 2 + 1] - SCR[i * 2 + 1]); ar = Math.abs(ar) * .5;
@@ -272,21 +326,25 @@ function drawBoxes(list, sg, d, alpha, ds, dl, dy, cache) {
     if (plain) { if (PEND !== col) { if (PEND) { ctx.fillStyle = PEND; ctx.fill(); } ctx.beginPath(); PEND = col; } ctx.moveTo(SCR[0], SCR[1]); for (let i = 1; i < am; i++) ctx.lineTo(SCR[i * 2], SCR[i * 2 + 1]); ctx.closePath(); continue; } /* [軽く] 飾りのない面は、同じ色が続くあいだ 1 回にまとめてぬる（描く回数がへる。見た目は同じ） */
     if (PEND) { ctx.fillStyle = PEND; ctx.fill(); PEND = null; }
     pathPoly(am); ctx.fillStyle = col; ctx.fill(); /* 小さな物は、ふちの線・光のぐあい・材質の絵を省く（画面では見分けられない大きさ） */
-    if (fd < 40 && !glow) { ctx.strokeStyle = col; ctx.lineWidth = clamp(36 / fd, .6, 2.6); ctx.stroke(); } // soft, rounded edges instead of hard cube corners
-    if (fd < 34 && !glow && m === 4) matFace(fc, b, sg, fd);
+    if (fd < 40 && !glow) { const sk = LODOFF ? 1 : clamp(ar / 90, 0, 1); /* [細い面 B1] 真横から見る細い面（柱の横・看板のふち）は、ふちの線（最大 2.6 ドット）で太い線に見え、走ると出たり消えたりしてチカチカした。面の広さが小さいほど、ふちの線をうすく */ if (sk > .02) { ctx.strokeStyle = col; ctx.lineWidth = clamp(36 / fd, .6, 2.6); if (sk < 1) ctx.globalAlpha = alpha * sk; ctx.stroke(); if (sk < 1) ctx.globalAlpha = alpha; } } // soft, rounded edges instead of hard cube corners
+    if (fd < 34 && !glow && m === 4) { ctx.globalAlpha = alpha * LODK(34, fd); matFace(fc, b, sg, fd); ctx.globalAlpha = alpha; } /* [近づく G3] 材質の絵は 29〜34m でうすく出る（前は 34m で急に出て、走るとパッと切りかわった） */
     if (fd < 28 && m === 4 && !glow && !fc.top) { // soft light: a little brighter at the top of a face, darker at its foot
       let y0 = 1e9, y1 = -1e9; for (let i = 0; i < 4; i++) { y0 = Math.min(y0, SCR[i * 2 + 1]); y1 = Math.max(y1, SCR[i * 2 + 1]); }
       if (y1 - y0 > 14) { /* [軽く 3-1] 同じ光のぐあいの色の帯を 1 本だけ作り、面の高さに合わせて伸ばして使う（前は面ごと・コマごとに作っていた：1 コマ 150 本ほど。見た目は同じ） */
         if (!BOXG) { BOXG = ctx.createLinearGradient(0, 0, 0, 1); BOXG.addColorStop(0, 'rgba(255,255,255,.10)'); BOXG.addColorStop(.6, 'rgba(0,0,0,0)'); BOXG.addColorStop(1, 'rgba(20,15,30,.22)'); }
-        const M = boxM(), h = y1 - y0; ctx.setTransform(M[0], M[1], M[2] * h, M[3] * h, M[4] + M[2] * y0, M[5] + M[3] * y0); ctx.fillStyle = BOXG; ctx.fill(); ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); } }
-    if (fd < 30 && !b.noEdge) { ctx.strokeStyle = 'rgba(40,30,24,.08)'; ctx.lineWidth = 1; ctx.stroke(); }
+        const M = boxM(), h = y1 - y0; ctx.setTransform(M[0], M[1], M[2] * h, M[3] * h, M[4] + M[2] * y0, M[5] + M[3] * y0); ctx.fillStyle = BOXG; ctx.globalAlpha = alpha * LODK(28, fd) * clamp((h - 14) / 10, 0, 1); ctx.fill(); ctx.globalAlpha = alpha; /* [近づく G1・G7] やわらかい光は 24〜28m・面の高さ 14〜24 ドットでうすく出る（前はパッと出た） */ ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); } }
+    if (fd < 30 && !b.noEdge) { ctx.strokeStyle = 'rgba(40,30,24,.08)'; ctx.lineWidth = 1; ctx.globalAlpha = alpha * LODK(30, fd) * (LODOFF ? 1 : clamp(ar / 90, 0, 1)); ctx.stroke(); ctx.globalAlpha = alpha; } /* [細い面 B2] 細い面のこい線も同じ */ /* [近づく G2] ふちの細い線も 26〜30m でうすく出る */
     if (fc.top && m === 4 && fd < 22 && !glow) { ctx.strokeStyle = TOPHL[Math.round(clamp(1 - fd / 22, 0, 1) * 100)]; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(SCR[0], SCR[1]); ctx.lineTo(SCR[2], SCR[3]); ctx.stroke(); }
+    if (b.face && m === 4 && fd < (b.faceN ? 120 : 50)) ctx.globalAlpha = alpha * LODK(b.faceN ? 120 : 50, fd); /* [近づく G4] 箱にはった絵（たんす・電車の顔）も、消える手前でうすく */
     if (b.face && m === 4 && fd < (b.faceN ? 120 : 50) && (b.faceAll ? (fc.front || fc.back || fc.sideL || fc.sideR) : b.faceFront ? fc.front : b.faceSide ? (b.faceSide === 'L' ? fc.sideL : fc.sideR) : (fc.sideL || fc.sideR))) faceImage(paintFace(b.faceN && LT.night > .4 ? b.faceN : b.face, b.faceW, b.faceH), fc.sideL, fc.v); // 電車（faceN）は遠くからも絵で。先頭の顔は前の面（faceFront）
+    ctx.globalAlpha = alpha * (b.face2 && fd < 50 ? LODK(50, fd) : 1); /* [近づく G5] */
     if (b.face2 && m === 4 && fd < 50 && !fc.top && (b.face2F ? (fc.front || fc.back) : !(b.faceSide === 'L' ? fc.sideL : fc.sideR) && (fc.front || fc.back || fc.sideL || fc.sideR))) faceImage(paintFace(b.face2, b.face2W || 200, b.face2H || 200), fc.sideL, fc.v); // 2026-11-17：主な面とちがう絵を、ほかの横の面に（たんすの横の板）
+    ctx.globalAlpha = alpha * (fd < 45 ? LODK(45, fd) : 1); /* [近づく G6] 自動販売機の商品・箱の字も、45m の手前でうすく出る */
     if (m === 4 && fd < 45) {
       if (b.pat === 'vend' && (fc.sideL || fc.sideR || fc.front)) vendFace(b);
       if (b.txt && (fc.front || (b.vert && (fc.sideL || fc.sideR)))) qtext(b.txt, .08, .06, .92, .94, b.tc || b.tcA || (b.tcA = hexRgb(b.c)[0] + hexRgb(b.c)[1] < 260 ? '#FBF6EE' : '#2B1A12'), b.vert ? QVERT : QFLAT);
     }
+    ctx.globalAlpha = alpha;
   }
   if (PEND) { ctx.fillStyle = PEND; ctx.fill(); }
   ctx.globalAlpha = 1;
@@ -305,13 +363,15 @@ const IN_K = k => k === 'room' || k === 'train' || k === 'glass';
 function prevHidden() { const cur = G.segs[G.ci], pv = G.segs[G.ci - 1]; if (!cur || !pv || G.mode === 'title') return false; if (cur.th.sky) return true; /* 空の上：うしろの展望台（地面の高さに作ってある）は描かない */ if (!IN_K(cur.th.kind) || IN_K(pv.th.kind)) return false;
   let d = (G.camYaw || 0) - cur.dir * Math.PI / 2; d = Math.atan2(Math.sin(d), Math.cos(d)); return Math.abs(d) < Math.PI / 4; }
 // 空の上の先（着地する公園）は地面の高さにある。塔の上・展望台にいる間は、空の先は描かない（150m の窓の外に、目の高さの公園が浮いて見えないように）
-function skyCut() { const cur = G.segs[G.ci]; if (!cur || cur.th.sky) return 1e9; for (let i = G.ci + 1; i < G.segs.length; i++) if (G.segs[i].th.sky) return i; return 1e9; }
+function skyCut() { const cur = G.segs[G.ci]; if (!cur) return 1e9; for (let i = G.ci + 1; i < G.segs.length; i++) { if (G.segs[i - 1].th.lift) return i - 1; /* [床 L1] エレベーターより先（350m・445m の上の階）は、エレベーターに乗るまで描かない（乗り場の床の上に、上の階のガラスの床から見える町が重なって見えていた） */ if (!cur.th.sky && G.segs[i].th.sky) return i; } return 1e9; }
 function segOrder() { const out = [], cut = skyCut(); { const gh = G.forkGhost; if (gh) { const cur = G.segs[G.ci]; if (G.mode === 'play' && ((cur === gh.of && G.s < 60) || G.segs[G.ci + 1] === gh.of)) out.push(gh.seg); else if (cur !== gh.of && G.segs[G.ci + 1] !== gh.of || G.s >= 60) G.forkGhost = null; } } for (let i = G.segs.length - 1; i > G.ci; i--) if (i <= cut) out.push(G.segs[i]); if (G.fork) out.push(...G.fork); if (G.segs[G.ci - 1] && !prevHidden()) out.push(G.segs[G.ci - 1]); out.push(G.segs[G.ci]); return out.filter(Boolean); }
 // つきあたりの壁の上（cap）：先が、天井のもっと高い部屋のときも描く
 function capOn(sg) { if (sg !== G.segs[G.ci] || G.mode === 'title') return false; const nx = G.fork && G.fork.length ? G.fork : [G.segs[G.ci + 1]]; return nx.some(n => n && (n.wallH || 0) > (sg.wallH || 0) + .05); }
 // のばした奥の壁（3_world.js の wing）を描くか：その建物の中にいる間と、外へ曲がり始めた一瞬だけ。先が建物の中なら描かない
 // 高架の上の電車は、高架のある範囲（r0〜r1）だけ描く。はみ出た分は切る（2026-11-16：高架の先のとなりの場所＝公園などの空に、電車が浮いて見えていた）
-function moverBoxes(m) { if (m.r1 == null) return m.bx; const out = []; for (const b of m.bx) { const s0 = Math.max(b.s0 + m.ds, m.r0) - m.ds, s1 = Math.min(b.s1 + m.ds, m.r1) - m.ds; if (s1 - s0 > .05) out.push(Object.assign({}, b, { s0, s1 })); } return out; }
+/* [電車 M1] 高架の範囲で切った電車の箱は、毎コマ新しく作っていたので、重なった箱の「いつも同じ順」の番号が毎コマ変わり、電車の窓わく・帯がチカチカした。
+   切った箱は元の箱ごとに 1 つを使い回し、番号も元の箱と同じにする */
+function moverBoxes(m) { if (m.r1 == null) return m.bx; const out = m.__mb || (m.__mb = []); out.length = 0; for (const b of m.bx) { const s0 = Math.max(b.s0 + m.ds, m.r0) - m.ds, s1 = Math.min(b.s1 + m.ds, m.r1) - m.ds; if (s1 - s0 > .05) { if (LODOFF) { out.push(Object.assign({}, b, { s0, s1 })); continue; } let c = b.__cut; if (!c) { c = b.__cut = Object.assign({}, b); delete c.__bk; delete c.__cut; c.__sid = b.__sid || (b.__sid = ++SIDN); } c.s0 = s0; c.s1 = s1; out.push(c); } } return out; }
 function wingOn(sg) { const inK = k => k === 'room' || k === 'train' || k === 'glass', cur = G.segs[G.ci]; if (G.mode === 'title') return false;
   if (sg === cur) { const nx = G.fork && G.fork.length ? G.fork : [G.segs[G.ci + 1]]; return nx.some(n => n && n.th && !inK(n.th.kind)); }
   return sg === G.segs[G.ci - 1] && G.turnT > .5 && cur && cur.th && !inK(cur.th.kind); }
@@ -383,22 +443,36 @@ function linePieces(l) { const a = l.a, b = l.b, k = l.__pk;
   l.__pk = [a[0], a[1], a[2], b[0], b[1], b[2], l.c, l.w, l.glowN]; l.__pc = out; return out; }
 function occDraw(d, fn) { const y = occAt(d); if (y === Infinity) return fn(); if (y <= 0) return; ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, y); ctx.clip(); try { fn(); } finally { ctx.restore(); } }
 const PROF = {}; let PT = 0; const pm = k => { if (!PROF.on) return; const t = performance.now(); PROF[k] = (PROF[k] || 0) + t - PT; PT = t; };
+/* [近づく] 遠くで省く細かい絵を、省く距離の手前 15% でうすくしていく（パッと出る・消えるのがチカチカに見えた） */
+let LODOFF = 0; /* くらべる時だけ 1（前の見た目） */
+function LODK(T, d) { return LODOFF ? (d < T ? 1 : 0) : clamp((T - d) / (T * .15), 0, 1); }
+let SEAMF = true, SEAMW = true, SEAMLW = .9, NOGF = 0; let FLN = 0; const FLA = [], FLB = [], FLC = [];
+/* [F11] 坂のある道（sg.hp）：床の板の間の順番は深さのままにし、となり合う平らな絵の組の中だけ、いつも同じ順に（坂の頂上より向こうの絵が、手前の坂の上に出ないように） */
+/* [F12] 坂のある道の平らな絵は、その下の床の板のすぐあとに描く（板の深さ − ほんの少し、絵どうしはいつも同じ順）。前は絵ごとの深さで並べていたので、
+   となりの絵と順番が入れかわってチカチカした（店先のくぼみと明かりのにじみ） */
+function decKey(sg, p, d) { let h = p.__host; if (h === undefined) { h = null; const c = p.a != null && p.b != null ? (p.a + p.b) / 2 : null; if (c != null) for (const f of sg.floor) if (!f.dec && !f.soft && f.a != null && f.a <= c && c < f.b && (p.sd == null || f.sd === p.sd || (f.mid && !p.sd))) { h = f; break; } p.__host = h; if (!p.__fi) p.__fi = ++FLN; }
+  return h ? depthOf(h.v) - .001 - p.__fi * 1e-7 : d - .8; }
+function floorRuns() { for (let i = 0; i < DRAW.length;) { const p = DRAW[i][1]; if (!(p.dec && p.dec !== 'futonD' && p.dec !== 'zabuTop')) { i++; continue; } let j = i; while (j < DRAW.length) { const q = DRAW[j][1]; if (!(q.dec && q.dec !== 'futonD' && q.dec !== 'zabuTop')) break; if (!q.__fi) q.__fi = ++FLN; j++; } if (!p.__fi) p.__fi = ++FLN; if (j - i > 1) { FLB.length = 0; for (let k = i; k < j; k++) FLB.push(DRAW[k]); FLB.sort((a, b) => a[1].__fi - b[1].__fi); for (let k = i; k < j; k++) DRAW[k] = FLB[k - i]; } i = j; } }
+function floorLayers() { FLA.length = 0; FLB.length = 0; FLC.length = 0;
+  for (const e of DRAW) { const p = e[1]; if (p.dec && p.dec !== 'futonD' && p.dec !== 'zabuTop') { if (!p.__fi) p.__fi = ++FLN; FLB.push(e); } else if (p.soft || p.dec) FLC.push(e); else FLA.push(e); }
+  if (!FLB.length) return; FLB.sort((a, b) => a[1].__fi - b[1].__fi); DRAW.length = 0; for (const e of FLA) DRAW.push(e); for (const e of FLB) DRAW.push(e); for (const e of FLC) DRAW.push(e); }
 function drawSegment(sg, isCur) {
   LC = sg.th.lc || '#80C241'; if (isCur) buildOcc(sg); const oc = isCur && OCC.on;
   const near = d => d > -8 && d < FAR + 8; if (PROF.on) PT = performance.now();
   // floor
   dclear();
   const skyRM = curSeg().th.sky && rmFrame(curSeg()); /* [M64] 空を飛んでいる間は、本物の地図の川があるので、着地する公園の手前の立体の水面は描かない（色がちがい、川の上に板がういて見えた） */
-  for (const p of sg.floor) { if (skyRM && p.far) continue; const d = depthOf(p.v); if (d >= FAR + 8 || depthMax(p.v) < -.5) continue; dput(p.dec ? d - (p.dec === 'futonD' || p.dec === 'zabuTop' ? 4.6 : .8) : p.soft ? d - 4 - (p.sb || 0) : d, p); } // やわらかい物（soft）とその上の絵は、まわりの畳より後に描く（畳にかくれない）
+  for (const p of sg.floor) { if (skyRM && p.far) continue; const d = depthOf(p.v); if (d >= FAR + 8 || depthMax(p.v) < -.5) continue; dput(p.dec ? (sg.hp && !LODOFF && p.dec !== 'futonD' && p.dec !== 'zabuTop' ? decKey(sg, p, d) : d - (p.dec === 'futonD' || p.dec === 'zabuTop' ? 4.6 : .8)) : p.soft ? d - 4 - (p.sb || 0) : d, p); } // やわらかい物（soft）とその上の絵は、まわりの畳より後に描く（畳にかくれない）
   const patFar = typeof lowQ !== 'undefined' && lowQ > 1 ? 55 : 999;
-  DRAW.sort(byE0);
+  DRAW.sort(byE0); if (!sg.hp) floorLayers(); else floorRuns(); /* [ちらつき F4] 床の上にはった平らな絵（店先のくぼみ・明かりのにじみ・マットなど）は、同じ平らな面にあるので、深さの順で描くと、
+     カメラが少しゆれるたびに重なる 2 枚の上下が入れかわってチカチカしていた。床 → 平らな絵（いつも同じ順）→ ふとん・座布団などの盛り上がった物、の順に描く（坂のある道は今までどおり） */
   const isW = p => p.pat === 'sea' || p.pat === 'water';
   let wPolys = null;
   for (const [d, p] of DRAW) { if (!isW(p)) continue; const m = project(p.v); if (!m) continue; pathPoly(Math.abs(m)); ctx.fillStyle = waterFill(p, d); ctx.fill(); if (m === 4 && d < patFar) floorPattern(p, d);
     if (sg === G.segs[G.ci]) { const n = Math.abs(m), pts = []; for (let i = 0; i < n; i++) pts.push(SCR[i * 2], SCR[i * 2 + 1]); (wPolys || (wPolys = [])).push(pts); } }
   if (wPolys) { // the sun's glitter only on this stretch's own water
     ctx.save(); ctx.beginPath(); for (const pts of wPolys) { ctx.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]); ctx.closePath(); } ctx.clip(); waterGlitter(sg); ctx.restore(); }
-  for (const [d, p] of DRAW) { if (isW(p)) continue; const m = project(p.v); if (!m) continue; if (p.dec) { if (m === 4) decalDraw(p, d); else clippedPattern(p, () => decalDraw(p, d)); continue; } pathPoly(Math.abs(m)); ctx.fillStyle = fogged(p.c, 1, d); ctx.fill(); if (p.soft) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1; ctx.stroke(); continue; } if (!lowQ || d < 14) { floorTexture(p, d, m, sg); project(p.v); } if (m === 4 && d < patFar) floorPattern(p, d); else if (m < 0) clippedPattern(p, () => floorPattern(p, d)); }
+  for (const [d, p] of DRAW) { if (isW(p)) continue; const m = project(p.v); if (!m) continue; if (p.dec) { if (m === 4) decalDraw(p, d); else clippedPattern(p, () => decalDraw(p, d)); continue; } pathPoly(Math.abs(m)); ctx.fillStyle = fogged(p.c, 1, d); ctx.fill(); if (p.soft) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1; ctx.stroke(); continue; } if (SEAMF) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = SEAMLW; ctx.stroke(); } /* [床 S1] 床の板と板の合わせ目に、1 ドットより細いすき間（下の色が線になって見え、走るとチカチカ）ができていた。板のふちを同じ色で 0.45 ドットだけ外へぬる */ if (!lowQ || d < 14) { floorTexture(p, d, m, sg); project(p.v); } if (m === 4 && d < patFar) { if (!LODOFF && p.pat !== 'tatami') { const v = p.v, wl = Math.hypot(v[9] - v[0], v[10] - v[1], v[11] - v[2]); if (wl > .2) LWK = clamp(Math.hypot(SCR[6] - SCR[0], SCR[7] - SCR[1]) / wl / 45, .35, 1); } try { floorPattern(p, d); } finally { LWK = 1; } } else if (m < 0) clippedPattern(p, () => floorPattern(p, d)); } /* [遠く A9] 床の模様（タイルの目地・段の線・板の目）の線も、床の 1m が画面で 45 ドットより小さい所では、その分細く（遠くの床の線がつぶれてざらざら・チカチカしていた） */
   pm('floor'); streetShade(sg);
   objShadows(sg);
   if (isCur) drawShadows(sg); pm('shade');
@@ -428,16 +502,25 @@ function drawWallItem(d, t, w) {
   { const m = project(w.v); if (!m) return;
     if (t === 1) {
       pathPoly(Math.abs(m));
-      if (w.glass) { ctx.fillStyle = `rgba(200,225,240,${w.ceil ? .12 : .16})`; ctx.fill(); if (m === 4) glassFrame(w); return; }
+      if (w.glass) { ctx.fillStyle = `rgba(200,225,240,${w.ceil ? .12 : .16})`; ctx.fill(); if (m === 4) { const v = w.v, wl = Math.hypot(v[3] - v[0], v[4] - v[1], v[5] - v[2]); if (!LODOFF && wl > .2) LWK = clamp(Math.hypot(SCR[2] - SCR[0], SCR[3] - SCR[1]) / wl / 50, .3, 1); try { glassFrame(w); } finally { LWK = 1; } } return; } /* [遠く A17] ガラスの壁の枠の線も、遠くでは細く（太いままで、遠くのガラスの枠がチカチカした） */
       if (w.skKey !== SUNKEY2) { w.skKey = SUNKEY2; w.sk = w.n && !w.ceil ? sunK(w.n3 || w.n) : 1; }
-      ctx.fillStyle = fogged(w.c, w.sh * w.sk, d); ctx.fill();
-      if (m === 4 && w.pat) wallPattern(w, d);
+      ctx.fillStyle = fogged(w.c, w.sh * w.sk, d); ctx.fill(); if (SEAMW && !w.thin) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = .9; ctx.stroke(); } /* [壁 S2] 壁・天井の板と板の合わせ目のすき間（空や向こうが細い線で見えてチカチカ）も、同じ色で 0.45 ドットふさぐ */
+      /* [遠く A2] 壁・天井の模様の線も、壁の 1m が画面で 50 ドットより小さい時は、その分細くする（遠くのタイル・板の目地がつぶれてざらざら・チカチカしていた） */
+      if (w.pat && w.pat !== 'fac' && !LODOFF) { const v = w.v, wl = Math.hypot(v[3] - v[0], v[4] - v[1], v[5] - v[2]); if (m === 4 && wl > .2) LWK = clamp(Math.hypot(SCR[2] - SCR[0], SCR[3] - SCR[1]) / wl / 50, .3, 1); }
+      try {
+      if (m === 4 && w.pat) { wallPattern(w, d); const kf = LODOFF || w.pat === 'fac' ? 1 : w.pat === 'roof' ? LODK(95, d) : LODK(60, d); if (kf < 1 && kf > 0 && project(w.v) === 4) { pathPoly(4); ctx.globalAlpha = 1 - kf; ctx.fillStyle = fogged(w.c, w.sh * w.sk, d); ctx.fill(); ctx.globalAlpha = 1; } } /* [近づく G14] 壁・天井の模様は 60m（屋根は 95m）でパッと出ていた。手前の 15% は、壁の地の色を上からうすく重ねて、模様をうすく出す */
       else if (m < 0 && w.pat) { if (w.pat === 'fac' && w.fv != null) drawFacadeTex(w, d); else if (w.pat !== 'ceil' || w.cp) clippedPattern(w, () => wallPattern(w, d)); }
-    } else { const f = DECO_DRAW[w.pat]; if (!f) return; ctx.globalAlpha = 1 - fogK(d); if (m === 4) f(w, d); else clippedPattern(w, () => f(w, d)); ctx.globalAlpha = 1; }
+      } finally { LWK = 1; }
+    } else { const f = DECO_DRAW[w.pat]; if (!f) return; ctx.globalAlpha = (1 - fogK(d)) * (w.glow || w.pat === 'bigscreen' ? 1 : LODK(lowQ ? 70 : 90, d)); /* [近づく G15] 壁の飾り（看板・ポスター）も 90m の手前でうすく出る */
+      /* [遠く A1] 壁の飾り（障子・ふすま・ポスター・上着など）の線の太さは、近くで見た時の太さ（ドット）で決めてあった。遠くで小さくなっても線は太いままで、
+         組子や木目がつぶれてざらざら・チカチカしていた。飾りの画面の大きさに合わせて線を細くする（近くは今までどおり） */
+      if (m === 4) { const sp = Math.max(Math.hypot(SCR[2] - SCR[0], SCR[3] - SCR[1]), Math.hypot(SCR[4] - SCR[6], SCR[5] - SCR[7])); LWK = LODOFF ? 1 : clamp(sp / 120, .3, 1); }
+      try { if (m === 4) f(w, d); else clippedPattern(w, () => f(w, d)); } finally { LWK = 1; } ctx.globalAlpha = 1; }
   }
 }
 const obstacleHintQ = [];
-function drawObjects(sg, isCur, oc) {
+let SKYV = false;
+function drawObjects(sg, isCur, oc) { SKYV = !!(curSeg().th.sky);
   obstacleHintQ.length = 0;
   // objects
   dclear();
@@ -448,8 +531,8 @@ function drawObjects(sg, isCur, oc) {
     dput(d, 3, o);
   }
   if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) dput(m.cross ? d + 8 : d, 8, m); } // 橋の上の電車は、橋げた・かべ高欄より先に描く（下から見上げても、電車の床下は橋げたにかくれる。2026-11-17）
-  for (const p of sg.props) { if (p.nodraw) continue; const d = segDepth(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); if (d < -3 || d > (p.big ? FAR : lowQ ? 60 : 85)) continue; dput(d, 6, p); }
-  for (const s of sg.spr) { if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const d = segDepth(sg, s.s, s.lat); if (d < .5 || d > (s.far ? FAR : 80)) continue; dput(d, 7, s); }
+  for (const p of sg.props) { if (p.nodraw) continue; const d = segDepth(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); if (d < -3 || d > (p.big || SKYV ? FAR : lowQ ? 60 : 85)) continue; /* [降りる時 D3] 降りる間は、下の公園のベンチ・街灯なども遠くから描く（近づいた時に急に出てこない） */ dput(d, 6, p); }
+  for (const s of sg.spr) { if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const d = segDepth(sg, s.s, s.lat); if (d < .5 || d > (s.far || SKYV ? FAR : 80)) continue; /* [降りる時 D2] オオタカと降りる間は、下の公園の木や物が 80m より遠くても描く（前は、高い所では消え、近づくと急に出てきた） */ dput(d, 7, s); }
   // pigeons on the street: they peck about and fly off as you run up (2026-11-08)
   // rain: puddles on the street that splash when you run through (2026-11-08)
   if (sg.puddles === undefined && G.weather === 'rain') sg.puddles = puddlesFor(sg);
@@ -513,9 +596,19 @@ function drawLine(sg, l) {
   if (z0 < NEAR) { const t = (NEAR - z0) / (z1 - z0); x0 += (x1 - x0) * t; y0 += (y1 - y0) * t; z0 = NEAR; }
   if (z1 < NEAR) { const t = (NEAR - z1) / (z0 - z1); x1 += (x0 - x1) * t; y1 += (y0 - y1) * t; z1 = NEAR; }
   const zm = (z0 + z1) / 2, glow = l.glowN && LT.night > .4;
-  ctx.strokeStyle = glow ? '#FFF6E0' : fogged(C(l.c), 1, zm); ctx.lineWidth = Math.max(.7, l.w * FOCAL / zm); ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(W / 2 + x0 * FOCAL / z0, HORIZON - y0 * FOCAL / z0); ctx.lineTo(W / 2 + x1 * FOCAL / z1, HORIZON - y1 * FOCAL / z1); ctx.stroke();
+  /* [遠く A5] 遠くの細い線（電線・線路・手すり）は、前は 0.7 ドットより細くしなかったので、遠いほど本当より太く・濃く、走ると線がちらちらした。
+     本当の太さが 1.2 ドットより細い時は、1.2 ドットの太さで、その分うすく描く（線の濃さの合計は本当の太さと同じ）。[遠く A6] 95m で消える手前の 80〜95m はうすく */
+  const tw = l.w * FOCAL / zm, fa = LODOFF ? 1 : (glow ? 1 : clamp(tw / 1.2, .2, 1)) * clamp((95 - Math.min(z0, z1)) / 15, 0, 1);
+  ctx.strokeStyle = glow ? '#FFF6E0' : fogged(C(l.c), 1, zm); ctx.lineWidth = LODOFF ? Math.max(.7, tw) : Math.max(1.2, tw); ctx.lineCap = 'round'; const ga = ctx.globalAlpha; ctx.globalAlpha = ga * fa;
+  ctx.beginPath(); ctx.moveTo(W / 2 + x0 * FOCAL / z0, HORIZON - y0 * FOCAL / z0); ctx.lineTo(W / 2 + x1 * FOCAL / z1, HORIZON - y1 * FOCAL / z1); ctx.stroke(); ctx.globalAlpha = ga;
 }
+/* [遠く A10] 道ばたの絵（標識の柱・看板・木・人）を大きな絵から小さく縮めて描くと、細い柱や字が 1 ドットより細くなり、走ると出たり消えたりしてチカチカした。
+   前もって 1/2・1/4・1/8 に、なめらかに縮めた絵を作っておき、画面での大きさに合った絵を使う（壁の絵と同じやり方） */
+const SPR_MIP = new WeakMap();
+function sprMip(img, dw) { if (LODOFF || !img || !img.width || img.width < 48 || dw >= img.width * .5) return img; let m = SPR_MIP.get(img); if (!m) { m = []; SPR_MIP.set(img, m); }
+  const lv = dw < img.width * .125 ? 2 : dw < img.width * .25 ? 1 : 0; if (m[lv]) return m[lv];
+  const src = lv ? sprMip(img, img.width * (lv === 2 ? .2 : .4)) : img; if (src.width < 16) return src; const c = document.createElement('canvas'); c.width = Math.max(8, src.width >> 1); c.height = Math.max(8, src.height >> 1); const g = c.getContext('2d'); if (!g) return img;
+  g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height); m[lv] = c; return c; }
 function drawSpr(s, sg, d) {
   const p = segPos(sg, s.s, s.lat), sp = spriteAt(p[0], s.y + p[2], p[1]); if (!sp) return;
   const nm = s.pn && LT.night > .35 && SPR[s.img + 'N'] ? s.img + 'N' : LT.night > .35 && (s.img === 'canopy_illum' || (s.nv && SPR[s.img + 'N'])) ? (s.img === 'canopy_illum' ? 'canopy_illumN' : s.img + 'N') : s.img === 'canopy_illum' ? 'canopy_green' : s.img;
@@ -523,7 +616,7 @@ function drawSpr(s, sg, d) {
   let img = SPR[nm2] || (SPR_PEND[nm2] && d < 45 ? sprPaint(nm2) : null); if (!img || !img.width) return;
   if (!s.glow && s.img !== 'glow' && nm === s.img) img = litSprite(img, LT.amb); // trees and signs darken with the evening light
   const w = s.w * sp.k, h = s.h * sp.k;
-  ctx.globalAlpha = 1 - fogK(d) * .9;
+  ctx.globalAlpha = (1 - fogK(d) * .9) * (s.far || SKYV ? 1 : LODK(80, d)) * (LODOFF || s.nv || s.beamY ? 1 : clamp((d - .5) / .7, 0, 1)); /* [近く N1] カメラの真横を通りすぎる道ばたの絵は、0.5m で急に消えず、1.2m から うすくなって消える（曲がり角でカメラが向きを変える時、出たり消えたりした） */ /* [近づく G8] 道ばたの木・絵は 68〜80m でうすく出る（前は 80m でパッと出た） */
   /* 2026-11-17 オーナー「走ってると通り過ぎた景色が消えていく（特に街を走る時）。現実味のないバグ」：道のわきの木・看板・自動販売機などが、横を通る手前でうすくなって消えていた
      （走る人をかくさないための仕組みが、道の外の物にもかかっていた）。うすくするのは、走る 3 レーンの真上・まん中にある物だけにする。道のわきの物は、画面の外へ出るまで、はっきり見えたまま */
   const overRoad = Math.abs(s.lat) < 1.6;
@@ -535,8 +628,8 @@ function drawSpr(s, sg, d) {
     const tw = w * .055, top = sp.sy - h * .52; const gr = ctx.createLinearGradient(sp.sx - tw, 0, sp.sx + tw, 0); gr.addColorStop(0, tint('#4E3A2E')); gr.addColorStop(.4, tint('#7A5E48')); gr.addColorStop(1, tint('#3E2E24'));
     ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(sp.sx - tw * 1.7, sp.sy); ctx.quadraticCurveTo(sp.sx - tw, sp.sy - h * .04, sp.sx - tw, sp.sy - h * .1); ctx.lineTo(sp.sx - tw * .55, top); ctx.lineTo(sp.sx + tw * .55, top); ctx.lineTo(sp.sx + tw, sp.sy - h * .1); ctx.quadraticCurveTo(sp.sx + tw, sp.sy - h * .04, sp.sx + tw * 1.7, sp.sy); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = tint('#5A4436'); ctx.lineWidth = Math.max(1, tw * .5); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(sp.sx, top + h * .08); ctx.lineTo(sp.sx - w * .14, top - h * .05); ctx.moveTo(sp.sx + tw * .2, top + h * .04); ctx.lineTo(sp.sx + w * .16, top - h * .08); ctx.stroke();
-    ctx.drawImage(img, sp.sx - w / 2, sp.sy - h, w, h * .74); }
-  else ctx.drawImage(img, sp.sx - w / 2, sp.sy - h, w, h);
+    ctx.drawImage(sprMip(img, w), sp.sx - w / 2, sp.sy - h, w, h * .74); }
+  else ctx.drawImage(sprMip(img, w), sp.sx - w / 2, sp.sy - h, w, h);
   if (!s.glow && s.img !== 'glow' && LT.amb[0] < .95) { ctx.globalCompositeOperation = 'source-atop'; }
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
 }
@@ -544,7 +637,7 @@ function puddlesFor(sg) { const k = sg.th && sg.th.kind; if (!k || k === 'room' 
   for (let i = 0; i < n; i++) out.push({ s: 12 + Math.random() * (sg.len - 24), lat: LANES[(Math.random() * 3) | 0] + (Math.random() - .5) * .5, w: .7 + Math.random() * .5, hit: 0 });
   return out; }
 function drawPuddle(q, sg, d) { const p = segPos(sg, q.s, q.lat), sp = spriteAt(p[0], p[2] + .01, p[1]); if (!sp) return; const rx = sp.k * q.w * .9, ry = rx * .28;
-  ctx.save(); ctx.globalAlpha = (1 - fogK(d) * .9) * .85; ctx.fillStyle = LT.night > .5 ? 'rgba(70,90,130,.55)' : 'rgba(150,170,195,.5)'; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.save(); ctx.globalAlpha = (1 - fogK(d) * .9) * .85 * LODK(70, d) /* [近づく G12] 雨の水たまりも 60〜70m でうすく出る */; ctx.fillStyle = LT.night > .5 ? 'rgba(70,90,130,.55)' : 'rgba(150,170,195,.5)'; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = Math.max(1, sp.k * .015); const r = (G.t * .9 + q.s) % 1; ctx.beginPath(); ctx.ellipse(sp.sx + rx * .2, sp.sy, rx * .5 * r, ry * .5 * r, 0, 0, Math.PI * 2); ctx.globalAlpha *= 1 - r; ctx.stroke();
   ctx.restore(); }
 function birdsFor(sg) { const k = sg.th && sg.th.kind; if (!k || k === 'room' || k === 'train' || k === 'glass' || (sg.th.climb && sg.th.climb[1] > 30) || sg.fork /* 電波塔コース PDCA 107（2026-11-17）：地上 350m の展望デッキの中や外階段の上に、ハトが歩いていた */ || Math.random() > .4 || !(sg.len > 50)) return null;
@@ -553,7 +646,7 @@ function birdsFor(sg) { const k = sg.th && sg.th.kind; if (!k || k === 'room' ||
   return out; }
 function drawBird(b, sg, d) { const fy = b.fly ? G.t - b.fly : 0, p = segPos(sg, b.s + fy * 3, b.lat + b.dir * fy * 2.2), y = fy > 0 ? fy * 2.4 + fy * fy * 1.2 : 0;
   const sp = spriteAt(p[0], p[2] + y, p[1]); if (!sp) return; const k = sp.k, f = b.flip ? -1 : 1, peck = !b.fly ? Math.max(0, Math.sin(G.t * 4 + b.ph)) : 0;
-  ctx.save(); ctx.globalAlpha = (1 - fogK(d) * .9) * (fy > 1.8 ? Math.max(0, (2.5 - fy) / .7) : 1); ctx.translate(sp.sx, sp.sy); ctx.scale(f, 1);
+  ctx.save(); ctx.globalAlpha = (1 - fogK(d) * .9) * (fy > 1.8 ? Math.max(0, (2.5 - fy) / .7) : 1) * LODK(60, d); /* [近づく G9] ハトも 51〜60m でうすく出る */ ctx.translate(sp.sx, sp.sy); ctx.scale(f, 1);
   if (!b.fly) { ctx.fillStyle = 'rgba(30,22,16,.14)'; ctx.beginPath(); ctx.ellipse(0, 0, k * .16, k * .04, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#C0705A'; ctx.lineWidth = Math.max(1, k * .02); ctx.beginPath(); ctx.moveTo(-k * .03, 0); ctx.lineTo(-k * .03, -k * .07); ctx.moveTo(k * .03, 0); ctx.lineTo(k * .03, -k * .07); ctx.stroke(); }
   const by = -k * .16; ctx.fillStyle = '#8E949E'; ctx.beginPath(); ctx.ellipse(0, by, k * .17, k * .1, -.15, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#6E7480'; ctx.beginPath(); ctx.moveTo(-k * .14, by); ctx.lineTo(-k * .26, by - k * .02); ctx.lineTo(-k * .14, by + k * .05); ctx.fill(); // tail
@@ -569,11 +662,11 @@ function drawItem(it, sg, d) {
   const def = ITEMS[it.type]; const isPow = def.kind === 'power' || def.kind === 'stamp' || def.kind === 'pom', bad = def.kind === 'bad';
   const size = (it.type === 'hay' ? .74 : isPow ? .9 : .7) * sp.k; // a little bigger: the hay was hard to see on a phone
   const spin = it.type === 'hay' || it.type === 'goldhay' || isPow ? .72 + .28 * Math.cos(G.t * 3.2 + it.ph) : 1;
-  ctx.globalAlpha = (1 - fogK(d) * .9) * passFade(d);
-  if (d < 40 && !lowQ && !sg.th.sky) { const gp = spriteAt(p[0], p[2], p[1]); if (gp) { const hk = clamp(1 - it.y / 3, .35, 1); ctx.fillStyle = `rgba(30,22,16,${(.16 * hk).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(gp.sx, gp.sy, size * .34 * hk, size * .09 * hk, 0, 0, Math.PI * 2); ctx.fill(); } } // a soft shadow on the ground under each item (2026-11-08)
+  ctx.globalAlpha = (1 - fogK(d) * .9) * passFade(d) * LODK(75, d) * (LODOFF ? 1 : clamp((d - .5) / .7, 0, 1)); /* [近く N2] 取る物も同じ */ /* [近づく G10] 牧草などの取る物も 64〜75m でうすく出る */
+  if (d < 40 && !lowQ && !sg.th.sky) { const gp = spriteAt(p[0], p[2], p[1]); if (gp) { const hk = clamp(1 - it.y / 3, .35, 1); ctx.fillStyle = `rgba(30,22,16,${(.16 * hk * LODK(40, d)).toFixed(3)})`; /* [近づく G11] 取る物の足もとのかげも 34〜40m でうすく出る */ ctx.beginPath(); ctx.ellipse(gp.sx, gp.sy, size * .34 * hk, size * .09 * hk, 0, 0, Math.PI * 2); ctx.fill(); } } // a soft shadow on the ground under each item (2026-11-08)
   if (isPow || it.type === 'goldhay') { ctx.beginPath(); ctx.fillStyle = def.kind === 'stamp' ? 'rgba(255,120,110,.45)' : 'rgba(255,236,150,.5)'; ctx.arc(sp.sx, sp.sy, size * .62 * (1 + .08 * Math.sin(G.t * 6)), 0, Math.PI * 2); ctx.fill(); }
   const img = def.kind === 'stamp' ? stampSprite(sg.tid) : SPR[bad ? it.type + 'NG' : it.type];
-  ctx.drawImage(img, sp.sx - size * spin / 2, sp.sy - size / 2, size * spin, size);
+  ctx.drawImage(sprMip(img, size), sp.sx - size * spin / 2, sp.sy - size / 2, size * spin, size); /* [遠く A11] 牧草などの取る物も、遠くでは小さくした絵で（細い葉がチカチカしない） */
   ctx.globalAlpha = 1;
 }
 // soft contact shadows under obstacles and furniture
@@ -584,7 +677,7 @@ function objShadows(sg) {
     const rx = Math.min(3, (l1 - l0) / 2 + .15) * sp.k, ry = Math.min(2, (s1 - s0) / 2 + .1) * sp.k * .35;
     let y = Infinity; if (sg === G.segs[G.ci] && OCC.on) { y = occAt(sp.z); if (y <= 0) return; } // 坂の頂上の向こうの物のかげは、手前の坂に重ねない
     if (y !== Infinity) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, y); ctx.clip(); }
-    ctx.fillStyle = 'rgba(30,22,16,.16)'; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, Math.max(1, ry), 0, 0, Math.PI * 2); ctx.fill(); if (y !== Infinity) ctx.restore();
+    ctx.fillStyle = 'rgba(30,22,16,.16)'; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, rx, Math.max(1, ry), 0, 0, Math.PI * 2); ctx.globalAlpha = LODK(55, sp.z); ctx.fill(); ctx.globalAlpha = 1; if (y !== Infinity) ctx.restore(); /* [近づく C1] 物の足もとのかげは 47〜55m でうすく出る（前は 55m でパッと出た） */
   };
   for (const o of sg.obs) if (!o.dead && !o.full && o.k !== 'high' && o.top < 3.5) one(o.s0 + (o.ds || 0), o.s1 + (o.ds || 0), o.l0, o.l1);
   for (const p of sg.props) if (!p.big && p.bx[0] && p.bx[0].y0 <= .05) one(p.s0, p.s1, p.l0, p.l1);
@@ -594,10 +687,10 @@ function objShadows(sg) {
     ctx.globalCompositeOperation = 'lighter';
     for (const p of sg.props) { const lb = p.lamp; if (!lb) continue;
       const q = segPos(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2), sp = spriteAt(q[0], q[2], q[1]); if (!sp || sp.z > 70) continue;
-      const R = (lb.y1 > 3 ? 2.6 : 1.5) * sp.k; if (R < 3) continue; const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+      const R = (lb.y1 > 3 ? 2.6 : 1.5) * sp.k; if (R < 3) continue; const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); ctx.globalAlpha = LODK(70, sp.z) * (LODOFF ? 1 : clamp((R - 3) / 4, 0, 1)); /* [近づく C2・C3] 夜の街灯・ちょうちんの足もとの明かりも、70m・小さい所でパッと出ない */
       g.addColorStop(0, `rgba(255,200,120,${(.22 * LT.night).toFixed(3)})`); g.addColorStop(.5, `rgba(255,200,120,${(.08 * LT.night).toFixed(3)})`); g.addColorStop(1, 'rgba(255,200,120,0)');
       ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(R, R * .38); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
-    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   }
 }
 let SHG = null; function softShadow() { if (SHG) return SHG; SHG = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); SHG.addColorStop(0, 'rgba(30,22,16,.34)'); SHG.addColorStop(.55, 'rgba(30,22,16,.2)'); SHG.addColorStop(1, 'rgba(30,22,16,0)'); return SHG; }
