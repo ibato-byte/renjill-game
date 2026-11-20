@@ -540,7 +540,10 @@ function drawObjects(sg, isCur, oc) { SKYV = !!(curSeg().th.sky);
   if (sg.birds === undefined) sg.birds = birdsFor(sg);
   if (sg.birds && lowQ < 2) for (const b of sg.birds) { if (isCur && !b.fly && G.mode === 'play' && G.s > b.s - 5 && G.s < b.s + 2) b.fly = G.t; const fy = b.fly ? G.t - b.fly : 0; if (fy > 2.5) continue;
     const d = segDepth(sg, b.s + fy * 3, b.lat + b.dir * fy * 2.2); if (d < .8 || d > 60) continue; dput(d, 9, b); }
-  if (isCur || G.turnT > 0) for (const it of sg.items) {
+  /* [塔 F3] 2026-11-20 オーナー「タワーを登るときにチカチカ」：曲がっている間は、となりの道（一つ前・一つ先）のチモシーだけ描く。前は、曲がった瞬間のコマだけ、
+     2〜3 本先（展望台・空）のチモシーまで描かれて、階段の上に 1 コマだけ光って見えた。まっすぐつながった次の道のチモシーは、角で急に出ないよう、いつも描く */
+  const iRel = isCur ? 0 : G.segs.indexOf(sg) - G.ci, nxS = iRel === 1 && sg.turnIn === 0 && !sg.prevFork;
+  if (isCur || (G.turnT > 0 && (iRel === 1 || iRel === -1)) || nxS) for (const it of sg.items) {
     if (it.got || (isCur && it.s < G.s - 3)) continue; /* 取りのがした物も、カメラの後ろに行くまで見えたまま（すぐ消えない） */
     const d = segDepth(sg, it.s, it.lat); if (d < .5 || d > 75) continue;
     dput(d, 4, it);
@@ -598,7 +601,10 @@ function drawLine(sg, l) {
   const zm = (z0 + z1) / 2, glow = l.glowN && LT.night > .4;
   /* [遠く A5] 遠くの細い線（電線・線路・手すり）は、前は 0.7 ドットより細くしなかったので、遠いほど本当より太く・濃く、走ると線がちらちらした。
      本当の太さが 1.2 ドットより細い時は、1.2 ドットの太さで、その分うすく描く（線の濃さの合計は本当の太さと同じ）。[遠く A6] 95m で消える手前の 80〜95m はうすく */
-  const tw = l.w * FOCAL / zm, fa = LODOFF ? 1 : (glow ? 1 : clamp(tw / 1.2, .2, 1)) * clamp((95 - Math.min(z0, z1)) / 15, 0, 1);
+  const tw = l.w * FOCAL / zm; let fa = LODOFF ? 1 : (glow ? 1 : clamp(tw / 1.2, .2, 1)) * clamp((95 - Math.min(z0, z1)) / 15, 0, 1);
+  /* [塔 F4] 2026-11-20 オーナー「タワーを登るときにチカチカ」：外階段の金網の柱は 1.2m ごとで、遠くでは柱と柱の間が 1〜2 ドットになり、登るたびに縞がちらちらした。
+     遠くなるにつれ、まず 2 本に 1 本、次に 4 本に 1 本を、少しずつうすくして消す（ぱっと消さない）。金網そのものの絵は残るので、見た目は金網のまま */
+  if (l.pi != null && !LODOFF) { const lv = l.pi % 4 === 0 ? 0 : l.pi % 2 === 0 ? 1 : 2; if (lv) { fa *= lv === 2 ? clamp((16 - zm) / 7, 0, 1) : clamp((32 - zm) / 9, 0, 1); if (fa <= 0) return; } }
   ctx.strokeStyle = glow ? '#FFF6E0' : fogged(C(l.c), 1, zm); ctx.lineWidth = LODOFF ? Math.max(.7, tw) : Math.max(1.2, tw); ctx.lineCap = 'round'; const ga = ctx.globalAlpha; ctx.globalAlpha = ga * fa;
   ctx.beginPath(); ctx.moveTo(W / 2 + x0 * FOCAL / z0, HORIZON - y0 * FOCAL / z0); ctx.lineTo(W / 2 + x1 * FOCAL / z1, HORIZON - y1 * FOCAL / z1); ctx.stroke(); ctx.globalAlpha = ga;
 }
