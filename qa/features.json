@@ -1715,6 +1715,51 @@
       "name": "お知らせは今日の目標の下の細いはば",
       "file": "src/7_ui.js",
       "has": "d.classList.toggle('hmw', tall && !fv && roomOk)"
+    },
+    {
+      "name": "段の数は前もって絵にして貼る",
+      "file": "src/4b_patterns.js",
+      "has": "ctx.drawImage(stepNumTex(p.stepN, big), 0, 0, 100, 100)"
+    },
+    {
+      "name": "夜と塔ではやわらかい光を毎コマ作り直す",
+      "file": "src/4c_atmos.js",
+      "has": "[塔 F10]"
+    },
+    {
+      "name": "空から見る夜の窓は細い時うすく",
+      "file": "src/4g_aerial.js",
+      "has": "[塔 A21]"
+    },
+    {
+      "name": "外向きのかべはうら側から描かない",
+      "file": "src/4_render.js",
+      "has": "if (w.bf && (CAM.x - w.v[0]) * w.n[0] + (CAM.z - w.v[2]) * w.n[1] < 0) return;"
+    },
+    {
+      "name": "屋上の建物の外かべは外向き",
+      "file": "src/3_world.js",
+      "has": "{ far: 1, bf: 1, n: [sd * seg.r[0], sd * seg.r[1]] }"
+    },
+    {
+      "name": "500段からの通路の天井ははりと蛍光灯",
+      "file": "src/1b_places.js",
+      "has": "cpat: 'beams', light: 'strip', face: 250"
+    },
+    {
+      "name": "着地の直前ジルはいつもの場所へもどる",
+      "file": "src/6_game.js",
+      "has": "[空 K5]"
+    },
+    {
+      "name": "上空から見た公園の歩道・花だん・ベンチ・人・噴水",
+      "file": "src/4g_aerial.js",
+      "has": "[着地 A19]"
+    },
+    {
+      "name": "着地の公園の木の列は 3 列",
+      "file": "src/3_world.js",
+      "has": "[着地 G9]"
     }
   ]
 }
