@@ -173,7 +173,7 @@ function todayGrid() {
   const on = !!SV.tutDone; e.hidden = !on; card.classList.toggle('tgrid', on); if (!on) return;
   const k = kp(), goal = kpGoal(), gdone = kpGoalDone(), gk = gdone ? 1 : Math.min(1, kpN(k.db) / Math.max(1, goal));
   const n = SV.dayHay && SV.dayHay.d === todayStr() ? SV.dayHay.n : 0, hk = Math.min(1, n / DAY_GOAL), hdone = n >= DAY_GOAL, dly = dailyToday(), cdone = SV.dailyDone === dly.key;
-  const cell = (lbl, val, kk, ok) => `<div class="tt-c${ok ? ' ok' : ''}"><small>${esc(lbl)}</small><b>${val}${ok ? ' ✓' : ''}</b><i><u style="width:${(kk * 100).toFixed(0)}%"></u></i></div>`;
+  const cell = (lbl, val, kk, ok) => { const ln = String(val).replace(/<[^>]*>/g, '').length + (ok ? 2 : 0); /* [ホーム iPhone H17] 数の長さで字の大きさを変える（29,000,000 などの長い数がとなりの数にかかって読めなかった） */ return `<div class="tt-c${ok ? ' ok' : ''}"><small>${esc(lbl)}</small><b class="${ln >= 12 ? 'nxl' : ln >= 9 ? 'nl' : ''}">${val}${ok ? ' ✓' : ''}</b><i><u style="width:${(kk * 100).toFixed(0)}%"></u></i></div>`; };
   e.innerHTML = cell(tr('今日の目標', "Today's goal"), fmt(goal), gk, gdone) + cell(tr('今日のチモシー', 'Hay today'), `${fmt(Math.min(n, DAY_GOAL))}<s>/${DAY_GOAL}</s>`, hk, hdone)
     + `<p class="tt-ch${cdone ? ' ok' : ''}"><span>${esc(L(dly.c.t(dly.n)))}</span><em>${cdone ? '✓' : '+300'}</em></p>`;
   const row = $('#tKeepBtns'); if (row) for (const id of ['btnPractice', 'btnRev']) { const b = $('#' + id); if (b && b.parentNode !== row) row.appendChild(b); } // 小さなボタンは 1 つの列に（1 行ずつ縦に並べない）

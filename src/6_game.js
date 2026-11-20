@@ -134,6 +134,18 @@ function buildTitleRoom(seg) {
   seg.spr.push({ lat: -4.0, s: .5, y: 0, w: .9, h: 1.9, img: artKey('andon', '0'), pn: 1, keep: 1, gnd: .3 });
 }
 let TITLE_PITCH = .2, TITLE_WIDE = -.9;
+/* [ホーム iPhone H1] 2026-11-20 オーナー「iPhone のスタート画面で色々重なって見づらい」：たて長のスマホでは、3 人が画面のまん中より上に立ち、
+   SNS の新作の札・今日の目標・お知らせの真うしろにかくれていた（その下の畳は空いていた）。カメラの上下の向きを少し変えて、
+   選んだ子の足もとが、下の台（キャラクターえらび・スタート）のすぐ上に来るようにする（札は上、3 人は下で、重ならない） */
+let TITLE_DOCK = { y: 0, t: -1 };
+function titleTallPitch(P, gy) {
+  if (G.mode !== 'title') return TITLE_PITCH;
+  if (G.t - TITLE_DOCK.t > .5 || G.t < TITLE_DOCK.t) { TITLE_DOCK.t = G.t; const d = document.querySelector('#sTitle.home:not([hidden]) .card>.chars'), a = $('#app'); if (d && d.offsetParent && a) { const r = d.getBoundingClientRect(), ar = a.getBoundingClientRect(); TITLE_DOCK.y = r.top - ar.top; } else TITLE_DOCK.y = 0; }
+  const want = TITLE_DOCK.y - 10; if (!(want > H * .45) || P.wx == null) return TITLE_PITCH; /* 台がない・台が上すぎる時は今までどおり */
+  /* 足もと（地面の高さ）の点が、画面の want の高さに来る上下の向きを、その場で求める */
+  const dx = P.wx - CAM.x, dz = P.wz - CAM.z, fw = dx * Math.sin(CAM.yaw) + dz * Math.cos(CAM.yaw), dy = (gy || 0) - CAM.y; /* はねる高さは入れない（カメラがはねに合わせてゆれない） */ if (!(fw > .5)) return TITLE_PITCH;
+  const ang = Math.atan2(-dy, fw), off = Math.atan((want - HORIZON) / FOCAL); /* 足もとは目の高さより ang だけ下。画面で地平線より off だけ下に見せたい */
+  const pt = clamp(ang - off, -.22, TITLE_PITCH); G.titlePitch = G.titlePitch == null ? pt : G.titlePitch + (pt - G.titlePitch) * .25; return G.titlePitch; }
 let TITLE_FRONT = 3.7, TITLE_BACK = 2.7; // ホーム画面：選んだ子の位置（手前）と、ほかの 2 人の位置（奥）
 function titleFrame(dt) {
   const seg = G.segs[0], me = G.char, other = me === 'ren' ? 'jill' : 'ren', third = me === 'pom' ? 'jill' : 'pom';
@@ -156,7 +168,7 @@ function titleFrame(dt) {
   const tall = W < H * .8, mid = 0;
   const wide = W > H * 1.25 && W >= 900; // 横長：札が右にあるので、3 人が左のまん中に来るようカメラを右へ
   const cp = segPos(seg, (tall ? 7.9 : wide ? 6.9 : 6.6) - Math.sin(G.t * .11) * .2, (tall ? mid : wide ? TITLE_WIDE : 0) + Math.sin(G.t * .23) * (tall ? .18 : .3));
-  CAM.x = cp[0]; CAM.z = cp[1]; CAM.y = (tall ? 1.02 : 1.1) + cp[2] + Math.sin(G.t * .7) * .015; CAM.yaw = Math.PI + Math.sin(G.t * .17) * .02; CAM.pitch = tall ? TITLE_PITCH : .06;
+  CAM.x = cp[0]; CAM.z = cp[1]; CAM.y = (tall ? 1.02 : 1.1) + cp[2] + Math.sin(G.t * .7) * .015; CAM.yaw = Math.PI + Math.sin(G.t * .17) * .02; CAM.pitch = tall ? titleTallPitch(P, pR[2]) : .06;
   camPrep(); P.depth = 7.4 - TITLE_FRONT; F.depth = 7.4 - TITLE_BACK;
   // once you have met Pom, the rookie peeks out on the title screen too, bouncing with excitement
   const M = G.pom; M.title = !!SV.pomMet; M.show = M.title;
