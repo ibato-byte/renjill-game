@@ -151,7 +151,7 @@ let GRAIN = null, VIG = null, VIGK = '', GRAINF = 0, GRAINX = 0, GRAINY = 0;
    窓・照明・空・白い物のまわりが、ふわっとにじむ。軽いモード・細かさを下げている時は使わない（設定「画質：きれい」では常に） */
 let DIFC = null, DIFG = null, DIF_K = 1, DIF_N = 0;
 function diffusion() {
-  try { const g = gfxMode(); if (g === 'low' || (g !== 'high' && RES_K < 1) || DIF_K <= 0) return;
+  try { const g = gfxMode(); if (g === 'low' || (g !== 'high' && RES_K < 1) || DIF_K <= 0 || G.mode === 'title') return; /* [H35] ホーム画面では、明るい所をにじませる仕上げをしない（天井や障子が白くかすんで、ぼやけて見えた） */
     const sw = Math.max(24, Math.round(cv.width / 7)), sh = Math.max(24, Math.round(cv.height / 7));
     if (!DIFC || DIFC.width !== sw || DIFC.height !== sh) { DIFC = document.createElement('canvas'); DIFC.width = sw; DIFC.height = sh; DIFG = DIFC.getContext('2d', { alpha: false }) || DIFC.getContext('2d'); if (!DIFG) { DIF_K = 0; return; } }
     const sgD = G.segs && G.segs[G.ci], every = LT.night > .3 || !!(sgD && sgD.th && (sgD.th.climb || sgD.th.sky)); /* [塔 F10] 2026-11-21：2 コマに 1 回だけ作り直すと、夜や塔で明るい物（段の数・明かり）が速く動く時、1 コマ前の場所にうすい「残り」が出て、1 コマおきにチカチカした。夜と塔では毎コマ作り直す */

@@ -1089,5 +1089,26 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
 @media (orientation:portrait) and (max-width:340px){#sTitle.home #tToday .tt-c b{font-size:14px}#sTitle.home #tToday .tt-c b.nl{font-size:12px}#sTitle.home #tToday .tt-c b.nxl{font-size:10.5px}#sTitle.home #tToday .tt-c small{font-size:9px;letter-spacing:-.02em}}
 @media (orientation:portrait) and (max-width:340px){#sTitle.home .card>#tToday{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);column-gap:6px}}
 @media (orientation:portrait) and (max-width:340px){#sTitle.home .card>#tToday{width:calc(100vw - 132px)!important;max-width:none!important;box-sizing:border-box;padding-left:8px;padding-right:8px}}
+/* [H30〜H36] 2026-11-21 オーナー（iPhone の写真）「下の方の文字が見切れている」「次長の文字とミッションのロゴが重なっている」「今日いちばん走られた場所の文字が同化して見づらい」「全体のバランスを見直して、不要なところは削ってスッキリ」
+   [H30] 左の 5 つのボタンが、間の高さ（社員の帯〜3 人の上）に入りきらず、上へはみ出して「ミッション」が社員の帯の下にもぐっていた。丸の大きさを、画面の高さから決める（入りきる大きさ。いちばん大きくて今までと同じ 50px）
+   [H31] 「今日いちばん走られた場所・みんなで集めたチモシー」の 2 行は、たたみと障子の上に字だけで出て読めず、下のボタンを押し出していた。スマホのたて画面では出さない（ランキングの画面で見られる）
+   [H32] 「名前を決める」はスマホのたて画面では外す（設定の中の「名前」から決められる）。右は ランキング・ジルに聞く の 2 つに
+   [H33] 左右のボタンは、社員の帯のすぐ下から 3 人の上までのまん中に */
+@media (orientation:portrait) and (max-width:599px){
+  #sTitle.home{--hmIc:clamp(34px,calc((100vh - env(safe-area-inset-top,0px) - 434px) / 5 - 19px),50px)}
+  @supports (height:100dvh){#sTitle.home{--hmIc:clamp(34px,calc((100dvh - env(safe-area-inset-top,0px) - 434px) / 5 - 19px),50px)}}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{align-self:center;gap:4px;padding:4px 0}
+  #sTitle.home .row .mini{gap:2px}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:var(--hmIc);height:var(--hmIc);background-size:calc(var(--hmIc) * .6),100% 100%,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:calc(var(--hmIc) + 4px)}
+  #sTitle.home .row2 .sub::before{margin-left:calc(var(--hmIc) / -2)}
+  #sTitle.home .row2 .sub::after{top:calc(var(--hmIc) + 2px)!important}
+  #sTitle.home .card>.row2{gap:14px}
+  #sTitle.home .card>#tComm{display:none!important}
+  #sTitle.home #btnName{display:none!important}
+}
+/* [H37] 2026-11-21：「今日のチモシー」の見出しが、カードの右のふちにかかって切れていた。左右の広さを 1.5:1 → 1.25:1 に（目標の数は 6 けたでも入る） */
+@media (orientation:portrait) and (max-width:599px) and (min-width:341px){#sTitle.home .card>#tToday{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
+@media (orientation:portrait) and (max-width:380px) and (min-width:341px){#sTitle.home .card>#tToday{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}#sTitle.home #tToday .tt-c small{font-size:9px;letter-spacing:-.03em}}
 /* ==== HOME-V2 END ==== */
 </style>

@@ -72,7 +72,7 @@ addEventListener('error', e => { try { errLog((e && e.message) || 'error'); } ca
 
 /* ---------- title diorama ---------- */
 function setupTitle() {
-  G.mode = 'title'; G.planDay = 1; G.plan = []; G.clock = 480; G.weather = 'clear';
+  G.mode = 'title'; try { const d = dprWant(); if (d !== DPR && W) { DPR = d; resizeKeep(); } } catch (e) { } /* [H34] ホームにもどった時は細かく描く */ G.planDay = 1; G.plan = []; G.clock = 480; G.weather = 'clear';
   G.segs = [newSeg(null, { t: 'titleroom', d: 5 }, { empty: true })]; G.ci = 0; G.fork = null; G.segDue = 0; G.chaseVis = 0;
   buildTitleRoom(G.segs[0]);
   G.player.show = G.follow.show = true;
@@ -181,7 +181,7 @@ function titleFrame(dt) {
 }
 
 /* ---------- run lifecycle ---------- */
-function startRun() { G.drawRetry = 0; cpClear(); G.resumeN = 0; G.cpT = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); } catch (e) { } bunniesNow(); kpPre();
+function startRun() { G.drawRetry = 0; try { const m0 = G.mode; G.mode = 'play'; const d = dprWant(); G.mode = m0; if (d !== DPR && W) { DPR = d; resizeKeep(); } } catch (e) { } /* [H34] 走る時は、今までどおりの細かさにもどす */ cpClear(); G.resumeN = 0; G.cpT = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); } catch (e) { } bunniesNow(); kpPre();
   audioInit(); SFX.ui(); { const f = document.getElementById('tFresh'); if (f) f.remove(); } toastClear();
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
     shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',

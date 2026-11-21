@@ -9,7 +9,7 @@ let W = 0, H = 0, DPR = 1, FOCAL = 400, BASEF = 400, HORIZON = 0;
    自動で重いときは、まず細かさ（RES_K）を1段ずつ下げる。演出を減らす（lowQ）のはその後。軽くなったら細かさは戻す */
 let RES_K = 1;
 function gfxMode() { try { const g = OPT().gfx; return g === 'high' || g === 'low' ? g : 'auto'; } catch (e) { return 'auto'; } }
-function dprWant() { const dev = window.devicePixelRatio || 1, g = gfxMode(); if (g === 'low' || (typeof lowQ !== 'undefined' && lowQ)) return 1; return Math.max(1, Math.min(dev, g === 'high' ? 2 : 1.75) * RES_K); }
+function dprWant() { const dev = window.devicePixelRatio || 1, g = gfxMode(); if (g === 'low' || (typeof lowQ !== 'undefined' && lowQ)) return 1; const home = typeof G !== 'undefined' && G.mode === 'title'; return Math.max(1, Math.min(dev, g === 'high' || home ? 2 : 1.75) * RES_K); } /* [H34] 2026-11-21 オーナー「上の方がボヤけている」：ホーム画面（止まった部屋の絵）は、走る時より細かく描く（iPhone の 3 倍の画面で 1.75 倍だと、天井や障子の細い線がぼやけた） */
 function resize() {
   DPR = dprWant();
   W = cv.clientWidth || innerWidth; H = cv.clientHeight || innerHeight;
