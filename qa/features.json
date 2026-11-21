@@ -1905,6 +1905,36 @@
       "name": "得意の札の間に・",
       "file": "tools/home/home.css",
       "has": "#sTitle.home .chars .char .perk br+span::before{content:\"・\"}"
+    },
+    {
+      "name": "飛び立った塔の長いかげ",
+      "file": "src/4i_realmap.js",
+      "has": "[空 T3]"
+    },
+    {
+      "name": "展望台の窓ぎわに外をながめる人",
+      "file": "src/3_world.js",
+      "has": "[塔 V1]"
+    },
+    {
+      "name": "展望回廊の窓ぎわにも人",
+      "file": "src/3_world.js",
+      "has": "[塔 V2]"
+    },
+    {
+      "name": "ふきだしは最後に描く",
+      "file": "src/4_render.js",
+      "has": "for (const f of BUBQ) f(); BUBQ.length = 0;"
+    },
+    {
+      "name": "夜の展望台の窓に中の明かりがうつる",
+      "file": "src/4_render.js",
+      "has": "[塔 G10]"
+    },
+    {
+      "name": "階段の上のななめの天井は、目より低くなっても消えない（空がのぞかない）",
+      "file": "src/3_world.js",
+      "has": "[塔 C1]"
     }
   ]
 }
