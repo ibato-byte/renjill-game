@@ -342,7 +342,7 @@ function entryDoors(seg, a) { const H = seg.wallH, nE = [-seg.f[0], -seg.f[1]], 
   for (const sd of [-1, 1]) { const l0 = sd * 2.6, l1 = sd * HW, lo = Math.min(l0, l1), hi = Math.max(l0, l1);
     seg.walls.push({ v: quad(seg, [[a, lo, 0], [a, hi, 0], [a, hi, 2.9], [a, lo, 2.9]]), c: gl, n: nE, sh: 1, glass: 1 });
     seg.walls.push({ v: quad(seg, [[a, sd * 2.5, 0], [a, sd * 2.7, 0], [a, sd * 2.7, 2.9], [a, sd * 2.5, 2.9]].map(p => sd < 0 ? [p[0], Math.min(p[1], -2.5), p[2]] : p)), c: wc, n: nE, sh: .9 }); }
-  seg.walls.push({ v: quad(seg, [[a, -HW, 2.9], [a, HW, 2.9], [a, HW, H], [a, -HW, H]]), c: wc, n: nE, sh: .95, pat: 'doorhead' }); }
+  seg.props.push(mkProp(seg, [{ l0: -HW, l1: HW, s0: a - .02, s1: a + .14, y0: 2.94, y1: H, c: seg.th.wall || '#F4EFE6' }, { l0: -HW, l1: HW, s0: a - .05, s1: a + .17, y0: 2.86, y1: 2.94, c: '#8A949E' }], { big: 1 })); } /* [塔 E2] 2026-11-22：ドアの上のかべ。①建物のかべと同じ色に（前は銀色の板で、入る瞬間に画面の上 3 分の 1 が灰色の空白＝天井がぬけたように見えた）②うすい板（かべ）から箱に：かべは物より先に描くので、ドアの奥の階段の上にある物（案内所・ロープ・植木）が、手前のかべをつきぬけて見えていた。箱は奥の物の後に描くので、きちんとかくす ③「入口」の字の札はやめた（字をへらす） */
 function gangway(seg, c, noA, noB) {
   const H = seg.wallH, nE = [-seg.f[0], -seg.f[1]], a = c - .38, b = c + .38, hy = H - .34, wc = C('#CDD3D8');
   for (const sd of [-1, 1]) { const l0 = sd * TGW, l1 = sd * HW, lo = Math.min(l0, l1), hi = Math.max(l0, l1);
