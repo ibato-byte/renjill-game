@@ -1760,6 +1760,31 @@
       "name": "着地の公園の木の列は 3 列",
       "file": "src/3_world.js",
       "has": "[着地 G9]"
+    },
+    {
+      "name": "スマホのホームは左右の丸の大きさを画面の高さから決める",
+      "file": "tools/home/home.css",
+      "has": "--hmIc:clamp(34px"
+    },
+    {
+      "name": "スマホのホームではみんなの記録の2行と名前のボタンを出さない",
+      "file": "tools/home/home.css",
+      "has": "#sTitle.home .card>#tComm{display:none!important}\n  #sTitle.home #btnName{display:none!important}"
+    },
+    {
+      "name": "ホーム画面は細かく描く",
+      "file": "src/4_render.js",
+      "has": "g === 'high' || home ? 2 : 1.75"
+    },
+    {
+      "name": "ホーム画面ではにじませる仕上げをしない",
+      "file": "src/4c_atmos.js",
+      "has": "DIF_K <= 0 || G.mode === 'title') return;"
+    },
+    {
+      "name": "ホームの天井は竿縁天井",
+      "file": "src/4b_patterns.js",
+      "has": "[H36]"
     }
   ]
 }
