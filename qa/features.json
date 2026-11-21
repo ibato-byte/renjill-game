@@ -1594,7 +1594,7 @@
     {
       "name": "回っている間は遠くの景色を見る",
       "file": "src/6_game.js",
-      "has": "CAM.pitch = lerp(CAM.pitch, W > H ? .13 : .07, lk)"
+      "has": "CAM.pitch = lerp(CAM.pitch, W > H ? .09 : .07, lk)"
     },
     {
       "name": "屋上の外かべは曲がり角の手前で止める",
@@ -1795,6 +1795,221 @@
       "name": "検索：構造化データで公式サイトと同じ運営者（#org）を指す（2026-11-21 SEO）",
       "file": "seo.py",
       "has": "'@id': OFFICIAL + '#org'"
+    },
+    {
+      "name": "夜の街灯の光の輪は絵の中に収める",
+      "file": "src/4e_art.js",
+      "has": "[着地 L1]"
+    },
+    {
+      "name": "着地の直前の道は砂利道の見た目",
+      "file": "src/4g_aerial.js",
+      "has": "[着地 A22]"
+    },
+    {
+      "name": "空からの園路に朝夕の光の色",
+      "file": "src/4g_aerial.js",
+      "has": "tint('#D9CBA8')"
+    },
+    {
+      "name": "低い所では上から見た人とベンチを描かない",
+      "file": "src/4g_aerial.js",
+      "has": "!night && !lowq && camH > 30"
+    },
+    {
+      "name": "夜の押上の電波塔は網目が光る",
+      "file": "src/4b_patterns.js",
+      "has": "[塔 N1]"
+    },
+    {
+      "name": "屋上のまわりに2列目のビルと正面の街",
+      "file": "src/3_world.js",
+      "has": "[塔 R7]"
+    },
+    {
+      "name": "床より下の物は床より先に描く",
+      "file": "src/4_render.js",
+      "has": "if (sg.under) {"
+    },
+    {
+      "name": "隅田川のさざなみと水上バス",
+      "file": "src/4i_realmap.js",
+      "has": "[空 W2]"
+    },
+    {
+      "name": "たて長の画面ではオオタカの間をせまく",
+      "file": "src/6_game.js",
+      "has": "[空 K6]"
+    },
+    {
+      "name": "見わたす間も横のオオタカは画面の上でレンの横",
+      "file": "src/6_game.js",
+      "has": "function skySide(seg)"
+    },
+    {
+      "name": "雨や雪の夜は星と月を出さない",
+      "file": "src/4b_patterns.js",
+      "has": "[空 S1]"
+    },
+    {
+      "name": "電波塔の足もとと着地の公園の木は季節で変わる",
+      "file": "src/1b_places.js",
+      "has": "SEASONAL[k] = Object.assign(SEASONAL[k] || {}, { spring: { tree: 'sakura'"
+    },
+    {
+      "name": "上から見た森の木も季節の色",
+      "file": "src/4g_aerial.js",
+      "has": "function aerTreeCol(k, base)"
+    },
+    {
+      "name": "低い所では森の木を立った木で描く",
+      "file": "src/4g_aerial.js",
+      "has": "function aerStandTree("
+    },
+    {
+      "name": "隅田公園の川の上に木を立てない",
+      "file": "src/3_world.js",
+      "has": "[着地 R1]"
+    },
+    {
+      "name": "春は電波塔の足もとにぼんぼり・落ち葉の山は秋だけ",
+      "file": "src/1b_places.js",
+      "has": "[塔 T3]"
+    },
+    {
+      "name": "低い所では水上バスを描かない",
+      "file": "src/4i_realmap.js",
+      "has": "[空 W3]"
+    },
+    {
+      "name": "まっすぐ続く公園の道のつきあたりに木を置かない",
+      "file": "src/3_world.js",
+      "has": "[塔 E1]"
+    },
+    {
+      "name": "飛び立った塔は飛び立った所のすぐうしろ",
+      "file": "src/4i_realmap.js",
+      "has": "[空 T1]"
+    },
+    {
+      "name": "近くの押上の塔は鉄骨の網目",
+      "file": "src/4i_realmap.js",
+      "has": "[空 T2]"
+    },
+    {
+      "name": "高い所の空に遠くの飛行機",
+      "file": "src/4b_patterns.js",
+      "has": "function drawPlanes(hz, seg)"
+    },
+    {
+      "name": "スマホのホームでは音と設定ときろくを右の列に",
+      "file": "src/7_ui.js",
+      "has": "function homePlace()"
+    },
+    {
+      "name": "スマホのホームではみ出す時は下の台を小さく",
+      "file": "src/7_ui.js",
+      "has": "function homeFit()"
+    },
+    {
+      "name": "得意の札の間に・",
+      "file": "tools/home/home.css",
+      "has": "#sTitle.home .chars .char .perk br+span::before{content:\"・\"}"
+    },
+    {
+      "name": "飛び立った塔の長いかげ",
+      "file": "src/4i_realmap.js",
+      "has": "[空 T3]"
+    },
+    {
+      "name": "展望台の窓ぎわに外をながめる人",
+      "file": "src/3_world.js",
+      "has": "[塔 V1]"
+    },
+    {
+      "name": "展望回廊の窓ぎわにも人",
+      "file": "src/3_world.js",
+      "has": "[塔 V2]"
+    },
+    {
+      "name": "ふきだしは最後に描く",
+      "file": "src/4_render.js",
+      "has": "for (const f of BUBQ) f(); BUBQ.length = 0;"
+    },
+    {
+      "name": "夜の展望台の窓に中の明かりがうつる",
+      "file": "src/4_render.js",
+      "has": "[塔 G10]"
+    },
+    {
+      "name": "階段の上のななめの天井は、目より低くなっても消えない（空がのぞかない）",
+      "file": "src/3_world.js",
+      "has": "[塔 C1]"
+    },
+    {
+      "name": "電波塔のコースの曲がり角で曲がりそこねると、ぶつからずに、へりの先へ落ちて終わる",
+      "file": "src/6_game.js",
+      "has": "function towerFall(seg)"
+    },
+    {
+      "name": "落ちる間は、つきあたりの壁を描かない",
+      "file": "src/4_render.js",
+      "has": "if (fallE && w.endW) continue;"
+    },
+    {
+      "name": "結果の画面のひと言：曲がりそこねて、落ちました",
+      "file": "src/6_game.js",
+      "has": "'曲がりそこねて、落ちました'"
+    },
+    {
+      "name": "床より下の物は、ぜんぶの区間の床より先に描く（屋上の曲がり角の床に穴があかない）",
+      "file": "src/4_render.js",
+      "has": "function drawUnder(sg)"
+    },
+    {
+      "name": "押上の回廊のテラスの植えこみは、緑の箱でなく葉のかたまり",
+      "file": "src/3_world.js",
+      "has": "[塔 P2]"
+    },
+    {
+      "name": "階段・坂の道では、わきの床も道と同じ 1.5m ごとに切る（すき間から下の町が見えない）",
+      "file": "src/3_world.js",
+      "has": "[塔 K1]"
+    },
+    {
+      "name": "着地の公園：森と芝生の広場のさかいをぼかす",
+      "file": "src/4g_aerial.js",
+      "has": "[着地 G1]"
+    },
+    {
+      "name": "展望台の窓の外の鉄骨は床の高さから（床につきささらない）",
+      "file": "src/3_world.js",
+      "has": "[塔 L1]"
+    },
+    {
+      "name": "押上のデッキに赤い電波塔のポスターをかけない",
+      "file": "src/1b_places.js",
+      "has": "[塔 W1]"
+    },
+    {
+      "name": "足もとを通りすぎる段の数はうすくする",
+      "file": "src/4b_patterns.js",
+      "has": "[塔 N3]"
+    },
+    {
+      "name": "夜、空から見る公園の木に月明かり",
+      "file": "src/4g_aerial.js",
+      "has": "[着地 N4]"
+    },
+    {
+      "name": "夜の季節の桜は夜桜の絵",
+      "file": "src/4b_patterns.js",
+      "has": "SPR.canopy_sakuraN = SPR.sakuraUN"
+    },
+    {
+      "name": "空から見るお寺の屋根は面ごとに明るさを変える",
+      "file": "src/4i_realmap.js",
+      "has": "[着地 T4]"
     }
   ]
 }
