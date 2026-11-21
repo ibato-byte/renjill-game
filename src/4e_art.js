@@ -696,7 +696,7 @@ function paintAndon(g, W, H, night) {
 function paintFloorLamp(g, W, H, night) { /* 見た目 122〜125：フロアランプ。かさに布のひだとふち／夜はまわりのあかり／支柱を金属に／ひものスイッチ */
   SH(g, W, H, .2); g.fillStyle = vgrad(g, H * .94, H, [[0, '#5A4030'], [1, '#2B1E18']]); g.beginPath(); g.ellipse(W / 2, H * .97, W * .3, H * .025, 0, 0, Math.PI * 2); g.fill();
   { const pg = g.createLinearGradient(W * .47, 0, W * .53, 0); pg.addColorStop(0, '#3B2A20'); pg.addColorStop(.4, '#9A7A5A'); pg.addColorStop(1, '#3B2A20'); g.fillStyle = pg; g.fillRect(W * .475, H * .2, W * .05, H * .77); }
-  if (night) { const gl = g.createRadialGradient(W / 2, H * .14, W * .1, W / 2, H * .14, W * .5); gl.addColorStop(0, 'rgba(255,220,150,.45)'); gl.addColorStop(1, 'rgba(255,220,150,0)'); g.fillStyle = gl; g.fillRect(0, 0, W, H * .4); }
+  if (night) { const gl = g.createRadialGradient(W / 2, H * .14, W * .1, W / 2, H * .14, Math.min(W * .5, H * .14 + 6)); /* [着地 L2] 光の輪を絵の上のはしで切らない */ gl.addColorStop(0, 'rgba(255,220,150,.45)'); gl.addColorStop(1, 'rgba(255,220,150,0)'); g.fillStyle = gl; g.fillRect(0, 0, W, H * .4); }
   g.fillStyle = night ? vgrad(g, 0, H * .22, [[0, '#FFF3D0'], [1, '#FFD58A']]) : vgrad(g, 0, H * .22, [[0, '#FBF6EE'], [1, '#E3D5BC']]); g.beginPath(); g.moveTo(W * .22, H * .22); g.lineTo(W * .32, H * .02); g.lineTo(W * .68, H * .02); g.lineTo(W * .78, H * .22); g.closePath(); g.fill();
   g.strokeStyle = 'rgba(150,120,80,.25)'; g.lineWidth = 1.2; for (let k = 1; k < 7; k++) { g.beginPath(); g.moveTo(W * (.32 + .36 * k / 7), H * .02); g.lineTo(W * (.22 + .56 * k / 7), H * .22); g.stroke(); }
   g.fillStyle = night ? '#E0A85A' : '#C9B594'; g.fillRect(W * .22, H * .21, W * .56, H * .012); g.fillRect(W * .32, H * .015, W * .36, H * .01);
@@ -956,7 +956,7 @@ function paintLampC(g, W, H, night, v) { // a modern street light: tapered post,
   const hx = x0 + dir * W * .46, hy = H * .08; // the head
   g.fillStyle = night ? '#FFF6DC' : '#E7ECEF'; g.beginPath(); g.ellipse(hx, hy + 6, W * .16, 7, 0, 0, Math.PI * 2); g.fill();
   g.fillStyle = '#4B5560'; g.beginPath(); g.ellipse(hx, hy, W * .17, 8, 0, Math.PI, Math.PI * 2); g.fill();
-  if (night) { g.globalCompositeOperation = 'lighter'; const gl = g.createRadialGradient(hx, hy + 8, 2, hx, hy + 8, W * .5); gl.addColorStop(0, 'rgba(255,230,170,.9)'); gl.addColorStop(.3, 'rgba(255,210,140,.35)'); gl.addColorStop(1, 'rgba(255,200,120,0)'); g.fillStyle = gl; g.fillRect(0, 0, W, H * .5); g.globalCompositeOperation = 'source-over'; }
+  if (night) { g.globalCompositeOperation = 'lighter'; const R = Math.max(8, Math.min(hx, W - hx, hy + 8) - 1); /* [着地 L1] 2026-11-21：夜の街灯の光の輪が絵のはし（右と上）で切れ、空に四角い明るい板が浮いて見えた。光の輪を絵の中に収まる大きさに */ const gl = g.createRadialGradient(hx, hy + 8, 2, hx, hy + 8, R); gl.addColorStop(0, 'rgba(255,230,170,.9)'); gl.addColorStop(.3, 'rgba(255,210,140,.35)'); gl.addColorStop(1, 'rgba(255,200,120,0)'); g.fillStyle = gl; g.fillRect(0, 0, W, H * .5); g.globalCompositeOperation = 'source-over'; }
 }
 function paintPole(g, W, H) { // a concrete utility pole with crossarms, insulators and a transformer drum
   const x = W / 2; const c = g.createLinearGradient(x - 9, 0, x + 9, 0); c.addColorStop(0, '#8B8F93'); c.addColorStop(.4, '#C9CCCF'); c.addColorStop(1, '#6F7478');

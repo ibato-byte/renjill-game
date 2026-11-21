@@ -810,14 +810,15 @@ function drawTokyoTower(x, yb, h, N) {
 }
 function drawSkytree(x, yb, h, N) {
   ctx.save(); if (N > .4) { ctx.shadowColor = '#8FB0FF'; ctx.shadowBlur = 16; }
-  const c = N > .4 ? '#B8C8FF' : tint('#AEBBC8');
+  const c = N > .4 ? '#4A5C92' : tint('#AEBBC8'); /* [塔 N1] 2026-11-21：夜の押上の電波塔は、白く光る棒に見えた（体も網目も明るい色で、網目が見えなかった）。本物の夜の明かりのように、体は青い夜の色、鉄骨の網目が水色に光る */
   ctx.beginPath(); ctx.moveTo(x - .055 * h, yb); ctx.lineTo(x - .03 * h, yb - .54 * h); ctx.lineTo(x - .02 * h, yb - .7 * h); ctx.lineTo(x - .012 * h, yb - .86 * h); ctx.lineTo(x - .003 * h, yb - h);
   ctx.lineTo(x + .003 * h, yb - h); ctx.lineTo(x + .012 * h, yb - .86 * h); ctx.lineTo(x + .02 * h, yb - .7 * h); ctx.lineTo(x + .03 * h, yb - .54 * h); ctx.lineTo(x + .055 * h, yb); ctx.closePath(); ctx.fillStyle = c; ctx.fill();
   ctx.beginPath(); ctx.ellipse(x, yb - .54 * h, .055 * h, .02 * h, 0, 0, Math.PI * 2); ctx.ellipse(x, yb - .7 * h, .036 * h, .014 * h, 0, 0, Math.PI * 2); ctx.fillStyle = N > .4 ? '#E6ECFF' : tint('#C9D4DE'); ctx.fill();
   ctx.shadowBlur = 0; { const wAt = v => v < .54 ? lerp(.055, .03, v / .54) : v < .7 ? lerp(.03, .02, (v - .54) / .16) : v < .86 ? lerp(.02, .012, (v - .7) / .16) : lerp(.012, .003, (v - .86) / .14);
     const g = ctx.createLinearGradient(x - .055 * h, 0, x + .055 * h, 0); g.addColorStop(0, N > .4 ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.35)'); g.addColorStop(.45, 'rgba(255,255,255,0)'); g.addColorStop(1, N > .4 ? 'rgba(0,0,30,.3)' : 'rgba(60,80,100,.28)'); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x - .055 * h, yb); ctx.lineTo(x - .003 * h, yb - h); ctx.lineTo(x + .003 * h, yb - h); ctx.lineTo(x + .055 * h, yb); ctx.closePath(); ctx.fill(); /* [S2] 丸い塔の、日の当たる側と、かげの側 */
-    ctx.strokeStyle = N > .4 ? 'rgba(160,180,255,.55)' : 'rgba(96,116,136,.42)'; ctx.lineWidth = Math.max(.5, h * .0025); ctx.beginPath(); for (let k = 0; k < 30; k++) { const v0 = k / 30 * .9, v1 = (k + 1) / 30 * .9, w0 = wAt(v0), w1 = wAt(v1); ctx.moveTo(x - w0 * h, yb - v0 * h); ctx.lineTo(x + w1 * h, yb - v1 * h); ctx.moveTo(x + w0 * h, yb - v0 * h); ctx.lineTo(x - w1 * h, yb - v1 * h); } ctx.stroke(); /* [S3] 白い鉄骨のトラスの網目（下から上まで） */
-    if (N > .4) { ctx.fillStyle = 'rgba(200,220,255,.9)'; for (const v of [.54, .7]) { ctx.fillRect(x - wAt(v) * h * .9, yb - v * h - 1, wAt(v) * h * 1.8, 2); } } } /* 夜：展望台の窓の光 */
+    ctx.strokeStyle = N > .4 ? 'rgba(186,214,255,.92)' : 'rgba(96,116,136,.42)'; ctx.lineWidth = Math.max(.5, h * (N > .4 ? .003 : .0025)); ctx.beginPath(); for (let k = 0; k < 30; k++) { const v0 = k / 30 * .9, v1 = (k + 1) / 30 * .9, w0 = wAt(v0), w1 = wAt(v1); ctx.moveTo(x - w0 * h, yb - v0 * h); ctx.lineTo(x + w1 * h, yb - v1 * h); ctx.moveTo(x + w0 * h, yb - v0 * h); ctx.lineTo(x - w1 * h, yb - v1 * h); } ctx.stroke(); /* [S3] 白い鉄骨のトラスの網目（下から上まで） */
+    if (N > .4) { const cg = ctx.createLinearGradient(0, yb, 0, yb - h); cg.addColorStop(0, 'rgba(150,190,255,.0)'); cg.addColorStop(.3, 'rgba(150,190,255,.35)'); cg.addColorStop(1, 'rgba(150,190,255,.15)'); ctx.fillStyle = cg; ctx.fillRect(x - .006 * h, yb - .9 * h, .012 * h, .9 * h); /* [塔 N2] 夜は、まん中の柱（心柱）がうっすら光る */
+      ctx.fillStyle = 'rgba(200,220,255,.9)'; for (const v of [.54, .7]) { ctx.fillRect(x - wAt(v) * h * .9, yb - v * h - 1, wAt(v) * h * 1.8, 2); } } } /* 夜：展望台の窓の光 */
   ctx.restore();
 }
 // low blue mountain ranges in front of Fuji's foot, so the mountain sits on the land
