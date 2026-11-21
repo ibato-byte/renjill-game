@@ -183,8 +183,9 @@ function titleFrame(dt) {
 /* ---------- run lifecycle ---------- */
 function startRun() { G.drawRetry = 0; try { const m0 = G.mode; G.mode = 'play'; const d = dprWant(); G.mode = m0; if (d !== DPR && W) { DPR = d; resizeKeep(); } } catch (e) { } /* [H34] 走る時は、今までどおりの細かさにもどす */ cpClear(); G.resumeN = 0; G.cpT = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); } catch (e) { } bunniesNow(); kpPre();
   audioInit(); SFX.ui(); { const f = document.getElementById('tFresh'); if (f) f.remove(); } toastClear();
+  if (G.player) G.player.fallHide = false; /* [塔 F11] */
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
-    shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
+    shield: 0, fever: 0, feverG: 0, chaseT: 2.0, chaseIntro: 1, chaseVis: .7, invT: 1.5, clock: 480, day: 1, turnQueued: 0, turnQT: 0, turnT: 0, reviveN: 0, cause: '', fallSeg: null, fallCam: null, flashT: 0, bestTold: 0, niceN: 0, niceT: -9, bumped: 0, musicArea: '',
     fork: null, forkRest: null, rush: 0, chimed: 0, soonTold: 0, gaugeTold: 0, gainT: 0, feverMax: 6, hitStop: 0, jumpBuf: 0, tut: null, tutDid: '', fovK: 0, look: 0, lookCD: 4, photoT: 0, capture: null, rumbleT: 8, shake: 0, announce: [] });
   G.pow = { dash: 0, magnet: 0, jump: 0, x2: 0, fly: 0 }; G.gig = null; G.gigNext = 24; G.gigLast = ''; G.bumpN = 0; G.prints = []; G.chalWon = 0; G.spTier = 0; G.slowT = 0; G.easy = !!OPT().easy;  if (G.easy) banner('RELAXED', t('easyY'), 'room');
   G.legend = !!(SV.lgMode && legendOn('mode') && SV.tutDone); G.aura = !!(SV.lgAura !== 0 && legendOn('aura')); // the Legendary bunny's own run: faster, x1.5 score / a golden sparkle trail
@@ -239,6 +240,7 @@ function hit(o) {
 // 走り始めの 45 秒は、正面でぶつかっても・曲がり損ねても「BUMP!」で続く（追いかけられている間にもう 1 回で終わり）。
 // 2026-11-16 オーナーの決定：CrazyGames の試験公開で、慣れていない人が 2 回目から 10〜15 秒で終わり、10 分まで遊んだ人が 2.4% だった。
 const SOFT_T = 45;
+function towerFall(seg) { const c = seg && seg.th && seg.th.course; return (c === 'tower' || c === 'skytree') && !seg.fork && !seg.th.lift && !G.practice; } /* [塔 F11] 電波塔のコースの曲がり角は、曲がりそこねると落ちる（練習はいつもどおり） */
 function softHit() {
   if (G.t > SOFT_T || G.rush || G.practice || (G.chaseT > 0 && !G.chaseIntro)) return false;
   G.bumpN = (G.bumpN || 0) + 1; G.bumps = (G.bumps || 0) + 1; G.stats.soft = (G.stats.soft || 0) + 1;
@@ -265,7 +267,13 @@ function die(cause) {
   if (G.mode !== 'play') return;
   if (G.practice && cause !== 'quit' && cause !== 'time') { practiceGoOn(cause); return; } // 練習ではぶつかっても終わらない
   cpClear(); /* 走り終わり：「つづきから」は出さない（ぶつかる直前にアプリを閉じてやり直す、はできない） */
-  G.cause = cause; G.mode = 'dying'; G.dyingT = .95; SFX.crash(); buzz([60, 40, 120]); G.flashT = 1; G.shake = 1; musicStop('end');
+  G.cause = cause; G.mode = 'dying'; G.dyingT = .95;
+  if (cause === 'fall') { /* [塔 F11] 2026-11-21 オーナー「東京タワーなどで曲がり角に曲がるのを失敗した時、真っ直ぐぶつかるのはおかしい。ぶつかるのではなく、そのまま落下してゲームオーバーに」
+       高い所（電波塔の 2 つのコース）の曲がり角は、つきあたりが「へり」：曲がりそこねると、レンはへりの先へ飛び出して落ちていく。ジル・ポムはへりの手前で止まって見送る。カメラはへりに残って、落ちていく先を見下ろす */
+    const seg = curSeg(), F = G.follow, M = G.pom; G.dyingT = 1.7; G.fallT = 0; G.fallVy = 1.6; G.fallV0 = Math.max(4, G.speed * .55); G.fallSeg = seg; G.fallCam = { x: CAM.x, y: CAM.y, z: CAM.z, pitch: CAM.pitch };
+    G.fallF = { x: F.wx, y: F.wy, z: F.wz }; G.fallM = M && M.on ? { x: M.wx, y: M.wy, z: M.wz } : null; G.flashT = 0; G.shake = 0; buzz([30, 60, 30]);
+    if (AU.ctx) { const t0 = AU.ctx.currentTime; for (let i = 0; i < 5; i++) tone(880 * Math.pow(.84, i), .16, 'sine', .04, t0 + i * .11); } musicStop('end'); }
+  else { SFX.crash(); buzz([60, 40, 120]); G.flashT = 1; G.shake = 1; musicStop('end'); }
   G.player.look = 0; G.follow.look = 0; G.pom.look = 0;
   if (cause === 'papers') G.chaseVis = 1;
 }
@@ -318,7 +326,8 @@ function doRevive(kind) {
   const seg = curSeg();
   for (const o of seg.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001;
   { const nx = G.segs[G.ci + 1], left = 30 - Math.max(0, seg.len - G.s); if (nx && left > 0) for (const o of nx.obs) if (o.s0 < left) o.dead = .001; G.revClearN = left; } /* 曲がり角の手前で続けたとき、曲がった先の最初の障害物にすぐぶつかっていた */
-  if (G.cause === 'wall') { if (seg.fork) G.turnQueued = G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || (Math.random() < .5 ? -1 : 1)); /* 分かれ道で続けるとき、行き先がでたらめだった → 寄っていた側・最後にスワイプした側へ */ try { doTurn(); } catch (e) { reportErr(e); } } // whatever happens here, the run goes on (the safety net puts the runner back if needed)
+  if (G.cause === 'fall') { G.y = 0; G.fallVy = 0; G.s = Math.min(G.s, seg.len + HW - .9); G.fallSeg = null; G.fallCam = null; G.player.fallHide = false; } /* [塔 F11] 落ちたあと続けるときは、へりの手前に戻して、曲がる */
+  if (G.cause === 'wall' || G.cause === 'fall') { if (seg.fork) G.turnQueued = G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || (Math.random() < .5 ? -1 : 1)); /* 分かれ道で続けるとき、行き先がでたらめだった → 寄っていた側・最後にスワイプした側へ */ try { doTurn(); } catch (e) { reportErr(e); } } // whatever happens here, the run goes on (the safety net puts the runner back if needed)
   { const cs = curSeg(); if (cs && cs !== seg) for (const o of cs.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001; } // 曲がった先の道も
   G.mode = 'play'; G.invT = 2.5; G.chaseT = 0; G.chaseVis = 0; G.player.tilt = 0; G.follow.tilt = 0; G.pom.tilt = 0; G.y = Math.max(G.y, 0); G.vy = 0; G.slideT = 0;
   if (G.rush) G.rush = .5;
@@ -596,6 +605,13 @@ function update(dt) {
     G.dyingT -= dt; G.player.tilt = lerp(G.player.tilt || 0, G.cause === 'papers' ? .3 : -1.2, dt * 8); G.follow.tilt = lerp(G.follow.tilt || 0, .5, dt * 6); G.pom.tilt = lerp(G.pom.tilt || 0, -.5, dt * 6);
     if (G.cause === 'papers') G.chaseVis = Math.min(1.6, G.chaseVis + dt * 1.5);
     G.flashT = Math.max(0, G.flashT - dt * 2);
+    if (G.cause === 'fall' && G.fallCam) { /* [塔 F11] へりの先へ飛び出して落ちる */
+      G.fallT += dt; G.s += G.fallV0 * Math.max(0, 1 - G.fallT * .8) * dt; G.fallVy -= 16 * dt; G.y += G.fallVy * dt; G.player.tilt = lerp(G.player.tilt || 0, -.6, dt * 4); G.follow.tilt = lerp(G.follow.tilt || 0, 0, dt * 6); G.pom.tilt = lerp(G.pom.tilt || 0, 0, dt * 6);
+      placeCamera(dt * .3); const P = G.player, F = G.follow, M = G.pom, fc = G.fallCam;
+      F.wx = G.fallF.x; F.wy = G.fallF.y; F.wz = G.fallF.z; if (G.fallM && M.on) { M.wx = G.fallM.x; M.wy = G.fallM.y; M.wz = G.fallM.z; }
+      CAM.x = fc.x; CAM.y = fc.y; CAM.z = fc.z; CAM.pitch = fc.pitch + Math.min(.32, G.fallT * .45); camPrep(); G.vy = G.fallVy; P.air = true; P.fallHide = G.y < -1.3; /* へりより下へ落ちたら見えなくなる（床の上に重なって見えないように） */
+      P.depth = (P.wx - CAM.x) * CAM.s + (P.wz - CAM.z) * CAM.c; F.depth = (F.wx - CAM.x) * CAM.s + (F.wz - CAM.z) * CAM.c; if (M.on) M.depth = (M.wx - CAM.x) * CAM.s + (M.wz - CAM.z) * CAM.c;
+      if (G.dyingT <= 0) { G.mode = 'dead'; if (canRevive()) openRevive(); else endRun(); } return; }
     placeCamera(dt * .3);
     if (G.dyingT <= 0) { G.mode = 'dead'; if (canRevive()) openRevive(); else endRun(); }
     return;
@@ -681,7 +697,7 @@ function update(dt) {
   // invincible states turn on their own, but only at the very last moment, so a swipe always wins
   if (G.s > seg.len - .6 && !G.turnQueued && (G.pow.dash > 0 || G.fever > 0 || G.invT > 1.6 || flying || seg.fork || seg.th.sky || seg.th.grab || (G.tut && seg === G.tutSeg))) { G.turnQueued = seg.fork ? (G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || -1)) : seg.turn; G.turnAuto = 1; }
   if (G.s >= seg.len && G.turnQueued) doTurn();
-  else if (G.s > seg.len + HW - .8) { if (!softHit()) { die('wall'); return; } G.turnQueued = seg.fork ? (G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || -1)) : seg.turn; G.turnAuto = 1; try { doTurn(); } catch (e) { reportErr(e); } return; } // 走り始めは曲がり損ねても、ぶつかって曲がる
+  else if (G.s > seg.len + HW - .8) { if (towerFall(seg)) { die('fall'); return; } if (!softHit()) { die('wall'); return; } G.turnQueued = seg.fork ? (G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || -1)) : seg.turn; G.turnAuto = 1; try { doTurn(); } catch (e) { reportErr(e); } return; } // 走り始めは曲がり損ねても、ぶつかって曲がる
   const cue = $('#turnCue');
   { // fork cards: both destinations on screen well before the junction, lit up when the swipe window opens
     const fc = $('#forkCards'), showF = seg.fork && seg.forkLbl && G.s > seg.len - 42 && G.s < seg.len;
@@ -1151,6 +1167,7 @@ const CAPS = {
   obstacle: { ren: ['EYES FRONT, BOSS.', '課長、前です'], jill: ['NOBODY’S PERFECT.', 'ジルにも、たまには'], pom: ['ROOKIE MISTAKE!', '新人、まだまだっす'] },
   papers: { ren: ['BURIED IN PAPERS.', '書類に埋もれた'], jill: ['BURIED IN PAPERS.', '書類に埋もれた'], pom: ['BURIED IN PAPERS.', '書類に埋もれた'] },
   wall: { ren: ['THAT’S A WALL.', 'そっちは壁です'], jill: ['THAT’S A WALL.', 'そっちは壁です'], pom: ['THAT’S A WALL.', 'そっちは壁です'] },
+  fall: { ren: ['OVER THE EDGE.', '曲がりそこねて、落ちました'], jill: ['OVER THE EDGE.', '曲がりそこねて、落ちました'], pom: ['OVER THE EDGE.', '曲がりそこねて、落ちました'] }, /* [塔 F11] */
   quit: { ren: ['LEFT EARLY.', '早退しました'], jill: ['LEFT EARLY.', '早退しました'], pom: ['LEFT EARLY.', '早退しました'] },
   rescue: { ren: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'], jill: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'], pom: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'] }, // 画面が動かなくなって安全網で終わったとき（自分でやめたのではない）
 };

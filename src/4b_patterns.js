@@ -589,7 +589,7 @@ const SKYB = (() => { const a = []; const r = rnd(7); for (let i = 0; i < 160; i
 function angDiff(a, b) { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; }
 function altitude(seg, s) { const c = seg.th.climb; if (seg.th.lift) return Math.round(lerp(seg.th.liftFrom, seg.th.liftTo, sstep(clamp((s - 4) / Math.max(1, seg.len - 10), 0, 1)))); if (c && seg.base != null) return Math.max(0, Math.round(segE(seg, clamp(s, 0, seg.len)) - seg.base)); /* [H6] 高さの表示は、本当の地面からの高さ */ if (c && seg.th.sky) return Math.max(0, Math.round(segE(seg, clamp(s, 0, seg.len)) - (seg.e0 - c[0]))); return c ? Math.round(lerp(c[0], c[1], clamp(s / seg.len, 0, 1))) : 0; }
 function drawSky(seg) {
-  const th = seg.th, open = th.kind !== 'room' && th.kind !== 'train';
+  const th = seg.th, open = th.kind !== 'room' && th.kind !== 'train' || (G.mode === 'dying' && G.fallSeg === seg); /* [塔 F11] 室内の曲がり角から落ちる間は、あいたつきあたりの先に、空と下の町 */
   const horizon = HORIZON - Math.tan(CAM.pitch) * FOCAL;
   if (!open && th.kind) { /* 室内・車内：天井の板がまだ無い所（部屋に入った直後・縦長の画面のいちばん上）に空の青が見えていた。天井と同じ色で塗る（2026-11-15） */
     const cc = C(th.ceil || '#EEF0F2'), gr = ctx.createLinearGradient(0, 0, 0, Math.max(40, horizon + 30)); gr.addColorStop(0, fogged(cc, .82, 2)); gr.addColorStop(.7, fogged(cc, .8, 18)); gr.addColorStop(1, fogged(cc, .74, 60)); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H); G.skyIn = 1; return; }

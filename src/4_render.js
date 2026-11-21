@@ -403,7 +403,7 @@ function render() {
   const seg = G.segs[G.ci] || G.segs[0]; if (!seg) return;
   computeLight(seg); camPrep();
   drawSky(seg);
-  BUBQ.length = 0; for (const sg of segOrder()) drawSegment(sg, sg === seg);
+  BUBQ.length = 0; { const so = segOrder(); for (const sg of so) drawUnder(sg); for (const sg of so) drawSegment(sg, sg === seg); }
   for (const f of BUBQ) f(); BUBQ.length = 0;
   if (G.prints && G.prints.length && G.weather === 'snow' && G.mode !== 'title') { ctx.fillStyle = 'rgba(95,110,140,.45)'; // footprints in the snow, fading
     for (const f of G.prints) { const age = G.t - f.t; if (age > 5 || age < .05) continue; const sp = spriteAt(f.x, f.y + .01, f.z); if (!sp || sp.sy < HORIZON) continue; ctx.globalAlpha = 1 - age / 5; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, sp.k * .1, sp.k * .04, 0, 0, Math.PI * 2); ctx.fill(); } ctx.globalAlpha = 1; }
@@ -458,14 +458,18 @@ function floorLayers() { FLA.length = 0; FLB.length = 0; FLC.length = 0;
   for (const e of DRAW) { const p = e[1]; if (p.dec && p.dec !== 'futonD' && p.dec !== 'zabuTop') { if (!p.__fi) p.__fi = ++FLN; FLB.push(e); } else if (p.soft || p.dec) FLC.push(e); else FLA.push(e); }
   if (!FLB.length) return; FLB.sort((a, b) => a[1].__fi - b[1].__fi); DRAW.length = 0; for (const e of FLA) DRAW.push(e); for (const e of FLB) DRAW.push(e); for (const e of FLC) DRAW.push(e); }
 const BUBQ = [];
-function drawSegment(sg, isCur) {
-  LC = sg.th.lc || '#80C241'; if (isCur) buildOcc(sg); const oc = isCur && OCC.on;
-  const near = d => d > -8 && d < FAR + 8; if (PROF.on) PT = performance.now();
+function drawUnder(sg) { /* [塔 U1] 2026-11-21：床より下の物は、ぜんぶの区間の床より先に描く（前は区間ごとに描いたので、屋上の下のビルの面が、先に描いた次の区間（曲がった先の階段）の床の上にかぶり、曲がり角の床に穴があいてジルが宙に立って見えた） */
+  if (!sg.under) return; LC = sg.th.lc || '#80C241';
+  const near = d => d > -8 && d < FAR + 8;
   if (sg.under) { /* [塔 S2] 2026-11-21：床より下の高さにある物（屋上から見下ろす、まわりのビルの箱・下の道ぞいの窓の面）は、床より先に描く。
        前は床の後に描いたので、ビルの下の方（屋上の床の下にあるはず）が屋上の床の上にかぶり、床が透けて下のビルが見えるようだった。先に描けば、手前の屋上の床がビルの下の方をかくし、屋上より上の所だけが見える */
     for (const pr of sg.props) { if (!pr.under) continue; const d = segDepth(sg, (pr.s0 + pr.s1) / 2, (pr.l0 + pr.l1) / 2); if (d < -3 || d > FAR) continue; if (!pr.fc) { pr.fc = []; for (const b of pr.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) pr.fc.push([fc, b]); } drawBoxes(null, sg, d, 1, 0, 0, 0, pr.fc); }
     dclear(); for (const w of sg.walls) { if (!w.under || !faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; dput(d, 1, w); } DRAW.sort(byE0); for (const [d, t, w] of DRAW) drawWallItem(d, t, w); /* 窓の絵の面は、ビルの箱のすぐ外にはってあるので、箱の後に描く */
     dclear(); for (const sp of sg.spr) { if (!sp.under) continue; const d = segDepth(sg, sp.s, sp.lat); if (d < .5 || d > FAR) continue; dput(d, 7, sp); } DRAW.sort(byE0); for (const [d, , sp] of DRAW) drawSpr(sp, sg, d); }
+}
+function drawSegment(sg, isCur) {
+  LC = sg.th.lc || '#80C241'; if (isCur) buildOcc(sg); const oc = isCur && OCC.on;
+  const near = d => d > -8 && d < FAR + 8; if (PROF.on) PT = performance.now();
   // floor
   dclear();
   const skyRM = curSeg().th.sky && rmFrame(curSeg()); /* [M64] 空を飛んでいる間は、本物の地図の川があるので、着地する公園の手前の立体の水面は描かない（色がちがい、川の上に板がういて見えた） */
@@ -486,9 +490,10 @@ function drawSegment(sg, isCur) {
   // walls, ceilings, decorations
   dclear();
   const wing = wingOn(sg), cap = wing || capOn(sg);
-  for (const w of sg.walls) { if (skyRM && w.far) continue; if (w.under) continue; /* [M67] 空から見る間は、着地の公園のうしろの町の正面（うすいかべ）を描かない（上から見ると屋根の無い板に見えた） */ if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; dput(d, 1, w); }
+  const fallE = G.mode === 'dying' && G.fallSeg === sg; /* [塔 F11] 曲がりそこねて落ちる間は、つきあたりの壁と飾りを描かない（へりの先へ飛び出す） */
+  for (const w of sg.walls) { if (skyRM && w.far) continue; if (w.under) continue; if (fallE && w.endW) continue; /* [M67] 空から見る間は、着地の公園のうしろの町の正面（うすいかべ）を描かない（上から見ると屋根の無い板に見えた） */ if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; dput(d, 1, w); }
   const behind = G.segs.indexOf(sg) >= 0 && G.segs.indexOf(sg) < G.ci; // 曲がり終えた角の矢印の看板は描かない（横に浮いた板に見えていた）
-  for (const e of sg.decos) { if (e.sign && behind) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (e.glow || e.pat === 'bigscreen' ? FAR : lowQ ? 70 : 90)) continue; /* [R14] 光る大画面は遠くでも見える */ dput(d - 1.6, 2, e); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
+  for (const e of sg.decos) { if (e.sign && behind) continue; if (e.endW && G.mode === 'dying' && G.fallSeg === sg) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (e.glow || e.pat === 'bigscreen' ? FAR : lowQ ? 70 : 90)) continue; /* [R14] 光る大画面は遠くでも見える */ dput(d - 1.6, 2, e); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
   DRAW.sort(byE0);
   for (const [d, t, w] of DRAW) {
     if (oc && occAt(d - 2) !== Infinity) { occDraw(d - 2, () => drawWallItem(d, t, w)); continue; }
@@ -556,7 +561,7 @@ function drawObjects(sg, isCur, oc) { SKYV = !!(curSeg().th.sky);
     const d = segDepth(sg, it.s, it.lat); if (d < .5 || d > 75) continue;
     dput(d, 4, it);
   }
-  if (isCur && G.player.show) { dput(G.player.depth, 5, G.player); if (G.follow.show) dput(G.follow.depth, 5, G.follow); if ((G.pom.on || G.pom.title) && G.pom.show) dput(G.pom.depth, 5, G.pom); if (G.pomPeek && G.pomPeek.seg === sg && G.pomPeek.b.show) dput(G.pomPeek.b.depth, 5, G.pomPeek.b); }
+  if (isCur && G.player.show) { if (!G.player.fallHide) dput(G.player.depth, 5, G.player); /* [塔 F11] へりより下へ落ちたら見えない */ if (G.follow.show) dput(G.follow.depth, 5, G.follow); if ((G.pom.on || G.pom.title) && G.pom.show) dput(G.pom.depth, 5, G.pom); if (G.pomPeek && G.pomPeek.seg === sg && G.pomPeek.b.show) dput(G.pomPeek.b.depth, 5, G.pomPeek.b); }
   DRAW.sort(byE0);
   pm('sort');
   for (const e of DRAW) {
@@ -712,7 +717,7 @@ function drawShadows(seg) {
   if (seg.th.sky) return; // 空の上：足もとに地面が無いので、かげも無い
   ctx.fillStyle = 'rgba(30,22,16,.22)';
   const sh = (s, lat, r, a) => { const p = segPos(seg, s, lat); const sp = spriteAt(p[0], p[2], p[1]); if (!sp) return; ctx.save(); ctx.globalAlpha = a; ctx.translate(sp.sx, sp.sy); ctx.scale(r * sp.k * 1.15, r * sp.k * .34); ctx.fillStyle = softShadow(); ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }; // a soft-edged pool, darkest under the feet
-  if (G.player.show && G.mode !== 'title') { sh(G.s, G.lat, .55, clamp(1 - G.y * .3, .25, 1)); if (G.follow.show) sh(G.s - G.follow.back, G.follow.lat, .46, .8); if (G.pom.on && G.pom.show) sh(G.s - G.pom.back, G.pom.lat, G.pom.who === 'pom' ? .32 : .46, .75); }
+  if (G.player.show && G.mode !== 'title') { if (!(G.mode === 'dying' && G.cause === 'fall')) sh(G.s, G.lat, .55, clamp(1 - G.y * .3, .25, 1)); if (G.follow.show) sh(G.s - G.follow.back, G.follow.lat, .46, .8); if (G.pom.on && G.pom.show) sh(G.s - G.pom.back, G.pom.lat, G.pom.who === 'pom' ? .32 : .46, .75); }
   ctx.globalAlpha = 1;
 }
 /* うさぎに当たる夕方の色はひかえめに（赤むらさきに染まりすぎて、だれだか分からなくなっていた）。明るさは残して色味だけ弱める */
