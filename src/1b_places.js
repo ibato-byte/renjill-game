@@ -424,7 +424,7 @@ Object.assign(THEMES, {
     wall: '#EEF1F4', base: '#9AA4AD', wallH: 3.2, ceil: '#F4F6F8', cpat: 'plain', light: 'panel', wdeco: ['liftGlass', 'liftGlass'], props: [], obs: [], noObs: 1, course: 'skytree', lift: 1, liftTo: 445, liftFrom: 350, climb: [350, 445], face: 21,
     arrive: { ja: '天井がガラスのエレベーター。地上445mの天望回廊へ', en: 'A glass-roofed elevator up to the 445 m walkway' } },
   sdeck:  { ja: '押上の電波塔・展望デッキ（地上350m）', gframe: 'dark', solidCeil: 1, lbl: '350mのデッキ', lblEn: '350 m deck', en: 'Oshiage tower, 350 m deck', kind: 'glass', truss: 'white', len: [100, 108], road: ['#6E757D', '#687078'], rpat: 'lookdown', side: ['#D9DEE3', '#CFD5DB'], spat: 'grid', climb: [350, 350], flights: { a: 10, P: 14, F: 5, R: -5, n: 2, back: 1 } /* [H9] 本物の天望デッキは 3 階建て（フロア 350 → 345 → 340。340 にガラスの床）。階段で 2 回おりる */, view: 'city',
-    wall: '#EEF1F4', ceil: '#2F343B', wallH: 5.6, core: -1, coreC: '#3A3F46', wdeco: ['elevator', 'towerposter', 'menuboard'], props: [['scopeS', 1]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'skytree', face: 226, /* PDCA 113：本物は 5m をこえる大きなガラスが 360 度（天井の高い部屋） */
+    wall: '#EEF1F4', ceil: '#2F343B', wallH: 5.6, core: -1, coreC: '#3A3F46', wdeco: ['elevator', 'menuboard', 'elevator'] /* [塔 W1] 2026-11-21：押上のデッキに、赤い電波塔の外階段（600 段）のポスターがかかっていた。別の塔の宣伝なので外した */, props: [['scopeS', 1]], obs: ['telescope', 'bench', 'suitcase', 'rope'], course: 'skytree', face: 226, /* PDCA 113：本物は 5m をこえる大きなガラスが 360 度（天井の高い部屋） */
     lm: [{ t: 'tower', brg: 226, sc: .55 }, { t: 'kokugikan', brg: 227, sc: .8 }, { t: 'clock', brg: 231, sc: .55 }, { t: 'fuji', brg: 248, sc: 1 }, { t: 'tocho', brg: 258, sc: .6 }, { t: 'pagoda', brg: 292, sc: .7 }],
     arrive: { ja: 'エレベーターで約50秒。地上350m', en: 'About 50 seconds by elevator: 350 m up' } },
   hawk2:  { ja: 'オオタカにつかまって空の上', riv: -1, lbl: 'オオタカと空の上', lblEn: 'Carried by a goshawk', en: 'Over Tokyo with a goshawk', kind: 'deck', sky: 1, len: [220, 230], road: ['#9AA0A6', '#90969C'], rpat: 'road', side: ['#8A9096', '#80868C'], spat: 'road', climb: [451, 0], view: 'city',
@@ -537,6 +537,10 @@ Object.assign(ARRIVE, {
 /* 行幸通りのイチョウも、黄色いのは秋だけ（春・夏は緑、冬ははだか）2026-11-09 qa/seasontree */
 SEASONAL.gyoko = { spring: { tree: 'green' }, summer: { tree: 'green' }, winter: { tree: 'bare', cone: 'canopy_coneB' } };
 SEASONAL.yotsuya = { spring: { ja: '外堀の土手・桜', en: 'Outer moat cherries', tree: 'sakura', petals: 1, spat: 'petals', side: ['#B7A797', '#AE9E8E'] } };
+/* [塔 T1] 2026-11-21：電波塔の足もと・着地の公園の木も、季節で変わる（前は一年中、緑）。芝公園・隅田公園は桜の名所、秋はイチョウが黄色、冬は葉が落ちる */
+for (const k of ['tfoot', 'tland', 'sfoot', 'sland']) { const b = THEMES[k], park = k === 'tland' || k === 'sland', ob = x => (b.obs || []).map(o => o === 'leafpile' ? x : o);
+  SEASONAL[k] = Object.assign(SEASONAL[k] || {}, { spring: { tree: 'sakura', petals: 1, props: (b.props || []).concat([['bonbori', 2]]), obs: park ? ob('picnic') : b.obs }, summer: { tree: 'green', obs: park ? ob('cone') : b.obs }, autumn: { tree: 'ginkgo', leaves: 1 }, winter: { tree: 'bare', obs: park ? ob('snowball') : b.obs } }); }
+/* [塔 T2] 春は、桜の下にぼんぼり（夜桜のあかり）。[塔 T3] 落ち葉の山（障害物）は秋だけ。春はお花見のシート、夏はコーン、冬は雪玉に（前は一年中、落ち葉の山） */
 SEASONAL.koishikawa = { autumn: { ja: '小石川の庭園・紅葉', en: 'Koishikawa autumn', tree: 'ginkgo', leaves: 1 } };
 AREA.central.push('chikagai', 'ochanomizu', 'koishikawa', 'akasaka', 'yotsuya', 'ichigaya'); AREA.east.push('okachimachi', 'monzen', 'kiba'); AREA.west.push('ebisu', 'nakano', 'koenji', 'jiyugaoka', 'sangenjaya'); AREA.bay.push('tennozu', 'harumi', 'kachidoki');
 NIGHT.west.push('sangenjaya', 'ebisu', 'akasaka'); NIGHT.east.push('okachimachi', 'monzen'); NIGHT.bay.push('akasaka');

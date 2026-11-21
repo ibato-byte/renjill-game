@@ -219,7 +219,7 @@ function floorPattern(p, d) {
         const sf = LODOFF ? 1 : clamp((sp - 2.5) / 4.5, 0, 1) * clamp(1.3 - run * 2.2, .22, 1); /* 1 コマに半段進むと、段の線が 1 コマごとに入れかわる（いちばんチカチカする）ので、0.15 段から少しずつ */
         if (sf > 0) { ctx.globalAlpha = Math.min(1, a * 1.4) * sf; ctx.strokeStyle = T('#4F555B'); for (let k = 0; k < 6; k++) bline(k / 6, 0, k / 6, 1); ctx.stroke(); ctx.globalAlpha = a * .22 * sf; for (let k = 0; k < 6; k++) bquad(k / 6, 0, k / 6 + .05, 1, '#FFFFFF'); }
         ctx.globalAlpha = Math.min(1, a * 1.4) * (LODOFF ? 1 : clamp((sp * 6 - 3) / 6, 0, 1)); ctx.beginPath(); ctx.strokeStyle = T('#F2C230'); bline(0, .02, 1, .02); bline(0, .98, 1, .98); } /* [19] 段の先の、明るい段鼻 */
-      if (p.stepN && d < 40) { ctx.stroke(); ctx.globalAlpha = a * (p.stepBig ? .95 : .7); const big = p.stepBig; roadPaint(() => { ctx.drawImage(stepNumTex(p.stepN, big), 0, 0, 100, 100); }, .1, .9, big ? .3 : .38, big ? .7 : .62); /* [塔 F9] 2026-11-20：段の数（20・73・333…）は毎コマ字をかき直していたので、大きさが少し変わるたびに字のふちが変わり、数字の半分がチカチカした。前もって絵にしておき、その絵を貼る */ ctx.beginPath(); ctx.globalAlpha = Math.min(1, a * 1.4); } // [17] [18]
+      if (p.stepN && d < 40) { ctx.stroke(); ctx.globalAlpha = a * (p.stepBig ? .95 : .7) * clamp((d - 2.5) / 4, .3, 1) * (LT.night > .5 ? .8 : 1); const big = p.stepBig; /* [塔 N3] 2026-11-22：足もとを通りすぎる段の数は、うすくしていく（画面の下のはしに大きな白い数字が切れて残り、画面の表示のように見えた。夜は少しひかえめ） */ roadPaint(() => { ctx.drawImage(stepNumTex(p.stepN, big), 0, 0, 100, 100); }, .1, .9, big ? .3 : .38, big ? .7 : .62); /* [塔 F9] 2026-11-20：段の数（20・73・333…）は毎コマ字をかき直していたので、大きさが少し変わるたびに字のふちが変わり、数字の半分がチカチカした。前もって絵にしておき、その絵を貼る */ ctx.beginPath(); ctx.globalAlpha = Math.min(1, a * 1.4); } // [17] [18]
       break;
     case 'water': case 'sea': { ctx.globalAlpha = .5; ctx.strokeStyle = LT.night > .5 ? 'rgba(255,220,160,.5)' : 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.4; const o = (G.t * .15) % .25;
       for (let k = 0; k < 4; k++) { const v = (k * .25 + o) % 1; bline(.1 + (k % 2) * .3, v, .35 + (k % 2) * .3, v + .02); }
@@ -589,18 +589,19 @@ const SKYB = (() => { const a = []; const r = rnd(7); for (let i = 0; i < 160; i
 function angDiff(a, b) { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; }
 function altitude(seg, s) { const c = seg.th.climb; if (seg.th.lift) return Math.round(lerp(seg.th.liftFrom, seg.th.liftTo, sstep(clamp((s - 4) / Math.max(1, seg.len - 10), 0, 1)))); if (c && seg.base != null) return Math.max(0, Math.round(segE(seg, clamp(s, 0, seg.len)) - seg.base)); /* [H6] 高さの表示は、本当の地面からの高さ */ if (c && seg.th.sky) return Math.max(0, Math.round(segE(seg, clamp(s, 0, seg.len)) - (seg.e0 - c[0]))); return c ? Math.round(lerp(c[0], c[1], clamp(s / seg.len, 0, 1))) : 0; }
 function drawSky(seg) {
-  const th = seg.th, open = th.kind !== 'room' && th.kind !== 'train';
+  const th = seg.th, open = th.kind !== 'room' && th.kind !== 'train' || (G.mode === 'dying' && G.fallSeg === seg); /* [塔 F11] 室内の曲がり角から落ちる間は、あいたつきあたりの先に、空と下の町 */
   const horizon = HORIZON - Math.tan(CAM.pitch) * FOCAL;
   if (!open && th.kind) { /* 室内・車内：天井の板がまだ無い所（部屋に入った直後・縦長の画面のいちばん上）に空の青が見えていた。天井と同じ色で塗る（2026-11-15） */
     const cc = C(th.ceil || '#EEF0F2'), gr = ctx.createLinearGradient(0, 0, 0, Math.max(40, horizon + 30)); gr.addColorStop(0, fogged(cc, .82, 2)); gr.addColorStop(.7, fogged(cc, .8, 18)); gr.addColorStop(1, fogged(cc, .74, 60)); ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H); G.skyIn = 1; return; }
   G.skyIn = 0;
   skyGradient(horizon);
   const N = LT.night;
-  if (N > .5) { /* 星：四角い点 → 丸く、大きさと明るさをばらばらに、ゆっくりまたたく（「動きをひかえめ」ではまたたかない）。地平線の近くは町の明かりでうすく（2026-11-15） */ const calm = OPT().calm, tt = G.t || 0; ctx.fillStyle = '#FFFFFF';
+  if (N > .5 && (G.weather === 'clear' || !G.weather)) { /* [空 S1] 2026-11-21：雨や雪の夜にも星が出ていた（雨のすじと満天の星が同時に見えた）。星は晴れの夜だけ */ /* 星：四角い点 → 丸く、大きさと明るさをばらばらに、ゆっくりまたたく（「動きをひかえめ」ではまたたかない）。地平線の近くは町の明かりでうすく（2026-11-15） */ const calm = OPT().calm, tt = G.t || 0; ctx.fillStyle = '#FFFFFF';
     for (let i = 0; i < 56; i++) { const x = ((i * 97.3 - CAM.yaw * 80) % W + W) % W, y = (i * 53.7) % (horizon * .85), big = i % 7 === 0, tw = calm ? .8 : .62 + .38 * Math.sin(tt * (1.1 + (i % 5) * .35) + i * 1.7); ctx.globalAlpha = clamp((N - .5) * 2, 0, 1) * tw * (big ? .95 : .7) * clamp(1.15 - y / Math.max(1, horizon * .85), .25, 1); ctx.beginPath(); ctx.arc(x, y, big ? 1.5 : .6 + (i % 3) * .28, 0, Math.PI * 2); ctx.fill(); } ctx.globalAlpha = 1; }
   drawSunGlow(horizon);
   if (N > .6 && G.weather === 'clear' && adSeason() === 'summer') drawFireworks(horizon);
   drawClouds2(horizon);
+  if ((seg.th.climb && seg.th.climb[1] >= 100) || seg.th.sky) drawPlanes(horizon, seg); /* [空 P1] 2026-11-21：高い展望台・空の上から見る東京の空に、遠くの飛行機（羽田へおりる飛行機がゆっくり横切る。夜は赤と白の明かりが点滅） */
   if (N < .6 && G.weather === 'clear') drawBirds(horizon);
   const climb = !!th.climb, alt = climb ? altitude(seg, G.mode === 'title' ? 0 : G.s) : 0, drop = climb ? Math.min(H * .2, alt / 4200 * FOCAL) + Math.min(4, alt * .5) : 0; /* 2026-11-17：高い所から見た遠くの町の根もとは、地平線のすぐ下（本当の見え方：高さ÷きょり）。前は 450m で画面の 4 分の 1 も下げていて、展望台の窓の外は、床にかくれて町が見えなかった */
   const yb = horizon + drop;
@@ -627,6 +628,16 @@ function drawSky(seg) {
 }
 // summer nights: fireworks far away over the city (2026-11-08)
 const FW_COL = ['255,206,96', '255,128,140', '140,210,255', '190,255,160', '255,170,90'];
+function drawPlanes(hz, seg) {
+  if (typeof lowQ !== 'undefined' && lowQ > 1) return; const N = LT.night, t = G.t || 0;
+  for (let j = 0; j < 2; j++) { const per = 46 + j * 17, u = ((t / per + j * .43) % 1), dir = j ? -1 : 1, amx = Math.atan(W * .45 / FOCAL), yawOff = (j ? .62 : -.66) * amx - (seg && seg.th.sky && typeof skySpin === 'function' ? skySpin(seg) : 0); /* 進む方向の、少し左右の空（ぐるっと見わたす間は、空の飛行機は動かない） */
+    let a = yawOff + (u - .5) * .7 * amx * dir; while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; if (Math.abs(a) > 1.2) continue;
+    const x = W / 2 + Math.tan(a) * FOCAL, y = hz - FOCAL * (.2 + j * .06) - u * FOCAL * .02 * (j ? 1 : -1), s = Math.max(3, FOCAL * .008);
+    ctx.save(); ctx.translate(x, y); ctx.scale(dir, 1); ctx.globalAlpha = N > .5 ? .9 : .55;
+    if (N > .5) { const on = Math.sin(t * 6 + j * 2) > .4; ctx.fillStyle = 'rgba(40,46,70,.9)'; ctx.fillRect(-s * 1.6, -s * .18, s * 3.2, s * .36); if (on) { ctx.fillStyle = '#FF5A4A'; ctx.beginPath(); ctx.arc(-s * .2, s * .5, 1.3, 0, 7); ctx.fill(); } ctx.fillStyle = 'rgba(255,250,235,.95)'; ctx.beginPath(); ctx.arc(s * 1.6, 0, 1.1, 0, 7); ctx.fill(); }
+    else { ctx.fillStyle = tint('#8E96A2'); ctx.beginPath(); ctx.moveTo(-s * 1.6, -s * .14); ctx.lineTo(s * 1.6, -s * .1); ctx.quadraticCurveTo(s * 1.9, 0, s * 1.6, s * .12); ctx.lineTo(-s * 1.6, s * .14); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(-s * .2, 0); ctx.lineTo(-s * .8, s * .9); ctx.lineTo(-s * .45, s * .9); ctx.lineTo(s * .35, 0); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(-s * 1.3, 0); ctx.lineTo(-s * 1.7, -s * .6); ctx.lineTo(-s * 1.45, -s * .6); ctx.lineTo(-s * 1.0, 0); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-s * 1.7, 0); ctx.lineTo(-s * 1.7 - FOCAL * .05 * (.4 + u), 0); ctx.stroke(); } /* 昼は小さな機体と、うしろの短い飛行機雲 */
+    ctx.restore(); } }
 function drawFireworks(hz) {
   const SL = 1.7; ctx.save(); ctx.globalCompositeOperation = 'lighter';
   for (let j = 0; j < 2; j++) { const tt = G.t - j * SL * .5, slot = Math.floor(tt / SL), k = (tt - slot * SL) / SL, rn = n => { const v = Math.sin(slot * 12.9898 + j * 78.233 + n * 37.719) * 43758.5453; return v - Math.floor(v); };
@@ -810,14 +821,15 @@ function drawTokyoTower(x, yb, h, N) {
 }
 function drawSkytree(x, yb, h, N) {
   ctx.save(); if (N > .4) { ctx.shadowColor = '#8FB0FF'; ctx.shadowBlur = 16; }
-  const c = N > .4 ? '#B8C8FF' : tint('#AEBBC8');
+  const c = N > .4 ? '#4A5C92' : tint('#AEBBC8'); /* [塔 N1] 2026-11-21：夜の押上の電波塔は、白く光る棒に見えた（体も網目も明るい色で、網目が見えなかった）。本物の夜の明かりのように、体は青い夜の色、鉄骨の網目が水色に光る */
   ctx.beginPath(); ctx.moveTo(x - .055 * h, yb); ctx.lineTo(x - .03 * h, yb - .54 * h); ctx.lineTo(x - .02 * h, yb - .7 * h); ctx.lineTo(x - .012 * h, yb - .86 * h); ctx.lineTo(x - .003 * h, yb - h);
   ctx.lineTo(x + .003 * h, yb - h); ctx.lineTo(x + .012 * h, yb - .86 * h); ctx.lineTo(x + .02 * h, yb - .7 * h); ctx.lineTo(x + .03 * h, yb - .54 * h); ctx.lineTo(x + .055 * h, yb); ctx.closePath(); ctx.fillStyle = c; ctx.fill();
   ctx.beginPath(); ctx.ellipse(x, yb - .54 * h, .055 * h, .02 * h, 0, 0, Math.PI * 2); ctx.ellipse(x, yb - .7 * h, .036 * h, .014 * h, 0, 0, Math.PI * 2); ctx.fillStyle = N > .4 ? '#E6ECFF' : tint('#C9D4DE'); ctx.fill();
   ctx.shadowBlur = 0; { const wAt = v => v < .54 ? lerp(.055, .03, v / .54) : v < .7 ? lerp(.03, .02, (v - .54) / .16) : v < .86 ? lerp(.02, .012, (v - .7) / .16) : lerp(.012, .003, (v - .86) / .14);
     const g = ctx.createLinearGradient(x - .055 * h, 0, x + .055 * h, 0); g.addColorStop(0, N > .4 ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.35)'); g.addColorStop(.45, 'rgba(255,255,255,0)'); g.addColorStop(1, N > .4 ? 'rgba(0,0,30,.3)' : 'rgba(60,80,100,.28)'); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x - .055 * h, yb); ctx.lineTo(x - .003 * h, yb - h); ctx.lineTo(x + .003 * h, yb - h); ctx.lineTo(x + .055 * h, yb); ctx.closePath(); ctx.fill(); /* [S2] 丸い塔の、日の当たる側と、かげの側 */
-    ctx.strokeStyle = N > .4 ? 'rgba(160,180,255,.55)' : 'rgba(96,116,136,.42)'; ctx.lineWidth = Math.max(.5, h * .0025); ctx.beginPath(); for (let k = 0; k < 30; k++) { const v0 = k / 30 * .9, v1 = (k + 1) / 30 * .9, w0 = wAt(v0), w1 = wAt(v1); ctx.moveTo(x - w0 * h, yb - v0 * h); ctx.lineTo(x + w1 * h, yb - v1 * h); ctx.moveTo(x + w0 * h, yb - v0 * h); ctx.lineTo(x - w1 * h, yb - v1 * h); } ctx.stroke(); /* [S3] 白い鉄骨のトラスの網目（下から上まで） */
-    if (N > .4) { ctx.fillStyle = 'rgba(200,220,255,.9)'; for (const v of [.54, .7]) { ctx.fillRect(x - wAt(v) * h * .9, yb - v * h - 1, wAt(v) * h * 1.8, 2); } } } /* 夜：展望台の窓の光 */
+    ctx.strokeStyle = N > .4 ? 'rgba(186,214,255,.92)' : 'rgba(96,116,136,.42)'; ctx.lineWidth = Math.max(.5, h * (N > .4 ? .003 : .0025)); ctx.beginPath(); for (let k = 0; k < 30; k++) { const v0 = k / 30 * .9, v1 = (k + 1) / 30 * .9, w0 = wAt(v0), w1 = wAt(v1); ctx.moveTo(x - w0 * h, yb - v0 * h); ctx.lineTo(x + w1 * h, yb - v1 * h); ctx.moveTo(x + w0 * h, yb - v0 * h); ctx.lineTo(x - w1 * h, yb - v1 * h); } ctx.stroke(); /* [S3] 白い鉄骨のトラスの網目（下から上まで） */
+    if (N > .4) { const cg = ctx.createLinearGradient(0, yb, 0, yb - h); cg.addColorStop(0, 'rgba(150,190,255,.0)'); cg.addColorStop(.3, 'rgba(150,190,255,.35)'); cg.addColorStop(1, 'rgba(150,190,255,.15)'); ctx.fillStyle = cg; ctx.fillRect(x - .006 * h, yb - .9 * h, .012 * h, .9 * h); /* [塔 N2] 夜は、まん中の柱（心柱）がうっすら光る */
+      ctx.fillStyle = 'rgba(200,220,255,.9)'; for (const v of [.54, .7]) { ctx.fillRect(x - wAt(v) * h * .9, yb - v * h - 1, wAt(v) * h * 1.8, 2); } } } /* 夜：展望台の窓の光 */
   ctx.restore();
 }
 // low blue mountain ranges in front of Fuji's foot, so the mountain sits on the land
@@ -980,7 +992,7 @@ function bareTree(seed, cone) {
 function buildSakuraSprites() {
   for (const d of [-1, 1]) for (const v of [0, 1]) { SPR[`sakura${d < 0 ? 'L' : 'R'}${v}`] = sakuraTree(d, 0, 17 + v * 31 + (d + 1) * 7); SPR[`sakura${d < 0 ? 'L' : 'R'}${v}N`] = sakuraTree(d, 1, 17 + v * 31 + (d + 1) * 7); }
   SPR.sakuraU = sakuraTree(0, 0, 88); SPR.sakuraUN = sakuraTree(0, 1, 88);
-  SPR.canopy_sakura = SPR.sakuraU; SPR.canopy_bare = bareTree(5); SPR.canopy_coneB = bareTree(9, 1);
+  SPR.canopy_sakura = SPR.sakuraU; SPR.canopy_sakuraN = SPR.sakuraUN; /* [塔 N5] 2026-11-22：夜の季節の桜は、夜桜の絵（ぼんぼりに照らされた色）に。前は昼の絵に夜の青い光をかけて紫の木になり、となりの夜桜とちがう木に見えた */ SPR.canopy_bare = bareTree(5); SPR.canopy_coneB = bareTree(9, 1);
   { const c = mk(256), g = c.getContext('2d') || noCtx(), r = rnd(9); for (let i = 0; i < 170; i++) { const v = r(), wv = (1 - v) * 92 + 6; g.beginPath(); g.fillStyle = TREE.fresh[(r() * 3) | 0]; g.arc(128 + (r() * 2 - 1) * wv * .8, 20 + v * 210, 10 + r() * 10, 0, Math.PI * 2); g.fill(); } SPR.canopy_coneG = c; }
 }
 // sprites take the scene's light: a darkened copy per light level, made once and kept
