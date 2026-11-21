@@ -1594,7 +1594,7 @@
     {
       "name": "回っている間は遠くの景色を見る",
       "file": "src/6_game.js",
-      "has": "CAM.pitch = lerp(CAM.pitch, W > H ? .13 : .07, lk)"
+      "has": "CAM.pitch = lerp(CAM.pitch, W > H ? .09 : .07, lk)"
     },
     {
       "name": "屋上の外かべは曲がり角の手前で止める",
@@ -1785,6 +1785,56 @@
       "name": "ホームの天井は竿縁天井",
       "file": "src/4b_patterns.js",
       "has": "[H36]"
+    },
+    {
+      "name": "夜の街灯の光の輪は絵の中に収める",
+      "file": "src/4e_art.js",
+      "has": "[着地 L1]"
+    },
+    {
+      "name": "着地の直前の道は砂利道の見た目",
+      "file": "src/4g_aerial.js",
+      "has": "[着地 A22]"
+    },
+    {
+      "name": "空からの園路に朝夕の光の色",
+      "file": "src/4g_aerial.js",
+      "has": "tint('#D9CBA8')"
+    },
+    {
+      "name": "低い所では上から見た人とベンチを描かない",
+      "file": "src/4g_aerial.js",
+      "has": "!night && !lowq && camH > 30"
+    },
+    {
+      "name": "夜の押上の電波塔は網目が光る",
+      "file": "src/4b_patterns.js",
+      "has": "[塔 N1]"
+    },
+    {
+      "name": "屋上のまわりに2列目のビルと正面の街",
+      "file": "src/3_world.js",
+      "has": "[塔 R7]"
+    },
+    {
+      "name": "床より下の物は床より先に描く",
+      "file": "src/4_render.js",
+      "has": "if (sg.under) {"
+    },
+    {
+      "name": "隅田川のさざなみと水上バス",
+      "file": "src/4i_realmap.js",
+      "has": "[空 W2]"
+    },
+    {
+      "name": "たて長の画面ではオオタカの間をせまく",
+      "file": "src/6_game.js",
+      "has": "[空 K6]"
+    },
+    {
+      "name": "見わたす間も横のオオタカは画面の上でレンの横",
+      "file": "src/6_game.js",
+      "has": "function skySide(seg)"
     }
   ]
 }

@@ -459,6 +459,11 @@ function floorLayers() { FLA.length = 0; FLB.length = 0; FLC.length = 0;
 function drawSegment(sg, isCur) {
   LC = sg.th.lc || '#80C241'; if (isCur) buildOcc(sg); const oc = isCur && OCC.on;
   const near = d => d > -8 && d < FAR + 8; if (PROF.on) PT = performance.now();
+  if (sg.under) { /* [塔 S2] 2026-11-21：床より下の高さにある物（屋上から見下ろす、まわりのビルの箱・下の道ぞいの窓の面）は、床より先に描く。
+       前は床の後に描いたので、ビルの下の方（屋上の床の下にあるはず）が屋上の床の上にかぶり、床が透けて下のビルが見えるようだった。先に描けば、手前の屋上の床がビルの下の方をかくし、屋上より上の所だけが見える */
+    for (const pr of sg.props) { if (!pr.under) continue; const d = segDepth(sg, (pr.s0 + pr.s1) / 2, (pr.l0 + pr.l1) / 2); if (d < -3 || d > FAR) continue; if (!pr.fc) { pr.fc = []; for (const b of pr.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) pr.fc.push([fc, b]); } drawBoxes(null, sg, d, 1, 0, 0, 0, pr.fc); }
+    dclear(); for (const w of sg.walls) { if (!w.under || !faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; dput(d, 1, w); } DRAW.sort(byE0); for (const [d, t, w] of DRAW) drawWallItem(d, t, w); /* 窓の絵の面は、ビルの箱のすぐ外にはってあるので、箱の後に描く */
+    dclear(); for (const sp of sg.spr) { if (!sp.under) continue; const d = segDepth(sg, sp.s, sp.lat); if (d < .5 || d > FAR) continue; dput(d, 7, sp); } DRAW.sort(byE0); for (const [d, , sp] of DRAW) drawSpr(sp, sg, d); }
   // floor
   dclear();
   const skyRM = curSeg().th.sky && rmFrame(curSeg()); /* [M64] 空を飛んでいる間は、本物の地図の川があるので、着地する公園の手前の立体の水面は描かない（色がちがい、川の上に板がういて見えた） */
@@ -479,7 +484,7 @@ function drawSegment(sg, isCur) {
   // walls, ceilings, decorations
   dclear();
   const wing = wingOn(sg), cap = wing || capOn(sg);
-  for (const w of sg.walls) { if (skyRM && w.far) continue; /* [M67] 空から見る間は、着地の公園のうしろの町の正面（うすいかべ）を描かない（上から見ると屋根の無い板に見えた） */ if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; dput(d, 1, w); }
+  for (const w of sg.walls) { if (skyRM && w.far) continue; if (w.under) continue; /* [M67] 空から見る間は、着地の公園のうしろの町の正面（うすいかべ）を描かない（上から見ると屋根の無い板に見えた） */ if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; dput(d, 1, w); }
   const behind = G.segs.indexOf(sg) >= 0 && G.segs.indexOf(sg) < G.ci; // 曲がり終えた角の矢印の看板は描かない（横に浮いた板に見えていた）
   for (const e of sg.decos) { if (e.sign && behind) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (e.glow || e.pat === 'bigscreen' ? FAR : lowQ ? 70 : 90)) continue; /* [R14] 光る大画面は遠くでも見える */ dput(d - 1.6, 2, e); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
   DRAW.sort(byE0);
@@ -532,8 +537,8 @@ function drawObjects(sg, isCur, oc) { SKYV = !!(curSeg().th.sky);
     dput(d, 3, o);
   }
   if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) dput(m.cross ? d + 8 : d, 8, m); } // 橋の上の電車は、橋げた・かべ高欄より先に描く（下から見上げても、電車の床下は橋げたにかくれる。2026-11-17）
-  for (const p of sg.props) { if (p.nodraw) continue; const d = segDepth(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); if (d < -3 || d > (p.big || SKYV ? FAR : lowQ ? 60 : 85)) continue; /* [降りる時 D3] 降りる間は、下の公園のベンチ・街灯なども遠くから描く（近づいた時に急に出てこない） */ dput(d, 6, p); }
-  for (const s of sg.spr) { if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const d = segDepth(sg, s.s, s.lat); if (d < .5 || d > (s.far || SKYV ? FAR : 80)) continue; /* [降りる時 D2] オオタカと降りる間は、下の公園の木や物が 80m より遠くても描く（前は、高い所では消え、近づくと急に出てきた） */ dput(d, 7, s); }
+  for (const p of sg.props) { if (p.nodraw || p.under) continue; const d = segDepth(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); if (d < -3 || d > (p.big || SKYV ? FAR : lowQ ? 60 : 85)) continue; /* [降りる時 D3] 降りる間は、下の公園のベンチ・街灯なども遠くから描く（近づいた時に急に出てこない） */ dput(d, 6, p); }
+  for (const s of sg.spr) { if (s.under) continue; if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const d = segDepth(sg, s.s, s.lat); if (d < .5 || d > (s.far || SKYV ? FAR : 80)) continue; /* [降りる時 D2] オオタカと降りる間は、下の公園の木や物が 80m より遠くても描く（前は、高い所では消え、近づくと急に出てきた） */ dput(d, 7, s); }
   // pigeons on the street: they peck about and fly off as you run up (2026-11-08)
   // rain: puddles on the street that splash when you run through (2026-11-08)
   if (sg.puddles === undefined && G.weather === 'rain') sg.puddles = puddlesFor(sg);
