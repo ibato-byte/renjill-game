@@ -1835,6 +1835,61 @@
       "name": "見わたす間も横のオオタカは画面の上でレンの横",
       "file": "src/6_game.js",
       "has": "function skySide(seg)"
+    },
+    {
+      "name": "雨や雪の夜は星と月を出さない",
+      "file": "src/4b_patterns.js",
+      "has": "[空 S1]"
+    },
+    {
+      "name": "電波塔の足もとと着地の公園の木は季節で変わる",
+      "file": "src/1b_places.js",
+      "has": "SEASONAL[k] = Object.assign(SEASONAL[k] || {}, { spring: { tree: 'sakura'"
+    },
+    {
+      "name": "上から見た森の木も季節の色",
+      "file": "src/4g_aerial.js",
+      "has": "function aerTreeCol(k, base)"
+    },
+    {
+      "name": "低い所では森の木を立った木で描く",
+      "file": "src/4g_aerial.js",
+      "has": "function aerStandTree("
+    },
+    {
+      "name": "隅田公園の川の上に木を立てない",
+      "file": "src/3_world.js",
+      "has": "[着地 R1]"
+    },
+    {
+      "name": "春は電波塔の足もとにぼんぼり・落ち葉の山は秋だけ",
+      "file": "src/1b_places.js",
+      "has": "[塔 T3]"
+    },
+    {
+      "name": "低い所では水上バスを描かない",
+      "file": "src/4i_realmap.js",
+      "has": "[空 W3]"
+    },
+    {
+      "name": "まっすぐ続く公園の道のつきあたりに木を置かない",
+      "file": "src/3_world.js",
+      "has": "[塔 E1]"
+    },
+    {
+      "name": "飛び立った塔は飛び立った所のすぐうしろ",
+      "file": "src/4i_realmap.js",
+      "has": "[空 T1]"
+    },
+    {
+      "name": "近くの押上の塔は鉄骨の網目",
+      "file": "src/4i_realmap.js",
+      "has": "[空 T2]"
+    },
+    {
+      "name": "高い所の空に遠くの飛行機",
+      "file": "src/4b_patterns.js",
+      "has": "function drawPlanes(hz, seg)"
     }
   ]
 }
