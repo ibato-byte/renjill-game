@@ -194,6 +194,10 @@ function rmTowerBody(o, t, night, fog, fkOf) {
   const half = y => red ? (y < 150 ? lerp(48, 12, Math.pow(y / 150, .8)) : y < 250 ? lerp(12, 6, (y - 150) / 100) : lerp(3, .6, (y - 250) / 83)) : (y < 350 ? lerp(36, 19, y / 350) : y < 460 ? 19 - (y - 350) * .04 : lerp(8, .8, (y - 460) / 174));
   const n = red ? 4 : 8, rot0 = t.hd + Math.PI / 4, cor = (y, k) => { const a = rot0 + k / n * Math.PI * 2, r = half(y) * (red ? Math.SQRT2 : 1); return [t.wx + Math.sin(a) * r, t.wz + Math.cos(a) * r]; };
   const d0 = (t.wx - cx0) * cs + (t.wz - cz0) * cc, fk = fkOf(Math.max(1, d0));
+  if (!night && typeof SUN !== 'undefined' && SUN.alt > .03 && G.weather === 'clear') { /* [空 T3] 2026-11-21：晴れた昼は、塔の長いかげが町の上にのびる（夕方ほど長い。本物も、夕方は塔のかげが何 km ものびる） */
+    const L = Math.min(Ht / Math.tan(SUN.alt), 2600), dx = -Math.sin(SUN.az), dz = -Math.cos(SUN.az), px = -dz, pz = dx, w0 = half(0) * .9, w1 = half(Ht * .55) * .9;
+    const pts = [[t.wx + px * w0, t.wz + pz * w0], [t.wx + dx * L * .55 + px * w1, t.wz + dz * L * .55 + pz * w1], [t.wx + dx * L, t.wz + dz * L], [t.wx + dx * L * .55 - px * w1, t.wz + dz * L * .55 - pz * w1], [t.wx - px * w0, t.wz - pz * w0]].map(([x, z]) => P(x, z, 0));
+    if (pts.every(q => q)) { ctx.fillStyle = `rgba(20,26,44,${(.2 * (1 - fk)).toFixed(3)})`; ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.fill(); } }
   const colAt = (y, k) => { const c = red ? (night ? [255, 140, 60] : (((y / 333 * 7) | 0) % 2 ? [236, 234, 228] : [214, 74, 40])) : (night ? [170, 200, 255] : [226, 232, 238]); const l = k % 2 ? .82 : 1; return `rgb(${c.map((v, q) => (lerp(v * l * (night ? 1 : LT.amb[q]), fog[q], fk)) | 0)})`; };
   const STEP = red ? 16.65 : 30;
   for (let y = 0; y < Ht - .1; y += STEP) { const y2 = Math.min(Ht, y + STEP);

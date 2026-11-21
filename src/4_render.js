@@ -403,7 +403,8 @@ function render() {
   const seg = G.segs[G.ci] || G.segs[0]; if (!seg) return;
   computeLight(seg); camPrep();
   drawSky(seg);
-  for (const sg of segOrder()) drawSegment(sg, sg === seg);
+  BUBQ.length = 0; for (const sg of segOrder()) drawSegment(sg, sg === seg);
+  for (const f of BUBQ) f(); BUBQ.length = 0;
   if (G.prints && G.prints.length && G.weather === 'snow' && G.mode !== 'title') { ctx.fillStyle = 'rgba(95,110,140,.45)'; // footprints in the snow, fading
     for (const f of G.prints) { const age = G.t - f.t; if (age > 5 || age < .05) continue; const sp = spriteAt(f.x, f.y + .01, f.z); if (!sp || sp.sy < HORIZON) continue; ctx.globalAlpha = 1 - age / 5; ctx.beginPath(); ctx.ellipse(sp.sx, sp.sy, sp.k * .1, sp.k * .04, 0, 0, Math.PI * 2); ctx.fill(); } ctx.globalAlpha = 1; }
   groundDust(seg);
@@ -456,6 +457,7 @@ function floorRuns() { for (let i = 0; i < DRAW.length;) { const p = DRAW[i][1];
 function floorLayers() { FLA.length = 0; FLB.length = 0; FLC.length = 0;
   for (const e of DRAW) { const p = e[1]; if (p.dec && p.dec !== 'futonD' && p.dec !== 'zabuTop') { if (!p.__fi) p.__fi = ++FLN; FLB.push(e); } else if (p.soft || p.dec) FLC.push(e); else FLA.push(e); }
   if (!FLB.length) return; FLB.sort((a, b) => a[1].__fi - b[1].__fi); DRAW.length = 0; for (const e of FLA) DRAW.push(e); for (const e of FLB) DRAW.push(e); for (const e of FLC) DRAW.push(e); }
+const BUBQ = [];
 function drawSegment(sg, isCur) {
   LC = sg.th.lc || '#80C241'; if (isCur) buildOcc(sg); const oc = isCur && OCC.on;
   const near = d => d > -8 && d < FAR + 8; if (PROF.on) PT = performance.now();
@@ -508,7 +510,7 @@ function drawWallItem(d, t, w) {
   { const m = project(w.v); if (!m) return;
     if (t === 1) {
       pathPoly(Math.abs(m));
-      if (w.glass) { ctx.fillStyle = `rgba(200,225,240,${w.ceil ? .12 : .16})`; ctx.fill(); if (m === 4) { const v = w.v, wl = Math.hypot(v[3] - v[0], v[4] - v[1], v[5] - v[2]); if (!LODOFF && wl > .2) LWK = clamp(Math.hypot(SCR[2] - SCR[0], SCR[3] - SCR[1]) / wl / 50, .3, 1); try { glassFrame(w); } finally { LWK = 1; } } return; } /* [遠く A17] ガラスの壁の枠の線も、遠くでは細く（太いままで、遠くのガラスの枠がチカチカした） */
+      if (w.glass) { ctx.fillStyle = LT.night > .5 && !w.ceil && (LT.indoor || curSeg().th.kind === 'glass' || curSeg().th.core) ? 'rgba(120,140,185,.26)' : `rgba(200,225,240,${w.ceil ? .12 : .16})`; /* [塔 G10] 2026-11-21：夜の展望台の窓は、外より中が明るいので、ガラスに中の明かりがうっすらうつる（前は昼と同じ、ほとんど透明のガラス） */ ctx.fill(); if (m === 4) { const v = w.v, wl = Math.hypot(v[3] - v[0], v[4] - v[1], v[5] - v[2]); if (!LODOFF && wl > .2) LWK = clamp(Math.hypot(SCR[2] - SCR[0], SCR[3] - SCR[1]) / wl / 50, .3, 1); try { glassFrame(w); } finally { LWK = 1; } } return; } /* [遠く A17] ガラスの壁の枠の線も、遠くでは細く（太いままで、遠くのガラスの枠がチカチカした） */
       if (w.skKey !== SUNKEY2) { w.skKey = SUNKEY2; w.sk = w.n && !w.ceil ? sunK(w.n3 || w.n) : 1; }
       ctx.fillStyle = fogged(w.c, w.sh * w.sk, d); ctx.fill(); if (SEAMW && !w.thin) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = .9; ctx.stroke(); } /* [壁 S2] 壁・天井の板と板の合わせ目のすき間（空や向こうが細い線で見えてチカチカ）も、同じ色で 0.45 ドットふさぐ */
       /* [遠く A2] 壁・天井の模様の線も、壁の 1m が画面で 50 ドットより小さい時は、その分細くする（遠くのタイル・板の目地がつぶれてざらざら・チカチカしていた） */
@@ -797,14 +799,14 @@ function drawBunnyWorld(b) {
  }
   else if (b.look > 0) { ctx.globalAlpha = Math.min(1, b.look * 3); ctx.fillStyle = '#E86A75'; heart(ctx, 120, -250 - (1 - b.look) * 40, 22); ctx.fillStyle = '#F2C230'; star(ctx, -130, -230 - (1 - b.look) * 30, 18); }
   ctx.restore();
-  if (b.say && (b.look > 0 || b.runLook)) { // a speech bubble in screen space, kept on screen
+  if (b.say && (b.look > 0 || b.runLook)) BUBQ.push(() => { // a speech bubble in screen space, kept on screen  [空 B1] 2026-11-21：ふきだしは、ぜんぶの物を描いた後に描く（前は、あとから描くオオタカの羽などの下にかくれて、字が切れて見えた）
     ctx.save(); ctx.globalAlpha = b.runLook ? (b.sayA || 0) : Math.min(1, b.look * 3); ctx.font = '900 15px "Zen Maru Gothic","Hiragino Sans",sans-serif';
     const tw = ctx.measureText(b.say).width, bw = tw + 22, bh = 30, tipX = sp.sx, bx = clamp(sp.sx - bw / 2, 8, W - bw - 8); let by = Math.max(70, sp.sy - 230 * sc - bh - 16); { const now = performance.now(); if (now - BUBT > 8) BUBS = []; BUBT = now; }
     for (let k = 0; k < 4 && BUBS.some(r => bx < r[0] + r[2] + 4 && r[0] < bx + bw + 4 && by < r[1] + r[3] + 4 && r[1] < by + bh + 4); k++) by -= bh + 8; /* ふきだし同士が重ならないよう、上にずらす */
     BUBS.push([bx, by, bw, bh]); G.bubN = BUBS.length;
     ctx.fillStyle = 'rgba(255,252,246,.97)'; ctx.strokeStyle = '#3B2A20'; ctx.lineWidth = 2; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, bw, bh, 14); else ctx.rect(bx, by, bw, bh); ctx.fill(); ctx.stroke();
     const tx = clamp(tipX, bx + 14, bx + bw - 14); ctx.beginPath(); ctx.moveTo(tx - 6, by + bh - 1); ctx.lineTo(tx, by + bh + 9); ctx.lineTo(tx + 6, by + bh - 1); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillRect(tx - 5, by + bh - 3, 10, 3);
-    ctx.fillStyle = '#3B2A20'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.say, bx + bw / 2, by + bh / 2 + 1); ctx.restore(); }
+    ctx.fillStyle = '#3B2A20'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.say, bx + bw / 2, by + bh / 2 + 1); ctx.restore(); });
 }
 function heart(g, x, y, r) { g.beginPath(); g.moveTo(x, y + r * .9); g.bezierCurveTo(x - r * 1.6, y - r * .2, x - r * .6, y - r * 1.3, x, y - r * .4); g.bezierCurveTo(x + r * .6, y - r * 1.3, x + r * 1.6, y - r * .2, x, y + r * .9); g.fill(); }
 

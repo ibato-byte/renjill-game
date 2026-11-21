@@ -282,7 +282,9 @@ function buildRoom(seg, s0, lEnd, rEnd) {
   const cE = terr ? T0 : seg.fE;
   for (let a = seg.fS, i = 0; a < cE - .01; a += 3, i++) {
     const b = Math.min(a + 3, cE);
-    seg.walls.push({ v: quad(seg, [[a, HW, H], [b, HW, H], [b, -HW, H], [a, -HW, H]]), c: cc, n3: [0, -1, 0], sh: .82, pat: 'ceil', cp: th.cpat, light: th.light, ti: i, glass: glass && !th.solidCeil ? 1 : 0, gf: th.gframe, ceil: 1, train: th.kind === 'train' ? 1 : 0, ta: a, tlay: th.kind === 'train' ? trainLay(seg) : null });
+    const cv = quad(seg, [[a, HW, H], [b, HW, H], [b, -HW, H], [a, -HW, H]]); let cn = [0, -1, 0];
+    if (Math.abs(cv[4] - cv[1]) > .02) { const e1 = [cv[3] - cv[0], cv[4] - cv[1], cv[5] - cv[2]], e2 = [cv[9] - cv[0], cv[10] - cv[1], cv[11] - cv[2]]; let nx = e1[1] * e2[2] - e1[2] * e2[1], ny = e1[2] * e2[0] - e1[0] * e2[2], nz = e1[0] * e2[1] - e1[1] * e2[0]; if (ny > 0) { nx = -nx; ny = -ny; nz = -nz; } const m = Math.hypot(nx, ny, nz) || 1; cn = [nx / m, ny / m, nz / m]; } /* [塔 C1] 2026-11-21：階段の上の、ななめの天井。下向きのまっすぐな向きのままだと、目より低くなった所で「裏から見ている」とされて消え、空がのぞいていた（押上の展望デッキで、階段をおりる手前） */
+    seg.walls.push({ v: cv, c: cc, n3: cn, sh: .82, pat: 'ceil', cp: th.cpat, light: th.light, ti: i, glass: glass && !th.solidCeil ? 1 : 0, gf: th.gframe, ceil: 1, train: th.kind === 'train' ? 1 : 0, ta: a, tlay: th.kind === 'train' ? trainLay(seg) : null });
   }
   if (!seg.fork && !terr) seg.walls.push({ v: quad(seg, [[L - HW, HW, H], [e, HW, H], [e, -HW, H], [L - HW, -HW, H]]), c: cc, n3: [0, -1, 0], sh: .82, cap: 1 }); // 曲がり角の上の天井（先が外のとき、ここに天井が無くて外が見えた）
   // lintels above the openings
@@ -785,9 +787,11 @@ function courseExtras(seg) { const th = seg.th, L = seg.len, t = seg.tid, H = se
     seg.props.push(mkProp(seg, bx, { big: 1 }));
     seg.floor.push({ v: quad(seg, [[4, -.07, .012], [K0, -.07, .012], [K0, .07, .012], [4, .07, .012]]), c: C('#A88E4A'), pat: null, ti: 0 }); } /* [C13] 床の、かごへ向かう金色の案内の線 */
   const flightE = s => segE(seg, s) - (seg.e0 || 0);
+  if (t === 'skytree' && th.core) { const win = -th.core, end = seg.toSky ? seg.len - 20 : seg.len - 6; for (let a = 10; a < end - 4; a += rand(9, 14)) if (Math.random() < .55) { const k = (Math.random() * PEOPLE.length) | 0; seg.spr.push({ lat: win * (HW - .45), s: a, y: 0, w: .8, h: 1.72, img: artKey('walker', k + '.0.1'), gnd: .3, keep: 1 }); } } /* [塔 V2] 展望回廊（ガラスの筒）の窓ぎわにも、外をながめる人 */
   if ((t === 'tdeck' || t === 'sdeck') && th.core) { const core = th.core, win = -core, bx = [], ll = (sd, o) => sd * (HW + o), Bw = (sd, o0, o1, a, b, y0, y1, c, g) => ({ l0: Math.min(ll(sd, o0), ll(sd, o1)), l1: Math.max(ll(sd, o0), ll(sd, o1)), s0: a, s1: b, y0, y1, c, glow: g }), end = seg.toSky ? L - 18 : L - 4;
     if (!seg.hp) for (let a = 6; a < end - 3; a += 11) bx.push(Bw(win, -.9, -.3, a, a + 3, 0, .42, '#6E5A48'), Bw(win, -.92, -.28, a - .02, a + 3.02, .42, .47, '#8A7460')); /* [C14] 窓ぎわの、外を向いて座る長い木のベンチ */
     if (!seg.hp) for (let a = 11.5; a < end - 2; a += 11) bx.push(Bw(win, -.35, -.25, a, a + .9, .9, 1.15, '#2B3A4C'), Bw(win, -.36, -.35, a + .05, a + .85, .93, 1.12, '#DCE6EE')); /* [C15] 手すりの上の、見える名所の案内の板 */
+    if (!seg.hp) for (let a = 9.7; a < end - 6; a += 11) if (Math.random() < .65) { const k = (Math.random() * PEOPLE.length) | 0; seg.spr.push({ lat: win * (HW - .5), s: a + rand(-.4, .4), y: 0, w: .8, h: 1.72, img: artKey('walker', k + '.0.1'), gnd: .3, keep: 1 }); } /* [塔 V1] 2026-11-21：展望台の窓ぎわに、外をながめる人（本物の展望台はいつも人がいる。前は、だれもいない展望台だった）。走る道からはなれた窓ぎわのベンチと案内板の間に立つ */
     { const a = L * .42; bx.push(Bw(core, -1.1, -.2, a, a + 4, 0, 1.05, '#E9E4D8'), Bw(core, -1.15, -.15, a - .05, a + 4.05, 1.05, 1.12, '#5E4A3A'), Bw(core, -.2, 0, a + .3, a + 3.7, 1.9, 2.5, '#2B2B2E'), Bw(core, -.21, -.2, a + .4, a + 3.6, 1.95, 2.45, '#F7E7C8', 2)); /* [C16] まん中の柱がわの、カフェのカウンター [C17] 上の、明かりの入ったメニューの板 */
       for (let k = 0; k < 3; k++) bx.push(Bw(core, -1.55, -1.3, a + .6 + k * 1.3, a + .85 + k * 1.3, 0, .7, '#8A8F94'), Bw(core, -1.62, -1.23, a + .53 + k * 1.3, a + .92 + k * 1.3, .7, .78, '#5E4A3A')); } /* [C18] カウンターの前の、丸いすを 3 つ */
     seg.props.push(mkProp(seg, bx, { big: 1 })); }
