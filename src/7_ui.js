@@ -714,3 +714,22 @@ function maintShow() {
     requestAnimationFrame(draw); };
   requestAnimationFrame(draw);
 }
+
+/* [H40・H41] 2026-11-21 オーナー（iPhone の写真 3 枚目）「まだ上下が収まりきってない」「音と設定の位置は、スタート画面の空いている中心より少し右下でもいい」：
+   スマホのたて画面では、いちばん下の 1 行（きろく・練習・場所えらび）と、右上の 3 行目（音・設定）をやめ、右の列（ランキング・ジルに聞く）にまとめる。
+   横長・大きな画面では、今までの場所にもどす */
+function homePlace() { try {
+  const ph = innerWidth < 600 && innerHeight > innerWidth, r2 = $('#sTitle .row2'), bank = $('#sTitle .bank'), tog = $('#sTitle .bank .tog') || $('#sTitle .row2 .tog'), keep = $('#tKeepBtns'); if (!r2) return;
+  const ids = ['btnRecords', 'btnPractice', 'btnRev'];
+  if (ph) { if (tog && tog.parentNode !== r2) r2.prepend(tog); for (const id of ids) { const b = $('#' + id); if (b && b.parentNode !== r2) r2.appendChild(b); } }
+  else { if (tog && bank && tog.parentNode !== bank) bank.appendChild(tog); if (keep) for (const id of ids.slice().reverse()) { const b = $('#' + id); if (b && b.parentNode !== keep) keep.prepend(b); } const rv = $('#btnRev'); if (rv && keep && rv.parentNode === keep) keep.appendChild(rv); }
+  { const q = $('#btnPractice'); if (q) q.textContent = ph ? tr('練習', 'Practice') : t('practice'); } /* [H44] 右の列の丸いボタンの名前は短く（「練習・場所えらび」は 2 行に切れた。中の画面で場所も選べる） */
+  document.getElementById('sTitle') && document.getElementById('sTitle').classList.toggle('hph', ph);
+} catch (e) { } }
+addEventListener('resize', () => homePlace());
+/* [H47] 本物の iPhone は字（ウェブの字体）の高さがちがうので、それでもスタートボタンが画面の下にはみ出す時は、下の台（3 人の丸とスタート）を一段小さくする */
+function homeFit() { try { const t = document.getElementById('sTitle'), st = document.getElementById('btnStart'); if (!t || !st || t.hidden) return; const ph = innerWidth < 600 && innerHeight > innerWidth; if (!ph) { t.classList.remove('hfit'); return; }
+  if (!t.classList.contains('hfit') && st.getBoundingClientRect().bottom > innerHeight - 4) t.classList.add('hfit'); } catch (e) { } }
+addEventListener('resize', () => { const t = document.getElementById('sTitle'); if (t) t.classList.remove('hfit'); requestAnimationFrame(homeFit); });
+try { document.fonts && document.fonts.ready.then(() => requestAnimationFrame(homeFit)); } catch (e) { }
+setTimeout(homeFit, 600); setTimeout(homeFit, 2000);

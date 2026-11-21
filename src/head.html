@@ -1110,5 +1110,30 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
 /* [H37] 2026-11-21：「今日のチモシー」の見出しが、カードの右のふちにかかって切れていた。左右の広さを 1.5:1 → 1.25:1 に（目標の数は 6 けたでも入る） */
 @media (orientation:portrait) and (max-width:599px) and (min-width:341px){#sTitle.home .card>#tToday{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
 @media (orientation:portrait) and (max-width:380px) and (min-width:341px){#sTitle.home .card>#tToday{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}#sTitle.home #tToday .tt-c small{font-size:9px;letter-spacing:-.03em}}
+/* [H40〜H49] 2026-11-21 オーナー（iPhone の写真 3 枚目）「まだ上下が収まりきってない」「見にくい・多すぎる」「音と設定は、空いている中心より少し右下でもいい」
+   [H40] いちばん下の 1 行（きろく・練習・場所えらび）をやめ、右の列の丸いボタンに（右の列は 2 つしかなく空いていた）
+   [H41] 右上の 3 行目（音・設定）をやめ、右の列のいちばん上に小さな丸 2 つで（右上が 1 行へり、全体が上下に収まる）
+   [H42] 選んだ子の得意の札「パワーアップ +30%なかよし Lv.1」の間に「・」が出ていなかった
+   [H43] 下の 1 行が無くなった分、スタートボタンの下に iPhone の下のふちの余白 */
+@media (orientation:portrait) and (max-width:599px){
+  #sTitle.home .card>#tKeepBtns{display:none!important}
+  #sTitle.home .card>.row2{gap:6px}
+  #sTitle.home .row2 .tog{display:flex;gap:8px;justify-content:center;margin:0 0 4px}
+  #sTitle.home .row2 .tog .sub{position:relative;width:38px;min-width:0;max-width:none;height:38px;padding:0;margin:0;font-size:0;border-radius:50%;background-color:rgba(255,252,246,.94);background-position:center;background-size:20px;background-repeat:no-repeat;box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff}
+  #sTitle.home .row2 .tog .sub::before,#sTitle.home .row2 .tog .sub::after{content:none!important;display:none!important}
+  #sTitle.home .row2 #btnRecords::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 26.500h22%22/%3E%3Crect x=%227%22 y=%2217%22 width=%224.600%22 height=%229.500%22 rx=%221.200%22 fill=%22%23FBF6EE%22/%3E%3Crect x=%2213.700%22 y=%2211.500%22 width=%224.600%22 height=%2215%22 rx=%221.200%22 fill=%22%23E9B44C%22/%3E%3Crect x=%2220.400%22 y=%226%22 width=%224.600%22 height=%2220.500%22 rx=%221.200%22 fill=%22%23D9584C%22/%3E%3C/svg%3E"),linear-gradient(180deg,#FFFFFF 0%,#FFF8EC 62%,#F6E7CC 100%)}
+  #sTitle.home .row2 #btnPractice::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M9 28V4.500%22/%3E%3Cpath d=%22M9 6h13.500l-3 4.500 3 4.500H9z%22 fill=%22%236DB36A%22/%3E%3Cpath d=%22M5.500 28h8%22 stroke-width=%222.400%22/%3E%3C/svg%3E"),linear-gradient(180deg,#FFFFFF 0%,#FFF8EC 62%,#F6E7CC 100%)}
+  #sTitle.home .row2 #btnRev::before{background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22 fill=%22none%22 stroke=%22%233B2A20%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M24.500 16a8.500 8.500 0 1 1-2.700-6.200%22 stroke-width=%222.600%22/%3E%3Cpath d=%22M24.800 5v6h-6%22 fill=%22none%22 stroke-width=%222.600%22/%3E%3C/svg%3E"),linear-gradient(180deg,#FFFFFF 0%,#FFF8EC 62%,#F6E7CC 100%)}
+  #sTitle.home .row2 #btnRecords,#sTitle.home .row2 #btnPractice,#sTitle.home .row2 #btnRev{display:block;background:none;box-shadow:none;border-radius:0}
+  #sTitle.home .row2 #btnRecords[hidden],#sTitle.home .row2 #btnPractice[hidden],#sTitle.home .row2 #btnRev[hidden]{display:none}
+  #sTitle.home .card>#btnStart{margin-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+}
+#sTitle.home .chars .char .perk br+span::before{content:"・"}
+/* [H47] それでもはみ出す時（本物の iPhone の字の高さ）：3 人の丸を小さく、スタートボタンを低く */
+@media (orientation:portrait) and (max-width:599px){
+  #sTitle.home.hfit .chars .char canvas{width:54px;height:54px}
+  #sTitle.home.hfit .card>#btnStart{min-height:0;height:50px;padding-top:0;padding-bottom:0;font-size:24px}
+  #sTitle.home.hfit .chars .char .nm{margin-top:1px}
+}
 /* ==== HOME-V2 END ==== */
 </style>
