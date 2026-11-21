@@ -1890,6 +1890,21 @@
       "name": "高い所の空に遠くの飛行機",
       "file": "src/4b_patterns.js",
       "has": "function drawPlanes(hz, seg)"
+    },
+    {
+      "name": "スマホのホームでは音と設定ときろくを右の列に",
+      "file": "src/7_ui.js",
+      "has": "function homePlace()"
+    },
+    {
+      "name": "スマホのホームではみ出す時は下の台を小さく",
+      "file": "src/7_ui.js",
+      "has": "function homeFit()"
+    },
+    {
+      "name": "得意の札の間に・",
+      "file": "tools/home/home.css",
+      "has": "#sTitle.home .chars .char .perk br+span::before{content:\"・\"}"
     }
   ]
 }
