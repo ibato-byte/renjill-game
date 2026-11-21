@@ -537,6 +537,10 @@ Object.assign(ARRIVE, {
 /* 行幸通りのイチョウも、黄色いのは秋だけ（春・夏は緑、冬ははだか）2026-11-09 qa/seasontree */
 SEASONAL.gyoko = { spring: { tree: 'green' }, summer: { tree: 'green' }, winter: { tree: 'bare', cone: 'canopy_coneB' } };
 SEASONAL.yotsuya = { spring: { ja: '外堀の土手・桜', en: 'Outer moat cherries', tree: 'sakura', petals: 1, spat: 'petals', side: ['#B7A797', '#AE9E8E'] } };
+/* [塔 T1] 2026-11-21：電波塔の足もと・着地の公園の木も、季節で変わる（前は一年中、緑）。芝公園・隅田公園は桜の名所、秋はイチョウが黄色、冬は葉が落ちる */
+for (const k of ['tfoot', 'tland', 'sfoot', 'sland']) { const b = THEMES[k], park = k === 'tland' || k === 'sland', ob = x => (b.obs || []).map(o => o === 'leafpile' ? x : o);
+  SEASONAL[k] = Object.assign(SEASONAL[k] || {}, { spring: { tree: 'sakura', petals: 1, props: (b.props || []).concat([['bonbori', 2]]), obs: park ? ob('picnic') : b.obs }, summer: { tree: 'green', obs: park ? ob('cone') : b.obs }, autumn: { tree: 'ginkgo', leaves: 1 }, winter: { tree: 'bare', obs: park ? ob('snowball') : b.obs } }); }
+/* [塔 T2] 春は、桜の下にぼんぼり（夜桜のあかり）。[塔 T3] 落ち葉の山（障害物）は秋だけ。春はお花見のシート、夏はコーン、冬は雪玉に（前は一年中、落ち葉の山） */
 SEASONAL.koishikawa = { autumn: { ja: '小石川の庭園・紅葉', en: 'Koishikawa autumn', tree: 'ginkgo', leaves: 1 } };
 AREA.central.push('chikagai', 'ochanomizu', 'koishikawa', 'akasaka', 'yotsuya', 'ichigaya'); AREA.east.push('okachimachi', 'monzen', 'kiba'); AREA.west.push('ebisu', 'nakano', 'koenji', 'jiyugaoka', 'sangenjaya'); AREA.bay.push('tennozu', 'harumi', 'kachidoki');
 NIGHT.west.push('sangenjaya', 'ebisu', 'akasaka'); NIGHT.east.push('okachimachi', 'monzen'); NIGHT.bay.push('akasaka');

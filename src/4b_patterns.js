@@ -596,11 +596,12 @@ function drawSky(seg) {
   G.skyIn = 0;
   skyGradient(horizon);
   const N = LT.night;
-  if (N > .5) { /* 星：四角い点 → 丸く、大きさと明るさをばらばらに、ゆっくりまたたく（「動きをひかえめ」ではまたたかない）。地平線の近くは町の明かりでうすく（2026-11-15） */ const calm = OPT().calm, tt = G.t || 0; ctx.fillStyle = '#FFFFFF';
+  if (N > .5 && (G.weather === 'clear' || !G.weather)) { /* [空 S1] 2026-11-21：雨や雪の夜にも星が出ていた（雨のすじと満天の星が同時に見えた）。星は晴れの夜だけ */ /* 星：四角い点 → 丸く、大きさと明るさをばらばらに、ゆっくりまたたく（「動きをひかえめ」ではまたたかない）。地平線の近くは町の明かりでうすく（2026-11-15） */ const calm = OPT().calm, tt = G.t || 0; ctx.fillStyle = '#FFFFFF';
     for (let i = 0; i < 56; i++) { const x = ((i * 97.3 - CAM.yaw * 80) % W + W) % W, y = (i * 53.7) % (horizon * .85), big = i % 7 === 0, tw = calm ? .8 : .62 + .38 * Math.sin(tt * (1.1 + (i % 5) * .35) + i * 1.7); ctx.globalAlpha = clamp((N - .5) * 2, 0, 1) * tw * (big ? .95 : .7) * clamp(1.15 - y / Math.max(1, horizon * .85), .25, 1); ctx.beginPath(); ctx.arc(x, y, big ? 1.5 : .6 + (i % 3) * .28, 0, Math.PI * 2); ctx.fill(); } ctx.globalAlpha = 1; }
   drawSunGlow(horizon);
   if (N > .6 && G.weather === 'clear' && adSeason() === 'summer') drawFireworks(horizon);
   drawClouds2(horizon);
+  if ((seg.th.climb && seg.th.climb[1] >= 100) || seg.th.sky) drawPlanes(horizon, seg); /* [空 P1] 2026-11-21：高い展望台・空の上から見る東京の空に、遠くの飛行機（羽田へおりる飛行機がゆっくり横切る。夜は赤と白の明かりが点滅） */
   if (N < .6 && G.weather === 'clear') drawBirds(horizon);
   const climb = !!th.climb, alt = climb ? altitude(seg, G.mode === 'title' ? 0 : G.s) : 0, drop = climb ? Math.min(H * .2, alt / 4200 * FOCAL) + Math.min(4, alt * .5) : 0; /* 2026-11-17：高い所から見た遠くの町の根もとは、地平線のすぐ下（本当の見え方：高さ÷きょり）。前は 450m で画面の 4 分の 1 も下げていて、展望台の窓の外は、床にかくれて町が見えなかった */
   const yb = horizon + drop;
@@ -627,6 +628,16 @@ function drawSky(seg) {
 }
 // summer nights: fireworks far away over the city (2026-11-08)
 const FW_COL = ['255,206,96', '255,128,140', '140,210,255', '190,255,160', '255,170,90'];
+function drawPlanes(hz, seg) {
+  if (typeof lowQ !== 'undefined' && lowQ > 1) return; const N = LT.night, t = G.t || 0;
+  for (let j = 0; j < 2; j++) { const per = 46 + j * 17, u = ((t / per + j * .43) % 1), dir = j ? -1 : 1, amx = Math.atan(W * .45 / FOCAL), yawOff = (j ? .62 : -.66) * amx - (seg && seg.th.sky && typeof skySpin === 'function' ? skySpin(seg) : 0); /* 進む方向の、少し左右の空（ぐるっと見わたす間は、空の飛行機は動かない） */
+    let a = yawOff + (u - .5) * .7 * amx * dir; while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; if (Math.abs(a) > 1.2) continue;
+    const x = W / 2 + Math.tan(a) * FOCAL, y = hz - FOCAL * (.2 + j * .06) - u * FOCAL * .02 * (j ? 1 : -1), s = Math.max(3, FOCAL * .008);
+    ctx.save(); ctx.translate(x, y); ctx.scale(dir, 1); ctx.globalAlpha = N > .5 ? .9 : .55;
+    if (N > .5) { const on = Math.sin(t * 6 + j * 2) > .4; ctx.fillStyle = 'rgba(40,46,70,.9)'; ctx.fillRect(-s * 1.6, -s * .18, s * 3.2, s * .36); if (on) { ctx.fillStyle = '#FF5A4A'; ctx.beginPath(); ctx.arc(-s * .2, s * .5, 1.3, 0, 7); ctx.fill(); } ctx.fillStyle = 'rgba(255,250,235,.95)'; ctx.beginPath(); ctx.arc(s * 1.6, 0, 1.1, 0, 7); ctx.fill(); }
+    else { ctx.fillStyle = tint('#8E96A2'); ctx.beginPath(); ctx.moveTo(-s * 1.6, -s * .14); ctx.lineTo(s * 1.6, -s * .1); ctx.quadraticCurveTo(s * 1.9, 0, s * 1.6, s * .12); ctx.lineTo(-s * 1.6, s * .14); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(-s * .2, 0); ctx.lineTo(-s * .8, s * .9); ctx.lineTo(-s * .45, s * .9); ctx.lineTo(s * .35, 0); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(-s * 1.3, 0); ctx.lineTo(-s * 1.7, -s * .6); ctx.lineTo(-s * 1.45, -s * .6); ctx.lineTo(-s * 1.0, 0); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-s * 1.7, 0); ctx.lineTo(-s * 1.7 - FOCAL * .05 * (.4 + u), 0); ctx.stroke(); } /* 昼は小さな機体と、うしろの短い飛行機雲 */
+    ctx.restore(); } }
 function drawFireworks(hz) {
   const SL = 1.7; ctx.save(); ctx.globalCompositeOperation = 'lighter';
   for (let j = 0; j < 2; j++) { const tt = G.t - j * SL * .5, slot = Math.floor(tt / SL), k = (tt - slot * SL) / SL, rn = n => { const v = Math.sin(slot * 12.9898 + j * 78.233 + n * 37.719) * 43758.5453; return v - Math.floor(v); };

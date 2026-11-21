@@ -1038,7 +1038,7 @@ function courseExtras(seg) { const th = seg.th, L = seg.len, t = seg.tid, H = se
       bx.push(B(lt, a, w, d, G0, G0 + hh, pick(['#A9B1B9', '#B4AEA4', '#9EA7B0', '#BDB6AA', '#C6C0B4', '#8E99A6'])), B(lt, a - .2, w + .4, d + .4, G0 + hh, G0 + hh + .6, '#80858C'));
       if (hh > 40) bx.push(B(lt, a + d * .3, w * .4, d * .3, G0 + hh + .6, G0 + hh + 4, '#9DA2A8'));
       { const seed = (Math.random() * 1e5) | 0, x0 = lt - w / 2, x1 = lt + w / 2; seg.walls.push({ v: quad(seg, [[a - .05, x1, G0], [a - .05, x0, G0], [a - .05, x0, G0 + hh], [a - .05, x1, G0 + hh]]), c: C(pick(['#B9C2CA', '#C9C4BA', '#A9B3BC', '#D6D0C4'])), n: [-seg.f[0], -seg.f[1]], sh: .92, pat: 'fac', st: pick(['glass', 'mixed', 'luxury']), h: hh, w, seed, k: 0, first: true, fv: seed % 8, fw: w, fh: hh, fm: '', fu0: 0, fu1: 1, fy0: 0, fy1: 1, far: 1, under: 1 }); } } } /* [塔 R8] 正面のビルの、こちらを向いた面に窓の絵（のっぺりした大きな箱に見えた） */
-    for (let a = 16; a < L + 10; a += rand(5, 8)) seg.spr.push({ lat: HW + rand(12, 26), s: a, y: G0, h: rand(10, 14), w: rand(9, 12), img: 'canopy_green', trunk: 1 }); /* [T-R5] 右の下に、公園の木（塔の足もとの公園）。曲がる前の建物の中から、かべごしに見えないよう、道の 16m 先から */
+    for (let a = 16; a < L + 10; a += rand(5, 8)) seg.spr.push({ lat: HW + rand(12, 26), s: a, y: G0, h: rand(10, 14), w: rand(9, 12), img: 'canopy_' + (th.tree || 'green'), trunk: 1 }); /* [T-R5] 右の下に、公園の木（塔の足もとの公園）。曲がる前の建物の中から、かべごしに見えないよう、道の 16m 先から */
     { const pr = mkProp(seg, bx, { big: 1 }); pr.under = 1; seg.props.push(pr); for (const sp of seg.spr) if (sp.y < -1) sp.under = 1; seg.under = 1; } }
   if (t === 'troof') { const bx = []; /* [C19〜C22] 入口の建物の屋上 */
     for (const sd of [-1, 1]) for (let a = 8; a < L - 8; a += 10) bx.push({ l0: sd * (HW - .9) - .35, l1: sd * (HW - .9) + .35, s0: a, s1: a + .7, y0: 0, y1: .55, c: '#B9B2A5' }, { l0: sd * (HW - .9) - .3, l1: sd * (HW - .9) + .3, s0: a + .05, s1: a + .65, y0: .55, y1: .95, c: '#4C8A48' }); /* [C19] 屋上の植えこみの箱 */
@@ -1052,8 +1052,8 @@ function courseExtras(seg) { const th = seg.th, L = seg.len, t = seg.tid, H = se
     for (let a = 4; a < L - 4; a += 3.5) for (const sd of [-1, 1]) seg.floor.push({ v: quad(seg, [[a, sd * (ROAD + .02), .011], [a + .12, sd * (ROAD + .02), .011], [a + .12, sd * (ROAD - .25), .011], [a, sd * (ROAD - .25), .011]]), c: C('#8A847A'), pat: null, ti: 0 }); } /* [C25] 園路のふちの、石のふち石のつなぎ目 */
   if (t === 'tland' || t === 'sland') { /* [着地 G5〜G7] 公園の森：芝生のふち（左右 26〜28m）に木を 2 列ならべ、芝生の四角い角が、上空から見ても見えないようにする。
        芝生の中にも、木のかたまりを 3 つ（本物の芝公園・隅田公園は木の多い公園）。木は「遠くからも描く木」（降りる時に急に出てこない） */
-    for (const sd of [-1, 1]) for (let a = -12; a < L + 12; a += 5) for (const q of [26.5, 21.5, 16.5]) { const lat = sd * (q + rand(-1.4, 1.4)); if (Math.abs(lat) < HW + 9) continue; seg.spr.push({ lat, s: a + rand(-1.6, 1.6), y: 0, h: rand(9, 14), w: rand(8, 11), img: 'canopy_green', trunk: 1, far: 1 }); } /* [着地 G9] 木の列を 2 → 3 列、少し大きく（着地の直前に、まわりが平らな芝生ばかりに見えた） */
-    for (const [a0, sd, n] of [[L * .18, 1, 6], [L * .45, -1, 7], [L * .8, 1, 5]]) for (let k = 0; k < n; k++) seg.spr.push({ lat: sd * (HW + 12 + rand(-3, 4)), s: a0 + rand(-7, 7), y: 0, h: rand(7, 11), w: rand(6, 9), img: 'canopy_green', trunk: 1, far: 1 });
+    for (const sd of [-1, 1]) for (let a = -12; a < L + 12; a += 5) for (const q of (t === 'sland' && sd < 0 ? [13] : [26.5, 21.5, 16.5])) { const lat = sd * (q + rand(t === 'sland' && sd < 0 ? -.4 : -1.4, t === 'sland' && sd < 0 ? .4 : 1.4)); /* [着地 R1] 2026-11-21：隅田公園の左（川の側）は、12m より先が隅田川。前は川の上に木が 3 列立っていた（空から見ると、川の中に木）。川べりの 1 列（13m）だけに */ if (Math.abs(lat) < HW + 9) continue; seg.spr.push({ lat, s: a + rand(-1.6, 1.6), y: 0, h: rand(9, 14), w: rand(8, 11), img: 'canopy_' + (th.tree || 'green'), trunk: 1, far: 1 }); } /* [着地 G9] 木の列を 2 → 3 列、少し大きく（着地の直前に、まわりが平らな芝生ばかりに見えた） */
+    for (const [a0, sd, n] of (t === 'sland' ? [[L * .18, 1, 6], [L * .45, 1, 7], [L * .8, 1, 5]] : [[L * .18, 1, 6], [L * .45, -1, 7], [L * .8, 1, 5]])) for (let k = 0; k < n; k++) seg.spr.push({ lat: sd * (HW + 12 + rand(-3, 4)), s: a0 + rand(-7, 7), y: 0, h: rand(7, 11), w: rand(6, 9), img: 'canopy_' + (th.tree || 'green'), trunk: 1, far: 1 });
   }
   if (t === 'tland' || t === 'sland') { /* [着地 G1〜G3] 2026-11-20 オーナー「降りるときの道路がやすっぽい」：上空から見ると、公園は一色の緑に、一色の茶色い道が 1 本のびているだけだった。
        上から見ても形がわかる大きさの模様をつける（細かい模様は遠くでつぶれるので、太い帯で）。ほかの床と重ならない帯だけを、いつも床の後に同じ順で描く（soft） */
@@ -1125,6 +1125,8 @@ function buildPark(seg, s0, lEnd, rEnd) {
     if (th.town) for (let a = s0 + 4; a < end - 18; a += rand(17, 24)) { const w = rand(10, 15), hh = Math.round(rand(12, 42)), seed = (Math.random() * 1e5) | 0, style = pick(['mixed', 'glass', 'mixed', 'luxury']), cc = C(pick(['#C9C4BA', '#B9C2CA', '#D6D0C4', '#A9B3BC', '#C8BBAA'])); for (let x = a, k = 0; x < a + w - .01; x += 3.5, k++) addWallQuadO(seg, sd, x, Math.min(x + 3.5, a + w), 0, hh, 24, cc, { pat: 'fac', st: style, h: hh, w: Math.min(3.5, a + w - x), seed: seed + k, k, first: k === 0, fv: seed % 8, fw: w, fh: hh, fm: '', fu0: (x - a) / w, fu1: (Math.min(x + 3.5, a + w) - a) / w, fy0: 0, fy1: 1, far: 1 }); } /* [L7] 着地する公園：並木のうしろ（24m 先）に、まわりの町のビル。前は木のうしろが何もない灰色だった */
   }
   const e = seg.len + HW;
+  if (seg.straight) return; /* [塔 E1] 2026-11-21 オーナー「東京タワーやスカイツリーの入り口に木が立っている」：公園の道のつきあたりには、石の低いかべと木の列を置いていた。
+     まっすぐ次の場所へ続く道（電波塔の足もと → 入口の建物など）にも置いていたので、入口の前に木と石のかべが立ちふさがっていた。まっすぐ続く道には置かない */
   for (let x = -HW; x < HW - .01; x += 3) seg.walls.push({ v: quad(seg, [[e, x, 0], [e, x + 3, 0], [e, x + 3, .7], [e, x, .7]]), c: C('#8A8470'), n: [-seg.f[0], -seg.f[1]], sh: 1, pat: 'stonewall' });
   if (seg.tid === 'hondo') { pagoda3d(seg, seg.pagS, -(HW + 14)); templeHall(seg, e); return; }
   if (th.tree === 'sakura') for (let x = -HW - 4; x < HW + 4; x += 5) seg.spr.push(Object.assign(sakuraSpr(x, e + rand(1, 4), 0, 11, 10), { keep: Math.abs(x) <= HW }));
