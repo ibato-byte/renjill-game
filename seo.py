@@ -24,7 +24,8 @@ def game_ld():
     'playMode': 'SinglePlayer', 'isAccessibleForFree': True, 'offers': {'@type': 'Offer', 'price': '0', 'priceCurrency': 'JPY'},
     'character': [{'@type': 'Person', 'name': 'レン（Ren）', 'description': 'ホーランドロップのうさぎの課長'}, {'@type': 'Person', 'name': 'ジル（Jill）', 'description': 'ネザーランド・ドワーフのうさぎの部下'}],
     'dateModified': TODAY,
-    'author': {'@type': 'Organization', 'name': 'Ren & Jill', 'url': OFFICIAL, 'sameAs': [u for _, u in SNS]},
+    'author': {'@type': 'Organization', '@id': OFFICIAL + '#org', 'name': 'レンとジル Ren & Jill', 'url': OFFICIAL, 'sameAs': [u for _, u in SNS]},
+    'publisher': {'@id': OFFICIAL + '#org'}, 'isPartOf': {'@type': 'CreativeWorkSeries', '@id': OFFICIAL + '#series', 'name': 'レンとジル（Ren & Jill）', 'url': OFFICIAL},
   }
 
 def head_tags():
@@ -35,7 +36,7 @@ def head_tags():
 
 def noscript():
   return ('<noscript><div style="max-width:560px;margin:40px auto;padding:20px;background:#FFF7E8;color:#3B2A20;border-radius:16px;font-family:sans-serif">'
-          '<h1>レンとジルのチモシーダッシュ</h1><p>%s</p><p>このゲームは JavaScript をオンにすると遊べます。<a href="guide">遊び方とキャラクター紹介</a>・<a href="ranking">みんなのランキング</a></p></div></noscript>') % html.escape(DESC_JA)
+          '<h1>レンとジルのチモシーダッシュ</h1><p>%s</p><p>このゲームは JavaScript をオンにすると遊べます。<a href="guide">遊び方とキャラクター紹介</a>・<a href="ranking">みんなのランキング</a>・<a href="https://renjill.coana.co.jp/">レンとジル 公式サイト</a></p></div></noscript>') % html.escape(DESC_JA)
 
 CSS = ''':root{--ink:#3B2A20;--soft:#7A6550;--paper:#FFF7E8;--line:#E3D3BC;--gold:#C9962F;--tie:#D9A21B}
 *{box-sizing:border-box}body{margin:0;background:#F4ECE0;color:var(--ink);font-family:"Zen Maru Gothic","Hiragino Sans","Noto Sans CJK JP","Noto Sans JP",system-ui,sans-serif;line-height:1.75}
@@ -92,7 +93,7 @@ def page(lang):
 <section><h2>{L('よくある質問', 'FAQ')}</h2><dl>{''.join(f'<dt>{e(q)}</dt><dd>{e(a)}</dd>' for q, a in faq)}</dl></section>
 <a class="play" href="./{'?ref=guide' if ja else '?lang=en&amp;ref=guide'}">{L('今すぐ無料で遊ぶ ▶', 'Play free now ▶')}</a>
 <section class="follow"><h2>{L('レンとジルをフォロー', 'Follow Ren &amp; Jill')}</h2><p>{L('レンとジルのアニメは、SNSで新しい話を公開しています（@renjill_office）。ゲームの「あいことば」もここで発表します。', 'New Ren &amp; Jill anime episodes are posted on social media (@renjill_office). Secret words for the game are posted there too.')}</p>
-<p class="sns">{' '.join(f'<a href="{u}" rel="noopener" target="_blank">{n}</a>' for n, u in SNS)} <a href="{OFFICIAL}?ref=haydash" rel="noopener" target="_blank">{L('公式サイト', 'Official site')}</a></p></section>
+<p class="sns">{' '.join(f'<a href="{u}" rel="noopener" target="_blank">{n}</a>' for n, u in SNS)} <a href="{OFFICIAL}{'' if ja else '?lang=en'}">{L('レンとジル 公式サイト（アニメ全話）', 'Ren &amp; Jill official site (all episodes)')}</a></p></section>
 <footer>{L('えさの情報は一般的な目安です（出典：長野県動物愛護センター）。', 'Food notes are general guidance (source: Nagano Prefecture Animal Welfare Center).')}<br>© Ren &amp; Jill</footer>
 </main>'''
   return f'''<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -128,7 +129,7 @@ def food_page(lang):
     rows = ''.join(f'<li><b>{e(items[k]["ja"])}</b>：{e(items[k]["tja"])}</li>' if ja else f'<li><b>{e(items[k]["en"])}</b>: {e(items[k]["ten"])}</li>' for k in keys if k in items)
     secs += f'<section class="g-{gid}"><h2>{L(gja, gen)}</h2><ul class="food">{rows}</ul></section>'
   ld = [{'@context': 'https://schema.org', '@type': 'Article', 'headline': title, 'description': desc, 'inLanguage': lang, 'url': url, 'dateModified': TODAY, 'image': SITE + 'og.png',
-         'author': {'@type': 'Organization', 'name': 'Ren & Jill', 'url': OFFICIAL}, 'citation': L('長野県動物愛護センター「うさぎの飼い方」', 'Nagano Prefecture Animal Welfare Center: rabbit care guide')},
+         'author': {'@type': 'Organization', '@id': OFFICIAL + '#org', 'name': 'レンとジル Ren & Jill', 'url': OFFICIAL}, 'citation': L('長野県動物愛護センター「うさぎの飼い方」', 'Nagano Prefecture Animal Welfare Center: rabbit care guide')},
         {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': [{'@type': 'ListItem', 'position': 1, 'name': L('チモシーダッシュ', 'Hay Dash'), 'item': SITE}, {'@type': 'ListItem', 'position': 2, 'name': L('えさ図鑑', 'Food guide'), 'item': url}]}]
   body = f"""<main>
 <header><small>REN &amp; JILL ・ {L('えさ図鑑', 'FOOD GUIDE')}</small><h1>{L('うさぎが食べていい物・<wbr>ダメな物', 'What can rabbits eat?')}</h1><p>{L('うさぎの課長レンと部下ジルの、えさ図鑑', 'The food book of Ren and Jill, two office bunnies')}</p></header>
@@ -136,7 +137,7 @@ def food_page(lang):
 <p class="note">{L('ここに書いてあるのは一般的な目安です。体の大きさや年齢、体調によって合う量はちがいます。気になることは動物病院に相談してください。', 'This is general guidance. The right amounts depend on size, age and health; ask a vet if you are unsure.')}</p></section>
 {secs}
 <a class="play" href="./{'?ref=food' if ja else '?lang=en&amp;ref=food'}">{L('ゲームで集めてみる（無料） ▶', 'Collect them in the free game ▶')}</a>
-<p class="lang">{L('<a href="food-en" hreflang="en">English</a>', '<a href="food" hreflang="ja">日本語</a>')} ・ <a href="{L('guide', 'guide-en')}">{L('ゲームの遊び方', 'How to play')}</a></p>
+<p class="lang">{L('<a href="food-en" hreflang="en">English</a>', '<a href="food" hreflang="ja">日本語</a>')} ・ <a href="{L('guide', 'guide-en')}">{L('ゲームの遊び方', 'How to play')}</a> ・ <a href="{OFFICIAL}{'' if ja else '?lang=en'}">{L('レンとジル 公式サイト', 'Ren &amp; Jill official site')}</a></p>
 <footer>{L('えさの情報は一般的な目安です（出典：長野県動物愛護センター）。ゲームの中だけの物は、このページにはのせていません。', 'Food notes are general guidance (source: Nagano Prefecture Animal Welfare Center). Items that exist only in the game are not listed.')}<br>© Ren &amp; Jill</footer>
 </main>"""
   css = CSS + '.food{list-style:none;padding:0}.food li{padding:8px 0;border-bottom:1px dashed var(--line)}.food li:last-child{border:0}.note{font-size:14px;color:var(--soft)}.g-bad{border-color:#E8A79E;background:#FFF1EE}.g-bad h2{color:#B3392E}'
