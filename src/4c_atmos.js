@@ -32,7 +32,7 @@ function skyGradient(horizon) {
 /* ---- the sun (or moon) and its glow ---- */
 function drawSunGlow(horizon) {
   const N = LT.night, dx = angDiff(SUN.az, CAM.yaw);
-  if (N > .5 && (G.weather === 'clear' || !G.weather)) { // moon  [空 S1] 雨や雪の夜は、月も雲にかくれる
+  if (N > .5 && (G.weather === 'clear' || !G.weather)) { // moon。空 S1：雨や雪の夜は、月も雲にかくれる
     const ma = angDiff(.9, CAM.yaw); if (Math.abs(ma) > 1.1) return;
     const x = W / 2 + Math.tan(ma) * FOCAL, y = horizon - H * .24;
     const g = ctx.createRadialGradient(x, y, 2, x, y, 70); g.addColorStop(0, 'rgba(255,250,230,.35)'); g.addColorStop(1, 'rgba(255,250,230,0)');
