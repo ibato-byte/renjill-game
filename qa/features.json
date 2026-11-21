@@ -1935,6 +1935,31 @@
       "name": "階段の上のななめの天井は、目より低くなっても消えない（空がのぞかない）",
       "file": "src/3_world.js",
       "has": "[塔 C1]"
+    },
+    {
+      "name": "電波塔のコースの曲がり角で曲がりそこねると、ぶつからずに、へりの先へ落ちて終わる",
+      "file": "src/6_game.js",
+      "has": "function towerFall(seg)"
+    },
+    {
+      "name": "落ちる間は、つきあたりの壁を描かない",
+      "file": "src/4_render.js",
+      "has": "if (fallE && w.endW) continue;"
+    },
+    {
+      "name": "結果の画面のひと言：曲がりそこねて、落ちました",
+      "file": "src/6_game.js",
+      "has": "'曲がりそこねて、落ちました'"
+    },
+    {
+      "name": "床より下の物は、ぜんぶの区間の床より先に描く（屋上の曲がり角の床に穴があかない）",
+      "file": "src/4_render.js",
+      "has": "function drawUnder(sg)"
+    },
+    {
+      "name": "押上の回廊のテラスの植えこみは、緑の箱でなく葉のかたまり",
+      "file": "src/3_world.js",
+      "has": "[塔 P2]"
     }
   ]
 }
