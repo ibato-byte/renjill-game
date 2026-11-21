@@ -562,7 +562,7 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
   #sTitle.home .card>#tKeepBtns{display:none!important}
   #sTitle.home .card>.row2{gap:6px}
   #sTitle.home .row2 .tog{display:flex;gap:8px;justify-content:center;margin:0 0 4px}
-  #sTitle.home .row2 .tog .sub{position:relative;width:38px;min-width:0;max-width:none;height:38px;padding:0;margin:0;font-size:0;border-radius:50%;background-color:rgba(255,252,246,.94);background-position:center;background-size:20px;background-repeat:no-repeat;box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff}
+  #sTitle.home .row2 .tog .sub{position:relative;width:38px;min-width:0;max-width:none;height:38px;padding:0;margin:0;font-size:0;color:#3B2A20;border-radius:50%;background-color:rgba(255,252,246,.94);background-position:center;background-size:20px;background-repeat:no-repeat;box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff}
   #sTitle.home .row2 .tog .sub::before,#sTitle.home .row2 .tog .sub::after{content:none!important;display:none!important}
   #sTitle.home .row2 #btnRecords::before{background-image:ICON(records),linear-gradient(180deg,#FFFFFF 0%,#FFF8EC 62%,#F6E7CC 100%)}
   #sTitle.home .row2 #btnPractice::before{background-image:ICON(practice),linear-gradient(180deg,#FFFFFF 0%,#FFF8EC 62%,#F6E7CC 100%)}
