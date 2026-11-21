@@ -163,7 +163,7 @@ function kpTitle() {
   let row = $('#tKeepBtns'); if (!row) { row = document.createElement('div'); row.id = 'tKeepBtns'; e.after(row); }
   let r = $('#btnRecords'); if (!r) { r = document.createElement('button'); r.id = 'btnRecords'; r.className = 'sub small'; r.onclick = kpRecords; row.prepend(r); }
   $('#tKeepBtns').hidden = !SV.tutDone;
-  r.hidden = !SV.tutDone; r.textContent = kt('rec');
+  r.hidden = !SV.tutDone; r.textContent = kt('rec'); if (typeof homePlace === 'function') homePlace();
   for (const [w, id] of [['ren', 'pickRen'], ['jill', 'pickJill'], ['pom', 'pickPom']]) { const card = $('#' + id); if (!card) continue; let s = card.querySelector('.cbest'); if (!s) { s = document.createElement('span'); s.className = 'cbest'; card.appendChild(s); } const v = kpN(k.cb[w]); s.hidden = !v; s.textContent = v ? kt('cbest', fmt(v)) : ''; }
 }
 // 題名の「今日」：目標・チモシー・チャレンジを 1 つの枠に（2026-11-15 文字を減らす：3 行の文 → 数字と棒。元の行は試験と置き場所のために残し、見えなくする）
@@ -177,6 +177,7 @@ function todayGrid() {
   e.innerHTML = cell(tr('今日の目標', "Today's goal"), fmt(goal), gk, gdone) + cell(tr('今日のチモシー', 'Hay today'), `${fmt(Math.min(n, DAY_GOAL))}<s>/${DAY_GOAL}</s>`, hk, hdone)
     + `<p class="tt-ch${cdone ? ' ok' : ''}"><span>${esc(L(dly.c.t(dly.n)))}</span><em>${cdone ? '✓' : '+300'}</em></p>`;
   const row = $('#tKeepBtns'); if (row) for (const id of ['btnPractice', 'btnRev']) { const b = $('#' + id); if (b && b.parentNode !== row) row.appendChild(b); } // 小さなボタンは 1 つの列に（1 行ずつ縦に並べない）
+  if (typeof homePlace === 'function') homePlace();
 }
 function kpRecords() {
   SFX.ui(); const k = kp(), nm = { r: tr('レン', 'Ren'), j: tr('ジル', 'Jill'), p: tr('ポム', 'Pom') }, avg = k.h.length ? Math.round(k.h.reduce((a, b) => a + b, 0) / k.h.length) : 0;
