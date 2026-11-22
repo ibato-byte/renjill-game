@@ -37,7 +37,7 @@
       "has": "#combo.pop"
     },
     {
-      "name": "クリの合流の音",
+      "name": "ポムの合流の音",
       "file": "src/6_game.js",
       "has": "SFX.pom()"
     },
@@ -757,7 +757,7 @@
       "has": "const ITEM_FORM = {"
     },
     {
-      "name": "ユズのカチューシャは耳の外側",
+      "name": "ジルのカチューシャは耳の外側",
       "file": "src/2b_bunny.js",
       "has": "let HAT_OUT = 0;"
     },
@@ -822,7 +822,7 @@
       "has": "function hatTufts("
     },
     {
-      "name": "ユズの帽子は頭の横に（耳が見える）",
+      "name": "ジルの帽子は頭の横に（耳が見える）",
       "file": "src/2b_bunny.js",
       "has": "function jillHat("
     },
@@ -852,12 +852,12 @@
       "has": "while (CTXD > d0) ctx.restore();"
     },
     {
-      "name": "後ろ姿もアニメの頭と耳の形（モチ）",
+      "name": "後ろ姿もアニメの頭と耳の形（レン）",
       "file": "src/2b_bunny.js",
       "has": "function renBack("
     },
     {
-      "name": "後ろ姿もアニメの頭と耳の形（ユズ）",
+      "name": "後ろ姿もアニメの頭と耳の形（ジル）",
       "file": "src/2b_bunny.js",
       "has": "jillEars(g, p.ear * 26, 1)"
     },
@@ -867,17 +867,17 @@
       "has": "n: 'animelook'"
     },
     {
-      "name": "キャラクターはアニメと同じ形（モチの頭）",
+      "name": "キャラクターはアニメと同じ形（レンの頭）",
       "file": "src/2b_bunny.js",
       "has": "M180 105 C 252 105 292 150 292 202"
     },
     {
-      "name": "キャラクターはアニメと同じ形（ユズの頭）",
+      "name": "キャラクターはアニメと同じ形（ジルの頭）",
       "file": "src/2b_bunny.js",
       "has": "M188 130 C 248 130 284 166 284 210"
     },
     {
-      "name": "キャラクターはアニメと同じ形（クリの頭）",
+      "name": "キャラクターはアニメと同じ形（ポムの頭）",
       "file": "src/2b_bunny.js",
       "has": "function pomHead("
     },
@@ -922,12 +922,12 @@
       "has": "if (KB_PC) Object.assign(STR, {"
     },
     {
-      "name": "モチ・ユズの前足（指の分かれ目・光・かげ。アニメと同じ数字）",
+      "name": "レン・ジルの前足（指の分かれ目・光・かげ。アニメと同じ数字）",
       "file": "src/2b_bunny.js",
       "has": "function frontPawC(g, who, cx, cy, w, h, cream, top)"
     },
     {
-      "name": "モチ・ユズの後ろ足とももの丸み",
+      "name": "レン・ジルの後ろ足とももの丸み",
       "file": "src/2b_bunny.js",
       "has": "function hindFootC(g, who, hx, y, L, h, d)"
     },
@@ -1022,7 +1022,7 @@
       "has": "li === 'strip' && w.train"
     },
     {
-      "name": "クリの帽子：頭の幅いっぱいに、はちまきの上にかぶせる",
+      "name": "ポムの帽子：頭の幅いっぱいに、はちまきの上にかぶせる",
       "file": "src/2b_bunny.js",
       "has": "function pomHatFit("
     },
@@ -1057,7 +1057,7 @@
       "has": "put('carend', -HW, HW, 0, H)"
     },
     {
-      "name": "クリの走り：足を交互に・ほとんど跳ねない（ハムスター）",
+      "name": "ポムの走り：足を交互に・ほとんど跳ねない（ハムスター）",
       "file": "src/2b_bunny.js",
       "has": "const upOf = sd => { if (!run) return 0;"
     },
@@ -1147,7 +1147,7 @@
       "has": "else if (b.fly) pose ="
     },
     {
-      "name": "クリの走り：3 つの場面の足・けり出した足の裏",
+      "name": "ポムの走り：3 つの場面の足・けり出した足の裏",
       "file": "src/2b_bunny.js",
       "has": "const legS = sd =>"
     },
@@ -1282,7 +1282,7 @@
       "has": "{ t: 'tlobby', d: 5, turn: 1 }, { t: 'troof', d: 4, turn: -1 }, { t: 'tstair', d: 12, straightOut: 1 }, { t: 'tpass', d: 4, turn: -1 }"
     },
     {
-      "name": "クリは四つ足で低く走る（二足歩行に見えた）",
+      "name": "ポムは四つ足で低く走る（二足歩行に見えた）",
       "file": "src/2b_bunny.js",
       "has": "const runLow = run ||"
     },
@@ -1292,12 +1292,12 @@
       "has": "body.classList.toggle('tscroll', on)"
     },
     {
-      "name": "クリのあいさつは並んで走りながら",
+      "name": "ポムのあいさつは並んで走りながら",
       "file": "src/6_game.js",
       "has": "function peekStep(seg, dt, P)"
     },
     {
-      "name": "走りながらふり向くクリの絵",
+      "name": "走りながらふり向くポムの絵",
       "file": "src/2b_bunny.js",
       "has": "BUN[who]['rlook' + k]"
     },
@@ -1627,7 +1627,7 @@
       "has": "[着地 G1〜G3]"
     },
     {
-      "name": "空の上のカメラの高さはモチたちの今の高さ（押上から飛び立つと画面の下へ消えた）",
+      "name": "空の上のカメラの高さはレンたちの今の高さ（押上から飛び立つと画面の下へ消えた）",
       "file": "src/6_game.js",
       "has": "const skyCam = !!seg.th.sky"
     },
@@ -1667,7 +1667,7 @@
       "has": "const g0 = L - 9, gh = 4.3;"
     },
     {
-      "name": "クリのオオタカはユズと反対がわ",
+      "name": "ポムのオオタカはジルと反対がわ",
       "file": "src/6_game.js",
       "has": "G.lat + (G.lat > .5 ? 1.5 : -1.5)"
     },
@@ -1747,7 +1747,7 @@
       "has": "cpat: 'beams', light: 'strip', face: 250"
     },
     {
-      "name": "着地の直前ユズはいつもの場所へもどる",
+      "name": "着地の直前ジルはいつもの場所へもどる",
       "file": "src/6_game.js",
       "has": "[空 K5]"
     },
@@ -1789,7 +1789,7 @@
     {
       "name": "検索：ゲームのページから公式サイトへの言葉つきリンク（2026-11-21 SEO）",
       "file": "seo.py",
-      "has": "東京うさぎオフィス 公式サイト（アニメ全話）"
+      "has": "レンとジル 公式サイト（アニメ全話）"
     },
     {
       "name": "検索：構造化データで公式サイトと同じ運営者（#org）を指す（2026-11-21 SEO）",
@@ -1842,7 +1842,7 @@
       "has": "[空 K6]"
     },
     {
-      "name": "見わたす間も横のオオタカは画面の上でモチの横",
+      "name": "見わたす間も横のオオタカは画面の上でレンの横",
       "file": "src/6_game.js",
       "has": "function skySide(seg)"
     },
@@ -2085,6 +2085,176 @@
       "name": "ホーム：いろいろな画面の大きさの直し（H61〜H65）",
       "file": "tools/home/home.css",
       "has": "[H65]"
+    },
+    {
+      "name": "ホーム：下の台の取っ手に見える線と、目標の札の金の丸を出さない",
+      "file": "tools/home/home.css",
+      "has": "[B1]"
+    },
+    {
+      "name": "家の台所の灯りは家の丸い灯り",
+      "file": "src/1b_places.js",
+      "has": "[B3]"
+    },
+    {
+      "name": "湾岸の富士山を遠くの山らしい大きさに",
+      "file": "src/4b_patterns.js",
+      "has": "[B5]"
+    },
+    {
+      "name": "集中線は画面のふちだけ",
+      "file": "src/4_render.js",
+      "has": "[B6]"
+    },
+    {
+      "name": "階段の区間で、かべの物は水平・天井の物は天井の線に",
+      "file": "src/4_render.js",
+      "has": "[B7]"
+    },
+    {
+      "name": "階段のある部屋の天井の物は天井の線に",
+      "file": "src/3_world.js",
+      "has": "[B9]"
+    },
+    {
+      "name": "たて長のタブレットのホームで左右の子を内側に",
+      "file": "src/6_game.js",
+      "has": "[B10]"
+    },
+    {
+      "name": "走るポムの体のふちの細い線",
+      "file": "src/2b_bunny.js",
+      "has": "[B11]"
+    },
+    {
+      "name": "指で遊ぶ時は続けるボタンに青いわくを出さない",
+      "file": "src/7_ui.js",
+      "has": "[B12]"
+    },
+    {
+      "name": "日本語はことばの切れ目で改行",
+      "file": "tools/home/home.css",
+      "has": "[B13]"
+    },
+    {
+      "name": "住宅街の道には車線の点線を引かない",
+      "file": "src/4b_patterns.js",
+      "has": "[B14]"
+    },
+    {
+      "name": "マンホールは床の上の円として描く",
+      "file": "src/4b_patterns.js",
+      "has": "[B15]"
+    },
+    {
+      "name": "走っている時も近くの和室の天井は竿縁天井",
+      "file": "src/4b_patterns.js",
+      "has": "[B16]"
+    },
+    {
+      "name": "桜の枝は花のかたまりの中と幹のまわりだけ",
+      "file": "src/4b_patterns.js",
+      "has": "[B17]"
+    },
+    {
+      "name": "遠くの目じるし同士を画面で重ねない",
+      "file": "src/4b_patterns.js",
+      "has": "[B18]"
+    },
+    {
+      "name": "勝どき橋は鉄のアーチと運転室",
+      "file": "src/3_world.js",
+      "has": "[B19]"
+    },
+    {
+      "name": "高架の裏の鉄のけた",
+      "file": "src/3_world.js",
+      "has": "[B20]"
+    },
+    {
+      "name": "のぼりの字を町に合わせる",
+      "file": "src/3_world.js",
+      "has": "[B22]"
+    },
+    {
+      "name": "ガード下の天井は赤レンガ",
+      "file": "src/4b_patterns.js",
+      "has": "[B23]"
+    },
+    {
+      "name": "ガラスの天井には明かりの板を置かない",
+      "file": "src/3_world.js",
+      "has": "[B21]"
+    },
+    {
+      "name": "たて長のスマホのホームの左右の子の間",
+      "file": "src/6_game.js",
+      "has": "[B24]"
+    },
+    {
+      "name": "ガラスの床の枠は窓のまわりだけ",
+      "file": "src/4b_patterns.js",
+      "has": "[B25]"
+    },
+    {
+      "name": "夜の着地の園路は立体の道と同じ色",
+      "file": "src/4g_aerial.js",
+      "has": "[B26]"
+    },
+    {
+      "name": "指で使う時は選択のわくを出さない",
+      "file": "src/7_ui.js",
+      "has": "[B27]"
+    },
+    {
+      "name": "家の丸い天井灯は天井の上の円",
+      "file": "src/4b_patterns.js",
+      "has": "[B28]"
+    },
+    {
+      "name": "家の天井の回り縁",
+      "file": "src/4b_patterns.js",
+      "has": "[B29]"
+    },
+    {
+      "name": "ホームの点字ブロックの点",
+      "file": "src/4b_patterns.js",
+      "has": "[B30]"
+    },
+    {
+      "name": "倍率は×2以上の時だけ出す",
+      "file": "src/6_game.js",
+      "has": "[B31]"
+    },
+    {
+      "name": "家の台所の流し台は木の戸",
+      "file": "src/4e_art.js",
+      "has": "[B32]"
+    },
+    {
+      "name": "家の台所の木の食器棚",
+      "file": "src/4e_art.js",
+      "has": "[B33]"
+    },
+    {
+      "name": "家の板の床は近くで細い板",
+      "file": "src/4b_patterns.js",
+      "has": "[B34]"
+    },
+    {
+      "name": "中づり広告の絵を言葉に合わせる",
+      "file": "src/4e_art.js",
+      "has": "[B35]"
+    },
+    {
+      "name": "場所の名前の帯ははじめて来た時だけ",
+      "file": "src/6_game.js",
+      "has": "[B36]"
+    },
+    {
+      "name": "外向きの面だけの箱（建物の外かべ）",
+      "file": "src/4_render.js",
+      "has": "[B37]"
     }
   ]
 }
