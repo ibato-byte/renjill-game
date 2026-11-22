@@ -461,7 +461,7 @@ function floorLayers() { FLA.length = 0; FLB.length = 0; FLC.length = 0;
   for (const e of DRAW) { const p = e[1]; if (p.dec && p.dec !== 'futonD' && p.dec !== 'zabuTop') { if (!p.__fi) p.__fi = ++FLN; FLB.push(e); } else if (p.soft || p.dec) FLC.push(e); else FLA.push(e); }
   if (!FLB.length) return; FLB.sort((a, b) => a[1].__fi - b[1].__fi); DRAW.length = 0; for (const e of FLA) DRAW.push(e); for (const e of FLB) DRAW.push(e); for (const e of FLC) DRAW.push(e); }
 const BUBQ = [];
-function drawUnder(sg) { /* [塔 U1] 2026-11-21：床より下の物は、ぜんぶの区間の床より先に描く（前は区間ごとに描いたので、屋上の下のビルの面が、先に描いた次の区間（曲がった先の階段）の床の上にかぶり、曲がり角の床に穴があいてジルが宙に立って見えた） */
+function drawUnder(sg) { /* [塔 U1] 2026-11-21：床より下の物は、ぜんぶの区間の床より先に描く（前は区間ごとに描いたので、屋上の下のビルの面が、先に描いた次の区間（曲がった先の階段）の床の上にかぶり、曲がり角の床に穴があいてユズが宙に立って見えた） */
   if (!sg.under) return; LC = sg.th.lc || '#80C241';
   const near = d => d > -8 && d < FAR + 8;
   if (sg.under) { /* [塔 S2] 2026-11-21：床より下の高さにある物（屋上から見下ろす、まわりのビルの箱・下の道ぞいの窓の面）は、床より先に描く。
@@ -547,7 +547,7 @@ function drawObjects(sg, isCur, oc) { SKYV = !!(curSeg().th.sky);
     dput(d, 3, o);
   }
   if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) dput(m.cross ? d + 8 : d, 8, m); } // 橋の上の電車は、橋げた・かべ高欄より先に描く（下から見上げても、電車の床下は橋げたにかくれる。2026-11-17）
-  for (const p of sg.props) { if (p.nodraw || p.under) continue; const d = segDepth(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); if (d < -3 || d > (p.big || SKYV ? FAR : lowQ ? 60 : 85)) continue; /* [降りる時 D3] 降りる間は、下の公園のベンチ・街灯なども遠くから描く（近づいた時に急に出てこない） */ dput(d, 6, p); }
+  for (const p of sg.props) { if (p.nodraw || p.under) continue; const d = p.extOnly ? segDepth(sg, p.s0, 0) - .5 : segDepth(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); /* [B40] 建物の外かべは、いちばん手前（入口）の深さで並べる（建物の中の物が、外かべの上に描かれて透けて見えた） */ if (d < -3 || d > (p.big || SKYV ? FAR : lowQ ? 60 : 85)) continue; /* [降りる時 D3] 降りる間は、下の公園のベンチ・街灯なども遠くから描く（近づいた時に急に出てこない） */ dput(d, 6, p); }
   for (const s of sg.spr) { if (s.under) continue; if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const d = segDepth(sg, s.s, s.lat); if (d < .5 || d > (s.far || SKYV ? FAR : 80)) continue; /* [降りる時 D2] オオタカと降りる間は、下の公園の木や物が 80m より遠くても描く（前は、高い所では消え、近づくと急に出てきた） */ dput(d, 7, s); }
   // pigeons on the street: they peck about and fly off as you run up (2026-11-08)
   // rain: puddles on the street that splash when you run through (2026-11-08)
@@ -575,7 +575,7 @@ function drawObjects(sg, isCur, oc) { SKYV = !!(curSeg().th.sky);
 function drawObj(e, sg) {
   {
     if (e[1] === 3) { drawObstacle(e[2], sg, e[0]); pm('obs'); }
-    else if (e[1] === 6) { const p = e[2]; if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], (p.l0 < ROAD && p.l1 > -ROAD) ? passFade(e[0]) : 1, 0, 0, 0, p.fc); pm('props'); } // 道のわきの家具・箱は、通りすぎてもうすくしない（2026-11-17）
+    else if (e[1] === 6) { const p = e[2]; if (p.extOnly && sg === G.segs[G.ci]) return; /* [B40] 建物の外からだけ見る物（中に入ったら描かない） */ if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], (p.l0 < ROAD && p.l1 > -ROAD) ? passFade(e[0]) : 1, 0, 0, 0, p.fc); pm('props'); } // 道のわきの家具・箱は、通りすぎてもうすくしない（2026-11-17）
     else if (e[1] === 7) { drawSpr(e[2], sg, e[0]); pm('spr'); }
     else if (e[1] === 8) drawBoxes(moverBoxes(e[2]), sg, e[0], 1, e[2].cross ? 0 : e[2].ds, e[2].cross ? e[2].dl || 0 : 0, 0);
     else if (e[1] === 4) { drawItem(e[2], sg, e[0]); pm('items'); }
@@ -772,24 +772,24 @@ function drawBunnyWorld(b) {
   else if (b.fly) pose = 'run0'; /* 紙飛行機に乗っている間は、足を止めて座る（2026-11-17 オーナー：「紙飛行機に乗ってる時も走り続けてる動作をしてる」）。下半分は紙飛行機にかくれる */
   else if (b.slide) pose = 'slide'; else if (b.air) pose = !b.fly && (b === G.player ? G.vy : b.vy) < -2.5 ? 'fall' : 'air'; /* くだりは「落ちてくる絵」 */
   else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
-  else if (b.runLook) pose = 'rlook' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES; /* 走りながらふり向く（ポムのあいさつ） */
+  else if (b.runLook) pose = 'rlook' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES; /* 走りながらふり向く（クリのあいさつ） */
   else pose = 'run' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES;
   b.pose = pose; const img = bunFrame(b.who, pose, SV.mugOn);
   ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc);
   if (b.tilt) ctx.rotate(b.tilt);
-  if (b.land > 0) ctx.scale(1 + b.land * .9, 1 - b.land * .9); /* ポムのあいさつ：小さく跳んだあとの着地で、体がつぶれる */ if (b.lean) ctx.scale(1 + .05 * b.lean, 1 - .05 * b.lean); /* 走りぬける時は、体を低く長く */
+  if (b.land > 0) ctx.scale(1 + b.land * .9, 1 - b.land * .9); /* クリのあいさつ：小さく跳んだあとの着地で、体がつぶれる */ if (b.lean) ctx.scale(1 + .05 * b.lean, 1 - .05 * b.lean); /* 走りぬける時は、体を低く長く */
   if (b === G.player && G.mode === 'play' && !OPT().calm && !b.fly) { const lc = G.laneT > 0 ? Math.sign(G.lane - G.prevLane) * Math.sin(G.laneT / .35 * Math.PI) * .09 : 0, tc = G.turnT > 0 && G.turnDir ? G.turnDir * Math.sin(G.turnT / .8 * Math.PI) * .12 : 0; if (lc || tc) ctx.rotate(lc + tc); if (G.laneT > 0 && !b.air && !b.slide) ctx.translate(0, -Math.sin(G.laneT / .35 * Math.PI) * 12); } // lean into a lane change and a corner (2026-11-08)。車線を変える時は、小さく横へ跳ぶ（本物のうさぎは向きを変える時に横へぴょんと跳ぶ。2026-11-18）
   if (b === G.player && G.mode === 'play' && !OPT().calm) { // squash on landing, a touch of stretch at the top of a jump
     if (G.landT > 0 && !b.air && !b.slide) { const q = Math.sin(G.landT / .14 * Math.PI) * .2 * (G.landK || 1); ctx.scale(1 + q, 1 - q); }
     else if (b.air && !b.fly && G.takeT > 0) { const q = Math.sin(clamp(G.takeT / .09, 0, 1) * Math.PI) * .11; ctx.scale(1 + q, 1 - q); G.takeN = (G.takeN || 0) + 1; } /* ふみ切り：跳ぶ瞬間だけ、ぐっと沈む（アニメの「予備動作」。跳び始めるのは今までどおり押した瞬間） */
     else if (b.air && !b.fly && G.vy > 5) { const q = Math.min(.08, (G.vy - 5) * .008); ctx.scale(1 - q, 1 + q); } }
-  if (b.who === 'pom' && b.air && !b.fly && b.vy != null) { ctx.translate(0, -140); ctx.rotate(-(1 - clamp((b.vy + JUMPV) / (2 * JUMPV), 0, 1)) * Math.PI * 2); ctx.translate(0, 140); } // Pom flips on every jump
+  if (b.who === 'pom' && b.air && !b.fly && b.vy != null) { ctx.translate(0, -140); ctx.rotate(-(1 - clamp((b.vy + JUMPV) / (2 * JUMPV), 0, 1)) * Math.PI * 2); ctx.translate(0, 140); } // Kuri flips on every jump
   if (b.who === 'pom' && b.slide) { ctx.translate(0, -110); ctx.rotate((G.t * 14) % (Math.PI * 2)); ctx.translate(0, 110); } // and rolls under things
   if (b.look > 0 && b.mood === 'sick') ctx.rotate(Math.sin(G.t * 7) * .07);
   if (b.look > 0 && b.mood === 'worry') { ctx.translate(0, -Math.abs(Math.sin(G.t * 9)) * 14); ctx.rotate(Math.sin(G.t * 9) * .05); }
   if (b.fly && b.who === 'pom') ctx.translate(0, Math.sin(G.t * 5) * 6);
   // フィーバー中は走る自分のうしろに、うすい残像を2つ（C-38）。手前（画面の下）に少しずらし、レーン移動の向きにも流す。「動きを減らす」設定では出さない
-  // 2026-11-09：相棒とポムにも（メインのキャラクターだけ残像が出ていた）。ダッシュ中も
+  // 2026-11-09：相棒とクリにも（メインのキャラクターだけ残像が出ていた）。ダッシュ中も
   if ((b === G.player || b === G.follow || b === G.pom) && (G.fever > 0 || G.pow.dash > 0) && G.mode === 'play' && !OPT().calm && !b.fly && !(b.look > 0)) { const lx = b === G.player && G.laneT > 0 ? -Math.sign(G.lane - G.prevLane) * 60 : 0; G.ghostN = (G.ghostN || 0) + 1; const tn = G.trailN || (G.trailN = {}); tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] = (tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] || 0) + 1;
     for (const [k, a] of [[1, .12]]) { ctx.globalAlpha = a; ctx.drawImage(img, -BS / 2, -GROUND_Y - BTOP + 30 * k, img.width, img.height); } ctx.globalAlpha = 1; } /* フィーバー・ダッシュの残像も、うすい 1 つだけ・横へは流さない（2026-11-17 オーナー：「残像がウザくなりすぎないように全体的に気をつけて」。前は 2 つ・レーン移動の向きにも流していた） */
   /* レーンを移る一瞬の残像は、やめた（2026-11-17 オーナー：「キャラクターが左右に移動した時の残像はうざったいのでいらない」）。qa/motion.js が、出ないことを見張る */
@@ -797,7 +797,7 @@ function drawBunnyWorld(b) {
   ctx.drawImage(LT.indoor ? img : litSprite(img, bunnyAmb(), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
   if (b.hawk && b.hawkIn != null && b.hawkIn > 0 && b.hawkIn < 1 && b === G.player) { const sp2 = spriteAt(b.wx, segE(curSeg(), G.s), b.wz); if (sp2) { const q = 1 - b.hawkIn; ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = `rgba(20,24,30,${(.22 * b.hawkIn).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(sp2.sx - q * 90, sp2.sy, sp2.k * (1.3 + q * 1.6), sp2.k * (.32 + q * .3), 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } } /* [F12] テラスの床に、おりてくるオオタカの大きなかげ（近づくほどこく、小さく） */
   if (b.hawk && !(b.hawkRel >= 1)) drawHawk(b); /* [D1] はなしたあとは、上へ飛び去って消える */
-  if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; const pl = planePic(); if (pl) ctx.drawImage(pl, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Pom rides his own)
+  if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; const pl = planePic(); if (pl) ctx.drawImage(pl, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Kuri rides his own)
   if (G.weather === 'rain' && !LT.indoor && G.mode !== 'title' && !b.fly) { ctx.globalAlpha = .55; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 5; ctx.lineCap = 'round'; for (const [x, y, a] of [[-60, -190, 0], [55, -150, .6], [-20, -120, 1.2]]) { const k = .5 + .5 * Math.sin(G.t * 3 + a * 3); ctx.globalAlpha = .25 + .3 * k; ctx.beginPath(); ctx.arc(x, y, 14, -2.4, -1.3); ctx.stroke(); } ctx.globalAlpha = 1; G.wetN = (G.wetN || 0) + 1; } // 雨の日はうっすらぬれて光る（C-34）
   if (b.glow) { ctx.globalAlpha = .9; ctx.strokeStyle = b.glow; ctx.lineWidth = 7; ctx.beginPath(); ctx.ellipse(0, -110, 130, 120, 0, 0, Math.PI * 2); ctx.stroke(); }
   if (!(b.look > 0) && b.who !== 'pom') b.say = '';
@@ -848,7 +848,7 @@ function titleFX() {
   ctx.restore();
   { // steam from the mug on the low table
     const base = segPos(seg, 2.4, -2.18); for (let i = 0; i < 4; i++) { const t = (G.t * .35 + i * .25) % 1, q = spriteAt(base[0] + Math.sin(G.t * 1.3 + i) * .05 * t, .6 + t * .45 + base[2], base[1]); if (!q) continue; ctx.fillStyle = `rgba(255,255,255,${(.35 * (1 - t)).toFixed(2)})`; ctx.beginPath(); ctx.arc(q.sx, q.sy, q.k * (.03 + t * .05), 0, Math.PI * 2); ctx.fill(); } }
-  /* 2026-11-17 オーナー「レンが寝てないのに ZZ と出るのはおかしい」：ホーム画面では顔を切りかえない（目はあいたまま）ので、居眠りの「Zz」も出さない */
+  /* 2026-11-17 オーナー「モチが寝てないのに ZZ と出るのはおかしい」：ホーム画面では顔を切りかえない（目はあいたまま）ので、居眠りの「Zz」も出さない */
 }
 // 足もとの土ぼこり（C-33）：地面の種類で色が変わる（砂・雪・草・道）。屋内・板の上は出さない。「動きを減らす」設定でも出さない
 function groundDust(seg) {

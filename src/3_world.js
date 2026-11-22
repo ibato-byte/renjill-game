@@ -83,7 +83,7 @@ function newSeg(prev, step, opts) {
   if (th.lift) seg.liftK = (Math.random() * 4) | 0; /* 4 台のうちどれか（春・夏・秋・冬） */
   if (step.co || th.course) seg.base = prev && prev.base != null && ((step.co && prev.step && prev.step.co === step.co) || (th.course && prev.th.course === th.course)) ? prev.base : seg.e0; /* [H5] コースの地面の高さ（ここからの高さを、画面の「地上 ○m」に出す） */
   if (th.sky) { /* オオタカに運ばれる空：本当に高い所（climb[0] m）から、地面（0 m）までおりる。先の場所（着地する公園）は本当に真下の地面にある */
-    seg.e0 = prev ? segE(prev, prev.len) : th.climb[0]; seg.hp = { a: 0, b: seg.len - 22, d: -th.climb[0], /* [H4] 空の道は、飛び立った展望台の本当の高さから始まる（前は、展望台が低いのに 150m から始まり、カメラが 120m 以上とんで、レンとジルが画面から消えた） */ hump: 0, w2: 0, shape: 'sky', lift: 3.4 }; } /* [F5] 飛び立ちは、テラスの手すりの上へ少し持ち上がってから、おりていく */
+    seg.e0 = prev ? segE(prev, prev.len) : th.climb[0]; seg.hp = { a: 0, b: seg.len - 22, d: -th.climb[0], /* [H4] 空の道は、飛び立った展望台の本当の高さから始まる（前は、展望台が低いのに 150m から始まり、カメラが 120m 以上とんで、モチとユズが画面から消えた） */ hump: 0, w2: 0, shape: 'sky', lift: 3.4 }; } /* [F5] 飛び立ちは、テラスの手すりの上へ少し持ち上がってから、おりていく */
   buildGeometry(seg);
   if ((seg.tid === 'tlobby' || seg.tid === 'slobby') && seg.hp && seg.hp.shape === 'flights') { const h = seg.hp, sd = 1, l2 = sd * (HW - .06), nS = [-sd * seg.r[0], -sd * seg.r[1]]; for (let k = 0; k <= h.n; k++) { const s1 = h.a + k * h.P + .6; if (s1 > seg.len - 3) break; const e = segE(seg, s1) - (seg.e0 || 0), fl = k === h.n && seg.tid === 'tlobby' ? 'RF' : (k + 1) + 'F', a2 = segPos(seg, s1 + .9, l2), b2 = segPos(seg, s1, l2), E = segE(seg, s1); seg.decos.push({ v: [a2[0], E + 1.5, a2[1], b2[0], E + 1.5, b2[1], b2[0], E + 2.2, b2[1], a2[0], E + 2.2, a2[1]], n: nS, pat: 'stepsign', seg, w: .9, txt: fl, txt2: Math.round(segE(seg, s1) - (seg.base != null ? seg.base : 0)) + 'm' }); } } /* [H24] 入口の建物の階段：踊り場ごとに階の札（1F・2F…屋上）と、その高さ */
   if (th.truss) { const red = th.truss === 'red', c1 = red ? '#D9452B' : '#E6EAEE', c2 = red ? '#F2F0EC' : '#C9D1D9', L = seg.len, Hh = red ? (seg.wallH || 5) + 3 : (seg.wallH || 5) - .4; /* [T8][S4] 展望台のガラスの外に、塔の鉄骨（赤い電波塔は赤と白、押上は白いトラス）。窓の外が、塔の中にいるとわかる */
@@ -296,10 +296,11 @@ function buildRoom(seg, s0, lEnd, rEnd) {
   // wall decorations
   if (th.kind === 'train') trainWalls(seg);
   if (seg.tid === 'tlobby' || seg.tid === 'slobby') entryDoors(seg, s0 + 5);
-  if (seg.tid === 'tpass') { const H2 = H + .4, sh = []; /* [B37] 500 段からの通路の建物の外がわ：外階段から近づくと、かべがなく、中の天井と上の階が宙に浮いて見えた（部屋のかべは内がわにしか向いていない）。外向きの面だけの白いかべ・屋根・入口の上のかべ */
+  if (seg.tid === 'tpass' || seg.tid === 'tlobby' || seg.tid === 'slobby') { const H2 = H + .4, sh = [], dw = seg.tid === 'tpass' ? 2.0 : 2.6; /* [B41] 入口のホール（赤い電波塔・押上）も同じ：外から近づくと、かべが無く中の階段が見えていた */ /* [B37] 500 段からの通路の建物の外がわ：外階段から近づくと、かべがなく、中の天井と上の階が宙に浮いて見えた（部屋のかべは内がわにしか向いていない）。外向きの面だけの白いかべ・屋根・入口の上のかべ */
     for (let a = s0; a < L + HW - .01; a += 4.5) { const b = Math.min(a + 4.5, L + HW); sh.push({ l0: HW + .02, l1: HW + .35, s0: a, s1: b, y0: -.6, y1: H2, c: '#E9E6E0', only: ['sideR', 'top'] }, { l0: -HW - .35, l1: -HW - .02, s0: a, s1: b, y0: -.6, y1: H2, c: '#E9E6E0', only: ['sideL', 'top'] }, { l0: -HW - .35, l1: HW + .35, s0: a, s1: b, y0: H2 - .02, y1: H2 + .3, c: '#C9C6C0', only: ['top'] }); }
-    sh.push({ l0: -HW - .35, l1: HW + .35, s0: s0 - .35, s1: s0 - .02, y0: 2.9, y1: H2 + .3, c: '#E9E6E0', only: ['front'] }, { l0: -HW - .35, l1: -2.0, s0: s0 - .35, s1: s0 - .02, y0: -.6, y1: 2.9, c: '#E9E6E0', only: ['front'] }, { l0: 2.0, l1: HW + .35, s0: s0 - .35, s1: s0 - .02, y0: -.6, y1: 2.9, c: '#E9E6E0', only: ['front'] });
-    seg.props.push(mkProp(seg, sh, { big: 1 })); }
+    sh.push({ l0: -HW - .35, l1: HW + .35, s0: s0 - .35, s1: s0 - .02, y0: 2.9, y1: H2 + .3, c: '#E9E6E0', only: ['front'] }, { l0: -HW - .35, l1: -dw, s0: s0 - .35, s1: s0 - .02, y0: -.6, y1: 2.9, c: '#E9E6E0', only: ['front'] }, { l0: dw, l1: HW + .35, s0: s0 - .35, s1: s0 - .02, y0: -.6, y1: 2.9, c: '#E9E6E0', only: ['front'] });
+    for (let a = s0 + 4.5; a < L + HW - .01; a += 4.5) { const dy = segE(seg, a) - segE(seg, a - 4.5); if (dy > .05) sh.push({ l0: -HW - .35, l1: HW + .35, s0: a - .25, s1: a, y0: H2 - dy - .05, y1: H2 + .3, c: '#E1DED8', only: ['front'] }); } /* [B40] 屋根が上がる所の、前から見える面（外から、上の階の中がのぞかないように） */
+    seg.props.push(Object.assign(mkProp(seg, sh, { big: 1 }), { extOnly: 1 })); }
   if (seg.tid === 'tlobby') { const cs0 = s0 + 9, bx = [B(0, cs0 - .02, .04, .04, H - .9, H, '#8A8F94')]; for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; bx.push(B(Math.cos(a) * 1.3, cs0 + Math.sin(a) * 1.3 - .09, .18, .18, H - 1.12, H - .92, '#FFF1D0', 1)); } bx.push(B(0, cs0 - 1.35, 2.7, 2.7, H - .94, H - .9, '#C9A85A')); seg.props.push(mkProp(seg, bx, { big: 1 })); } /* [T14] 入口のホールの天井に、大きな丸い照明（金の輪に 10 個の明かり） */
   else if (th.wdeco) {
     for (const sd of [-1, 1]) {
@@ -1638,9 +1639,9 @@ function populate(seg) {
     else if (r < .17) { const l = freeLane(); if (l >= 0) addItem(seg, pick(TREATS), at, l, .5); }
     else if (r < .25 + diff * .05) { const l = freeLane(); if (l >= 0) addItem(seg, pick(BADS), at, l, .5); }
   }
-  // before you have ever met Pom: one quick glimpse of a hamster dashing across the road ahead
+  // before you have ever met Kuri: one quick glimpse of a hamster dashing across the road ahead
   if (!G.pomPeek && !G.pom.on && G.char !== 'pom' && (G.planDay >= 2 || G.t > 52) && th.kind !== 'room' && th.kind !== 'train' && th.kind !== 'glass' && L > 110) G.pomPeek = { seg, s: L * .42, dir: Math.random() < .5 ? 1 : -1, b: { who: 'pom', view: 'back', ph: 0, look: 0, show: false, depth: 0 } };
-  // Pom's sunflower seeds: once the run is well under way (day 2, or a long day 1), until Pom has joined
+  // Kuri's sunflower seeds: once the run is well under way (day 2, or a long day 1), until Kuri has joined
   if (!G.pom.on && G.char !== 'pom' && !(G.pomSeedAt > 0 && G.dist - G.pomSeedAt < 600) && (G.planDay >= 2 || G.t > 78) && ((G.pomPeek && G.pomPeek.ph) || G.t > 110) && rows.length >= 1 && L > 50 && Math.random() < .7) {
     // just past a row of obstacles, in a lane that the next row leaves open
     const i = Math.max(0, ((rows.length - 1) / 2) | 0), at = rows[i].s + 4.5, nx = rows[i + 1], free = [0, 1, 2].filter(l => !nx || nx.s - at > 7 || !nx.lanes[l]);

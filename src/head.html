@@ -1,4 +1,4 @@
-<title>レンとジルのチモシーダッシュ</title>
+<title>東京うさぎオフィスのチモシーダッシュ</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,7 +53,7 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 /* 言語の切りかえ：題名画面の右上にいつも見える地球マーク（下の小さいボタンだけでは見つけにくいという声。2026-11-09） */
 #btnLangTop{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:10px;z-index:2;display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:6px 12px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);color:var(--ink);font:800 13px/1 var(--f-body,inherit);box-shadow:0 3px 0 rgba(59,42,32,.3);cursor:pointer}
 #btnLangTop b{font-weight:800}
-/* 一時停止の下の3つのボタン（やめる・音・ジルに聞く）が320px幅で2行に折れていた */
+/* 一時停止の下の3つのボタン（やめる・音・ユズに聞く）が320px幅で2行に折れていた */
 #sPause .btns .sub{white-space:normal;line-height:1.15;overflow-wrap:anywhere;text-wrap:balance;font-size:clamp(11px,3.5vw,15px);padding-left:6px;padding-right:6px;overflow:hidden;text-overflow:clip;min-height:44px}#sPause .btns .sub.danger{font-size:clamp(10px,3.2vw,14px);padding-top:6px;padding-bottom:6px} /* 2026-11-15：「…」で切らない。確かめの言葉は、入らなければ 2 行に */
 .langpick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}.langpick button{min-height:52px;font-size:17px}
 #feverGlow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;box-shadow:inset 0 0 46px 8px rgba(242,194,48,.4)} /* フィーバー中の黄色いふちが太く、左右のレーンが見づらかった */
@@ -811,7 +811,7 @@ html.calm .howanim .ha-cap span:first-child{opacity:1}
 #sTitle.home .story .stp b{font-size:10px;padding:0 7px}
 /* 55 はじめての人：チャレンジの札はしまう（まず走ってみる。文字を減らす） */
 #sTitle.home .card:not(.tgrid)>#tDaily{display:none}
-/* 56 3 人の時（ポムに会った後）：顔の間を少しつめる */
+/* 56 3 人の時（クリに会った後）：顔の間を少しつめる */
 #sTitle.home .chars.three{gap:10px}
 /* 57 図鑑などの赤い丸：丸いボタンの右上に（名前の札ではなく、絵の丸につける） */
 #sTitle.home .row .mini .dot{top:2px;right:12px}
@@ -944,7 +944,7 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
 .ttoast.hm .ja{text-wrap:balance}
 /* 94 せまいスマホ（幅 360 まで）：お知らせの帯の字を少し小さく */
 @media (max-width:360px){.ttoast.hm{font-size:12px!important;padding:7px 13px!important}}
-/* 95 題名の上の小さな字（レンとジルの）：字の間を少しつめて、題名とまとまりよく */
+/* 95 題名の上の小さな字（東京うさぎオフィスの）：字の間を少しつめて、題名とまとまりよく */
 #sTitle.home .logo .k{letter-spacing:.14em;margin-left:2px}
 /* 96 せまいスマホ：数字が大きい（ベスト 123,456 など）時、上の帯の札が題名にかぶらず、次の行へ回る */
 @media (max-width:400px){#sTitle.home .card>.bank{flex-wrap:wrap;row-gap:6px;padding-left:146px}}
@@ -1092,7 +1092,7 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
 /* [H30〜H36] 2026-11-21 オーナー（iPhone の写真）「下の方の文字が見切れている」「次長の文字とミッションのロゴが重なっている」「今日いちばん走られた場所の文字が同化して見づらい」「全体のバランスを見直して、不要なところは削ってスッキリ」
    [H30] 左の 5 つのボタンが、間の高さ（社員の帯〜3 人の上）に入りきらず、上へはみ出して「ミッション」が社員の帯の下にもぐっていた。丸の大きさを、画面の高さから決める（入りきる大きさ。いちばん大きくて今までと同じ 50px）
    [H31] 「今日いちばん走られた場所・みんなで集めたチモシー」の 2 行は、たたみと障子の上に字だけで出て読めず、下のボタンを押し出していた。スマホのたて画面では出さない（ランキングの画面で見られる）
-   [H32] 「名前を決める」はスマホのたて画面では外す（設定の中の「名前」から決められる）。右は ランキング・ジルに聞く の 2 つに
+   [H32] 「名前を決める」はスマホのたて画面では外す（設定の中の「名前」から決められる）。右は ランキング・ユズに聞く の 2 つに
    [H33] 左右のボタンは、社員の帯のすぐ下から 3 人の上までのまん中に */
 @media (orientation:portrait) and (max-width:599px){
   #sTitle.home{--hmIc:clamp(34px,calc((100vh - env(safe-area-inset-top,0px) - 434px) / 5 - 19px),50px)}
