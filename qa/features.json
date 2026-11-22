@@ -2440,6 +2440,26 @@
       "name": "通路の天井は明るい灰色",
       "file": "src/1b_places.js",
       "has": "[B62]"
+    },
+    {
+      "name": "今日の目標の数は何桁でも枠に入る",
+      "file": "tools/home/home.css",
+      "has": "[H83]"
+    },
+    {
+      "name": "ホームは画面の細かさで描く",
+      "file": "src/4_render.js",
+      "has": "[H84]"
+    },
+    {
+      "name": "音と設定はいちばん上の段",
+      "file": "src/7_ui.js",
+      "has": "[H85]"
+    },
+    {
+      "name": "キャラ切りかえで練習ボタンが動かない",
+      "file": "src/6e_keep.js",
+      "has": "[H86]"
     }
   ]
 }
