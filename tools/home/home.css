@@ -653,3 +653,5 @@ html[data-in="ptr"] #sTitle.home .chars .char:focus-visible canvas{box-shadow:no
 /* [H85] 音・設定の丸 2 つは、たて長のスマホでは右の列からはずし、いちばん上の段（題字と「日本語」の間の空き）に置く（右の列の幅が足りず、設定の丸が画面の右のふちから外へ出ていた）。置き場所は JS（homePlace） */
 #sTitle.home .tog.toptog{position:fixed;z-index:3;display:flex!important;gap:8px;margin:0}
 #sTitle.home .tog.toptog .sub{width:36px!important;height:36px!important;aspect-ratio:auto}
+/* [H88] アプリの枠が、iPhone の見えている高さより下までのびている時は、その分だけスタートを上に（JS が --appCut に入れる。ふつうは 0） */
+@media (orientation:portrait) and (max-width:599px){#sTitle.home .card>#btnStart{margin-bottom:calc(10px + env(safe-area-inset-bottom,0px) + var(--appCut,0px))!important}}
