@@ -114,7 +114,7 @@ function buildTitleRoom(seg) {
   seg.floor.push({ v: quad(seg, [[1.18, 1.2, .006], [4.22, 1.2, .006], [4.22, 3.42, .006], [1.18, 3.42, .006]]), c: [0, 0, 0], dec: 'futonShadow', ti: 0, a: 1.18, b: 4.22 }); // [2] 畳に落ちるやわらかいかげ
   // [1][3][4] 敷きぶとんの厚み（11cm）：角の立った箱ではなく、綿でふくらんだやわらかい横（softSlab）。上はシーツの白、下へいくほど少しかげる（2026-11-17）
   softSlab(seg, { s0: 1.3, s1: 4.1, l0: 1.3, l1: 3.3, h: FT + .004, r: .07, rc: .05, col: [239, 232, 216], colAt: (q) => q < .5 ? [244, 238, 224] : [226, 216, 196] });
-  // [5] まくらは上の面の絵の中（立てた絵にすると、レンの足の前にういて見えた）。上の面は、マットのふちまでいっぱいに切り出した絵（すみのすき間なし）
+  // [5] まくらは上の面の絵の中（立てた絵にすると、モチの足の前にういて見えた）。上の面は、マットのふちまでいっぱいに切り出した絵（すみのすき間なし）
   // [6] 掛けぶとんの折り返しの厚みは、上の面の絵の中のかげとふくらみで出す（箱にすると、白い棒に見えた）
   seg.spr.push({ lat: 0, s: 3.4, y: 2.05, w: .9, h: .95, img: artKey('pendant', ''), keep: 1 });
   sp('lowtable', '', 2.4, -2.5, 1.5, .62); // the low round table, his mug and the morning paper on it (one picture, so nothing floats)
@@ -142,7 +142,7 @@ function titleTallPitch(P, gy) {
   if (G.mode !== 'title') return TITLE_PITCH;
   if (G.t - TITLE_DOCK.t > .5 || G.t < TITLE_DOCK.t) { TITLE_DOCK.t = G.t; const d = document.querySelector('#sTitle.home:not([hidden]) .card>.chars'), a = $('#app'); if (d && d.offsetParent && a) { const r = d.getBoundingClientRect(), ar = a.getBoundingClientRect(); TITLE_DOCK.y = r.top - ar.top; const td = $('#sTitle.home #tToday'), tr = td && td.offsetParent ? td.getBoundingClientRect() : null; TITLE_DOCK.top = tr && tr.height > 8 ? tr.bottom - ar.top : 0; } else TITLE_DOCK.y = 0; }
   let want = TITLE_DOCK.y - 10; /* [ホーム iPhone H27] 2026-11-20 オーナー「スマホの画面の時にキャラクターが中心に来るように」：今日の目標の札と下の台の間があいている背の高いスマホでは、
-     3 人の体のまん中が、そのあいた所のまん中に来るように、足もとを少し上げる（レンの背の高さは、画面のはばの約 0.32） */
+     3 人の体のまん中が、そのあいた所のまん中に来るように、足もとを少し上げる（モチの背の高さは、画面のはばの約 0.32） */
   if (TITLE_DOCK.top > 0 && W < 600 && H > W * 1.25) { const mid = (TITLE_DOCK.top + TITLE_DOCK.y) / 2, feet = mid + W * .16 + 8; if (feet < want) want = Math.max(feet, TITLE_DOCK.top + W * .32 + 16); }
   TITLE_DOCK.feet = want; /* お知らせの置き場所（3 人の頭にかからないか）に使う */
   if (!(want > H * .45) || P.wx == null) return TITLE_PITCH; /* 台がない・台が上すぎる時は今までどおり */
@@ -154,14 +154,14 @@ let TITLE_FRONT = 3.7, TITLE_BACK = 2.7; // ホーム画面：選んだ子の位
 function titleFrame(dt) {
   const seg = G.segs[0], me = G.char, other = me === 'ren' ? 'jill' : 'ren', third = me === 'pom' ? 'jill' : 'pom';
   const P = G.player, F = G.follow;
-  P.flash = F.flash = G.pom.flash = false; P.glow = F.glow = null; // ぶつかった直後の点滅を消す（遊び終わった時に点滅中だと、ホーム画面でもレンが半透明にちかちかし続けた。2026-11-16 オーナー指摘）
-  P.who = me; F.who = other; F.off = false; F.show = true; P.big = me === 'pom' ? 1.3 : 1; P.view = F.view = 'front'; P.look = F.look = 0; // on the title, close to the camera: the smaller size. 2026-11-15：前を向かせる命令がこの説明書きの中に入っていて動かず、遊んだあとタイトルに戻るとレン・ジルが後ろ姿のまま（ポムだけ前向き）になっていた
+  P.flash = F.flash = G.pom.flash = false; P.glow = F.glow = null; // ぶつかった直後の点滅を消す（遊び終わった時に点滅中だと、ホーム画面でもモチが半透明にちかちかし続けた。2026-11-16 オーナー指摘）
+  P.who = me; F.who = other; F.off = false; F.show = true; P.big = me === 'pom' ? 1.3 : 1; P.view = F.view = 'front'; P.look = F.look = 0; // on the title, close to the camera: the smaller size. 2026-11-15：前を向かせる命令がこの説明書きの中に入っていて動かず、遊んだあとタイトルに戻るとモチ・ユズが後ろ姿のまま（クリだけ前向き）になっていた
   P.ph += dt * 3; F.ph += dt * 2;
   /* ホーム画面では顔を切りかえない（まばたき・あくび・にっこりをしない）。2026-11-16 オーナー：「キャラクター選択してる時に点滅するはいらない」。
      顔が目を開けた顔 → 閉じた顔 → 笑った顔と入れかわるのが、点滅に見えた。動きは、体の小さな上下だけ（qa/titlestill.js が見張る） */
   const renMood = 'open', jillMood = 'open', pomMood = 'open';
   if (me === 'ren') { P.mood = renMood; F.mood = jillMood; } else if (me === 'jill') { P.mood = jillMood; F.mood = renMood; } else { P.mood = pomMood; F.mood = renMood; }
-  /* 2026-11-16 オーナー：「ポムを選んだ時にジルにもスポットが当たる。どのキャラを選んでいるのか直感的に分かりづらい」。
+  /* 2026-11-16 オーナー：「クリを選んだ時にユズにもスポットが当たる。どのキャラを選んでいるのか直感的に分かりづらい」。
      前は、選んだ子が横や奥にいて、選んでいない子のほうが手前で大きく見える並びがあった。いまは、選んだ子がいつもまん中のいちばん手前、ほかの 2 人は左右の少し奥。
      明かり（titleLight）は選んだ子だけに当てる（ほかの子も画面も暗くしない） */
   const wd = W > H * 1.25 && W >= 900, ph = W < H && W < 600, sideL = wd ? 1.6 : ph ? 1.2 : 1.3, sideR = wd ? 1.12 : ph ? 1.2 : 1.3; /* [H45] 2026-11-21：たて長のスマホでは、左右の子を少し内側に（左右の丸いボタンの列のうしろに半分かくれていた） */ // 横長の画面：右の子は札にかくれないよう寄せ、左の子は選んだ子に重ならないよう広げる（本番の大きな画面で、左の子が選んだ子のすぐ後ろに重なっていた）
@@ -174,7 +174,7 @@ function titleFrame(dt) {
   const cp = segPos(seg, (tall ? 7.9 : wide ? 6.9 : 6.6) - Math.sin(G.t * .11) * .2, (tall ? mid : wide ? TITLE_WIDE : 0) + Math.sin(G.t * .23) * (tall ? .18 : .3));
   CAM.x = cp[0]; CAM.z = cp[1]; CAM.y = (tall ? 1.02 : 1.1) + cp[2] + Math.sin(G.t * .7) * .015; CAM.yaw = Math.PI + Math.sin(G.t * .17) * .02; CAM.pitch = tall ? titleTallPitch(P, pR[2]) : .06;
   camPrep(); P.depth = 7.4 - TITLE_FRONT; F.depth = 7.4 - TITLE_BACK;
-  // once you have met Pom, the rookie peeks out on the title screen too, bouncing with excitement
+  // once you have met Kuri, the rookie peeks out on the title screen too, bouncing with excitement
   const M = G.pom; M.title = !!SV.pomMet; M.show = M.title;
   if (M.title) { const pm = segPos(seg, TITLE_BACK, me === 'jill' ? -sideR : sideL); M.view = 'front'; M.who = third; M.ph += dt * 4; M.wx = pm[0]; M.wz = pm[1]; M.wy = pm[2]; M.depth = 7.4 - TITLE_BACK; M.tilt = 0; M.air = M.slide = false;
     M.mood = third === 'pom' ? pomMood : jillMood; M.look = 0; }
@@ -194,7 +194,7 @@ function startRun() { G.drawRetry = 0; try { const m0 = G.mode; G.mode = 'play';
   G.player.who = G.char; G.player.big = G.char === 'pom' ? POM_BIG : 1; G.player.say = ''; G.follow.who = G.char === 'ren' ? 'jill' : 'ren'; G.player.view = G.follow.view = 'back'; G.player.tilt = G.follow.tilt = 0;
   G.player.show = G.follow.show = true; G.player.look = 0;
   Object.assign(G.follow, { y: 0, vy: 0, air: false, slideT: 0, back: .9, lat: 1.25, side: 1, tuck: false, look: 0, say: '', off: G.char === 'pom' });
-  // playing as Pom: the rookie sets off first; the boss and Jill catch up one by one (in a random order), bringing their perks
+  // playing as Kuri: the rookie sets off first; the boss and Yuzu catch up one by one (in a random order), bringing their perks
   G.mates = { ren: 0, jill: 0 }; G.mateOrder = Math.random() < .5 ? ['ren', 'jill'] : ['jill', 'ren']; G.mateAt = [rand(20, 28), rand(52, 64)];
   G.pomPeek = null; G.peekSlow = 0; Object.assign(G.pom, { on: 0, who: 'pom', title: false, view: 'back', show: false, y: 0, vy: 0, air: false, slideT: 0, back: .25, lat: 0, tuck: false, look: 0, say: '', tilt: 0 }); G.pomCD = 0; G.pomSeedAt = 0; G.memoAt = 0; G.bumps = 0; G.lastHit = null; G.bestPic = 0; G.newTitles = []; G.chalFlag = 0;
   document.querySelectorAll('#app > .toast').forEach(e => e.remove());
@@ -269,7 +269,7 @@ function die(cause) {
   cpClear(); /* 走り終わり：「つづきから」は出さない（ぶつかる直前にアプリを閉じてやり直す、はできない） */
   G.cause = cause; G.mode = 'dying'; G.dyingT = .95;
   if (cause === 'fall') { /* [塔 F11] 2026-11-21 オーナー「東京タワーなどで曲がり角に曲がるのを失敗した時、真っ直ぐぶつかるのはおかしい。ぶつかるのではなく、そのまま落下してゲームオーバーに」
-       高い所（電波塔の 2 つのコース）の曲がり角は、つきあたりが「へり」：曲がりそこねると、レンはへりの先へ飛び出して落ちていく。ジル・ポムはへりの手前で止まって見送る。カメラはへりに残って、落ちていく先を見下ろす */
+       高い所（電波塔の 2 つのコース）の曲がり角は、つきあたりが「へり」：曲がりそこねると、モチはへりの先へ飛び出して落ちていく。ユズ・クリはへりの手前で止まって見送る。カメラはへりに残って、落ちていく先を見下ろす */
     const seg = curSeg(), F = G.follow, M = G.pom; G.dyingT = 1.7; G.fallT = 0; G.fallVy = 1.6; G.fallV0 = Math.max(4, G.speed * .55); G.fallSeg = seg; G.fallCam = { x: CAM.x, y: CAM.y, z: CAM.z, pitch: CAM.pitch };
     G.fallF = { x: F.wx, y: F.wy, z: F.wz }; G.fallM = M && M.on ? { x: M.wx, y: M.wy, z: M.wz } : null; G.flashT = 0; G.shake = 0; buzz([30, 60, 30]);
     if (AU.ctx) { const t0 = AU.ctx.currentTime; for (let i = 0; i < 5; i++) tone(880 * Math.pow(.84, i), .16, 'sine', .04, t0 + i * .11); } musicStop('end'); }
@@ -451,7 +451,7 @@ function onEnterSeg(n) {
   if (n.step && n.step.cont) { /* still the same place */ }
   else if (n.t0 === 480 && n.day > 1) { banner(LANG === 'en' ? t('dayLbl') + ' ' + n.day + ' · ' + seasonOf(n.day).toUpperCase() : `${t('dayN', n.day)}・${L(SEASON_LBL[seasonOf(n.day)]).split('・')[0]}`, L(SEASON_LBL[seasonOf(n.day)]), 'room'); /* 2026-11-09：「日目」だけが出ていた（数字なしの t('dayN')） */ G.chimed = 0; }
   else if (n.step && n.step.co0 && COURSES[n.step.co]) { const cz = COURSES[n.step.co]; bannerNow(LANG === 'en' ? cz.en.toUpperCase() : L(cz), L(th.arrive || ARRIVE[n.tid] || { ja: '', en: '' }), 'good'); SFX.mission(); }
-  else if (th.sky) { bannerNow(tr('オオタカ！', 'GOSHAWK!'), L(th.arrive), 'good'); /* [F6] 白くぬりつぶす画面の切りかえはやめた（展望台と空の道の高さがそろったので、そのまま飛び立てる。白い間、レンとジルが見えなくなっていた） */ tone(1175, .18, 'bell', .04); }
+  else if (th.sky) { bannerNow(tr('オオタカ！', 'GOSHAWK!'), L(th.arrive), 'good'); /* [F6] 白くぬりつぶす画面の切りかえはやめた（展望台と空の道の高さがそろったので、そのまま飛び立てる。白い間、モチとユズが見えなくなっていた） */ tone(1175, .18, 'bell', .04); }
   else if (n.tid === 'lobby' || n.tid === 'ehall') { G.stats.office = 1; const b = 500 * SV.mlevel; G.score += b; banner('9:00 ON TIME!', t('onTime', fmt(b)), 'good'); SFX.mission(); react('cheer', 1); }
   else if (n.t0 >= 1080 && !G.chimed) { G.chimed = 1; G.rush = 0; G.stats.chime = 1; const b = 1000 * SV.mlevel; G.score += b; SFX.chime(); startFever(7); bannerNow("IT'S 6 PM! FEVER", t('chime', fmt(b)), 'good'); react('sparkle', 1); }
   else if (n.step && n.step.last) banner('LAST TRAIN', t('lastTrain'), 'room');
@@ -489,9 +489,9 @@ function startFly() {
   let lane = G.lane;
   for (let q = a; q < b; q += 1.6) { if (Math.random() < .12) lane = clamp(lane + (Math.random() < .5 ? -1 : 1), 0, 2); addItem(seg, Math.random() < .03 ? 'goldhay' : 'hay', q, lane, G.flyY + .45); }
 }
-/* ---- Pom, the sporty new hire (a golden hamster) ---- */
-const POM_BIG = 1.7; // Pom as the runner is drawn about Jill's size, so a table or a curtain reads as something to slide under
-function pomOn() { return G.pom.on && G.pom.who === 'pom'; } // the rookie runs with you (not the bunny that catches up when you play as Pom)
+/* ---- Kuri, the sporty new hire (a golden hamster) ---- */
+const POM_BIG = 1.7; // Kuri as the runner is drawn about Yuzu's size, so a table or a curtain reads as something to slide under
+function pomOn() { return G.pom.on && G.pom.who === 'pom'; } // the rookie runs with you (not the bunny that catches up when you play as Kuri)
 function pomSay(line, mood, dur) { const M = G.pom; if (!pomOn()) return; M.look = dur || 1.3; M.mood = mood || 'happy'; M.say = line; }
 // super jump: a little arc of hay in the sky along the jump, with a golden one at the top (2026-11-08)
 function skyHay(v) { const seg = curSeg(); if (!seg || seg.fork || !(v > 0)) return 0; const t1 = v / GRAV, h = v * v / (2 * GRAV), t2 = Math.sqrt(2 * h / (GRAV * 1.25)), T = t1 + t2; let n = 0;
@@ -500,7 +500,7 @@ function skyHay(v) { const seg = curSeg(); if (!seg || seg.fork || !(v > 0)) ret
     if (near.some(x => ITEMS[x.type].kind !== 'hay')) continue; // a carrot or a power-up stays where it is
     if (near.length) { near.forEach(x => { x.y = yy; x.s = q; if (k === 3) x.type = 'goldhay'; }); n++; continue; } // hay already there is lifted into the arc
     addItem(seg, k === 3 ? 'goldhay' : 'hay', q, G.lane, yy); n++; } return n; }
-function pomPouch(n) { // Pom stuffs the hay you pass into its cheek pouches; when they are full it shares a bonus
+function pomPouch(n) { // Kuri stuffs the hay you pass into its cheek pouches; when they are full it shares a bonus
   const M = G.pom, me = G.char === 'pom'; M.pouch = (M.pouch || 0) + n; if (M.pouch < (me ? 60 : 80)) return; M.pouch = 0; G.stats.pomPuff = (G.stats.pomPuff || 0) + 1;
   const b = 600 * SV.mlevel; G.score += b; if (me) { const P = G.player; P.look = 1.2; P.mood = 'puff'; P.say = t('pomPuff'); G.lookCD = Math.max(G.lookCD, 2); } else pomSay(t('pomPuff'), 'puff', 1.5); floatText(W / 2, cheerY(.36), (tr('ほお袋ボーナス +', 'POUCH BONUS +')) + fmt(b), '#F2C230'); SFX.treat();
   const seg = curSeg(), a = G.s + 8, e = Math.min(seg.len - 14, a + 16); let lane = G.lane; for (let q = a; q < e; q += 1.6) addItem(seg, Math.random() < .12 ? 'goldhay' : 'hay', q, lane, .45);
@@ -510,12 +510,12 @@ function pomJoin() {
   M.on = 1; M.show = true; M.lat = G.lat; M.back = 6; M.y = 0; M.vy = 0; M.air = false; M.pouch = 0; G.stats.pom = 1;
   SFX.pom(); burst(W / 2, H * .55, '#F2C230', 26); buzz(40); G.hitStop = .06;
   const first = !SV.pomMet; SV.pomMet = (SV.pomMet || 0) + 1; save(); G.pomPeek = null;
-  bannerNow(first ? (tr('ナゾの新人あらわる！', 'A MYSTERY ROOKIE!')) : (tr('ポム合流！', 'POM JOINS!')), t(first ? 'pomJoin' : 'pomJoin2'), 'good');
+  bannerNow(first ? (tr('ナゾの新人あらわる！', 'A MYSTERY ROOKIE!')) : (tr('クリ合流！', 'KURI JOINS!')), t(first ? 'pomJoin' : 'pomJoin2'), 'good');
   const id = G.runId; setTimeout(() => { if (G.runId === id) pomSay(t(first ? 'pomHi' : 'pomHi2'), 'sparkle', 1.8); }, 500);
 }
 // bad food: the runner turns round looking unwell, and the partner looks back, worried
-function hasPerk(w) { return G.char === w; } // each runner has only their own perk (the bunnies who catch up Pom do not add theirs: all three are equally hard)
-function mateCheck() { // Pom mode: the next bunny dashes up from behind and joins the run
+function hasPerk(w) { return G.char === w; } // each runner has only their own perk (the bunnies who catch up Kuri do not add theirs: all three are equally hard)
+function mateCheck() { // Kuri mode: the next bunny dashes up from behind and joins the run
   if (G.char !== 'pom' || G.mode !== 'play') return; const n = (G.mates.ren ? 1 : 0) + (G.mates.jill ? 1 : 0); if (n >= 2 || G.t < G.mateAt[n] || G.pow.fly > 0 || G.turnT > 0) return;
   const w = G.mateOrder[n]; G.mates[w] = 1; G.stats.mates = n + 1;
   const B = n === 0 ? G.follow : G.pom;
@@ -737,7 +737,7 @@ function update(dt) {
   if (G.hint > 0) G.hint -= dt;
   G.clock = seg.t0 + (seg.t1 - seg.t0) * clamp(G.s / seg.len, 0, 1);
   // animation
-  P.ph += dt * (P.who === 'pom' ? 10 + G.speed * .75 : 6 + G.speed * .55); /* [46] ポムは足が短いので、もう少し速く足を回す（2026-11-17） */ /* ポムは足が短いので、同じ速さでも足の回転が速い */
+  P.ph += dt * (P.who === 'pom' ? 10 + G.speed * .75 : 6 + G.speed * .55); /* [46] クリは足が短いので、もう少し速く足を回す（2026-11-17） */ /* クリは足が短いので、同じ速さでも足の回転が速い */
   { const c = Math.floor(P.ph / Math.PI); if (c !== G.stepC) { G.stepC = c; if (!G.air && !sliding && !flying && G.invT <= 0) SFX.step(c & 1, seg.th.kind); if (G.weather === 'snow' && seg.th.kind !== 'room' && seg.th.kind !== 'train') { const fw = segPos(seg, G.s, G.lat + ((c & 1) ? .12 : -.12)); (G.prints = G.prints || []).push({ x: fw[0], z: fw[1], y: fw[2], t: G.t, a: G.player.wy }); if (G.prints.length > 40) G.prints.shift(); } } } // footprints in the snow (2026-11-08) // a soft footstep on every stride
   { const sky = !!seg.th.sky, rel = sky ? clamp((G.s - (seg.len - 30)) / 16, 0, 1) : 0, nx = G.segs[G.ci + 1], hin = sky ? 1 : (seg.turn === 0 && !seg.fork && nx && nx.th.sky) ? clamp((G.s - (seg.len - 11)) / 8, 0, 1) : 0; /* [F4] 展望台のテラスの先で、オオタカが上からおりてきて、つかむ */ P.hawk = G.follow.hawk = G.pom.hawk = hin > 0; P.hawkIn = G.follow.hawkIn = G.pom.hawkIn = hin; P.hawkRel = G.follow.hawkRel = G.pom.hawkRel = rel; if (!sky) G.hawkLand = 0; else if (!sky && seg.th.climb && !OPT().calm && (seg.th.kind === 'deck' || seg.tid === 'tdeck') && Math.random() < dt * clamp(altitude(seg, G.s) / 300, 0, .5)) { try { whoosh(.9, .02 + clamp(altitude(seg, G.s) / 150, 0, 1) * .03, 250, 1200); } catch (e) { } } /* [H25] 外階段・屋上・展望台のテラス：高くなるほど、ときどき吹く風の音が強く・多くなる */ if (sky && !G.skyWhoosh) { G.skyWhoosh = 1; try { whoosh(1.4, .09, 300, 1800); } catch (e) { } } if (!sky) G.skyWhoosh = 0; /* [F9] 飛び立つ時の、長い風の音 */ if (rel > .2 && !G.hawkLand) { G.hawkLand = 1; G.landT = .14; G.landK = .85; if (!OPT().calm) G.shake = Math.max(G.shake || 0, .25); /* [F13] 着地の小さなゆれ */ try { SFX.land(); const sp = spriteAt(P.wx, G.ey || 0, P.wz); if (sp) for (let k = 0; k < 10; k++) FX.push({ x: sp.sx + rand(-34, 34), y: sp.sy, vx: rand(-130, 130), vy: rand(-80, -15), life: rand(.3, .5), t: 0, c: 'rgba(214,222,190,.85)', r: rand(2, 4) }); } catch (e) { } } /* [D18] 着地の一歩：足をはなした時、ぽんと着地（体が少しつぶれる・音・芝の小さなほこり） */ /* [D1] 地面の近くで、オオタカが足をはなす（0→1：はなして、空へもどっていく） */
     if (rel > 0 && !G.hawkLet) { G.hawkLet = 1; tone(880, .12, 'bell', .03); tone(660, .16, 'bell', .025, AU.ctx && AU.ctx.currentTime + .1); } if (!sky) G.hawkLet = 0; }
@@ -769,11 +769,11 @@ function placeCamera(dt) {
   const eP = segE(seg, G.s); G.ey = G.ey == null || G.turnT <= 0 && Math.abs(G.ey - eP) > 3 ? eP : lerp(G.ey, eP, Math.min(1, dt * 18));
   P.wx = G.rx; P.wz = G.rz; P.wy = G.ey + G.y + (P.air || P.fly ? 0 : Math.abs(Math.sin(P.ph)) * (P.who === 'pom' ? .012 : .045 + Math.min(.035, G.speed * .002))); // the run bob grows a little with speed
   if (G.aura && G.mode === 'play' && !OPT().calm && (G.auraT = (G.auraT || 0) + (G.dtFX || .016)) > .045) { G.auraT = 0; const sp = spriteAt(P.wx + rand(-.35, .35), P.wy + rand(.2, 1.1) * (P.big || 1), P.wz + .2); if (sp) FX.push({ x: sp.sx, y: sp.sy, vx: rand(-25, 25), vy: rand(-70, -20), life: rand(.35, .7), t: 0, c: Math.random() < .5 ? 'rgba(255,214,90,.95)' : 'rgba(255,246,200,.95)', r: rand(1.5, 3.2) }); } P.vy = P.who === 'pom' ? G.vy : null;
-  const skyF = seg.th.sky && P.hawk, skyK = skyF ? clamp((altitude(seg, G.s) - 2) / 14, 0, 1) : 0, fp = skyF ? segPos(seg, G.s - lerp(F.back, 0, skyK), /* [空 K7] 2026-11-21：横にならぶオオタカは、レンと同じか少し先に（カメラに近いと大きく高く写り、パソコンの横長の画面で上のはしで切れた） */ lerp(F.lat, G.lat + (G.lat > .5 ? -1.7 : 1.7) * (W < H ? .72 : 1), skyK)) : segPos(seg, G.s - F.back, F.lat); /* [空 K5] 2026-11-21：地面が近づいたら（高さ 16m から）、ジルはレンの横から、走る時のいつもの場所へ少しずつもどる（前は着地の直前、カメラが下がって近づくので、横にいたジルが画面の右のはしで切れた） */ /* [F8] 空の上：ジルはレンの横にならんで飛ぶ（うしろにいると、カメラがぐるっと回る時にレンと重なって見えなくなった） */ F.wx = fp[0]; F.wz = fp[1]; if (skyF && skyK > 0) { const sv = skySide(seg), o = (G.lat > .5 ? -1.7 : 1.7) * (W < H ? .72 : 1); F.wx = lerp(fp[0], P.wx + sv[0] * o, skyK); F.wz = lerp(fp[1], P.wz + sv[1] * o, skyK); } /* [空 K8] 2026-11-21：ぐるっと見わたす間も、ジルのオオタカは画面の上でレンの横に（前は道の横に固定だったので、カメラが回ると、カメラのすぐ前に来て大きく写り、画面の上で切れた） */ F.wy = fp[2] + (F.y || 0) + (F.air ? 0 : Math.abs(Math.sin(F.ph)) * (F.who === 'pom' ? .012 : .06)); /* ポム（ハムスター）は足がほとんど地面についているので、体は上下しない */
+  const skyF = seg.th.sky && P.hawk, skyK = skyF ? clamp((altitude(seg, G.s) - 2) / 14, 0, 1) : 0, fp = skyF ? segPos(seg, G.s - lerp(F.back, 0, skyK), /* [空 K7] 2026-11-21：横にならぶオオタカは、モチと同じか少し先に（カメラに近いと大きく高く写り、パソコンの横長の画面で上のはしで切れた） */ lerp(F.lat, G.lat + (G.lat > .5 ? -1.7 : 1.7) * (W < H ? .72 : 1), skyK)) : segPos(seg, G.s - F.back, F.lat); /* [空 K5] 2026-11-21：地面が近づいたら（高さ 16m から）、ユズはモチの横から、走る時のいつもの場所へ少しずつもどる（前は着地の直前、カメラが下がって近づくので、横にいたユズが画面の右のはしで切れた） */ /* [F8] 空の上：ユズはモチの横にならんで飛ぶ（うしろにいると、カメラがぐるっと回る時にモチと重なって見えなくなった） */ F.wx = fp[0]; F.wz = fp[1]; if (skyF && skyK > 0) { const sv = skySide(seg), o = (G.lat > .5 ? -1.7 : 1.7) * (W < H ? .72 : 1); F.wx = lerp(fp[0], P.wx + sv[0] * o, skyK); F.wz = lerp(fp[1], P.wz + sv[1] * o, skyK); } /* [空 K8] 2026-11-21：ぐるっと見わたす間も、ユズのオオタカは画面の上でモチの横に（前は道の横に固定だったので、カメラが回ると、カメラのすぐ前に来て大きく写り、画面の上で切れた） */ F.wy = fp[2] + (F.y || 0) + (F.air ? 0 : Math.abs(Math.sin(F.ph)) * (F.who === 'pom' ? .012 : .06)); /* クリ（ハムスター）は足がほとんど地面についているので、体は上下しない */
   F.fly = P.fly; if (P.fly) { F.wy = G.ey + G.y - .3; }
-  const strIn = !seg.first && seg.turnIn === 0 && !seg.prevFork; /* [F7] まっすぐつながった道（展望台 → 空 → 着地・エレベーター）：うしろの仲間は、つなぎ目の手前にいても見える（前は道の頭で消え、空へ飛び立つ時にジルが画面から消えた） */
+  const strIn = !seg.first && seg.turnIn === 0 && !seg.prevFork; /* [F7] まっすぐつながった道（展望台 → 空 → 着地・エレベーター）：うしろの仲間は、つなぎ目の手前にいても見える（前は道の頭で消え、空へ飛び立つ時にユズが画面から消えた） */
   F.show = !F.off && (strIn || G.s - F.back > (seg.first ? -14 : HW + .3));
-  { const M = G.pom; if (M.on) { const mp = skyF ? segPos(seg, G.s + .2, G.lat + (G.lat > .5 ? 1.5 : -1.5) * (W < H ? .72 : 1)) /* [空 K6] 2026-11-21：たて長のスマホでは、横にならぶオオタカの間を 7 割にせまく（はしのオオタカが画面の右で切れた） */ /* [空 K2] 2026-11-20：ポムのオオタカは、ジルと反対がわのレンの横に（前はレンのすぐうしろ・ジルと同じがわで、カメラから見るとレンの頭の上にポムのオオタカが重なった） */ : segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; if (skyF) { const sv = skySide(seg), o = (G.lat > .5 ? 1.5 : -1.5) * (W < H ? .72 : 1); M.wx = P.wx + sv[0] * o; M.wz = P.wz + sv[1] * o; } M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * (M.who === 'pom' ? .012 : .05)); if (M.who === 'pom' && !M.air && !P.fly) M.lat += Math.sin(M.ph * .5) * .0035; /* ちょこまか：走りながら、ごく小さく左右にゆれる */ if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = strIn || G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
+  { const M = G.pom; if (M.on) { const mp = skyF ? segPos(seg, G.s + .2, G.lat + (G.lat > .5 ? 1.5 : -1.5) * (W < H ? .72 : 1)) /* [空 K6] 2026-11-21：たて長のスマホでは、横にならぶオオタカの間を 7 割にせまく（はしのオオタカが画面の右で切れた） */ /* [空 K2] 2026-11-20：クリのオオタカは、ユズと反対がわのモチの横に（前はモチのすぐうしろ・ユズと同じがわで、カメラから見るとモチの頭の上にクリのオオタカが重なった） */ : segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; if (skyF) { const sv = skySide(seg), o = (G.lat > .5 ? 1.5 : -1.5) * (W < H ? .72 : 1); M.wx = P.wx + sv[0] * o; M.wz = P.wz + sv[1] * o; } M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * (M.who === 'pom' ? .012 : .05)); if (M.who === 'pom' && !M.air && !P.fly) M.lat += Math.sin(M.ph * .5) * .0035; /* ちょこまか：走りながら、ごく小さく左右にゆれる */ if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = strIn || G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
   if (P.hawk && !(P.hawkRel > .2)) { const sw = k => .3 + Math.sin(G.t * 2.1 + k) * .07 * (1 + (P.hawkRel || 0) * 3); /* [D2] 着地の前は羽ばたきが強くなり、少し上下が大きい */ P.wy = G.ey + G.y + sw(0); F.wy = fp[2] + sw(1.3); if (G.pom.on) G.pom.wy += sw(2.1) - (G.pom.air ? 0 : Math.abs(Math.sin(G.pom.ph)) * .012); } // オオタカの羽ばたきで、ゆっくり上下
   const ty = seg.dir * Math.PI / 2 + skySpin(seg); let dy = ty - G.camYaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
   G.camYaw += dy * Math.min(1, dt * 9);
@@ -785,8 +785,8 @@ function placeCamera(dt) {
   /* [降りる時 D4] 階段（段と踊り場がくり返す道）では、カメラの高さを前後 3m の平均の高さに合わせる。前は段ごとの高さの変わり目でカメラが小きざみに上下し、画面の道全体がガクガク動いて見えた */
   const flt = seg.hp && seg.hp.shape === 'flights', eAt = flt ? (q => (segE(seg, q - 1.5) + segE(seg, q - .75) + segE(seg, q) + segE(seg, q + .75) + segE(seg, q + 1.5)) / 5) : (q => segE(seg, q));
   /* [空 K1] 2026-11-20 オーナー「スカイツリーから飛び立った時に、スマホでもウェブでもキャラクターが画面から消えて下の方に行ってしまう」：
-     空の道は 451m を 220m でおりる急な坂なので、2.5m うしろの高さに合わせたカメラは、レンたちより 6m 以上も高く（さらにおくれて）、3 人が画面の下へ消えていた。
-     空の上では、カメラの高さはレンたちの今の高さに合わせ、おくれもなくす */
+     空の道は 451m を 220m でおりる急な坂なので、2.5m うしろの高さに合わせたカメラは、モチたちより 6m 以上も高く（さらにおくれて）、3 人が画面の下へ消えていた。
+     空の上では、カメラの高さはモチたちの今の高さに合わせ、おくれもなくす */
   const skyCam = !!seg.th.sky, eC = skyCam ? eAt(G.s) : eAt(G.s - 2.5), ePc = flt ? eAt(G.s) : eP, slope = clamp((eAt(Math.min(seg.len, G.s + 14)) - ePc) / 14, -.3, .3);
   const camNew = G.camE == null;
   G.camE = G.camE == null || skyCam ? eC : lerp(G.camE, Math.max(eC, ePc - .4), Math.min(1, dt * 10)); G.camSl = lerp(G.camSl || 0, slope, Math.min(1, dt * 3));
@@ -797,26 +797,26 @@ function placeCamera(dt) {
   G.camH = camNew || G.camH == null ? camT : lerp(G.camH, camT, Math.min(1, dt * 5));
   let camUp = G.y * .6 + sh * .5; if (ceilH && camUp > 0) { const room = Math.max(.05, ceilH - CAM_CEIL_MIN - G.camH); camUp = room * (1 - Math.exp(-camUp / room)); }
   CAM.y = G.camE + G.camH + camUp; if (ceilH) CAM.y = Math.min(CAM.y, G.camE + ceilH - CAM_CEIL_MIN + .08);
-  CAM.yaw = G.camYaw; CAM.pitch = .19 + .04 * clamp((G.camH - 2.1) / .35, 0, 1) - G.camSl * (skyCam ? .22 : .55) + Math.min(.1, G.y * .03); /* [空 K4] 空の上は、カメラがレンたちと同じ高さなので、坂の分だけ下を向きすぎない（パソコンの横長の画面で、レンの頭が画面の上のはしに近づいた） */ { const lk = skyLookK(seg); if (lk > 0) CAM.pitch = lerp(CAM.pitch, W > H ? .09 : .07, lk); /* [空 K9] 2026-11-21：横長の画面で、見わたす間にレンのオオタカの羽が画面の上で切れた。下向きを少しへらす */ } /* [空 K3] 横長の画面（パソコン）は上下に見える広さがせまいので、上げすぎない（レンの頭が画面の上のはしに近づいた） */ /* [降りる時 S2] 回っている間は遠くの景色を見る（着地の道が画面を横切って流れて見えない） */
+  CAM.yaw = G.camYaw; CAM.pitch = .19 + .04 * clamp((G.camH - 2.1) / .35, 0, 1) - G.camSl * (skyCam ? .22 : .55) + Math.min(.1, G.y * .03); /* [空 K4] 空の上は、カメラがモチたちと同じ高さなので、坂の分だけ下を向きすぎない（パソコンの横長の画面で、モチの頭が画面の上のはしに近づいた） */ { const lk = skyLookK(seg); if (lk > 0) CAM.pitch = lerp(CAM.pitch, W > H ? .09 : .07, lk); /* [空 K9] 2026-11-21：横長の画面で、見わたす間にモチのオオタカの羽が画面の上で切れた。下向きを少しへらす */ } /* [空 K3] 横長の画面（パソコン）は上下に見える広さがせまいので、上げすぎない（モチの頭が画面の上のはしに近づいた） */ /* [降りる時 S2] 回っている間は遠くの景色を見る（着地の道が画面を横切って流れて見えない） */
   camPrep();
   P.depth = (P.wx - CAM.x) * CAM.s + (P.wz - CAM.z) * CAM.c; F.depth = (F.wx - CAM.x) * CAM.s + (F.wz - CAM.z) * CAM.c;
   if (F.tuck) F.depth = P.depth + .3;
   if (G.pomPeek && G.pomPeek.seg === seg) peekStep(seg, dt, P);
   { const M = G.pom; if (M.on) { M.depth = (M.wx - CAM.x) * CAM.s + (M.wz - CAM.z) * CAM.c; if (M.tuck) M.depth = P.depth + .5; } }
 }
-/* ポムのあいさつ（「先輩、お先っす！」）。2026-11-17 オーナー：「並走して走りながら言うように。いまは空中浮遊しながら物理的におかしく進んでる」。
-   前の作り：ポムは道の上の 1 点に止まったまま（走る絵なのに、こちらへすべって近づく）→ 急に自分と同じ速さで前に張りつき、ふり向いた止め絵のまま上下にふわふわ → 横へ消える。
+/* クリのあいさつ（「先輩、お先っす！」）。2026-11-17 オーナー：「並走して走りながら言うように。いまは空中浮遊しながら物理的におかしく進んでる」。
+   前の作り：クリは道の上の 1 点に止まったまま（走る絵なのに、こちらへすべって近づく）→ 急に自分と同じ速さで前に張りつき、ふり向いた止め絵のまま上下にふわふわ → 横へ消える。
    作り直し（番号は docs/POM-PEEK-2026-11-17.md）：歩道から走って出てきて、自分より少しおそい速さで前を走る（追いつく）→ となりの車線に入って並んで走る →
-   走りながら肩ごしにふり向いて言う → 前を向き直し、ぐっと加速して歩道へぬける。足の動きはポム自身の速さに合わせる */
+   走りながら肩ごしにふり向いて言う → 前を向き直し、ぐっと加速して歩道へぬける。足の動きはクリ自身の速さに合わせる */
 function peekStep(seg, dt, P) {
   const k = G.pomPeek, B = k.b; G.peekSlow = 0;
   const laneFor = () => LANES[G.lane === 1 ? (G.follow.side > 0 ? 0 : 2) : G.lane === 0 ? 2 : 0]; // [9] 自分と相棒のいない車線
   const side = -k.dir * (HW + .5), AHEAD = 1.3; // [1] 歩道（道のはし）から出てくる [10] 自分の少し前（ななめ前）に並ぶ
   if (!k.ph && G.s > k.s - 34 && G.turnT <= 0) { k.ph = 'in'; k.ps = G.s + 15; k.lat = side; k.v = G.speed * .55; k.vl = 0; k.hy = 0; k.hv = 0; k.stop = laneFor(); k.t = 0; k.dust = 0; B.ph = Math.random() * 6;
-    bannerNow(SV.pomMet ? (tr('あっ、ポム！', 'POM!')) : (tr('！？', '!?')), t(SV.pomMet ? 'pomPeek2' : 'pomPeek'), 'room'); tone(784, .08, 'pluck', .045); tone(1047, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .09); }
+    bannerNow(SV.pomMet ? (tr('あっ、クリ！', 'KURI!')) : (tr('！？', '!?')), t(SV.pomMet ? 'pomPeek2' : 'pomPeek'), 'room'); tone(784, .08, 'pluck', .045); tone(1047, .12, 'bell', .04, AU.ctx && AU.ctx.currentTime + .09); }
   if (!k.ph || k.ph === 'gone') { B.show = false; return; }
   const gs = G.speed || 0; let want;
-  if (k.ph === 'in' || k.ph === 'side') { k.stop = lerp(k.stop, laneFor(), Math.min(1, dt * 2.5)); /* [11] 自分が車線を変えたら、ポムも横へよける */
+  if (k.ph === 'in' || k.ph === 'side') { k.stop = lerp(k.stop, laneFor(), Math.min(1, dt * 2.5)); /* [11] 自分が車線を変えたら、クリも横へよける */
     want = gs + clamp((G.s + AHEAD - k.ps) * 2.6, -gs * .45, 5); } /* [2] はじめは自分よりおそく（追いつく） [3] 近づくと速さをそろえる（ばねのように、ゆっくり） */
   else want = gs + 4 + k.t * 9; /* [20] 走りぬける時は、ぐっと加速 */
   const acc = k.ph === 'out' ? 16 : 11; k.v += clamp(want - k.v, -acc * dt, acc * dt); k.v = Math.max(0, k.v); k.ps += k.v * dt; /* [4] 速さは急に変わらない（加速の上限） */
@@ -834,8 +834,8 @@ function peekStep(seg, dt, P) {
   else if (k.ph === 'out') { k.t += dt; if (k.ps - G.s > 34 || (Math.abs(k.lat) > HW + .9 && k.ps - G.s > 18)) k.ph = 'gone'; /* [24] すぐ横で消えない：十分に遠くへ走ってから */ }
   if (k.ph !== 'out' && k.ps > seg.len - 16) { k.ph = 'out'; k.t = 0; } /* [14] 道の終わり（曲がり角）の手前で、先に退場 */
   if (k.ph === 'gone' || k.ps > seg.len - 3) { k.ph = 'gone'; B.show = false; return; }
-  // 体：足の動きは、ポム自身の速さに合わせる。上下のふわふわはやめる（体の上下は絵の中の足の動きだけ）
-  B.ph += dt * (10 + k.v * .75); /* [15] 足の回転＝ポムの速さ（止まり気味なら足もゆっくり） [16] 前の「上下にふわふわ」をやめた */
+  // 体：足の動きは、クリ自身の速さに合わせる。上下のふわふわはやめる（体の上下は絵の中の足の動きだけ）
+  B.ph += dt * (10 + k.v * .75); /* [15] 足の回転＝クリの速さ（止まり気味なら足もゆっくり） [16] 前の「上下にふわふわ」をやめた */
   const lookOn = k.ph === 'side' && k.t > .25 && k.t < 2.05; /* [17] 並んで少したってから、ふり向く [18] 言い終わってから、前を向き直す */
   B.look = 0; B.runLook = lookOn ? 1 : 0; B.mood = k.t < 1.2 ? 'sparkle' : 'open';
   B.say = lookOn && k.t > .35 ? (SV.pomMet ? t('pomPeekSay') : '？') : ''; B.sayA = lookOn ? Math.min(1, (k.t - .35) * 5, (2.05 - k.t) * 5) : 0; /* [19] ふきだしは、ふり向いてから出て、前を向く前に消える */
@@ -957,11 +957,11 @@ function finishRun(why) {
   G.cause = 'rescue'; G.mode = 'dead'; errLog('finish: ' + why); // 安全網で終わったときは「早退しました」と言わない
   try { hideAll(); if (!curSeg()) throw new Error('no street'); endRun(); } catch (e) { reportErr(e); try { goTitle(); } catch (e2) { } }
 }
-// the other bunny runs beside you and dodges on its own; Pom trots along behind, on the other side
+// the other bunny runs beside you and dodges on its own; Kuri trots along behind, on the other side
 function buddy(dt, seg) {
   const F = G.follow;
   if (G.lane === 0) F.side = 1; else if (G.lane === 2) F.side = -1;
-  buddyMove(F, dt, seg, clamp(G.lat + F.side * (W / H < .62 ? 1.02 : 1.25), -ROAD + .45, ROAD - .45), G.char === 'pom' ? -.35 : F.who === 'ren' ? .1 : .9); /* ジルで走るとき、大きいレン課長がカメラの近くで右の道をふさいでいた → 横にならんで走る */ // with Pom running, the senpai leads half a step ahead (and stays out of the way of the camera)
+  buddyMove(F, dt, seg, clamp(G.lat + F.side * (W / H < .62 ? 1.02 : 1.25), -ROAD + .45, ROAD - .45), G.char === 'pom' ? -.35 : F.who === 'ren' ? .1 : .9); /* ユズで走るとき、大きいモチ課長がカメラの近くで右の道をふさいでいた → 横にならんで走る */ // with Kuri running, the senpai leads half a step ahead (and stays out of the way of the camera)
   const M = G.pom; if (M.on) { buddyMove(M, dt, seg, clamp(G.lat - F.side * 1.2, -ROAD + .35, ROAD - .35), M.who === 'pom' ? .25 : -.15); if (M.look > 0) M.look = Math.max(0, M.look - dt); if (M.look <= 0) M.say = ''; }
 }
 function buddyMove(F, dt, seg, tlat0, back0) {
@@ -1164,7 +1164,7 @@ function takePhoto(tid) {
 
 /* ---------- end of run ---------- */
 const CAPS = {
-  obstacle: { ren: ['EYES FRONT, BOSS.', '課長、前です'], jill: ['NOBODY’S PERFECT.', 'ジルにも、たまには'], pom: ['ROOKIE MISTAKE!', '新人、まだまだっす'] },
+  obstacle: { ren: ['EYES FRONT, BOSS.', '課長、前です'], jill: ['NOBODY’S PERFECT.', 'ユズにも、たまには'], pom: ['ROOKIE MISTAKE!', '新人、まだまだっす'] },
   papers: { ren: ['BURIED IN PAPERS.', '書類に埋もれた'], jill: ['BURIED IN PAPERS.', '書類に埋もれた'], pom: ['BURIED IN PAPERS.', '書類に埋もれた'] },
   wall: { ren: ['THAT’S A WALL.', 'そっちは壁です'], jill: ['THAT’S A WALL.', 'そっちは壁です'], pom: ['THAT’S A WALL.', 'そっちは壁です'] },
   fall: { ren: ['OVER THE EDGE.', '曲がりそこねて、落ちました'], jill: ['OVER THE EDGE.', '曲がりそこねて、落ちました'], pom: ['OVER THE EDGE.', '曲がりそこねて、落ちました'] }, /* [塔 F11] */
@@ -1181,7 +1181,7 @@ function endRun() {
   G.mode = 'result'; musicStop();
   const bonus = hasPerk('ren') ? Math.floor(G.hay * .2) : 0, gained = Math.floor(G.hay) + bonus;
   SV.bank += gained;
-  let bondMsg = ''; if (G.char !== 'pom' && G.dist > 150) { const lv0 = bondLv(); SV.bond = (SV.bond || 0) + 1; if (bondLv() > lv0) bondMsg = t('bondUp', bondLv()); } // Ren & Jill's buddies level (2026-11-08)
+  let bondMsg = ''; if (G.char !== 'pom' && G.dist > 150) { const lv0 = bondLv(); SV.bond = (SV.bond || 0) + 1; if (bondLv() > lv0) bondMsg = t('bondUp', bondLv()); } // Mochi & Yuzu's buddies level (2026-11-08)
   { const td = todayStr(); SV.playDays = (SV.playDays || []).filter(k => k !== td).concat(td).slice(-60); } // days you played, for the calendar
   let dayGoalMsg = ''; { const td = todayStr(); if (!SV.dayHay || SV.dayHay.d !== td) SV.dayHay = { d: td, n: 0 }; const b4 = SV.dayHay.n; SV.dayHay.n += gained; if (b4 < DAY_GOAL && SV.dayHay.n >= DAY_GOAL) { SV.bank += 100; dayGoalMsg = tr('今日の目標達成！ +100', 'Daily goal done! +100'); } } // today's hay goal (2026-11-08)
   const st = G.stats; st.score = G.score; st.dist = G.dist;
@@ -1320,7 +1320,7 @@ function buildShareCard(cap, place, gained) {
   const pom = G.char === 'pom', kH = (BS + BTOP) / BS, who = (w, mood, x, size) => g.drawImage(bunFrame(w, mood, w === 'ren' && SV.mugOn), x, 278 - size * kH, size, size * kH);
   const titleW = pom ? 540 : 610; g.fillStyle = '#3B2A20'; g.textAlign = 'left'; fitFont(g, tr('チモシーダッシュ', 'HAY DASH!'), titleW, LANG === 'ja' ? 74 : 92, '400 {}px "Dela Gothic One","Hiragino Sans",sans-serif'); g.fillText(tr('チモシーダッシュ', 'HAY DASH!'), 60, 150);
   // under the title: the hashtag and where to play (the picture travels without its caption)
-  const host = GAME_URL.replace(/^https?:\/\//, '').replace(/\/$/, ''), tag = LANG === 'ja' ? '#レンとジル' : '#RenAndJill';
+  const host = GAME_URL.replace(/^https?:\/\//, '').replace(/\/$/, ''), tag = LANG === 'ja' ? '#東京うさぎオフィス' : '#TokyoUsagiOffice';
   g.fillStyle = '#A97A1E'; fitFont(g, tag + '  ' + host, titleW, 34, '900 {}px "Zen Maru Gothic",sans-serif'); g.fillText(tag + '  ' + host, 64, 210);
   if (pom) { who('ren', 'front_happy', 610, 180); who('jill', 'front_open', 765, 155); who('pom', 'front_happy', 900, 150); }
   else { who('ren', 'front_happy', 700, 210); who('jill', 'front_open', 860, 180); }
@@ -1340,7 +1340,7 @@ function buildShareCard(cap, place, gained) {
     q.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 40; i++) { q.beginPath(); q.arc((i * 263) % 1080, (i * 397) % 1920, 6 + (i % 5) * 4, 0, Math.PI * 2); q.fill(); }
     q.save(); q.translate(540, 980); q.rotate(-.03); q.shadowColor = 'rgba(59,42,32,.35)'; q.shadowBlur = 40; q.shadowOffsetY = 18; q.drawImage(c, -470, -470, 940, 940); q.restore();
     q.fillStyle = '#3B2A20'; q.textAlign = 'center'; q.font = '400 64px "Dela Gothic One","Hiragino Sans",sans-serif'; q.fillText(tr('今日のチモシーダッシュ', "TODAY'S HAY DASH"), 540, 400);
-    q.font = '900 40px "Zen Maru Gothic",sans-serif'; q.fillStyle = '#6E5848'; q.fillText('#レンとジル', 540, 1560); fitFont(q, tr('うさぎの課長と、東京をかけぬけて出社', 'Two office bunnies, one mad dash across Tokyo'), 960, 40, '900 {}px "Zen Maru Gothic",sans-serif'); q.fillText(tr('うさぎの課長と、東京をかけぬけて出社', 'Two office bunnies, one mad dash across Tokyo'), 540, 1620);
+    q.font = '900 40px "Zen Maru Gothic",sans-serif'; q.fillStyle = '#6E5848'; q.fillText('#東京うさぎオフィス', 540, 1560); fitFont(q, tr('うさぎの課長と、東京をかけぬけて出社', 'Two office bunnies, one mad dash across Tokyo'), 960, 40, '900 {}px "Zen Maru Gothic",sans-serif'); q.fillText(tr('うさぎの課長と、東京をかけぬけて出社', 'Two office bunnies, one mad dash across Tokyo'), 540, 1620);
     // where to play and whom to follow, in a soft pill (a Story has no clickable caption)
     { const host = GAME_URL.replace(/^https?:\/\//, '').replace(/\/$/, ''); q.fillStyle = 'rgba(255,250,242,.92)'; q.beginPath(); q.roundRect ? q.roundRect(190, 1680, 700, 130, 40) : q.rect(190, 1680, 700, 130); q.fill();
       q.fillStyle = '#3B2A20'; fitFont(q, host, 640, 40, '900 {}px "Zen Maru Gothic",sans-serif'); q.fillText(host, 540, 1736); q.fillStyle = '#A97A1E'; q.font = '900 32px "Zen Maru Gothic",sans-serif'; q.fillText(SNS_HANDLE, 540, 1786); }

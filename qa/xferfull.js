@@ -97,7 +97,7 @@ const nodeCode0 = o => { const b64 = Buffer.from(JSON.stringify(Object.assign({ 
     const ui = await B.p.evaluate(() => ({ title: !document.querySelector('#sTitle').hidden, best: document.querySelector('#tBest').textContent, bank: document.querySelector('#tBank').textContent, lang: document.documentElement.lang, pom: !document.querySelector('#pickPom').hidden && document.querySelector('#pickPom').getAttribute('aria-pressed'), mute: document.querySelector('#btnMute').textContent, hay: window.__hayDash.SV.bank }));
     if (!ui.title || !/123/.test(ui.best) || ui.bank.replace(/\D/g, '') !== String(svA.bank) || ui.lang.slice(0, 2) !== lang || ui.pom !== 'true') fail(tag + ' title after restore ' + JSON.stringify(ui));
     if (ui.hay !== svA.bank) fail(tag + ' hay changed on the first start after restore ' + svA.bank + ' → ' + ui.hay); // no second legend/daily/event gift
-    // a run with the restored save (Pom, her hat, Legend mode) and back: nothing breaks, nothing is lost
+    // a run with the restored save (Kuri, her hat, Legend mode) and back: nothing breaks, nothing is lost
     if (vp.width === 390) { await B.p.click('#btnStart'); await B.p.waitForTimeout(1500);
     await B.p.evaluate(() => { window.__hayDash.G.invT = 0; window.__die('obstacle'); }); await B.p.waitForTimeout(1200);
     await B.p.evaluate(() => { const r = document.querySelector('#btnRvNo'); if (r && !document.querySelector('#sRevive').hidden) r.click(); }); await B.p.waitForTimeout(1200);
@@ -109,7 +109,7 @@ const nodeCode0 = o => { const b64 = Buffer.from(JSON.stringify(Object.assign({ 
   // ---- 2. codes and saves from older versions, made outside the browser; damaged codes ----
   const OLD = [
     ['v1 (first version)', { best: 4000, bank: 1200, closet: { tie_red: 1 }, wear: { ren: { tie: 'red' }, jill: { frame: 'brown' } }, upg: { dash: 2 }, clovers: 2, char: 'jill', mug: true, mugOn: true, missions: null, totals: { hay: 3000 }, zukan: { carrot: 1 }, daily: '2025-12-1', streak: 3 }],
-    ['before Pom', { best: 9000, bank: 3000, closet: { hat_beret_ren: 1 }, wear: { ren: { tie: 'gold', hat: 'beret', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' } }, stamps: { yamanote: 1 }, mlevel: 3, missions: { slots: [{ id: 'gone_mission', target: 5, base: 0, prog: 0, done: 0 }, { id: 'office', target: 'x', prog: 0 }, null] }, lang: 'en', nick: 'old' }],
+    ['before Kuri', { best: 9000, bank: 3000, closet: { hat_beret_ren: 1 }, wear: { ren: { tie: 'gold', hat: 'beret', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' } }, stamps: { yamanote: 1 }, mlevel: 3, missions: { slots: [{ id: 'gone_mission', target: 5, base: 0, prog: 0, done: 0 }, { id: 'office', target: 'x', prog: 0 }, null] }, lang: 'en', nick: 'old' }],
     ['legend, before stars were saved', { best: 300000, bank: 10, totals: { hay: 2400000, veg: 900 }, runs: 900, stamps: { yamanote: 3 }, closet: {}, wear: { ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' }, pom: { band: 'red', hat: '', suit: '' } }, pomMet: 1, char: 'pom', career: 15, tutDone: 1 }],
     ['damaged numbers', { best: 'abc', bank: -50, clovers: null, runs: 'NaN', mlevel: 0, upg: { dash: 99, magnet: 'x' }, last: { score: 'x', place: 3 }, closet: [1, 2], wear: 'broken', char: 'pom', stamps: [], tutDone: 1 }],
   ];

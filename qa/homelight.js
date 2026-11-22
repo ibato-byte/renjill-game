@@ -1,5 +1,5 @@
 // ホーム画面の明かりと、選んだ子の見せ方（2026-11-16）。
-// オーナーの報告：「ポムを選んだ時にジルにもスポットが当たる。どのキャラを選んでいるのか直感的に分かりづらい」
+// オーナーの報告：「クリを選んだ時にユズにもスポットが当たる。どのキャラを選んでいるのか直感的に分かりづらい」
 // 確かめること：
 //  (1) ホーム画面では光を描く (2) 走っている間は描かない（画面に固定の光の帯は、走ると「斜めの残像」に見える。2026-11-08 の報告）
 //  (3) だれを選んでも、選んだ子が画面の横のまん中（±8%）にいて、3 人の中でいちばん手前（大きい）
@@ -16,7 +16,7 @@ const { chromium } = require('playwright'); const path = require('path');
       const wait = ms => new Promise(r => setTimeout(r, ms)); await wait(400); const n1 = window.__tl; const G = H.ev('G');
       const at = o => { const s = H.ev('spriteAt')(o.wx, o.wy, o.wz); return s ? { x: s.sx, y: s.sy - s.k * .5, fy: s.sy, k: s.k } : null; };
       const P = at(G.player), F = at(G.follow), M = G.pom.show ? at(G.pom) : null; const c = document.querySelector('canvas'), dpr = c.width / innerWidth;
-      const lum = q => { const g = c.getContext('2d'), R = Math.max(6, q.k * .25 * dpr) | 0, d = g.getImageData(Math.max(0, q.x * dpr - R) | 0, Math.max(0, q.y * dpr - R) | 0, R * 2, R * 2).data; let s = 0, n = 0; for (let i = 0; i < d.length; i += 16) { s += d[i] * .3 + d[i + 1] * .59 + d[i + 2] * .11; n++; } return s / n; }, lit = q => (lum(q) + lum({ x: q.x, y: q.fy, k: q.k })) / 2; // 体と足もと（光のたまり）の平均。白い子（ポム）は体だけだと明るさの上がり方が小さいため
+      const lum = q => { const g = c.getContext('2d'), R = Math.max(6, q.k * .25 * dpr) | 0, d = g.getImageData(Math.max(0, q.x * dpr - R) | 0, Math.max(0, q.y * dpr - R) | 0, R * 2, R * 2).data; let s = 0, n = 0; for (let i = 0; i < d.length; i += 16) { s += d[i] * .3 + d[i + 1] * .59 + d[i + 2] * .11; n++; } return s / n; }, lit = q => (lum(q) + lum({ x: q.x, y: q.fy, k: q.k })) / 2; // 体と足もと（光のたまり）の平均。白い子（クリ）は体だけだと明るさの上がり方が小さいため
       const W = innerWidth, Hh = innerHeight, S = Math.min(W, Hh) * .25, spots = [[S * .3, S * .3], [W - S * .3, S * .3], [S * .3, Hh * .5], [W - S * .3, Hh * .5], [W * .5, Hh * .7]].map(([x, y]) => ({ x, y, k: S }));
       const sat = q => { const g = c.getContext('2d'), d = g.getImageData(Math.max(0, (q.x - q.k * .45) * dpr) | 0, Math.max(0, (q.fy - q.k * 1.05) * dpr) | 0, q.k * .9 * dpr | 0, q.k * 1.05 * dpr | 0).data; let S = 0, n = 0; for (let i = 0; i < d.length; i += 8) { const mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]); S += mx ? (mx - mn) / mx : 0; n++; } return S / n; };
       const pn = performance.now.bind(performance), dn = Date.now, T0 = pn(), D0 = dn(); performance.now = () => T0; Date.now = () => D0; const mr = Math.random, dtf = H.ev('G.dtFX'); Math.random = () => 0.5; H.ev('G.dtFX = 0');   // 舞う粒・乱数も止める（2026-11-18：時計を止めても、描くたびに粒が動いて時々 103% になった）   // 比べる 2 回の絵は同じ瞬間にする（2026-11-18：選んだ子が跳ねる間に描くと、位置がずれて明るさが 103% などになり、時々落ちていた）

@@ -24,7 +24,7 @@ const { chromium } = require('playwright'); const path = require('path');
       #ogx .c{display:inline-block;margin-top:24px;background:#D8473B;color:#fff;font-weight:900;font-size:27px;padding:11px 30px;border-radius:999px;border:4px solid #FBF6EE;box-shadow:0 5px 0 rgba(0,0,0,.35)}
       #ogx img{position:absolute;filter:drop-shadow(0 10px 6px rgba(30,18,10,.28))}
     </style><div class="shade"></div><img src="${ren}" style="height:520px;right:150px;bottom:6px"><img src="${jill}" style="height:400px;right:8px;bottom:0px">
-    <div class="t"><div class="k">REN &amp; JILL ・ レンとジル</div><div class="l">チモシー<b>ダッシュ！</b></div><div class="s">うさぎの課長と部下が、東京をかけぬける<br>Two office bunnies dash across Tokyo</div><div class="c">無料で遊べる ・ Free to play</div></div>`; document.getElementById('app').appendChild(d); });
-  await p.evaluate(() => document.fonts.load('100px OGDela', 'チモシーダッシュ！').then(() => document.fonts.load('900 26px OGZen', 'レンとジル無料で遊べる')).then(() => document.fonts.load('700 26px OGZen', 'うさぎの課長と部下が、東京をかけぬける')));
+    <div class="t"><div class="k">TOKYO USAGI OFFICE ・ 東京うさぎオフィス</div><div class="l">チモシー<b>ダッシュ！</b></div><div class="s">うさぎの課長と部下が、東京をかけぬける<br>Two office bunnies dash across Tokyo</div><div class="c">無料で遊べる ・ Free to play</div></div>`; document.getElementById('app').appendChild(d); });
+  await p.evaluate(() => document.fonts.load('100px OGDela', 'チモシーダッシュ！').then(() => document.fonts.load('900 26px OGZen', '東京うさぎオフィス無料で遊べる')).then(() => document.fonts.load('700 26px OGZen', 'うさぎの課長と部下が、東京をかけぬける')));
   await p.waitForTimeout(900); console.log(await p.evaluate(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family + f.weight).join(',')));
   await p.screenshot({ path: out }); await b.close(); })();

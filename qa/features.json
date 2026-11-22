@@ -37,7 +37,7 @@
       "has": "#combo.pop"
     },
     {
-      "name": "ポムの合流の音",
+      "name": "クリの合流の音",
       "file": "src/6_game.js",
       "has": "SFX.pom()"
     },
@@ -757,7 +757,7 @@
       "has": "const ITEM_FORM = {"
     },
     {
-      "name": "ジルのカチューシャは耳の外側",
+      "name": "ユズのカチューシャは耳の外側",
       "file": "src/2b_bunny.js",
       "has": "let HAT_OUT = 0;"
     },
@@ -822,7 +822,7 @@
       "has": "function hatTufts("
     },
     {
-      "name": "ジルの帽子は頭の横に（耳が見える）",
+      "name": "ユズの帽子は頭の横に（耳が見える）",
       "file": "src/2b_bunny.js",
       "has": "function jillHat("
     },
@@ -852,12 +852,12 @@
       "has": "while (CTXD > d0) ctx.restore();"
     },
     {
-      "name": "後ろ姿もアニメの頭と耳の形（レン）",
+      "name": "後ろ姿もアニメの頭と耳の形（モチ）",
       "file": "src/2b_bunny.js",
       "has": "function renBack("
     },
     {
-      "name": "後ろ姿もアニメの頭と耳の形（ジル）",
+      "name": "後ろ姿もアニメの頭と耳の形（ユズ）",
       "file": "src/2b_bunny.js",
       "has": "jillEars(g, p.ear * 26, 1)"
     },
@@ -867,17 +867,17 @@
       "has": "n: 'animelook'"
     },
     {
-      "name": "キャラクターはアニメと同じ形（レンの頭）",
+      "name": "キャラクターはアニメと同じ形（モチの頭）",
       "file": "src/2b_bunny.js",
       "has": "M180 105 C 252 105 292 150 292 202"
     },
     {
-      "name": "キャラクターはアニメと同じ形（ジルの頭）",
+      "name": "キャラクターはアニメと同じ形（ユズの頭）",
       "file": "src/2b_bunny.js",
       "has": "M188 130 C 248 130 284 166 284 210"
     },
     {
-      "name": "キャラクターはアニメと同じ形（ポムの頭）",
+      "name": "キャラクターはアニメと同じ形（クリの頭）",
       "file": "src/2b_bunny.js",
       "has": "function pomHead("
     },
@@ -922,12 +922,12 @@
       "has": "if (KB_PC) Object.assign(STR, {"
     },
     {
-      "name": "レン・ジルの前足（指の分かれ目・光・かげ。アニメと同じ数字）",
+      "name": "モチ・ユズの前足（指の分かれ目・光・かげ。アニメと同じ数字）",
       "file": "src/2b_bunny.js",
       "has": "function frontPawC(g, who, cx, cy, w, h, cream, top)"
     },
     {
-      "name": "レン・ジルの後ろ足とももの丸み",
+      "name": "モチ・ユズの後ろ足とももの丸み",
       "file": "src/2b_bunny.js",
       "has": "function hindFootC(g, who, hx, y, L, h, d)"
     },
@@ -1022,7 +1022,7 @@
       "has": "li === 'strip' && w.train"
     },
     {
-      "name": "ポムの帽子：頭の幅いっぱいに、はちまきの上にかぶせる",
+      "name": "クリの帽子：頭の幅いっぱいに、はちまきの上にかぶせる",
       "file": "src/2b_bunny.js",
       "has": "function pomHatFit("
     },
@@ -1057,7 +1057,7 @@
       "has": "put('carend', -HW, HW, 0, H)"
     },
     {
-      "name": "ポムの走り：足を交互に・ほとんど跳ねない（ハムスター）",
+      "name": "クリの走り：足を交互に・ほとんど跳ねない（ハムスター）",
       "file": "src/2b_bunny.js",
       "has": "const upOf = sd => { if (!run) return 0;"
     },
@@ -1147,7 +1147,7 @@
       "has": "else if (b.fly) pose ="
     },
     {
-      "name": "ポムの走り：3 つの場面の足・けり出した足の裏",
+      "name": "クリの走り：3 つの場面の足・けり出した足の裏",
       "file": "src/2b_bunny.js",
       "has": "const legS = sd =>"
     },
@@ -1282,7 +1282,7 @@
       "has": "{ t: 'tlobby', d: 5, turn: 1 }, { t: 'troof', d: 4, turn: -1 }, { t: 'tstair', d: 12, straightOut: 1 }, { t: 'tpass', d: 4, turn: -1 }"
     },
     {
-      "name": "ポムは四つ足で低く走る（二足歩行に見えた）",
+      "name": "クリは四つ足で低く走る（二足歩行に見えた）",
       "file": "src/2b_bunny.js",
       "has": "const runLow = run ||"
     },
@@ -1292,12 +1292,12 @@
       "has": "body.classList.toggle('tscroll', on)"
     },
     {
-      "name": "ポムのあいさつは並んで走りながら",
+      "name": "クリのあいさつは並んで走りながら",
       "file": "src/6_game.js",
       "has": "function peekStep(seg, dt, P)"
     },
     {
-      "name": "走りながらふり向くポムの絵",
+      "name": "走りながらふり向くクリの絵",
       "file": "src/2b_bunny.js",
       "has": "BUN[who]['rlook' + k]"
     },
@@ -1627,7 +1627,7 @@
       "has": "[着地 G1〜G3]"
     },
     {
-      "name": "空の上のカメラの高さはレンたちの今の高さ（押上から飛び立つと画面の下へ消えた）",
+      "name": "空の上のカメラの高さはモチたちの今の高さ（押上から飛び立つと画面の下へ消えた）",
       "file": "src/6_game.js",
       "has": "const skyCam = !!seg.th.sky"
     },
@@ -1667,7 +1667,7 @@
       "has": "const g0 = L - 9, gh = 4.3;"
     },
     {
-      "name": "ポムのオオタカはジルと反対がわ",
+      "name": "クリのオオタカはユズと反対がわ",
       "file": "src/6_game.js",
       "has": "G.lat + (G.lat > .5 ? 1.5 : -1.5)"
     },
@@ -1747,7 +1747,7 @@
       "has": "cpat: 'beams', light: 'strip', face: 250"
     },
     {
-      "name": "着地の直前ジルはいつもの場所へもどる",
+      "name": "着地の直前ユズはいつもの場所へもどる",
       "file": "src/6_game.js",
       "has": "[空 K5]"
     },
@@ -1789,7 +1789,7 @@
     {
       "name": "検索：ゲームのページから公式サイトへの言葉つきリンク（2026-11-21 SEO）",
       "file": "seo.py",
-      "has": "レンとジル 公式サイト（アニメ全話）"
+      "has": "東京うさぎオフィス 公式サイト（アニメ全話）"
     },
     {
       "name": "検索：構造化データで公式サイトと同じ運営者（#org）を指す（2026-11-21 SEO）",
@@ -1842,7 +1842,7 @@
       "has": "[空 K6]"
     },
     {
-      "name": "見わたす間も横のオオタカは画面の上でレンの横",
+      "name": "見わたす間も横のオオタカは画面の上でモチの横",
       "file": "src/6_game.js",
       "has": "function skySide(seg)"
     },

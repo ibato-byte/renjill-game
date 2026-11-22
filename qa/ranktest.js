@@ -4,7 +4,7 @@ const { chromium } = require('playwright');
   const p = await b.newPage({ viewport: { width: 390, height: 844 }, locale: 'ja-JP' });
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(() => {
-    const store = { 'ranks/u_a': { m202610: 50000, m202610c: 'jill', all: 90000, nick: 'ジル推し' }, 'ranks/u_b': { m202610: 1200, all: 1200 } };
+    const store = { 'ranks/u_a': { m202610: 50000, m202610c: 'jill', all: 90000, nick: 'ユズ推し' }, 'ranks/u_b': { m202610: 1200, all: 1200 } };
     const mon = (() => { const j = new Date(Date.now() + 9 * 3600e3); return 'm' + j.getUTCFullYear() + String(j.getUTCMonth() + 1).padStart(2, '0'); })();
     if (mon !== 'm202610') { store['ranks/u_a'][mon] = 50000; store['ranks/u_b'][mon] = 1200; }
     const snap = (id, d) => ({ id, exists: !!d, data: () => d });
@@ -27,7 +27,7 @@ const { chromium } = require('playwright');
   console.log(await p.evaluate(() => document.querySelector('#resRank').innerText.replace(/\n+/g, ' | ')));
   console.log('stored me:', await p.evaluate(() => JSON.stringify(window.__store['ranks/u_me'])));
   await p.click('#btnRank2'); await p.waitForTimeout(1500);
-  await p.fill('#nickIn', 'レン課長'); await p.click('#nickSave'); await p.waitForTimeout(300);
+  await p.fill('#nickIn', 'モチ課長'); await p.click('#nickSave'); await p.waitForTimeout(300);
   await p.click('[data-rt="all"]'); await p.waitForTimeout(800);
   await p.screenshot({ path: 'shots/rank_panel.png' });
   console.log(await p.evaluate(() => document.querySelector('#rkFull').innerText.replace(/\n+/g, ' | ')));

@@ -1,4 +1,4 @@
-// ランキングの丸い顔は、顔が真ん中に来る（2026-11-15 の報告：「レンは右寄り、ジルは左寄り」）。
+// ランキングの丸い顔は、顔が真ん中に来る（2026-11-15 の報告：「モチは右寄り、ユズは左寄り」）。
 // 確かめること：3 人とも、目（いちばん暗い所）の左右のまん中が、丸の中心から 3 ドット以内。顔が丸からはみ出していない。帽子をかぶっても同じ。
 const { chromium } = require('playwright'); const path = require('path');
 (async () => { const bad = []; const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined });

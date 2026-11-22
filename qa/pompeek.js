@@ -1,4 +1,4 @@
-// ポムのあいさつ（「先輩、お先っす！」）：歩道から走って出て、となりの車線で並んで走りながら言い、加速して走りぬける。
+// クリのあいさつ（「先輩、お先っす！」）：歩道から走って出て、となりの車線で並んで走りながら言い、加速して走りぬける。
 // 空中にうかない・道の上で止まったまま近づいてこない・横にすべらない・言う時も足が動いている、を見張る（2026-11-17 オーナー「並走しながら言うように」）
 const { chromium } = require('playwright');
 const SH = process.env.SHOTS || 'shots';
@@ -32,6 +32,6 @@ const SH = process.env.SHOTS || 'shots';
     await p.close();
   }
   await b.close();
-  if (errs.length) { console.log('POM PEEK NG\n' + errs.join('\n')); process.exit(1); }
-  console.log('POM PEEK OK');
+  if (errs.length) { console.log('KURI PEEK NG\n' + errs.join('\n')); process.exit(1); }
+  console.log('KURI PEEK OK');
 })();

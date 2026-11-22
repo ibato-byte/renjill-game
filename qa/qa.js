@@ -21,7 +21,7 @@ const { chromium } = require('playwright');
     await p.click('#btnLangTop'); await p.waitForTimeout(150); await p.click('[data-langpick="en"]'); await p.waitForTimeout(100); // 右上の言語ボタンから英語へ
     const lang = await p.evaluate(() => document.querySelector('#btnStart').textContent + '|' + document.querySelector('#tMis').textContent);
     await p.evaluate(() => window.__hayDash.ev("LANG = 'ja'; SV.lang = 'ja'; refreshTitle()")); // the button now cycles 日本語→English→繁體中文→한국어; go straight back to Japanese
-    if (name === 'phone') { // tap controls + Jill + revive + pause
+    if (name === 'phone') { // tap controls + Yuzu + revive + pause
       await p.click('#pickJill'); await p.click('#btnSet'); await p.click('[data-opt="ctrl"][data-v="tap"]'); await p.click('#pClose');
       await p.evaluate(() => { const SV = window.__hayDash.SV; SV.tutDone = 1; SV.bank = 5000; SV.clovers = 3; });
       await p.click('#btnStart'); await p.waitForTimeout(300);

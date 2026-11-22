@@ -30,21 +30,21 @@ app_head = ('<!doctype html><html lang="ja"><head><meta charset="utf-8">'
   '<meta name="format-detection" content="telephone=no,date=no,address=no,email=no"><meta name="color-scheme" content="only light"><meta name="theme-color" content="#3B2A20"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">'
   '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="チモシーダッシュ">'
   '<meta name="description" content="' + seo.DESC_JA + '">' + seo.head_tags() +
-  '<meta property="og:type" content="website"><meta property="og:site_name" content="レンとジル Ren &amp; Jill">'
-  '<meta property="og:title" content="レンとジルのチモシーダッシュ｜Ren &amp; Jill: Hay Dash">'
-  '<meta property="og:description" content="うさぎの課長レンと部下ジルが、チモシーを集めながら東京をかけぬける無料のランゲーム。Two office bunnies, one mad dash across Tokyo. Free to play.">'
+  '<meta property="og:type" content="website"><meta property="og:site_name" content="東京うさぎオフィス Tokyo Usagi Office">'
+  '<meta property="og:title" content="東京うさぎオフィスのチモシーダッシュ｜Tokyo Usagi Office: Hay Dash">'
+  '<meta property="og:description" content="うさぎの課長モチと部下ユズが、チモシーを集めながら東京をかけぬける無料のランゲーム。Two office bunnies, one mad dash across Tokyo. Free to play.">'
   '<meta property="og:url" content="https://hay-dash.coana.co.jp/"><meta property="og:image" content="https://hay-dash.coana.co.jp/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'
-  '<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="レンとジルのチモシーダッシュ｜Ren &amp; Jill: Hay Dash"><meta name="twitter:image" content="https://hay-dash.coana.co.jp/og.png">'
+  '<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="東京うさぎオフィスのチモシーダッシュ｜Tokyo Usagi Office: Hay Dash"><meta name="twitter:image" content="https://hay-dash.coana.co.jp/og.png">'
   '<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="./apple-touch-icon.png"><link rel="icon" href="./favicon.png">'
   '<style>html,body{margin:0;height:100%;background:#3B2A20;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}</style>'
   '<script>window.HAYDASH_APP=1;window.HAYDASH_VER="' + ver + '"</script>' + ev_inline + '<script src="config.js"></script>')
 app_sw_reg = ('<script>if("serviceWorker" in navigator&&location.protocol!=="file:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>')
-open('app/index.html','w').write(app_head + head.replace('<title>レンとジルのチモシーダッシュ</title>', '') + '</head><body>' + seo.noscript() + body + rel_script + app_sw_reg + '</body></html>')
+open('app/index.html','w').write(app_head + head.replace('<title>東京うさぎオフィスのチモシーダッシュ</title>', '') + '</head><body>' + seo.noscript() + body + rel_script + app_sw_reg + '</body></html>')
 seo.write('app')
-manifest = { "name": "レンとジルのチモシーダッシュ", "short_name": "チモシーダッシュ", "description": "うさぎの課長レンと部下ジルが、チモシーを集めながら東京をかけぬけるランゲーム",
+manifest = { "name": "東京うさぎオフィスのチモシーダッシュ", "short_name": "チモシーダッシュ", "description": "うさぎの課長モチと部下ユズが、チモシーを集めながら東京をかけぬけるランゲーム",
   "lang": "ja", "id": "./", "start_url": "./", "scope": "./", "display": "standalone", "orientation": "any", "background_color": "#3B2A20", "theme_color": "#3B2A20",
   # 2026-11-15：アプリを2つ同時に開かない（片方の記録で、もう片方の記録を上書きしてしまうのを防ぐ）。パソコンで入れるときの紹介の絵
-  "launch_handler": { "client_mode": ["focus-existing", "auto"] }, "screenshots": [{ "src": "./og.png", "sizes": "1200x630", "type": "image/png", "form_factor": "wide", "label": "レンとジルのチモシーダッシュ" }],
+  "launch_handler": { "client_mode": ["focus-existing", "auto"] }, "screenshots": [{ "src": "./og.png", "sizes": "1200x630", "type": "image/png", "form_factor": "wide", "label": "東京うさぎオフィスのチモシーダッシュ" }],
   "icons": [{ "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" }, { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" },
             { "src": "./maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }], "categories": ["games"] }
 open('app/manifest.webmanifest','w').write(json.dumps(manifest, ensure_ascii=False, indent=1))

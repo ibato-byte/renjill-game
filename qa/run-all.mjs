@@ -17,6 +17,7 @@ const has = (...w) => o => w.every(x => o.includes(x));
 const noErr = o => /no errors|no issues/.test(o) && !/pageerror|FAIL|Uncaught/.test(o);
 const T = [
   { n: 'dupcheck', why: '同じ名前の関数の二重定義（上書き事故）', ok: noErr },
+  { n: 'brandname', why: '旧名が画面・検索向けの文に残っていない（2026-11-22 東京うさぎオフィスに改名）', ok: has('BRANDNAME OK') },
   { n: 'qa', why: '画面の流れ・言語切替', ok: noErr },
   { n: 'reltest', why: '公開版で起動して遊べる', ok: noErr },
   { n: 'tut', why: 'チュートリアル', ok: noErr },
@@ -68,8 +69,8 @@ const T = [
   { n: 'apptest', why: 'アプリ版（ランキング・オフライン）', ok: has('"offlinePlay": true') },
   { n: 'cityreal', why: 'ビル・店・家が立体（1 階が奥まる・屋上のふち・家の妻と門・色の取りちがい無し）', ok: has('CITY REAL OK'), timeout: 240 },
   { n: 'trainreal', why: '電車は本物の 20m・4 ドアの並び（ドアが向かい合う・座席の長さ・通路・ホームドア）', ok: has('TRAIN REAL OK'), timeout: 240 },
-  { n: 'pompeek', why: 'ポムのあいさつは並んで走りながら（うかない・止まって近づかない）', ok: has('POM PEEK OK'), timeout: 200 },
-  { n: 'pomplay', why: 'ポムで走れる（会う前は出ない・3人そろう）', ok: has('POM PLAY OK'), timeout: 400 },
+  { n: 'pompeek', why: 'クリのあいさつは並んで走りながら（うかない・止まって近づかない）', ok: has('KURI PEEK OK'), timeout: 200 },
+  { n: 'pomplay', why: 'クリで走れる（会う前は出ない・3人そろう）', ok: has('KURI PLAY OK'), timeout: 400 },
   { n: 'chaltest', why: '友だちへの挑戦リンク', ok: has('CHALLENGE OK'), timeout: 400 },
   { n: 'firstrun', why: 'はじめての30秒（ごほうび・初回ボーナス）', ok: has('FIRST RUN OK'), timeout: 300 },
   { n: 'kbcue', why: 'PC は矢印キー・スマホはスワイプで案内（4言語）', ok: has('KB CUE OK'), timeout: 300 },
@@ -83,7 +84,7 @@ const T = [
   { n: 'rankwear', why: 'ランキングの顔が着せ替えた姿で出る', ok: has('RANK WEAR OK'), timeout: 200 },
   { n: 'seasonal', why: '季節の企画がもれなく切り替わる（初回から・古いリンクで戻らない・終わった帽子）', ok: has('SEASONAL OK'), timeout: 300 },
   { n: 'legend', why: '伝説のうさぎの特典（到達ずみの人にも・二重にもらえない・まだの人は買えない）', ok: has('LEGEND OK'), timeout: 300 },
-  { n: 'pomwear', why: 'ポムの着せ替え（会ってから・買う・かぶる・はずす）', ok: has('POM WEAR OK'), timeout: 200 },
+  { n: 'pomwear', why: 'クリの着せ替え（会ってから・買う・かぶる・はずす）', ok: has('KURI WEAR OK'), timeout: 200 },
   { n: 'toriiview', why: '鳥居のトンネルで道の先が見える（横木がカメラの目の高さより上・道の先が赤い鳥居でかくれない。縦長のスマホ・ふつうのスマホ・PC）（2026-11-15 オーナーの報告）', ok: has('TORIIVIEW OK'), timeout: 200 },
   { n: 'ceilview', why: '室内・電車で天井が低く見えない・ジャンプしてもカメラとキャラクターが天井をこえない・外は今までどおり（縦長のスマホ・ふつうのスマホ・PC）（2026-11-15 オーナーの報告）', ok: has('CEILVIEW OK'), timeout: 200 },
   { n: 'resume', why: '途中で閉じてしまった走りを、つづきから再開できる（点・チモシー・日・時刻・場所がそのまま／終わった走りは出ない／3 回まで・12 時間／練習と1分ダッシュは対象外／保存データには入らない）（2026-11-15 オーナーの希望）', ok: has('RESUME OK'), timeout: 200 },
@@ -96,11 +97,11 @@ const T = [
   { n: 'animelook', why: 'キャラクターがアニメ（SNS の動画）と同じ絵のまま：色・形のもとの数字、前向きの絵の色、体の向き、帽子（2026-11-15：耳・口元・色が少しずつ違っていた）', ok: has('ANIMELOOK OK'), timeout: 120 },
   { n: 'picksteady', why: 'キャラクターを選んだとき、絵がはねたり切りかわったりしない（2026-11-15：オーナー「チカチカするやつ、いらない」）', ok: has('PICKSTEADY OK'), timeout: 120 },
   { n: 'planekeep', why: '紙飛行機に乗っても仲間と紙飛行機が消えない：絵の置き場が空になっても（スマホ）描き直す・1 人の失敗でほかの人が消えない（2026-11-15 の報告）', ok: has('PLANEKEEP OK'), timeout: 120 },
-  { n: 'titlefront', why: 'タイトル画面で 3 人みんな前を向く（2026-11-15 の報告：レンを選んでいるのに前を向いているのはポムだけ。命令が説明書きの中に入って動いていなかった）', ok: has('TITLEFRONT OK'), timeout: 120 },
-  { n: 'rankicon', why: 'ランキングの丸い顔が真ん中に来る（2026-11-15 の報告：レンは右寄り・ジルは左寄り）', ok: has('RANKICON OK'), timeout: 120 },
-  { n: 'wearfit', why: '帽子が自然に見える：全部の帽子 × 3 人で、目が隠れない・ジルの耳が両方見える・わくからはみ出さない・後ろ姿でも頭にのる（2026-11-15：「帽子をただ載せただけ」「ベレー帽で耳が突き出す」）', ok: has('WEARFIT OK'), timeout: 180 },
+  { n: 'titlefront', why: 'タイトル画面で 3 人みんな前を向く（2026-11-15 の報告：モチを選んでいるのに前を向いているのはクリだけ。命令が説明書きの中に入って動いていなかった）', ok: has('TITLEFRONT OK'), timeout: 120 },
+  { n: 'rankicon', why: 'ランキングの丸い顔が真ん中に来る（2026-11-15 の報告：モチは右寄り・ユズは左寄り）', ok: has('RANKICON OK'), timeout: 120 },
+  { n: 'wearfit', why: '帽子が自然に見える：全部の帽子 × 3 人で、目が隠れない・ユズの耳が両方見える・わくからはみ出さない・後ろ姿でも頭にのる（2026-11-15：「帽子をただ載せただけ」「ベレー帽で耳が突き出す」）', ok: has('WEARFIT OK'), timeout: 180 },
   { n: 'fitroom', why: '試着室：着せかえの列を押すと鏡の中で着てみせる。チモシーも保存も変わらない・買うボタンは今までどおり（2026-11-16）', ok: has('FITROOM OK'), timeout: 120 },
-  { n: 'homelight', why: 'ホーム画面：選んだ子がまん中のいちばん手前・明かりは選んだ子だけ（2026-11-16 の報告：ポムを選ぶとジルにもスポット。だれを選んだか分かりづらい）／走っている間は光を描かない', ok: has('HOMELIGHT OK'), timeout: 150 },
+  { n: 'homelight', why: 'ホーム画面：選んだ子がまん中のいちばん手前・明かりは選んだ子だけ（2026-11-16 の報告：クリを選ぶとユズにもスポット。だれを選んだか分かりづらい）／走っている間は光を描かない', ok: has('HOMELIGHT OK'), timeout: 150 },
   { n: 'inlinecomment', why: '1 行の途中の // のあとに命令が無い（説明を書き足して命令が消え、ゲームが読み込み中で止まった。2026-11-17）', ok: has('INLINECOMMENT OK'), timeout: 30 },
   { n: 'titlehop', why: 'ホーム画面で跳ねるのは選んだ子だけ（2026-11-17 オーナー：「選択したキャラクター以外も跳ねている」）', ok: has('TITLEHOP OK'), timeout: 90 },
   { n: 'titleflash', why: 'ホーム画面でキャラクターが半透明にちかちかしない（ぶつかった直後の点滅が付いたまま遊び終わると、ホーム画面でも続いていた。2026-11-16 オーナー指摘）', ok: has('TITLEFLASH OK'), timeout: 90 },
@@ -121,7 +122,7 @@ const T = [
   { n: 'yfork', why: 'Y 字路：45 度ずつ左右へ・曲がったあと道の上・先の角も曲がれる・公園や室内は Y 字にしない', ok: has('YFORK OK'), timeout: 240 },
   { n: 'towercourse', why: '電波塔コース：10万点・30万点で始まる・順番・空の上は障害物なしで高さが下がりカメラが回る・展望台から地面の公園が見えない・方角がそろう', ok: has('TOWERCOURSE OK'), timeout: 300 },
   { n: 'towerface', why: '電波塔コースの向きのつじつま：曲がる向きは毎回同じ・道の向きは一つ前の道＋曲がった向き・塔の足もとと階段で塔が正面（2026-11-20「正面の塔が右に曲がってもまた正面」）', ok: has('TOWERFACE OK'), timeout: 120 },
-  { n: 'skyframe', why: 'オオタカで降りる間、レンがいつも画面の中（スマホとパソコン・2 つのコース。2026-11-20「押上から飛び立つとキャラが画面の下へ消える」）', ok: has('SKYFRAME OK'), timeout: 400 },
+  { n: 'skyframe', why: 'オオタカで降りる間、モチがいつも画面の中（スマホとパソコン・2 つのコース。2026-11-20「押上から飛び立つとキャラが画面の下へ消える」）', ok: has('SKYFRAME OK'), timeout: 400 },
   { n: 'homefit', why: 'iPhone のホーム画面が 1 画面に収まる（スタートボタンが画面の中・左の丸が社員の帯にもぐらない・音と設定ときろくは右の列。2026-11-21「まだ上下が収まりきってない」）', ok: has('HOMEFIT OK'), timeout: 200 },
   { n: 'towerturn', why: '赤い電波塔：入口の階段を上って右に曲がり屋上へ：止まらない・エラーなし・屋上のまわりに地面とビルと木・遠くの町を曲がるたびに描きなおさない', ok: has('TOWERTURN OK'), timeout: 400 },
   { n: 'realworld', why: '現実味：目印は曲がっても世界の同じ向き・Y 字路にできる分かれ道が半分以上・道のわきの物は通りすぎても消えない・選ばなかった道をすぐ消さない', ok: has('REALWORLD OK'), timeout: 200 },
@@ -141,7 +142,7 @@ const T = [
   { n: 'gigcheck', why: '走っている途中のおしごと（30〜45秒ごと・4種類とも成功と失敗・ごほうび・表示が日英で切れない）', ok: has('GIG OK'), timeout: 200 },
   { n: 'weekgoal', why: '今週の目標（週の合計・1回だけのごほうび・週が変わると0から・ミッション画面に出る）', ok: has('WEEK GOAL OK'), timeout: 200 },
   { n: 'modecheck', why: 'のんびりモード・なかよし度が動く（自己ベストとランキングを分ける）／1分ダッシュ・スタートブーストの入口が無い（2026-11-15 にやめた）', ok: has('MODE OK'), timeout: 200 },
-  { n: 'hatfit', why: '帽子が頭にのっているだけにならない・ジルの耳が帽子から出る（全キャラの着せ替え一覧も撮る）', ok: has('HAT FIT OK'), timeout: 200 },
+  { n: 'hatfit', why: '帽子が頭にのっているだけにならない・ユズの耳が帽子から出る（全キャラの着せ替え一覧も撮る）', ok: has('HAT FIT OK'), timeout: 200 },
   { n: 'i18n_audit', why: '中国語・韓国語に訳のない文・カナが残っていない（全画面・走行中）', ok: has('I18N OK'), timeout: 400 },
   { n: 'reach', why: 'いくら遊んでも手に入らない物がない（図鑑・スタンプ・実績）', ok: has('REACH OK') },
   { n: 'growth', why: 'SNSとのつながり（フォローの列・シェアの ?ref=・最新話・控えめなひと言・結果の時刻・こわれた数字のセーブ・古いコードの pid）', ok: has('GROWTH OK'), timeout: 400 },
@@ -151,7 +152,7 @@ const T = [
 // 手元でのやり直し用：FROM=名前 でその試験から、ONLY=名前,名前 でその試験だけ（CI では使わない）
 if (process.env.FROM) { const i = T.findIndex(t => t.n === process.env.FROM); if (i > 0) T.splice(0, i); }
 if (process.env.ONLY) { const k = new Set(process.env.ONLY.split(',')); for (let i = T.length - 1; i >= 0; i--) if (!k.has(T[i].n)) T.splice(i, 1); }
-if (MODE === 'smoke') { const keep = new Set(['featureguard', 'dupcheck', 'qa', 'reltest', 'apptest', 'seo', 'reach', 'soundcheck', 'vanish']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
+if (MODE === 'smoke') { const keep = new Set(['featureguard', 'dupcheck', 'brandname', 'qa', 'reltest', 'apptest', 'seo', 'reach', 'soundcheck', 'vanish']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
 if (MODE === 'full') {
   for (let i = 0; i < 6; i++) T.push({ n: 'qa_stage', env: { NP: '6', PI: String(i) }, label: 'qa_stage#' + i, why: '全ステージ×5場面の表示（' + (i + 1) + '/6）', ok: has('bad 0'), timeout: 700 });
   T.push({ n: 'stuck', args: ['300'], env: { LATE: '0' }, label: 'stuck-long', why: 'とても長く走っても動けなくならない（5分×3人）', ok: has('NO STUCK'), timeout: 1200 });

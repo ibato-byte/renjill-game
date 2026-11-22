@@ -2,7 +2,7 @@
 // 使い方: node tools/promo_art.js dist/test.html <出力フォルダ> <フォントのフォルダ（make_og.js と同じ）>
 //   → cap_0.png…（透明・1080×1920）と end/0000.jpg…（120 コマ）。組み立ては tools/make_promo.py。
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
-const CAPS = [['LATE FOR WORK!', '寝坊した課長、出社までダッシュ'], ['GRAB THE HAY', 'チモシーを集めて東京ダッシュ'], ['100+ TOKYO SPOTS', '東京100か所以上を走る'], ['PICK YOUR RUNNER', 'レン・ジル・新人のポム']];
+const CAPS = [['LATE FOR WORK!', '寝坊した課長、出社までダッシュ'], ['GRAB THE HAY', 'チモシーを集めて東京ダッシュ'], ['100+ TOKYO SPOTS', '東京100か所以上を走る'], ['PICK YOUR RUNNER', 'モチ・ユズ・新人のクリ']];
 (async () => { const [html, out, fdir] = process.argv.slice(2); fs.mkdirSync(path.join(out, 'end'), { recursive: true });
   const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined, args: ['--allow-file-access-from-files'] }); const p = await b.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
   await p.route('**/fonts.googleapis.com/**', r => r.abort()); await p.addInitScript(() => localStorage.setItem('renjill-hay-dash-v1', JSON.stringify({ tutDone: 1, nickAsked: 1, runs: 9, lang: 'ja', pomMet: 1 })));
@@ -30,7 +30,7 @@ const CAPS = [['LATE FOR WORK!', '寝坊した課長、出社までダッシュ'
   // 最後の 4 秒：題名 → 3 人が順に飛び出す → 無料 → 押す場所。時間 t（秒）から形を決める（何度撮っても同じ絵）
   await p.evaluate(art => { const hay = Array.from({ length: 26 }, (_, i) => { const r = n => { const x = Math.sin((i + 1) * 12.9898 * n) * 43758.5453; return x - Math.floor(x); }; return `<i class="hay" data-i="${i}" style="left:${Math.round(r(1) * 1040)}px;top:${Math.round(r(2) * 1880)}px;--r:${Math.round(r(3) * 180)}"></i>`; }).join('');
     const ch = (w, x, s) => `<div class="sh" data-w="${w}" style="left:${x + s * .16}px;width:${s * .68}px"></div><div class="ch" data-w="${w}" style="left:${x}px;width:${s}px;height:${s}px">${['open', 'blink', 'happy'].map(m => `<img data-m="${m}" src="${art[w + '_' + m]}">`).join('')}</div>`;
-    document.getElementById('root').innerHTML = `<div class="end"><div class="ray"></div>${hay}<div class="k">Ren &amp; Jill: Hay Dash</div><h1>レンとジルの<br>チモシーダッシュ</h1>${ch('ren', 230, 620)}${ch('jill', 640, 420)}${ch('pom', 30, 380)}<div class="free">FREE ・ 無料</div><div class="cta">▶ プロフィールのリンクから</div><div class="bio">Link in bio</div></div>`; }, art);
+    document.getElementById('root').innerHTML = `<div class="end"><div class="ray"></div>${hay}<div class="k">Tokyo Usagi Office: Hay Dash</div><h1>東京うさぎオフィスの<br>チモシーダッシュ</h1>${ch('ren', 230, 620)}${ch('jill', 640, 420)}${ch('pom', 30, 380)}<div class="free">FREE ・ 無料</div><div class="cta">▶ プロフィールのリンクから</div><div class="bio">Link in bio</div></div>`; }, art);
   await p.waitForTimeout(500);
   for (let f = 0; f < 120; f++) { await p.evaluate(t => { const $ = s => document.querySelector(s), E = (a, b) => Math.max(0, Math.min(1, (t - a) / (b - a))), back = k => { const c = 1.9; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); }, out3 = k => 1 - Math.pow(1 - k, 3);
       $('.ray').style.transform = `rotate(${t * 5}deg)`; $('.end').style.opacity = 1;
