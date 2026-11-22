@@ -395,7 +395,7 @@ html[lang="ja"] #tResMore,html[lang="ja"] .newbest,html[lang="ja"] .fol-ask,html
 .m.langrow{grid-template-columns:1fr;gap:8px}.m.langrow .langseg{justify-content:flex-start}
 .sharebar .shbtns{grid-template-columns:repeat(3,1fr);gap:6px}
 .sharebar .shbtns a,.sharebar .shbtns #shIg,.sharebar .shbtns #btnShare{flex-direction:row;justify-content:center;gap:6px;padding:9px 4px;font-size:12px;letter-spacing:0}
-.sharebar .shbtns #btnShare{gap:4px;padding-left:2px;padding-right:2px}.sharebar .shbtns #btnShare span{font-size:11px;letter-spacing:-.04em}.sharebar .shbtns #btnShare i{font-size:13px}
+.sharebar .shbtns #btnShare{gap:4px;padding-left:2px;padding-right:2px}.sharebar .shbtns #btnShare span{font-size:10px;letter-spacing:-.06em}/* [B53] 結果の「リンクをコピー」の最後の字が、ボタンのはしで切れていた */.sharebar .shbtns #btnShare i{font-size:13px}
 .sharebar .shbtns i{font-size:15px}.shbtns a#shTh{background:#2B2B2B}
 .follow{background:var(--cream);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;text-align:center}
 .follow.glow{box-shadow:inset 0 0 0 2px var(--tie)}
@@ -1165,5 +1165,41 @@ html:lang(ja) body{word-break:auto-phrase}
 /* [B27] 指・マウスで使っている時（html[data-in=ptr]）は、選択のわくを出さない。キーボードの時は今まで通り出す */
 html[data-in="ptr"] button:focus-visible,html[data-in="ptr"] a:focus-visible,html[data-in="ptr"] #sTitle.home button:focus-visible,html[data-in="ptr"] #sTitle.home #tKeepBtns .sub:focus-visible,html[data-in="ptr"] #sTitle.home .bank .tog .sub:focus-visible,html[data-in="ptr"] #sTitle.home .langtop:focus-visible{outline:none!important;box-shadow:none!important}
 html[data-in="ptr"] #sTitle.home .chars .char:focus-visible canvas{box-shadow:none!important}
+/* [H70〜H81] 2026-11-22 オーナー（iPhone のアプリの写真）「見切れている。どんな端末でも起きない見やすい状態に」
+   [H73] ホーム画面から開いたアプリ（ブラウザのバーが無い）では、アプリの枠を画面いっぱいの高さに（iPhone で枠がステータスバーの分だけ短く、下に暗い帯が出てスタートが半分かくれた）。JS の iosFill も同じ事をする（二重の守り） */
+@media (display-mode:standalone),(display-mode:fullscreen){#app{bottom:auto;height:100vh;height:100lvh}}
+/* [H75] 1 段小さくしても入らない時の 2 段目（左右の丸・3 人の丸・スタートをもう少し小さく。字はそのまま） */
+@media (orientation:portrait) and (max-width:599px){
+  #sTitle.home.hfit2{--hmIc:34px}
+  #sTitle.home.hfit2 .chars .char canvas{width:46px;height:46px}
+  #sTitle.home.hfit2 .card>#btnStart{height:44px;font-size:21px}
+  #sTitle.home.hfit2 .card>.chars{padding-top:6px}
+  #sTitle.home.hfit2 .chars .char .perk{display:none}
+}
+/* [H77] 音・設定の丸 2 つは、右の列の幅に入る大きさに（幅がせまいと、設定の丸が画面の右のふちから外へはみ出していた）。どちらも 30px より小さくはしない */
+@media (orientation:portrait) and (max-width:599px){
+  #sTitle.home .row2 .tog{display:grid!important;grid-template-columns:repeat(2,minmax(30px,38px));gap:6px;justify-content:center;max-width:100%;box-sizing:border-box}
+  #sTitle.home .row2 .tog .sub{width:100%!important;height:auto!important;aspect-ratio:1/1;background-size:55%!important}
+}
+/* [H78] 左右の列は、画面のふち（と iPhone の角の丸み・ノッチ）から 6px 以上はなす */
+@media (orientation:portrait) and (max-width:599px){
+  #sTitle.home .card>.row{padding-left:max(6px,env(safe-area-inset-left,0px))}
+  #sTitle.home .card>.row2{padding-right:max(6px,env(safe-area-inset-right,0px))}
+}
+/* [H76] 今日の目標の数は、入りきらない時は JS（ttFit）で字を小さくする。数のとなりの「/300」も切らない */
+#sTitle.home #tToday .tt-c b s{white-space:nowrap}
+/* [H80] とてもせまい画面（幅 340 まで）：社員の帯が 2 行になり、下の左右の丸ボタン（ミッション・設定）の上にかぶっていた。「次の昇進まで」を小さくして、帯を 1 行に収める */
+@media (orientation:portrait) and (max-width:340px){
+  #sTitle.home #tCareer .career{grid-template-columns:auto auto minmax(36px,1fr) auto!important;column-gap:6px;padding:4px 10px}
+  #sTitle.home #tCareer .career .cr-t{font-size:13px}
+  #sTitle.home #tCareer .career small{grid-column:auto!important;grid-row:1!important;font-size:9px;white-space:nowrap;letter-spacing:-.02em}
+  #sTitle.home #tCareer .career .cr-bar{min-width:36px}
+}
+/* [H81] とても低い画面（たて長で高さ 520 まで。古い小さな iPhone のブラウザなど）：左の 5 つの丸が社員の帯の下にもぐっていた。丸を 30px・間をつめる */
+@media (orientation:portrait) and (max-width:599px) and (max-height:520px){
+  #sTitle.home{--hmIc:30px!important}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:1px!important;padding-top:0;padding-bottom:0}
+  #sTitle.home .row .mini em,#sTitle.home .row2 .sub{font-size:9px}
+}
 /* ==== HOME-V2 END ==== */
 </style>
