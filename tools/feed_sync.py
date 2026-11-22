@@ -12,7 +12,7 @@ import datetime as dt, json, os, pathlib, sys, urllib.error, urllib.request
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FEED = ROOT / "app" / "feed.json"
 SRC = "https://raw.githubusercontent.com/ibato-byte/renjill-media/main/episodes.json"
-SITE = "https://renjill.coana.co.jp/#episodes"
+SITE = "https://usagi.coana.co.jp/#episodes"
 JST = dt.timezone(dt.timedelta(hours=9))
 
 

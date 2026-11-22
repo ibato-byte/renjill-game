@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 const path = require('path'), fs = require('fs');
 const URL0 = 'file://' + path.resolve(__dirname, '../dist') + '/test.html';
 const FEED = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../dist/feed.json'), 'utf8'));
-const PROFILES = ['https://www.instagram.com/renjill_office/', 'https://www.tiktok.com/@renjill_office', 'https://www.youtube.com/@renjill_office', 'https://www.threads.net/@renjill_office', 'https://www.facebook.com/1358515160686321'];
+const PROFILES = ['https://www.instagram.com/tokyo_usagi_office/', 'https://www.tiktok.com/@tokyo_usagi_office', 'https://www.youtube.com/@tokyo_usagi_office', 'https://www.threads.net/@tokyo_usagi_office', 'https://www.facebook.com/1358515160686321'];
 const errs = []; const E = (tag, m) => errs.push(tag + ' ' + m);
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined });
@@ -24,7 +24,7 @@ const errs = []; const E = (tag, m) => errs.push(tag + ' ' + m);
     const ti = await p.evaluate(() => ({ links: [...document.querySelectorAll('#tFollow a')].map(a => [a.href, a.target, a.rel]), feed: (document.querySelector('#tFeed') || {}).textContent || '', site: document.querySelector('#tSite').href }));
     for (const u of PROFILES) if (!ti.links.some(l => l[0] === u && l[1] === '_blank' && /noopener/.test(l[2]))) E(tag, 'title follow missing ' + u);
     if (!/NEW/.test(ti.feed)) E(tag, 'feed card NEW ' + ti.feed);
-    if (!/renjill\.coana\.co\.jp\/\?ref=haydash/.test(ti.site)) E(tag, 'site ref ' + ti.site);
+    if (!/usagi\.coana\.co\.jp\/\?ref=haydash/.test(ti.site)) E(tag, 'site ref ' + ti.site);
     if (w < 600) { const over = await p.evaluate(() => { const e = document.querySelector('#tFollow'); return e.scrollWidth > e.clientWidth + 1 || e.getBoundingClientRect().right > innerWidth; }); if (over) E(tag, 'title follow overflows'); }
     // settings: the official profiles
     await p.click('#btnSet'); await p.waitForTimeout(400);
@@ -46,9 +46,9 @@ const errs = []; const E = (tag, m) => errs.push(tag + ' ' + m);
     for (const u of PROFILES) if (!r.chips.includes(u)) E(tag, 'result follow missing ' + u);
     const xu = new URL(r.x).searchParams.get('url'); if (!/[?&]beat=99999&c=ren&ref=x$/.test(xu)) E(tag, 'x ref ' + xu);
     if (!/ref%3Dline|ref=line/.test(r.line)) E(tag, 'line ref ' + r.line);
-    if (!/^https:\/\/www\.threads\.net\/intent\/post\?text=/.test(r.th) || !/ref%3Dth/.test(r.th) || !/renjill_office/.test(decodeURIComponent(r.th))) E(tag, 'threads ' + r.th);
+    if (!/^https:\/\/www\.threads\.net\/intent\/post\?text=/.test(r.th) || !/ref%3Dth/.test(r.th) || !/tokyo_usagi_office/.test(decodeURIComponent(r.th))) E(tag, 'threads ' + r.th);
     if (!/ref%3Dfb/.test(r.fb)) E(tag, 'fb ref ' + r.fb);
-    if (!/@renjill_office/.test(r.cap) || !/ref=ig/.test(r.cap) || !/#レンとジル/.test(r.cap)) E(tag, 'ig caption ' + r.cap);
+    if (!/@tokyo_usagi_office/.test(r.cap) || !/ref=ig/.test(r.cap) || !/#東京うさぎオフィス/.test(r.cap)) E(tag, 'ig caption ' + r.cap);
     if (/ref=/.test(r.plain)) E(tag, 'plain challenge link should carry no ref ' + r.plain);
     if (w < 600) { const over = await p.evaluate(() => [...document.querySelectorAll('#sResult .shbtns > *, #resFollow, #resFollow *')].filter(e => e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).textOverflow !== 'ellipsis').map(e => e.id || e.className || e.tagName)); if (over.length) E(tag, 'result overflow ' + over.join(',')); }
     await p.screenshot({ path: `${process.env.SHOTS || '/tmp/rj-shots'}/growth_${tag}.png` });

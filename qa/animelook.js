@@ -1,9 +1,9 @@
 // ゲームのキャラクターが、アニメ（SNS の動画）と同じ絵のままか（2026-11-15：似せて描き直していたので、耳・口元・色が少しずつ違っていた。
 // いまはアニメを描いている renjill-auto の rig/rig.js・rig/ep/pom_debut.js の数字をそのまま使う）。
-// 確かめること：①色と形の「もと」の数字がアニメと同じ ②前向きの絵で、決まった場所の色がアニメの色に近い ③レンは体が左・ジルは体が右・ポムは左右対称 ④帽子をかぶせても絵が出る
+// 確かめること：①色と形の「もと」の数字がアニメと同じ ②前向きの絵で、決まった場所の色がアニメの色に近い ③モチは体が左・ユズは体が右・クリは左右対称 ④帽子をかぶせても絵が出る
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
 (async () => { const bad = []; const src = fs.readFileSync(path.resolve(__dirname, '../src/2b_bunny.js'), 'utf8');
-  const must = [ // アニメの絵の「もと」（rig.js の C.ren / C.jil、頭と耳の形、pom_debut.js の POM）
+  const must = [ // アニメの絵の「もと」（rig.js の C.ren / C.jil、頭と耳の形、pom_debut.js の KURI）
     "fur1: '#DDB68C', fur2: '#C7A077', fur3: '#9C7652', head1: '#E3C29C', head2: '#CDA67C', head3: '#A88259', ear1: '#C4A381', ear2: '#AE8D6D', ear3: '#8E7057', cream: '#F3E7D6'",
     "fur1: '#E2BB8D', fur2: '#CFA174', fur3: '#A3754C', head1: '#E9C79F', head2: '#D3A777', head3: '#B08155', ear1: '#C79A6C', ear2: '#B38657', earIn1: '#E9C3B2', earIn2: '#DDA898', cream: '#F6EBDC'",
     "a: '#F3E3CA', b: '#DCC29E', deep: '#C9A57A', cream: '#FAF1E4', earO: '#8E786C', earI: '#E9A9A2', nose: '#E58F98', pink: '#F2B8B0'",
@@ -34,7 +34,7 @@ const { chromium } = require('playwright'); const path = require('path'); const 
   for (const who in want) { const o = r[who]; if (!o || o.n < 3000) { bad.push(`② ${who} の前向きの絵が出ていない`); continue; }
     for (const k in want[who]) if (!near(o.spots[k], want[who][k][0], want[who][k][1])) bad.push(`② ${who} の ${k} の色がアニメとちがう: ${o.spots[k]}（アニメ ${want[who][k][0]}）`);
     if (o.x0 < 2 || o.x1 > 297) bad.push(`③ ${who} が絵のわくからはみ出している（${o.x0}〜${o.x1}）`);
-    if (!(o.hatTop < o.y0 - 8 || o.hatN > o.n * 1.04)) bad.push(`④ ${who} に帽子をかぶせても絵が変わらない（帽子が出ていない？ ${o.hatTop} / ${o.y0}）`); } // ジルは帽子を頭の横にかぶるので、高さでなく絵の量で見る
-  if (r.ren && !(r.ren.low < 150 - 8)) bad.push('③ レンの体が左にない（体の中心 ' + r.ren.low.toFixed(1) + '）'); if (r.jill && !(r.jill.low > 150 + 2)) bad.push('③ ジルの体が右にない（体の中心 ' + r.jill.low.toFixed(1) + '）'); if (r.pom && Math.abs(r.pom.cx - 150) > 5) bad.push('③ ポムが左右対称でない（中心 ' + r.pom.cx.toFixed(1) + '）');
+    if (!(o.hatTop < o.y0 - 8 || o.hatN > o.n * 1.04)) bad.push(`④ ${who} に帽子をかぶせても絵が変わらない（帽子が出ていない？ ${o.hatTop} / ${o.y0}）`); } // ユズは帽子を頭の横にかぶるので、高さでなく絵の量で見る
+  if (r.ren && !(r.ren.low < 150 - 8)) bad.push('③ モチの体が左にない（体の中心 ' + r.ren.low.toFixed(1) + '）'); if (r.jill && !(r.jill.low > 150 + 2)) bad.push('③ ユズの体が右にない（体の中心 ' + r.jill.low.toFixed(1) + '）'); if (r.pom && Math.abs(r.pom.cx - 150) > 5) bad.push('③ クリが左右対称でない（中心 ' + r.pom.cx.toFixed(1) + '）');
   await b.close(); if (bad.length) { console.log('ANIMELOOK NG\n' + bad.slice(0, 14).join('\n')); process.exit(1); } console.log('ANIMELOOK OK', must.length, 'の数字 ／ 3 キャラ × 色の点');
 })();

@@ -180,7 +180,7 @@ function todayGrid() {
   if (typeof homePlace === 'function') homePlace();
 }
 function kpRecords() {
-  SFX.ui(); const k = kp(), nm = { r: tr('レン', 'Ren'), j: tr('ジル', 'Jill'), p: tr('ポム', 'Pom') }, avg = k.h.length ? Math.round(k.h.reduce((a, b) => a + b, 0) / k.h.length) : 0;
+  SFX.ui(); const k = kp(), nm = { r: tr('モチ', 'Mochi'), j: tr('ユズ', 'Yuzu'), p: tr('クリ', 'Kuri') }, avg = k.h.length ? Math.round(k.h.reduce((a, b) => a + b, 0) / k.h.length) : 0;
   const top = k.top.length ? `<ol class="kp-top10">${k.top.map(r => { const th = THEMES[r[3]]; return `<li><b>${fmt(r[0])}</b><span>${esc(nm[r[1]] || '')}${th ? '・' + esc(L(th)) : ''}</span><em>${esc(String(r[2] || '').split('-').slice(1).join('/'))}</em></li>`; }).join('')}</ol>` : `<p class="note">${esc(kt('recNone'))}</p>`;
   const chars = ['ren', 'jill'].concat(SV.pomMet ? ['pom'] : []).map(w => `<span><small>${esc(nm[w[0]])}</small><b>${fmt(kpN(k.cb[w]))}</b></span>`).join('');
   const medals = KP_MEDAL.map((m, i) => `<span class="${i < k.md ? 'got' : ''}" title="${fmt(m[0])}">${i < k.md ? '★' : '☆'} ${esc(tr(m[1], m[2]))}</span>`).join(''), nx = KP_MEDAL[k.md];

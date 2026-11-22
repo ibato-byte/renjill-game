@@ -26,7 +26,7 @@ const { chromium } = require('playwright');
     await p.evaluate(() => window.__hayDash.ev('G.invT = 0; G.lives = 0; G.reviveN = 9; endRun()')); await p.waitForTimeout(2200); await grab();
     const miss = await p.evaluate(() => [...window.__i18nMiss].filter(m => /[\u3040-\u30ff\u3400-\u9fff]/.test(m))); const canvas = await p.evaluate(() => [...window.__canvasText]);
     const kana = /[぀-ゟ゠-ヺー-ヿ]/; // hiragana + katakana except the middle dot (・ U+30FB) … and the long mark ー is real Japanese: flag it
-    const bad = [...texts].filter(s => kana.test(s.replace(/#レンとジル/g, '')));
+    const bad = [...texts].filter(s => kana.test(s.replace(/#東京うさぎオフィス/g, '')));
     report[lang] = { miss: miss.slice(0, 80), missN: miss.length, kana: [...new Set(bad)].slice(0, 60), kanaN: bad.length };
     await p.screenshot({ path: (process.env.SHOTS || 'shots') + `/i18n_result_${lang}.png` }); await ctx.close();
   }

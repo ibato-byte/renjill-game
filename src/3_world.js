@@ -80,7 +80,7 @@ function newSeg(prev, step, opts) {
   if (th.lift) seg.liftK = (Math.random() * 4) | 0; /* 4 台のうちどれか（春・夏・秋・冬） */
   if (step.co || th.course) seg.base = prev && prev.base != null && ((step.co && prev.step && prev.step.co === step.co) || (th.course && prev.th.course === th.course)) ? prev.base : seg.e0; /* [H5] コースの地面の高さ（ここからの高さを、画面の「地上 ○m」に出す） */
   if (th.sky) { /* オオタカに運ばれる空：本当に高い所（climb[0] m）から、地面（0 m）までおりる。先の場所（着地する公園）は本当に真下の地面にある */
-    seg.e0 = prev ? segE(prev, prev.len) : th.climb[0]; seg.hp = { a: 0, b: seg.len - 22, d: -th.climb[0], /* [H4] 空の道は、飛び立った展望台の本当の高さから始まる（前は、展望台が低いのに 150m から始まり、カメラが 120m 以上とんで、レンとジルが画面から消えた） */ hump: 0, w2: 0, shape: 'sky', lift: 3.4 }; } /* [F5] 飛び立ちは、テラスの手すりの上へ少し持ち上がってから、おりていく */
+    seg.e0 = prev ? segE(prev, prev.len) : th.climb[0]; seg.hp = { a: 0, b: seg.len - 22, d: -th.climb[0], /* [H4] 空の道は、飛び立った展望台の本当の高さから始まる（前は、展望台が低いのに 150m から始まり、カメラが 120m 以上とんで、モチとユズが画面から消えた） */ hump: 0, w2: 0, shape: 'sky', lift: 3.4 }; } /* [F5] 飛び立ちは、テラスの手すりの上へ少し持ち上がってから、おりていく */
   buildGeometry(seg);
   if ((seg.tid === 'tlobby' || seg.tid === 'slobby') && seg.hp && seg.hp.shape === 'flights') { const h = seg.hp, sd = 1, l2 = sd * (HW - .06), nS = [-sd * seg.r[0], -sd * seg.r[1]]; for (let k = 0; k <= h.n; k++) { const s1 = h.a + k * h.P + .6; if (s1 > seg.len - 3) break; const e = segE(seg, s1) - (seg.e0 || 0), fl = k === h.n && seg.tid === 'tlobby' ? 'RF' : (k + 1) + 'F', a2 = segPos(seg, s1 + .9, l2), b2 = segPos(seg, s1, l2), E = segE(seg, s1); seg.decos.push({ v: [a2[0], E + 1.5, a2[1], b2[0], E + 1.5, b2[1], b2[0], E + 2.2, b2[1], a2[0], E + 2.2, a2[1]], n: nS, pat: 'stepsign', seg, w: .9, txt: fl, txt2: Math.round(segE(seg, s1) - (seg.base != null ? seg.base : 0)) + 'm' }); } } /* [H24] 入口の建物の階段：踊り場ごとに階の札（1F・2F…屋上）と、その高さ */
   if (th.truss) { const red = th.truss === 'red', c1 = red ? '#D9452B' : '#E6EAEE', c2 = red ? '#F2F0EC' : '#C9D1D9', L = seg.len, Hh = red ? (seg.wallH || 5) + 3 : (seg.wallH || 5) - .4; /* [T8][S4] 展望台のガラスの外に、塔の鉄骨（赤い電波塔は赤と白、押上は白いトラス）。窓の外が、塔の中にいるとわかる */
@@ -1601,9 +1601,9 @@ function populate(seg) {
     else if (r < .17) { const l = freeLane(); if (l >= 0) addItem(seg, pick(TREATS), at, l, .5); }
     else if (r < .25 + diff * .05) { const l = freeLane(); if (l >= 0) addItem(seg, pick(BADS), at, l, .5); }
   }
-  // before you have ever met Pom: one quick glimpse of a hamster dashing across the road ahead
+  // before you have ever met Kuri: one quick glimpse of a hamster dashing across the road ahead
   if (!G.pomPeek && !G.pom.on && G.char !== 'pom' && (G.planDay >= 2 || G.t > 52) && th.kind !== 'room' && th.kind !== 'train' && th.kind !== 'glass' && L > 110) G.pomPeek = { seg, s: L * .42, dir: Math.random() < .5 ? 1 : -1, b: { who: 'pom', view: 'back', ph: 0, look: 0, show: false, depth: 0 } };
-  // Pom's sunflower seeds: once the run is well under way (day 2, or a long day 1), until Pom has joined
+  // Kuri's sunflower seeds: once the run is well under way (day 2, or a long day 1), until Kuri has joined
   if (!G.pom.on && G.char !== 'pom' && !(G.pomSeedAt > 0 && G.dist - G.pomSeedAt < 600) && (G.planDay >= 2 || G.t > 78) && ((G.pomPeek && G.pomPeek.ph) || G.t > 110) && rows.length >= 1 && L > 50 && Math.random() < .7) {
     // just past a row of obstacles, in a lane that the next row leaves open
     const i = Math.max(0, ((rows.length - 1) / 2) | 0), at = rows[i].s + 4.5, nx = rows[i + 1], free = [0, 1, 2].filter(l => !nx || nx.s - at > 7 || !nx.lanes[l]);

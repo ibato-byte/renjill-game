@@ -1,4 +1,4 @@
-// 着せかえの同じ見た目の品は1つだけ（2026-11-09：レンのサンタ帽が2つ並んでいた）。全員・どの行事でも、同じ見た目の品が並ばないこと
+// 着せかえの同じ見た目の品は1つだけ（2026-11-09：モチのサンタ帽が2つ並んでいた）。全員・どの行事でも、同じ見た目の品が並ばないこと
 const { chromium } = require('playwright'); const path = require('path');
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined }); const errs = [];

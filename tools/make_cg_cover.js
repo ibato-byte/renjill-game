@@ -1,6 +1,6 @@
 // CrazyGames のサムネイル（16x9 1920x1080・2x3 800x1200・1x1 800x800）を作る（2026-11-16：前の絵はクリック率 1.0%＝下位20%）。
 // 使い方: python3 build.py && node tools/make_cg_cover.js <出力フォルダ> <フォントのフォルダ（make_og.js と同じ）> [場所:時刻 例 kaihin:1066]
-// ゲームの1コマ（キャラなし）＋前向きのレンとジル（ゲームと同じ描き方）＋ロゴ。 game frame (no players) + front-facing bunnies + logo. Label zone (top-left) kept clear.
+// ゲームの1コマ（キャラなし）＋前向きの東京うさぎオフィス（ゲームと同じ描き方）＋ロゴ。 game frame (no players) + front-facing bunnies + logo. Label zone (top-left) kept clear.
 const { chromium } = require('playwright'); const fs=require('fs'), path=require('path');
 const [OUT, FD0, ST] = process.argv.slice(2); const FD = path.resolve(FD0); fs.mkdirSync(OUT, { recursive: true });
 const HTML = 'file://' + path.resolve(__dirname, '../dist/test.html');
@@ -34,13 +34,13 @@ const [tid, clock] = (ST||'kaihin:1066').split(':');
     .l b{font-weight:400;color:#FFC93C}
     img.c{position:absolute;filter:drop-shadow(0 18px 10px rgba(30,15,5,.4))}
     .hay{position:absolute;width:${land?22:14}px;height:${land?110:70}px;border-radius:10px;background:linear-gradient(#B8D96A,#7FA83A);box-shadow:0 0 0 ${land?5:4}px #3A2414}`;
-    // bunnies: Ren big, Jill smaller, both "jumping" (tilted, lifted); hay sticks flying around
+    // bunnies: Mochi big, Yuzu smaller, both "jumping" (tilted, lifted); hay sticks flying around
     const R = land ? {h:760,l:180,b:-20} : sq ? {h:440,l:40,b:-30} : {h:560,l:20,b:-20};
     const J = land ? {h:560,l:760,b:40} : sq ? {h:330,l:430,b:20} : {h:420,l:420,b:60};
     fs.writeFileSync(path.join(OUT, '_c.html'), `<style>${css}</style><div class="bg"></div><div class="sh"></div>
       <img class="c" src="${art.ren}" style="height:${R.h}px;left:${R.l}px;bottom:${R.b}px;transform:rotate(-6deg)">
       <img class="c" src="${art.jill}" style="height:${J.h}px;left:${J.l}px;bottom:${J.b}px;transform:rotate(7deg)">
-      <div class="t"><div class="k">REN &amp; JILL</div><div class="l">HAY<br><b>DASH!</b></div></div>`); await pg.goto('file://' + path.resolve(OUT, '_c.html'));
+      <div class="t"><div class="k">TOKYO USAGI OFFICE</div><div class="l">HAY<br><b>DASH!</b></div></div>`); await pg.goto('file://' + path.resolve(OUT, '_c.html'));
     await pg.evaluate(()=>document.fonts.ready); await pg.waitForTimeout(500);
     await pg.screenshot({ path: path.join(OUT, `cg_${tid}_${name}.png`) }); await pg.close();
   }

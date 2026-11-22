@@ -124,7 +124,7 @@ const SFX = {
   treat() { const d = lanePan(), t = auNow(); [0, 2, 3, 5].forEach((k, i) => tone(sfxHz(k) * 2, .5, 'bell', .12, t + i * .06, 0, d)); duck(.25, .35); },
   step(k, fl) { const d = panTo(k ? .14 : -.14); if (fl === 'room' || fl === 'deck') { thump(k ? 120 : 110, 60, .07, .03, 0, d); noise(.04, .008, 500, d); } else if (fl === 'glass' || fl === 'train') { thump(k ? 170 : 160, 80, .05, .03, 0, d); noise(.025, .014, 2400, d); } else { thump(k ? 150 : 135, 70, .06, .035, 0, d); noise(.03, .012, 1200, d); } }, // footsteps by floor: soft on tatami and wood, crisp on tiles, plain on the street (2026-11-08)。左右の足で、少しだけ左右から（2026-11-15）
   land() { thump(170, 70, .1, .1); noise(.06, .05, 600, null, 0, 3200); },                        // 着地（どすっ。高いざらつきは切る）
-  pom() { const t = auNow(); tone(420, .09, 'sine', .14, 0, 900); tone(470, .1, 'sine', .14, t + .13, 980); noise(.08, .05, 1500); tone(sfxHz(5) * 2 > 1300 ? sfxHz(5) : sfxHz(5) * 2, .4, 'bell', .06, t + .26); },   // ポムの登場（ほおぶくろ「ぽん、ぽん」）
+  pom() { const t = auNow(); tone(420, .09, 'sine', .14, 0, 900); tone(470, .1, 'sine', .14, t + .13, 980); noise(.08, .05, 1500); tone(sfxHz(5) * 2 > 1300 ? sfxHz(5) : sfxHz(5) * 2, .4, 'bell', .06, t + .26); },   // クリの登場（ほおぶくろ「ぽん、ぽん」）
   power() { const t = auNow(); [0, 2, 3, 5, 7].forEach((k, i) => { tone(sfxHz(k), .18, 'pluck', .12, t + i * .05); tone(sfxHz(k), .6, 'bell', .05, t + i * .05); }); whoosh(.35, .05, 500, 3200); duck(.3, .5); },
   jump() { const v = 1 + ((SFX_N++ % 3) - 1) * .03; tone(300 * v, .17, 'sine', .13, 0, 620 * v); whoosh(.16, .06, 900, 2600); },   // ぴょん（毎回ほんの少し高さがちがう）＋風
   slide() { whoosh(.26, .16, 2400, 500); thump(140, 80, .12, .08); },                                // ざざっ（高い所から低い所へ）

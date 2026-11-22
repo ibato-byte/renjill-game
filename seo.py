@@ -4,28 +4,28 @@ import json, html, datetime, os
 SITE = 'https://hay-dash.coana.co.jp/'
 TODAY = datetime.date.today().isoformat()
 PLACES = json.load(open('seo_places.json')) if os.path.exists('seo_places.json') else []
-# the official Ren & Jill profiles (the same links as the game's "Follow" row)
-SNS = [('Instagram', 'https://www.instagram.com/renjill_office/'), ('TikTok', 'https://www.tiktok.com/@renjill_office'), ('YouTube', 'https://www.youtube.com/@renjill_office'),
-       ('Threads', 'https://www.threads.net/@renjill_office'), ('Facebook', 'https://www.facebook.com/1358515160686321')]
-OFFICIAL = 'https://renjill.coana.co.jp/'
+# the official Tokyo Usagi Office profiles (the same links as the game's "Follow" row)
+SNS = [('Instagram', 'https://www.instagram.com/tokyo_usagi_office/'), ('TikTok', 'https://www.tiktok.com/@tokyo_usagi_office'), ('YouTube', 'https://www.youtube.com/@tokyo_usagi_office'),
+       ('Threads', 'https://www.threads.net/@tokyo_usagi_office'), ('Facebook', 'https://www.facebook.com/1358515160686321')]
+OFFICIAL = 'https://usagi.coana.co.jp/'
 INDEXNOW_KEY = '7f3c9b2e5a1d4c8e9b6a2f1e3d5c7a9b'  # public by design: proves the site owner pings IndexNow (Bing etc.)
 
-TITLE_JA = 'レンとジルのチモシーダッシュ｜無料のうさぎランゲーム（スマホ・PCですぐ遊べる）'
-DESC_JA = ('うさぎの課長レンと部下ジルが、チモシーを集めながら東京をかけぬける無料のランゲーム。登録なし・ダウンロードなしで、'
+TITLE_JA = '東京うさぎオフィスのチモシーダッシュ｜無料のうさぎランゲーム（スマホ・PCですぐ遊べる）'
+DESC_JA = ('うさぎの課長モチと部下ユズが、チモシーを集めながら東京をかけぬける無料のランゲーム。登録なし・ダウンロードなしで、'
            'スマホでもPCでもブラウザですぐ遊べます。浅草・渋谷・東京タワー・空港など{n}か所以上の名所、季節のイベント、みんなのランキング。').format(n=max(80, len(PLACES)) // 10 * 10)
 DESC_EN = ('A free runner game: two office bunnies dash across Tokyo collecting hay. No sign-up or download, play in your phone or PC browser. '
            '{n}+ Tokyo spots and a leaderboard.').format(n=max(80, len(PLACES)) // 10 * 10)
 
 def game_ld():
   return {
-    '@context': 'https://schema.org', '@type': ['VideoGame', 'WebApplication'], 'name': 'レンとジルのチモシーダッシュ', 'alternateName': ['Ren & Jill: Hay Dash', 'チモシーダッシュ'],
+    '@context': 'https://schema.org', '@type': ['VideoGame', 'WebApplication'], 'name': '東京うさぎオフィスのチモシーダッシュ', 'alternateName': ['Tokyo Usagi Office: Hay Dash', 'チモシーダッシュ'],
     'url': SITE, 'image': SITE + 'og.png', 'description': DESC_JA, 'inLanguage': ['ja', 'en'], 'genre': ['ランゲーム', 'Endless runner', 'Casual'],
     'gamePlatform': ['Web browser', 'iPhone', 'Android', 'PC'], 'applicationCategory': 'GameApplication', 'operatingSystem': 'Any (web browser)',
     'playMode': 'SinglePlayer', 'isAccessibleForFree': True, 'offers': {'@type': 'Offer', 'price': '0', 'priceCurrency': 'JPY'},
-    'character': [{'@type': 'Person', 'name': 'レン（Ren）', 'description': 'ホーランドロップのうさぎの課長'}, {'@type': 'Person', 'name': 'ジル（Jill）', 'description': 'ネザーランド・ドワーフのうさぎの部下'}],
+    'character': [{'@type': 'Person', 'name': 'モチ（Mochi）', 'description': 'ホーランドロップのうさぎの課長'}, {'@type': 'Person', 'name': 'ユズ（Yuzu）', 'description': 'ネザーランド・ドワーフのうさぎの部下'}],
     'dateModified': TODAY,
-    'author': {'@type': 'Organization', '@id': OFFICIAL + '#org', 'name': 'レンとジル Ren & Jill', 'url': OFFICIAL, 'sameAs': [u for _, u in SNS]},
-    'publisher': {'@id': OFFICIAL + '#org'}, 'isPartOf': {'@type': 'CreativeWorkSeries', '@id': OFFICIAL + '#series', 'name': 'レンとジル（Ren & Jill）', 'url': OFFICIAL},
+    'author': {'@type': 'Organization', '@id': OFFICIAL + '#org', 'name': '東京うさぎオフィス Tokyo Usagi Office', 'url': OFFICIAL, 'sameAs': [u for _, u in SNS]},
+    'publisher': {'@id': OFFICIAL + '#org'}, 'isPartOf': {'@type': 'CreativeWorkSeries', '@id': OFFICIAL + '#series', 'name': '東京うさぎオフィス（Tokyo Usagi Office）', 'url': OFFICIAL},
   }
 
 def head_tags():
@@ -36,7 +36,7 @@ def head_tags():
 
 def noscript():
   return ('<noscript><div style="max-width:560px;margin:40px auto;padding:20px;background:#FFF7E8;color:#3B2A20;border-radius:16px;font-family:sans-serif">'
-          '<h1>レンとジルのチモシーダッシュ</h1><p>%s</p><p>このゲームは JavaScript をオンにすると遊べます。<a href="guide">遊び方とキャラクター紹介</a>・<a href="ranking">みんなのランキング</a>・<a href="https://renjill.coana.co.jp/">レンとジル 公式サイト</a></p></div></noscript>') % html.escape(DESC_JA)
+          '<h1>東京うさぎオフィスのチモシーダッシュ</h1><p>%s</p><p>このゲームは JavaScript をオンにすると遊べます。<a href="guide">遊び方とキャラクター紹介</a>・<a href="ranking">みんなのランキング</a>・<a href="https://usagi.coana.co.jp/">東京うさぎオフィス 公式サイト</a></p></div></noscript>') % html.escape(DESC_JA)
 
 CSS = ''':root{--ink:#3B2A20;--soft:#7A6550;--paper:#FFF7E8;--line:#E3D3BC;--gold:#C9962F;--tie:#D9A21B}
 *{box-sizing:border-box}body{margin:0;background:#F4ECE0;color:var(--ink);font-family:"Zen Maru Gothic","Hiragino Sans","Noto Sans CJK JP","Noto Sans JP",system-ui,sans-serif;line-height:1.75}
@@ -56,7 +56,7 @@ dt{font-weight:900;margin-top:10px}dd{margin:2px 0 8px}footer{text-align:center;
 def page(lang):
   ja = lang == 'ja'; L = (lambda a, b: a if ja else b)
   url = SITE + ('guide' if ja else 'guide-en')
-  title = L('遊び方とキャラクター紹介｜レンとジルのチモシーダッシュ（無料のうさぎランゲーム）', 'Ren & Jill: Hay Dash – free bunny runner game | How to play')
+  title = L('遊び方とキャラクター紹介｜東京うさぎオフィスのチモシーダッシュ（無料のうさぎランゲーム）', 'Tokyo Usagi Office: Hay Dash – free bunny runner game | How to play')
   desc = L(DESC_JA, DESC_EN)
   faq = [
     (L('無料で遊べますか？', 'Is it free?'), L('はい。すべて無料で遊べます。課金や広告はありません。', 'Yes. Everything is free to play, with no in-app purchases or ads.')),
@@ -71,12 +71,12 @@ def page(lang):
   places = ''.join('<li><b>%s</b>：%s</li>' % (html.escape(p['ja']), html.escape(p['nja'])) if ja else '<li><b>%s</b>: %s</li>' % (html.escape(p['en']), html.escape(p['nen'])) for p in PLACES)
   e = html.escape
   body = f'''<main>
-<header><small>REN &amp; JILL ・ HAY DASH</small><h1>{L('レンとジルの<wbr>チモシーダッシュ', 'Ren &amp; Jill: Hay Dash')}</h1><p>{L('寝坊した課長と、東京をかけぬけて出社！ 無料のうさぎランゲーム', 'Two office bunnies, one mad dash across Tokyo. A free runner game.')}</p></header>
+<header><small>TOKYO USAGI OFFICE ・ HAY DASH</small><h1>{L('東京うさぎオフィスの<wbr>チモシーダッシュ', 'Tokyo Usagi Office: Hay Dash')}</h1><p>{L('寝坊した課長と、東京をかけぬけて出社！ 無料のうさぎランゲーム', 'Two office bunnies, one mad dash across Tokyo. A free runner game.')}</p></header>
 <a class="play" href="./{'?ref=guide' if ja else '?lang=en&amp;ref=guide'}">{L('今すぐ無料で遊ぶ ▶', 'Play free now ▶')}</a>
 <p class="lang">{L('<a href="guide-en" hreflang="en">English</a>', '<a href="guide" hreflang="ja">日本語</a>')} ・ <a href="ranking">{L('みんなのランキング', 'Leaderboard')}</a> ・ <a href="{L('food', 'food-en')}">{L('うさぎのえさ図鑑', 'Bunny food guide')}</a></p>
 <section><h2>{L('どんなゲーム？', 'What is it?')}</h2>
-<p>{L('朝8時、うさぎの課長レンが寝坊！ 部下のジルといっしょに、家から駅、電車、オフィス、そして夕方の東京の名所までを走りぬけます。道に落ちているチモシー（うさぎの主食の牧草）を集め、障害物をよけて、できるだけ遠くまで進みましょう。',
- 'It is 8 a.m. and Ren, the boss bunny, has overslept! With his assistant Jill he races from his home to the station, onto the train, through the office and out to Tokyo sights in the evening. Grab the hay (a rabbit’s staple food) along the way, dodge everything else and see how far you get.')}</p>
+<p>{L('朝8時、うさぎの課長モチが寝坊！ 部下のユズといっしょに、家から駅、電車、オフィス、そして夕方の東京の名所までを走りぬけます。道に落ちているチモシー（うさぎの主食の牧草）を集め、障害物をよけて、できるだけ遠くまで進みましょう。',
+ 'It is 8 a.m. and Mochi, the boss bunny, has overslept! With his assistant Yuzu he races from his home to the station, onto the train, through the office and out to Tokyo sights in the evening. Grab the hay (a rabbit’s staple food) along the way, dodge everything else and see how far you get.')}</p>
 <p>{L('遊ぶたびに行き先が変わり、分かれ道で寄り道を選べます。季節ごとに限定の帽子や飾りが登場します。', 'The route changes every run and you choose detours at forks. Each season brings limited-time hats and decorations.')}</p></section>
 <section><h2>{L('遊び方', 'How to play')}</h2><ul>
 <li>{L('<b>左右にスワイプ</b>（矢印キー ← →）：レーンを変えてよける', '<b>Swipe left/right</b> (arrow keys ← →): change lanes to dodge')}</li>
@@ -86,15 +86,15 @@ def page(lang):
 <li>{L('うさぎが食べてはいけない物（チョコレートなど）をとると、ふらふらに。えさ図鑑で確かめよう', 'Food that is bad for rabbits (chocolate, for example) makes you woozy: check the food book')}</li></ul>
 <p>{L('ミッション、スタンプ帳（名所のスタンプ集め）、えさ図鑑、購買部（帽子やネクタイの着せ替え）もあります。', 'There are missions, a stamp book of Tokyo sights, a food book and a shop with hats and ties to dress up in.')}</p></section>
 <section><h2>{L('キャラクター', 'Characters')}</h2><div class="chars">
-<figure><img src="img/ren.webp" width="200" height="200" alt="{L('レン：ネクタイをしたホーランドロップのうさぎ', 'Ren: a Holland Lop bunny in a tie')}" loading="lazy"><figcaption><b>{L('レン', 'Ren')}</b><br>{L('課長・ホーランドロップ。たれ耳とネクタイがトレードマーク。牧草が大好きで、チモシーが20%多くもらえる。', 'The boss, a Holland Lop with floppy ears and a tie. A hay lover: +20% hay.')}</figcaption></figure>
-<figure><img src="img/jill.webp" width="200" height="200" alt="{L('ジル：丸メガネと社員証のネザーランド・ドワーフのうさぎ', 'Jill: a Netherland Dwarf bunny with round glasses and an ID badge')}" loading="lazy"><figcaption><b>{L('ジル', 'Jill')}</b><br>{L('部下・ネザーランド・ドワーフ。立ち耳に丸メガネと社員証。段取り上手で、パワーアップが30%長く続く。', 'His assistant, a Netherland Dwarf with upright ears, round glasses and an ID badge. Organized: power-ups last 30% longer.')}</figcaption></figure>
-<figure><img src="img/pom.webp" width="200" height="200" alt="{L('ポム：赤いはちまきのキンクマハムスター', 'Pom: a golden hamster in a red sweatband')}" loading="lazy"><figcaption><b>{L('ポム', 'Pom')}</b><br>{L('体育会系の新入社員、キンクマハムスター。走っていると、どこかで会えるかも。会えたら、ポムでも走れるようになる。', 'The sporty new hire, a golden hamster. You might bump into him on the road, and once you have, you can run as Pom too.')}</figcaption></figure></div></section>
+<figure><img src="img/ren.webp" width="200" height="200" alt="{L('モチ：ネクタイをしたホーランドロップのうさぎ', 'Mochi: a Holland Lop bunny in a tie')}" loading="lazy"><figcaption><b>{L('モチ', 'Mochi')}</b><br>{L('課長・ホーランドロップ。たれ耳とネクタイがトレードマーク。牧草が大好きで、チモシーが20%多くもらえる。', 'The boss, a Holland Lop with floppy ears and a tie. A hay lover: +20% hay.')}</figcaption></figure>
+<figure><img src="img/jill.webp" width="200" height="200" alt="{L('ユズ：丸メガネと社員証のネザーランド・ドワーフのうさぎ', 'Yuzu: a Netherland Dwarf bunny with round glasses and an ID badge')}" loading="lazy"><figcaption><b>{L('ユズ', 'Yuzu')}</b><br>{L('部下・ネザーランド・ドワーフ。立ち耳に丸メガネと社員証。段取り上手で、パワーアップが30%長く続く。', 'His assistant, a Netherland Dwarf with upright ears, round glasses and an ID badge. Organized: power-ups last 30% longer.')}</figcaption></figure>
+<figure><img src="img/pom.webp" width="200" height="200" alt="{L('クリ：赤いはちまきのキンクマハムスター', 'Kuri: a golden hamster in a red sweatband')}" loading="lazy"><figcaption><b>{L('クリ', 'Kuri')}</b><br>{L('体育会系の新入社員、キンクマハムスター。走っていると、どこかで会えるかも。会えたら、クリでも走れるようになる。', 'The sporty new hire, a golden hamster. You might bump into him on the road, and once you have, you can run as Kuri too.')}</figcaption></figure></div></section>
 <section><h2>{L('走れる東京の名所', 'Tokyo spots on the way')}</h2><p>{L(f'スタンプ帳に集められる場所は{len(PLACES)}か所。一部を紹介します。', f'{len(PLACES)} places to collect in the stamp book. Some of them:')}</p><ul class="places">{places}</ul></section>
 <section><h2>{L('よくある質問', 'FAQ')}</h2><dl>{''.join(f'<dt>{e(q)}</dt><dd>{e(a)}</dd>' for q, a in faq)}</dl></section>
 <a class="play" href="./{'?ref=guide' if ja else '?lang=en&amp;ref=guide'}">{L('今すぐ無料で遊ぶ ▶', 'Play free now ▶')}</a>
-<section class="follow"><h2>{L('レンとジルをフォロー', 'Follow Ren &amp; Jill')}</h2><p>{L('レンとジルのアニメは、SNSで新しい話を公開しています（@renjill_office）。ゲームの「あいことば」もここで発表します。', 'New Ren &amp; Jill anime episodes are posted on social media (@renjill_office). Secret words for the game are posted there too.')}</p>
-<p class="sns">{' '.join(f'<a href="{u}" rel="noopener" target="_blank">{n}</a>' for n, u in SNS)} <a href="{OFFICIAL}{'' if ja else '?lang=en'}">{L('レンとジル 公式サイト（アニメ全話）', 'Ren &amp; Jill official site (all episodes)')}</a></p></section>
-<footer>{L('えさの情報は一般的な目安です（出典：長野県動物愛護センター）。', 'Food notes are general guidance (source: Nagano Prefecture Animal Welfare Center).')}<br>© Ren &amp; Jill</footer>
+<section class="follow"><h2>{L('東京うさぎオフィスをフォロー', 'Follow Tokyo Usagi Office')}</h2><p>{L('東京うさぎオフィスのアニメは、SNSで新しい話を公開しています（@tokyo_usagi_office）。ゲームの「あいことば」もここで発表します。', 'New Tokyo Usagi Office anime episodes are posted on social media (@tokyo_usagi_office). Secret words for the game are posted there too.')}</p>
+<p class="sns">{' '.join(f'<a href="{u}" rel="noopener" target="_blank">{n}</a>' for n, u in SNS)} <a href="{OFFICIAL}{'' if ja else '?lang=en'}">{L('東京うさぎオフィス 公式サイト（アニメ全話）', 'Tokyo Usagi Office official site (all episodes)')}</a></p></section>
+<footer>{L('えさの情報は一般的な目安です（出典：長野県動物愛護センター）。', 'Food notes are general guidance (source: Nagano Prefecture Animal Welfare Center).')}<br>© Tokyo Usagi Office</footer>
 </main>'''
   return f'''<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{e(title)}</title><meta name="description" content="{e(desc)}"><link rel="canonical" href="{url}">
@@ -119,7 +119,7 @@ FOOD_GROUPS = [('main', '主食（毎日たっぷり）', 'Staples (every day)',
 def food_page(lang):
   ja = lang == 'ja'; L = (lambda a, b: a if ja else b); e = html.escape
   slug = 'food' if ja else 'food-en'; url = SITE + slug
-  title = L('うさぎが食べていい物・ダメな物｜えさ図鑑（レンとジルのチモシーダッシュ）', 'What can rabbits eat? A bunny food guide | Ren & Jill: Hay Dash')
+  title = L('うさぎが食べていい物・ダメな物｜えさ図鑑（東京うさぎオフィスのチモシーダッシュ）', 'What can rabbits eat? Bunny food guide | Tokyo Usagi Office: Hay Dash')
   desc = L('うさぎの主食・野菜・おやつ・あげてはいけない物を、ゲームのえさ図鑑からまとめました。チモシー、小松菜、りんご、にんじん、チョコレートや玉ねぎがダメな理由など。一般的な目安です（出典：長野県動物愛護センター）。',
            'Hay, greens, treats and foods to avoid, from the food book of our free bunny game: timothy hay, leafy greens, carrot, and why chocolate and onions are dangerous.')
   items = {x['k']: x for x in food_items()}
@@ -129,16 +129,16 @@ def food_page(lang):
     rows = ''.join(f'<li><b>{e(items[k]["ja"])}</b>：{e(items[k]["tja"])}</li>' if ja else f'<li><b>{e(items[k]["en"])}</b>: {e(items[k]["ten"])}</li>' for k in keys if k in items)
     secs += f'<section class="g-{gid}"><h2>{L(gja, gen)}</h2><ul class="food">{rows}</ul></section>'
   ld = [{'@context': 'https://schema.org', '@type': 'Article', 'headline': title, 'description': desc, 'inLanguage': lang, 'url': url, 'dateModified': TODAY, 'image': SITE + 'og.png',
-         'author': {'@type': 'Organization', '@id': OFFICIAL + '#org', 'name': 'レンとジル Ren & Jill', 'url': OFFICIAL}, 'citation': L('長野県動物愛護センター「うさぎの飼い方」', 'Nagano Prefecture Animal Welfare Center: rabbit care guide')},
+         'author': {'@type': 'Organization', '@id': OFFICIAL + '#org', 'name': '東京うさぎオフィス Tokyo Usagi Office', 'url': OFFICIAL}, 'citation': L('長野県動物愛護センター「うさぎの飼い方」', 'Nagano Prefecture Animal Welfare Center: rabbit care guide')},
         {'@context': 'https://schema.org', '@type': 'BreadcrumbList', 'itemListElement': [{'@type': 'ListItem', 'position': 1, 'name': L('チモシーダッシュ', 'Hay Dash'), 'item': SITE}, {'@type': 'ListItem', 'position': 2, 'name': L('えさ図鑑', 'Food guide'), 'item': url}]}]
   body = f"""<main>
-<header><small>REN &amp; JILL ・ {L('えさ図鑑', 'FOOD GUIDE')}</small><h1>{L('うさぎが食べていい物・<wbr>ダメな物', 'What can rabbits eat?')}</h1><p>{L('うさぎの課長レンと部下ジルの、えさ図鑑', 'The food book of Ren and Jill, two office bunnies')}</p></header>
+<header><small>TOKYO USAGI OFFICE ・ {L('えさ図鑑', 'FOOD GUIDE')}</small><h1>{L('うさぎが食べていい物・<wbr>ダメな物', 'What can rabbits eat?')}</h1><p>{L('うさぎの課長モチと部下ユズの、えさ図鑑', 'The food book of Mochi and Yuzu, two office bunnies')}</p></header>
 <section><p>{L('うさぎのごはんは「牧草がいちばん」。そこに少しのペレットと野菜、ときどきのおやつ。ゲーム「チモシーダッシュ」のえさ図鑑の内容を、1ページにまとめました。', 'For rabbits, hay comes first, plus a few pellets and greens and the occasional treat. This page collects the food book from our game, Hay Dash.')}</p>
 <p class="note">{L('ここに書いてあるのは一般的な目安です。体の大きさや年齢、体調によって合う量はちがいます。気になることは動物病院に相談してください。', 'This is general guidance. The right amounts depend on size, age and health; ask a vet if you are unsure.')}</p></section>
 {secs}
 <a class="play" href="./{'?ref=food' if ja else '?lang=en&amp;ref=food'}">{L('ゲームで集めてみる（無料） ▶', 'Collect them in the free game ▶')}</a>
-<p class="lang">{L('<a href="food-en" hreflang="en">English</a>', '<a href="food" hreflang="ja">日本語</a>')} ・ <a href="{L('guide', 'guide-en')}">{L('ゲームの遊び方', 'How to play')}</a> ・ <a href="{OFFICIAL}{'' if ja else '?lang=en'}">{L('レンとジル 公式サイト', 'Ren &amp; Jill official site')}</a></p>
-<footer>{L('えさの情報は一般的な目安です（出典：長野県動物愛護センター）。ゲームの中だけの物は、このページにはのせていません。', 'Food notes are general guidance (source: Nagano Prefecture Animal Welfare Center). Items that exist only in the game are not listed.')}<br>© Ren &amp; Jill</footer>
+<p class="lang">{L('<a href="food-en" hreflang="en">English</a>', '<a href="food" hreflang="ja">日本語</a>')} ・ <a href="{L('guide', 'guide-en')}">{L('ゲームの遊び方', 'How to play')}</a> ・ <a href="{OFFICIAL}{'' if ja else '?lang=en'}">{L('東京うさぎオフィス 公式サイト', 'Tokyo Usagi Office official site')}</a></p>
+<footer>{L('えさの情報は一般的な目安です（出典：長野県動物愛護センター）。ゲームの中だけの物は、このページにはのせていません。', 'Food notes are general guidance (source: Nagano Prefecture Animal Welfare Center). Items that exist only in the game are not listed.')}<br>© Tokyo Usagi Office</footer>
 </main>"""
   css = CSS + '.food{list-style:none;padding:0}.food li{padding:8px 0;border-bottom:1px dashed var(--line)}.food li:last-child{border:0}.note{font-size:14px;color:var(--soft)}.g-bad{border-color:#E8A79E;background:#FFF1EE}.g-bad h2{color:#B3392E}'
   return f"""<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">

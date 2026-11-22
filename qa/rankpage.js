@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
   await p.route('**/fonts.googleapis.com/**', r => r.abort());
   let body = null;
   await p.route('https://firestore.googleapis.com/**', async r => { body = r.request().postDataJSON(); const f = body.structuredQuery.where.fieldFilter.field.fieldPath;
-    const docs = [['a1', 9000, 'jill', 'ポム推し'], ['b2', 5200, 'ren', ''], ['c3', 1200, 'ren', '死ね'], ['d4', 300, 'jill', 'ジル課長補佐のすごい人']].map(([id, s, c, n]) => ({ document: { name: 'projects/x/databases/(default)/documents/ranks/' + id, fields: Object.assign({ [f]: { integerValue: String(s) }, [f + 'c']: { stringValue: c } }, n ? { nick: { stringValue: n } } : {}) } }));
+    const docs = [['a1', 9000, 'jill', 'クリ推し'], ['b2', 5200, 'ren', ''], ['c3', 1200, 'ren', '死ね'], ['d4', 300, 'jill', 'ユズ課長補佐のすごい人']].map(([id, s, c, n]) => ({ document: { name: 'projects/x/databases/(default)/documents/ranks/' + id, fields: Object.assign({ [f]: { integerValue: String(s) }, [f + 'c']: { stringValue: c } }, n ? { nick: { stringValue: n } } : {}) } }));
     r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(docs) }); });
   await p.goto('http://127.0.0.1:8790/ranking.html'); await p.waitForTimeout(1200);
   const t = await p.evaluate(() => document.getElementById('list').innerText.replace(/\n/g, ' | '));

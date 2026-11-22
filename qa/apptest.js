@@ -31,7 +31,7 @@ const { chromium } = require('playwright');
   });
   // other players already on the board
   const mk = (() => { const j = new Date(Date.now() + 9 * 3600e3); return 'm' + j.getUTCFullYear() + String(j.getUTCMonth() + 1).padStart(2, '0'); })();
-  DB.other1 = { [mk]: { integerValue: '9000' }, all: { integerValue: '9000' }, nick: { stringValue: 'ポム推し' } };
+  DB.other1 = { [mk]: { integerValue: '9000' }, all: { integerValue: '9000' }, nick: { stringValue: 'クリ推し' } };
   DB.other2 = { [mk]: { integerValue: '50' }, all: { integerValue: '50' } };
   await p.route('**/fonts.googleapis.com/**', r => r.abort());
   await p.goto('http://127.0.0.1:8790/'); await p.waitForTimeout(1500);

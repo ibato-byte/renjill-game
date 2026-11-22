@@ -1,5 +1,5 @@
 <div id="app">
-  <canvas id="cv" aria-label="レンとジルのチモシーダッシュ"></canvas>
+  <canvas id="cv" aria-label="東京うさぎオフィスのチモシーダッシュ"></canvas>
   <div id="bootMsg" aria-live="polite"></div>
   <script>(function(){var h=document.documentElement;h.classList.add('booting');setTimeout(function(){h.classList.remove('booting')},8000);try{var s=JSON.parse(localStorage.getItem('renjill-hay-dash-v1')||'{}'),n=(navigator.language||'ja').toLowerCase(),q=(/[?&]lang=(ja|en|zh|ko)\b/.exec(location.search)||[])[1],l=q||s.lang||(n.indexOf('ja')===0?'ja':n.indexOf('zh')===0?'zh':n.indexOf('ko')===0?'ko':'en');h.lang=l==='zh'?'zh-Hant':l;document.getElementById('bootMsg').textContent={ja:'読み込み中…',zh:'載入中…',ko:'불러오는 중…'}[l]||'Loading...'}catch(e){}})();</script>
 
@@ -26,7 +26,7 @@
   <section id="sTitle" class="screen home">
     <button id="btnLangTop" class="langtop" type="button" aria-label="Language / 言語"><span aria-hidden="true">🌐</span> <b id="tLangTop">日本語</b></button>
     <div class="logo">
-      <div class="k" id="tKick">REN &amp; JILL</div>
+      <div class="k" id="tKick">TOKYO USAGI OFFICE</div>
       <h1 id="tLogo">HAY<br><em>DASH!</em></h1>
       <span class="ja" id="tSub"></span>
     </div>
@@ -34,9 +34,9 @@
       <p class="story" id="tStory"></p>
       <p class="last" id="tLast" hidden></p>
       <div class="chars" role="group">
-        <button class="char" id="pickRen" aria-pressed="true"><canvas width="220" height="200" id="cvRen"></canvas><span class="nm" id="nmRen">REN</span><span class="role" id="tRenRole"></span><span class="perk" id="tRenPerk"></span></button>
-        <button class="char" id="pickJill" aria-pressed="false"><canvas width="220" height="200" id="cvJill"></canvas><span class="nm" id="nmJill">JILL</span><span class="role" id="tJillRole"></span><span class="perk" id="tJillPerk"></span></button>
-        <button class="char" id="pickPom" aria-pressed="false"><canvas width="220" height="200" id="cvPom"></canvas><span class="nm" id="nmPom">POM</span><span class="role" id="tPomRole"></span><span class="perk" id="tPomPerk"></span></button>
+        <button class="char" id="pickRen" aria-pressed="true"><canvas width="220" height="200" id="cvRen"></canvas><span class="nm" id="nmRen">MOCHI</span><span class="role" id="tRenRole"></span><span class="perk" id="tRenPerk"></span></button>
+        <button class="char" id="pickJill" aria-pressed="false"><canvas width="220" height="200" id="cvJill"></canvas><span class="nm" id="nmJill">YUZU</span><span class="role" id="tJillRole"></span><span class="perk" id="tJillPerk"></span></button>
+        <button class="char" id="pickPom" aria-pressed="false"><canvas width="220" height="200" id="cvPom"></canvas><span class="nm" id="nmPom">KURI</span><span class="role" id="tPomRole"></span><span class="perk" id="tPomPerk"></span></button>
       </div>
       <button class="big" id="btnStart">START</button>
       <p class="daily" id="tDaily"></p>
@@ -52,7 +52,7 @@
       <div class="bank"><span><span id="tBestL"></span> <b id="tBest">0</b></span><span><img id="tHayIco" alt=""> <b id="tBank">0</b></span>
         <span class="tog"><button class="sub small" id="btnMute">音：ON</button><button class="sub small" id="btnSet" aria-label="Settings">⚙</button></span></div>
     </div>
-    <p class="small-print"><a id="tGuide" href="https://hay-dash.coana.co.jp/guide" target="_blank" rel="noopener">遊び方・キャラクター紹介</a> · <a id="tSite" href="https://renjill.coana.co.jp/?ref=haydash" target="_blank" rel="noopener">REN &amp; JILL 公式サイト</a> · <span class="nw">COANA TOKYO</span></p>
+    <p class="small-print"><a id="tGuide" href="https://hay-dash.coana.co.jp/guide" target="_blank" rel="noopener">遊び方・キャラクター紹介</a> · <a id="tSite" href="https://usagi.coana.co.jp/?ref=haydash" target="_blank" rel="noopener">TOKYO USAGI OFFICE 公式サイト</a> · <span class="nw">COANA TOKYO</span></p>
     <p class="small-print fol" id="tFollow"></p>
   </section>
 

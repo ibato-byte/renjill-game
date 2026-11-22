@@ -26,12 +26,12 @@ function svNums() { const D = defSave(); for (const k of ['best', 'bank', 'clove
 try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { const o = JSON.parse(raw); if (o && typeof o === 'object' && !Array.isArray(o)) svFrom(o); } } catch (e) { SV = defSave(); }
 // one stable player id per save: it travels with a transfer code, so a future app (iOS/Android) can take the same account over
 if (!SV.pid) { try { SV.pid = (crypto.randomUUID ? crypto.randomUUID() : 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2)); } catch (e) { SV.pid = 'p' + Date.now().toString(36); } }
-/* ---- Ren & Jill on social media (the official profiles; plain text links, no logos) ---- */
-const SNS_HANDLE = '@renjill_office';
-const SNS = [{ id: 'ig', name: 'Instagram', url: 'https://www.instagram.com/renjill_office/' }, { id: 'tt', name: 'TikTok', url: 'https://www.tiktok.com/@renjill_office' },
-  { id: 'yt', name: 'YouTube', url: 'https://www.youtube.com/@renjill_office' }, { id: 'th', name: 'Threads', url: 'https://www.threads.net/@renjill_office' },
+/* ---- Tokyo Usagi Office on social media (the official profiles; plain text links, no logos) ---- */
+const SNS_HANDLE = '@tokyo_usagi_office';
+const SNS = [{ id: 'ig', name: 'Instagram', url: 'https://www.instagram.com/tokyo_usagi_office/' }, { id: 'tt', name: 'TikTok', url: 'https://www.tiktok.com/@tokyo_usagi_office' },
+  { id: 'yt', name: 'YouTube', url: 'https://www.youtube.com/@tokyo_usagi_office' }, { id: 'th', name: 'Threads', url: 'https://www.threads.net/@tokyo_usagi_office' },
   { id: 'fb', name: 'Facebook', url: 'https://www.facebook.com/1358515160686321' }];
-const OFFICIAL_SITE = 'https://renjill.coana.co.jp/', SITE_REF = OFFICIAL_SITE + '?ref=haydash'; // the official site can count visits that came from the game
+const OFFICIAL_SITE = 'https://usagi.coana.co.jp/', SITE_REF = OFFICIAL_SITE + '?ref=haydash'; // the official site can count visits that came from the game
 /* ---- where a new player came from: ?ref=<channel> on a shared link (one short word from this list, nothing personal).
    Kept once (the first visit) and sent with the ranking row as "src", so qa/kpi.mjs can count players per channel. */
 const REF_OK = ['x', 'line', 'fb', 'ig', 'th', 'copy', 'share', 'site', 'yt', 'tt', 'guide', 'rank', 'qr', 'itch', 'gamejolt', 'newgrounds', 'freem', 'plicy', 'portal', 'indiedb', 'crazygames', 'gamenora', 'addicting'];
@@ -121,9 +121,9 @@ const L = o => o == null ? '' : typeof o === 'string' ? o : (o[LANG] ?? (LANG ==
 /* ================= interface text ================= */
 const STR = {
   resMore: ['くわしく見る（ミッション・えさメモ・シェア画像）', 'More: missions, food note, share image'], resNameT: ['ランキングの名前をつける', 'Set your ranking name'],
-  pomPeek2: ['ポムが走っていった！ ひまわりの種を見つけたら合流するよ', 'There goes Pom! Find the sunflower seeds to team up'], pomPeekSay: ['先輩、お先っす！', 'Race you there, senpai!'],
-  pomHi2: ['先輩！今日もお供するっす！', 'Senpai! Reporting for duty again!'], pomJoin2: ['新人のポムが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Pom is back! Fill those cheek pouches for a bonus (score ×1.2)'], pomPuff: ['ほお袋MAXっす！おすそわけ！', 'Pouches full! Sharing!'], pomPeek: ['道のまん中に…ハムスター!? こっちを見てる…', 'A hamster... in the road!? It’s looking at you...'],
-  pomJoin: ['体育会系の新入社員、キンクマハムスターのポムが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Meet Pom, the sporty new hire (a golden hamster)! Fill those cheek pouches for a bonus (score ×1.2)'], pomHi: ['押忍！新人のポムっす！', 'Osu! Pom, the new hire, reporting for duty!'],
+  pomPeek2: ['クリが走っていった！ ひまわりの種を見つけたら合流するよ', 'There goes Kuri! Find the sunflower seeds to team up'], pomPeekSay: ['先輩、お先っす！', 'Race you there, senpai!'],
+  pomHi2: ['先輩！今日もお供するっす！', 'Senpai! Reporting for duty again!'], pomJoin2: ['新人のクリが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Kuri is back! Fill those cheek pouches for a bonus (score ×1.2)'], pomPuff: ['ほお袋MAXっす！おすそわけ！', 'Pouches full! Sharing!'], pomPeek: ['道のまん中に…ハムスター!? こっちを見てる…', 'A hamster... in the road!? It’s looking at you...'],
+  pomJoin: ['体育会系の新入社員、キンクマハムスターのクリが合流！ ほお袋がいっぱいになるとボーナス（スコア1.2倍）', 'Meet Kuri, the sporty new hire (a golden hamster)! Fill those cheek pouches for a bonus (score ×1.2)'], pomHi: ['押忍！新人のクリっす！', 'Osu! Kuri, the new hire, reporting for duty!'],
   pomWorry: ['先輩!? 大丈夫っすか!?', 'Senpai!? You OK!?'], pomDonmai: ['ドンマイっす！', "Shake it off!"], pomFever: ['ファイトーー！', 'Go, go, gooo!'], pomNice: ['ナイスっす！', 'Nice one!'], pomNice2: ['まだまだいけるっす！', 'Keep it up!'], pomStamp: ['スタンプ、映えるっす！', 'Ooh, picture-perfect!'],
   bigText: ['文字の大きさ', 'Text size'], bigN: ['ふつう', 'Normal'], bigY: ['大きめ', 'Large'], bigNote: ['画面の上の数字・お知らせの帯・この画面の文字を少し大きくします', 'Makes the top numbers, the message strip and these menus a little bigger'],
   sensNote: ['「敏感」にすると、短いスワイプでも反応します', 'High: shorter swipes count'], calmNote: ['画面のゆれ・フラッシュ・残像をおさえます', 'Less shaking, flashing and trails'],
@@ -133,7 +133,7 @@ const STR = {
   hand: ['片手で操作', 'One-handed'], handNote: ['タップ操作を画面の下半分だけにします（左右＝移動、まんなかの上＝ジャンプ、下＝スライディング）', 'Tap controls use only the lower half (sides = move, middle top = jump, bottom = slide)'],
   errLogH: ['エラーの記録', 'Error log'], errLogNote: ['うまく動かなかったときの記録です（この端末だけに残ります）。お問い合わせのときに見せてください', 'Problems this device ran into (kept only here). Handy if you contact us'], errLogNone: ['記録はありません', 'Nothing recorded'],
   goldTie: ['{0}の月間ランキング {1}位！ 金のネクタイをどうぞ', '#{1} in the {0} ranking! Here is your gold tie'], goldTieBadge: ['金のネクタイ（{0} {1}位）', 'Gold tie ({0}, #{1})'],
-  titleNew: ['新しい称号を手に入れた！', 'New title!'], titleShareBtn: ['称号「{0}」をシェア', 'Share your title: {0}'], titleShareText: ['「レンとジルのチモシーダッシュ」で称号「{0}」を手に入れた！ #レンとジル #チモシーダッシュ', 'Got the title “{0}” in Ren & Jill: Hay Dash! #RenAndJill #HayDash'], titleSaved: ['称号カードの画像を保存しました（文章もコピー済み）', 'Title card saved (text copied too)'],
+  titleNew: ['新しい称号を手に入れた！', 'New title!'], titleShareBtn: ['称号「{0}」をシェア', 'Share your title: {0}'], titleShareText: ['「東京うさぎオフィスのチモシーダッシュ」で称号「{0}」を手に入れた！ #東京うさぎオフィス #チモシーダッシュ', 'Got the title “{0}” in Tokyo Usagi Office: Hay Dash! #TokyoUsagiOffice #HayDash'], titleSaved: ['称号カードの画像を保存しました（文章もコピー済み）', 'Title card saved (text copied too)'],
   lastGo: ['終電まで {0} 秒！ ドアが閉まる前に飛び乗ろう', 'Last train in {0}s! Make it before the doors close'], lastOk: ['終電に飛び乗り！ +{0}', 'Made the last train! +{0}'], lastMiss: ['ドアが閉まった…次の電車で帰ろう', 'The doors closed... take the next one'], lastHud: ['終電まで {0}秒', 'Last train {0}s'], lastClosed: ['ドアが閉まった', 'Doors closed'],
   revBtn: ['🌙 逆走デー：夕方から家まで', '🌙 Reverse day: home from 6 PM'], revGo: ['逆走デー！ 会社から家まで帰ろう', 'Reverse day! Run home from the office'], revHome: ['ただいま！ 家に着いた +{0}', 'Home at last! +{0}'],
   bossGo: ['締め切りの山がせまる！ ぶつからずに逃げ切れ', 'The Deadline Mountain is coming! Escape without a bump'], bossName: ['締め切りの山　あと {0}m', 'Deadline Mountain: {0}m to go'], bossWin: ['締め切りの山から逃げ切った！ +{0}', 'Escaped the Deadline Mountain! +{0}'], bossWin2: ['なんとか逃げ切った！ +{0}', 'Just got away! +{0}'],
@@ -147,11 +147,11 @@ const STR = {
   plantLv: ['机の観葉植物 Lv.{0}', 'Desk plant Lv.{0}'], plantNext: ['あとチモシー{0}本で育つ', '{0} more hay to grow'], plantNote: ['集めたチモシーで育ちます', 'Grows with all the hay you collect'],
   plantUp: ['机の観葉植物が大きくなった！（集めたチモシーで育つ）', 'Your desk plant grew! (It grows with all the hay you collect)'], bestPics: ['自己ベストの記念写真', 'Personal best photos'], bestPicCap: ['自己ベスト {0}点', 'Best {0}'],
   memoJill: ['課長、助かります！', 'Thanks, boss!'], memoRen: ['おお、助かった！', 'Oh, a lifesaver!'], memoPom: ['先輩、助かるっす！', 'Thanks, chief!'],
-  worryRen: ['ジル、大丈夫か!?', 'Jill, are you OK!?'], worryJill: ['課長、大丈夫ですか!?', 'Boss, are you OK!?'],
+  worryRen: ['ユズ、大丈夫か!?', 'Yuzu, are you OK!?'], worryJill: ['課長、大丈夫ですか!?', 'Boss, are you OK!?'],
   start: ['スタート', 'START'], again: ['もう一回！', 'ONE MORE RUN'], resume: ['つづける', 'RESUME'],
-  legal: ['このゲームはフィクションです。登場する地名・駅名は場所を表すためのもので、実在の施設・企業・団体とは関係がなく、公認を受けたものでもありません。うさぎの食べ物のメモは一般的な目安です（主な出典：長野県動物愛護センターの資料）。本物のうさぎのことは、うさぎを診られる動物病院に相談してください。チャットのジルの答えは間違うこともあります。フォント：Dela Gothic One、Zen Maru Gothic（SIL Open Font License 1.1）。音楽・効果音・絵はこのゲームのために作ったものです。© COANA TOKYO「レンとジル」',
-    'This game is fiction. Place and station names are used only to show where you are; the game is not affiliated with or endorsed by any real facility, company or group. Rabbit food notes are general guidance (main source: Nagano Prefecture Animal Welfare Center). For a real rabbit, ask a vet who sees rabbits. Chat Jill’s answers may be wrong. Fonts: Dela Gothic One, Zen Maru Gothic (SIL Open Font License 1.1). All music, sound effects and art were made for this game. © COANA TOKYO “Ren & Jill”'],
-  gameTitle: ['レンとジルのチモシーダッシュ', 'Ren & Jill: Hay Dash'], tagline: ['寝坊した課長と、東京をかけぬけて出社！', 'Two office bunnies, one mad dash across Tokyo'],
+  legal: ['このゲームはフィクションです。登場する地名・駅名は場所を表すためのもので、実在の施設・企業・団体とは関係がなく、公認を受けたものでもありません。うさぎの食べ物のメモは一般的な目安です（主な出典：長野県動物愛護センターの資料）。本物のうさぎのことは、うさぎを診られる動物病院に相談してください。チャットのユズの答えは間違うこともあります。フォント：Dela Gothic One、Zen Maru Gothic（SIL Open Font License 1.1）。音楽・効果音・絵はこのゲームのために作ったものです。© COANA TOKYO「東京うさぎオフィス」',
+    'This game is fiction. Place and station names are used only to show where you are; the game is not affiliated with or endorsed by any real facility, company or group. Rabbit food notes are general guidance (main source: Nagano Prefecture Animal Welfare Center). For a real rabbit, ask a vet who sees rabbits. Chat Yuzu’s answers may be wrong. Fonts: Dela Gothic One, Zen Maru Gothic (SIL Open Font License 1.1). All music, sound effects and art were made for this game. © COANA TOKYO “Tokyo Usagi Office”'],
+  gameTitle: ['東京うさぎオフィスのチモシーダッシュ', 'Tokyo Usagi Office: Hay Dash'], tagline: ['寝坊した課長と、東京をかけぬけて出社！', 'Two office bunnies, one mad dash across Tokyo'],
   missions: ['ミッション', 'Missions'], shop: ['購買部', 'Shop'], book: ['えさ図鑑', 'Food book'], stamps: ['スタンプ帳', 'Stamps'], how: ['あそびかた', 'How to play'],
   best: ['ベスト', 'Best'], soundOn: ['音：オン', 'Sound: on'], soundOff: ['音：オフ', 'Sound: off'], lang: ['English', '日本語'],
   quit: ['やめる', 'Quit'], quitSure: ['本当にやめる？', 'Really quit?'] /* 2026-11-15：前の「もう一度押すとやめる」は、ボタンに入らず「もう一度押…」と切れていた（オーナーの報告）。ボタンに入る短い言葉に */, menu: ['メニュー', 'Menu'], copy: ['リンクをコピー', 'Copy link'], copied: ['コピー済み', 'Copied'], copyFail: ['コピーできませんでした', 'Could not copy'],
@@ -159,10 +159,10 @@ const STR = {
   pause: ['ひと休み', 'Taking a break'],
   story: ['<span class="stp"><b>朝</b>課長と出社</span><span class="stp"><b>道中</b>チモシー集め</span><span class="stp"><b>夜</b>東京を寄り道</span>',
     '<span class="stp"><b>AM</b>Off to work</span><span class="stp"><b>Run</b>Grab hay</span><span class="stp"><b>PM</b>See Tokyo</span>'],
-  pomRole: ['新人', 'Rookie'], pomPerk: ['60本で\u200bボーナス', 'Bonus every 60 hay'], pomUnlock: ['新人のポムで走れるようになりました！', 'You can now run as Pom, the rookie!'], worryPom: ['ポム、大丈夫か!?', 'Pom, you OK!?'],
-  mateRenH: ['レン課長、合流！', 'REN JOINS!'], mateRen: ['寝坊した課長が追いついた！', 'The sleepy boss caught up!'],
-  mateJillH: ['ジル先輩、合流！', 'JILL JOINS!'], mateJill: ['ジル先輩が追いついた！', 'Jill caught up!'],
-  mateAll: ['　3人そろって出社！', ' The whole team is here!'], mateRenSay: ['ポム、早すぎるぞ…！', 'Pom, slow down...!'], mateJillSay: ['ポムくん、お待たせ！', 'Sorry I’m late, Pom!'],
+  pomRole: ['新人', 'Rookie'], pomPerk: ['60本で\u200bボーナス', 'Bonus every 60 hay'], pomUnlock: ['新人のクリで走れるようになりました！', 'You can now run as Kuri, the rookie!'], worryPom: ['クリ、大丈夫か!?', 'Kuri, you OK!?'],
+  mateRenH: ['モチ課長、合流！', 'MOCHI JOINS!'], mateRen: ['寝坊した課長が追いついた！', 'The sleepy boss caught up!'],
+  mateJillH: ['ユズ先輩、合流！', 'YUZU JOINS!'], mateJill: ['ユズ先輩が追いついた！', 'Yuzu caught up!'],
+  mateAll: ['　3人そろって出社！', ' The whole team is here!'], mateRenSay: ['クリ、早すぎるぞ…！', 'Kuri, slow down...!'], mateJillSay: ['クリくん、お待たせ！', 'Sorry I’m late, Kuri!'],
   matePomSay: ['先輩！待ってたっす！', 'Senpai! I waited for you!'], matePomAll: ['全員そろったっす！', 'The whole team, let’s go!'],
   renRole: ['課長', 'Boss'] /* 2026-11-15：題名のカードの文字を減らす（種類の名前は「遊び方・キャラクター紹介」のページにある） */, jillRole: ['部下', 'Assistant'],
   renPerk: ['チモシー +20%', '+20% hay'], jillPerk: ['パワーアップ +30%', 'Power-ups +30%'],
@@ -194,7 +194,7 @@ const STR = {
   nameBtn: ['名前：{0}', 'Name: {0}'], nameNone: ['名前を決める', 'Set name'],
   nameTitle: ['ランキングでの名前', 'Your name on the ranking'], nameNote: ['月間ランキングで、ほかのプレイヤーに表示されます（12文字まで）。本名や連絡先などの個人情報は入れないでください。あとから「名前」ボタンや設定で変えられます。', 'Shown to other players on the monthly ranking (up to 12 characters). Please do not use your real name or contact details. You can change it any time from the Name button or Settings.'],
   nameNG: ['この名前は使えません。別の名前にしてね', 'That name can’t be used. Please pick another one'],
-  nameOk: ['決定', 'OK'], nameLater: ['あとで', 'Later'], namePh: ['例：レン推し', 'e.g. Ren fan'],
+  nameOk: ['決定', 'OK'], nameLater: ['あとで', 'Later'], namePh: ['例：モチ推し', 'e.g. Mochi fan'],
   hiCombo: ['{0}コンボ', '{0} combo'], hiNice: ['ナイス回避 {0}回', '{0} nice dodges'], hiFever: ['フィーバー {0}回', '{0} fevers'], hiNew: ['NEW {0}', 'NEW {0}'], hiLook: ['振り向き {0}回', '{0} look-backs'],
   lastRun: ['前回：{0}点・{1}まで到達', 'Last run: {0} pts, reached {1}'], lastBest: ['自己ベスト {0}点', 'Best {0} pts'],
   bestUp: ['自己ベストを {0} 更新！', 'You beat your best by {0}!'], bestShort: ['自己ベストまであと {0}', '{0} short of your best'],
@@ -227,9 +227,9 @@ const STR = {
   charmName: ['お守り（四つ葉）×1', 'Lucky charm ×1'], charmNote: ['ぶつかった後に「続ける」ために使う。いま {0}個', 'Use it to continue after a crash. You have {0}'],
   closet: ['クローゼット', 'Closet'], closetNote: ['見た目だけ。タイトル画面・走っている姿・結果カードに反映されます。', 'Just for looks. Shows on the title screen, while running and on the share card.'],
   wearing: ['着用中', 'Wearing'], putOn: ['着る', 'Put on'], takeOff: ['脱ぐ', 'Take off'],
-  mugName: ['課長のマグカップ', "The boss's mug"], mugNote: ['レン課長の頭の上に、いつものマグカップ。見た目だけ。', 'His trusty mug, worn as a hat. Just for looks.'],
+  mugName: ['課長のマグカップ', "The boss's mug"], mugNote: ['モチ課長の頭の上に、いつものマグカップ。見た目だけ。', 'His trusty mug, worn as a hat. Just for looks.'],
   wear: ['かぶる', 'Put on'], unwear: ['はずす', 'Take off'],
-  shopNote: ['チモシーはランで集めた分がたまります。レン課長で走ると +20%。', 'All the hay you collect is banked here. Running as Ren earns +20%.'],
+  shopNote: ['チモシーはランで集めた分がたまります。モチ課長で走ると +20%。', 'All the hay you collect is banked here. Running as Mochi earns +20%.'],
   kinds: ['{0} / {1} 種類', '{0} / {1} found'], tapFood: ['ランで出会った食べ物が、ここにたまります。ダメな食べ物も、ぶつかると登録されます。', 'Foods you meet on your runs are saved here, including the ones bunnies must not eat.'],
   foodNote: ['豆知識は一般的な目安です（主な出典：長野県動物愛護センターのうさぎ飼育資料）。実際の食事の量や種類は、うさぎを診られる動物病院に相談してください。', 'These notes are general guidance (main source: Nagano Prefecture Animal Welfare Center’s rabbit care guide). Ask a vet who treats rabbits about your own bunny’s diet.'],
   stampNote: ['東京の名所を走ると、1か所に1つスタンプが出ます。はじめて行った場所では記念写真も残ります。', 'Each Tokyo spot hides one stamp. Your first visit to a place also saves a photo.'],
@@ -242,8 +242,8 @@ const STR = {
   howDown: ['下スワイプでスライディング。ちゃぶ台・テーブル・のれん・提灯の下をくぐる', 'Swipe down to slide under tables, curtains and lanterns'],
   howKeys: ['パソコンは矢印キー・WASD・スペースでも遊べる。P か ESC で一時停止', 'On a computer: arrow keys, WASD or Space. P or Esc to pause'],
   howNG: ['チョコ・玉ねぎ・ポテチはうさぎにダメ。よけよう', 'Chocolate, onions and chips are bad for bunnies. Dodge them'],
-  shareText: ['「レンとジルのチモシーダッシュ」で {0}点！ {1}まで走った（{2}）この記録、こえられる？ #レンとジル #チモシーダッシュ', 'I scored {0} in Ren & Jill: Hay Dash and made it to {1} ({2}). Can you beat it? #RenAndJill #レンとジル'],
-  shareTextWon: ['挑戦状の{3}点をこえて {0}点！（{2}）次はあなたの番！ #レンとジル #チモシーダッシュ', 'Beat the {3} challenge with {0} ({2})! Your turn! #RenAndJill #レンとジル'],
+  shareText: ['「東京うさぎオフィスのチモシーダッシュ」で {0}点！ {1}まで走った（{2}）この記録、こえられる？ #東京うさぎオフィス #チモシーダッシュ', 'I scored {0} in Tokyo Usagi Office: Hay Dash and made it to {1} ({2}). Can you beat it? #TokyoUsagiOffice #東京うさぎオフィス'],
+  shareTextWon: ['挑戦状の{3}点をこえて {0}点！（{2}）次はあなたの番！ #東京うさぎオフィス #チモシーダッシュ', 'Beat the {3} challenge with {0} ({2})! Your turn! #TokyoUsagiOffice #東京うさぎオフィス'],
   reviveFree: ['初回ボーナスで続ける', 'Continue for free'], reviveFreeNote: ['最初の3回のプレイは、1回だけ無料で続けられます', 'First-run bonus: in your first 3 runs, continue once for free'], firstFever: ['フィーバー中はぶつかっても平気！', 'You can’t crash in a fever!'],
   resetH: ['データのリセット', 'Reset your data'], resetNote: ['スコア・チモシー・服・スタンプ・ランキングの記録をすべて消して、はじめからにします。元にはもどせません（残したいときは先に「記録のバックアップ」のコードを作ってください）。', 'Erase every record (scores, hay, clothes, stamps and your ranking entries) and start over. This cannot be undone: make a backup code first if you want to keep a copy.'],
   resetBtn: ['データをリセットする', 'Reset my data'], resetAsk: ['本当にすべて消しますか？', 'Really erase everything?'], resetYes: ['消してはじめから', 'Erase all'], resetNo: ['やめる', 'Cancel'],
@@ -260,10 +260,10 @@ const STR = {
   chalCard: ['友だちからの挑戦状', 'A FRIEND’S CHALLENGE'], chalBody: ['{0}点をこえろ！', 'Beat {0}!'], chalHud: ['挑戦 {0}', 'BEAT {0}'],
   chalWin: ['挑戦状クリア！', 'CHALLENGE BEATEN!'], chalWinSub: ['友だちの{0}点をこえた！', 'You beat your friend’s {0}!'],
   chalLeft: ['挑戦状まであと{0}点！ ', '{0} more to beat the challenge! '], chalDone: ['挑戦状クリア！（{0}点をこえた） ', 'Challenge beaten (over {0})! '],
-  follow: ['レンとジルをフォロー', 'Follow Ren & Jill'], followSite: ['公式サイト', 'Official site'], followAsk: ['いい走りでした！ レンとジルのアニメもSNSで公開中です', 'Great run! The Ren & Jill anime is on social media too'],
+  follow: ['東京うさぎオフィスをフォロー', 'Follow Tokyo Usagi Office'], followSite: ['公式サイト', 'Official site'], followAsk: ['いい走りでした！ 東京うさぎオフィスのアニメもSNSで公開中です', 'Great run! The Tokyo Usagi Office anime is on social media too'],
   watchNew: ['最新話を見る', 'Watch the newest episode'], snsH: ['公式SNS', 'Official social media'], snsNote: ['アニメの新作や「あいことば」は、ここで発表しています', 'New episodes and secret words are posted here'],
   pauseLbl: ['一時停止', 'Pause'], pickChar: ['走るキャラクターを選ぶ', 'Choose who runs'], langLbl: ['言語：{0}', 'Language: {0}'],
-  snsFaq: ['レンとジルのアニメは YouTube・TikTok・Instagram・Threads・Facebook（どれも @renjill_office）で見られます。新しい話が出るとタイトル画面にも出ますよ。「あいことば」もSNSで発表しています。', 'The Ren & Jill anime is on YouTube, TikTok, Instagram, Threads and Facebook (all @renjill_office). New episodes also show up on the title screen, and the secret words are posted there too.'],
+  snsFaq: ['東京うさぎオフィスのアニメは YouTube・TikTok・Instagram・Threads・Facebook（どれも @tokyo_usagi_office）で見られます。新しい話が出るとタイトル画面にも出ますよ。「あいことば」もSNSで発表しています。', 'The Tokyo Usagi Office anime is on YouTube, TikTok, Instagram, Threads and Facebook (all @tokyo_usagi_office). New episodes also show up on the title screen, and the secret words are posted there too.'],
   daily: ['おはよう！ {0}日連続出社ボーナス：チモシー{1}本', 'GOOD MORNING! {0}-day streak bonus: {1} hay'],
   langPick: ['ことば・Language', 'Language'],
   rvShort: ['（あと{0}本たりない）', ' ({0} more needed)'], rvNoClover: ['（お守りがない）', ' (no charms)'],
@@ -280,7 +280,7 @@ const STR = {
   richHay: ['こっちはチモシー多め！', 'More hay this way!'],
   calH: ['出社カレンダー', 'Days at work'], calN: ['この4週間で {0} 日', '{0} days in the last 4 weeks'],
   cpBtn: ['▶ つづきから走る（{0}日目・{1}点）', '▶ Continue your run (Day {0} · {1} pts)'], cpBack: ['途中から再開しました', 'Picked up where you left off'],
-  easyRes: ['のんびりモード（ランキング・自己ベストには入りません）', 'Relaxed mode (not counted for the ranking or your best)'], bond: ['なかよし', 'Buddies'], bondUp: ['レンとジルのなかよし度が上がった！ Lv.{0}', 'Ren & Jill are better buddies! Lv.{0}'], bondLbl: ['なかよし Lv.{0}', 'Buddies Lv.{0}'],
+  easyRes: ['のんびりモード（ランキング・自己ベストには入りません）', 'Relaxed mode (not counted for the ranking or your best)'], bond: ['なかよし', 'Buddies'], bondUp: ['モチとユズのなかよし度が上がった！ Lv.{0}', 'Mochi & Yuzu are better buddies! Lv.{0}'], bondLbl: ['なかよし Lv.{0}', 'Buddies Lv.{0}'],
   vib: ['振動', 'Vibration'], calm: ['画面の揺れ・演出をひかえめに', 'Reduce screen shake and flashes'], music: ['音楽', 'Music'], sfx: ['効果音', 'Sound effects'], on: ['オン', 'On'], off: ['オフ', 'Off'], lvLow: ['小さめ', 'Low'], vibLow: ['弱め', 'Light'],
   resetTut: ['チュートリアルをもう一度', 'Replay the tutorial'], xfer: ['記録のバックアップ（予備）', 'Backup of your progress (spare)'], xferNote: ['ネットにつながらないときなどの予備です。長いコードをメモ帳などに保存しておけば、あとで記録をもどせます。ふだんの引き継ぎは上の「記録の引き継ぎ」が簡単です。（写真アルバムは入りません）', 'A spare for when you are offline: save the long code somewhere and restore it later. For everyday moves, “Move your progress” above is easier. (Photos are not included.)'], xferMake: ['バックアップのコードを作る', 'Make a backup code'], xferCopied: ['コードをコピーしました。メモ帳などに保存しておいてください', 'Code copied. Keep it somewhere safe'], xferPaste: ['ここにバックアップのコードを貼り付け', 'Paste a backup code here'], xferLoad: ['このコードで復元', 'Restore from this code'], xferDone: ['記録をもどしました！', 'Restored!'], xferBad: ['コードが正しくありません。最後まで貼り付けられているか確認してください', 'That code does not look right. Check it was pasted in full'], xferConfirm: ['今の記録はこのコードの記録で上書きされます。もう一度押すと復元します', 'Your current progress will be replaced. Tap again to restore'], xferMine: ['この端末にも記録があります（ベスト {0}点・チモシー {1}本・{2}回プレイ）。続けると、この端末の記録は上の記録に入れかわります', 'This device has progress too (best {0}, hay {1}, {2} runs). It will be replaced by the progress above.'], resetDone: ['次のスタートでチュートリアルが始まります', 'The tutorial will play on your next run'],
 };
@@ -328,8 +328,8 @@ const ITEMS = {
   alfalfa:  { ja: 'アルファルファ', en: 'Alfalfa', kind: 'power', pow: 'jump', pts: 50, tip: { ja: 'マメ科の牧草。たんぱく質とカルシウムが多いので子うさぎ向け。大人のうさぎは食べすぎに注意（長野県資料）。\n【ゲーム】ぴょんぴょんジャンプ：大ジャンプで箱も飛びこえる。', en: 'A legume hay, high in protein and calcium, so better for young bunnies. Adults should not have too much (Nagano guide).\n[Game] Super jump: clear even boxes.' } },
   plane:    { ja: '紙ひこうき', en: 'Paper plane', kind: 'power', pow: 'fly', pts: 50, office: 1, tip: { ja: '崩れた書類で折った紙ひこうき。乗ると空を飛べる（ゲームの中だけ）。', en: 'Folded from the fallen papers. Hop on and fly (in the game only).' } },
   clover:   { ja: '四つ葉のクローバー', en: 'Four-leaf clover', kind: 'power', pow: 'shield', pts: 50, tip: { ja: 'クローバーも野草の仲間。四つ葉はめったに見つからないラッキーアイテム。\n【ゲーム】お守り：1回だけぶつかっても平気。ランの後も「続ける」に使える。', en: 'Clover is a wild green too. A four-leaf one is rare and lucky.\n[Game] Lucky charm: survive one crash, or use it to continue.' } },
-  hanko:    { ja: '承認ハンコ', en: 'Hanko seal', kind: 'power', pow: 'x2', pts: 50, office: 1, tip: { ja: 'ジルが押すと、なぜか全部スムーズに進む。\n【ゲーム】しばらくスコア2倍。', en: 'A Japanese approval seal. When Jill stamps with it, everything somehow goes smoothly.\n[Game] Double score for a while.' } },
-  pomseed:  { ja: 'ひまわりの種', en: 'Sunflower seeds', kind: 'pom', pts: 200, tip: { ja: 'キンクマハムスターのポムの大好物。これをとるとポムが合流する。脂肪が多いので、うさぎのレンとジルは食べません。', en: 'Pom the hamster’s favorite. Pick them up and Pom joins you. Too fatty for bunnies, so Ren and Jill skip them.' } },
+  hanko:    { ja: '承認ハンコ', en: 'Hanko seal', kind: 'power', pow: 'x2', pts: 50, office: 1, tip: { ja: 'ユズが押すと、なぜか全部スムーズに進む。\n【ゲーム】しばらくスコア2倍。', en: 'A Japanese approval seal. When Yuzu stamps with it, everything somehow goes smoothly.\n[Game] Double score for a while.' } },
+  pomseed:  { ja: 'ひまわりの種', en: 'Sunflower seeds', kind: 'pom', pts: 200, tip: { ja: 'キンクマハムスターのクリの大好物。これをとるとクリが合流する。脂肪が多いので、うさぎのモチとユズは食べません。', en: 'Kuri the hamster’s favorite. Pick them up and Kuri joins you. Too fatty for bunnies, so Mochi and Yuzu skip them.' } },
   stamp:    { ja: '観光スタンプ', en: 'Tokyo stamp', kind: 'stamp', pts: 500, tip: { ja: '', en: '' } },
   chalflag: { ja: '挑戦状の旗', en: 'Challenge flag', kind: 'flag', pts: 0, tip: { ja: '', en: '' } }, // 挑戦状の点数の手前に立つ旗（図鑑には入らない）
   memo:     { ja: '落とした書類', en: 'Dropped papers', kind: 'memo', pts: 150, tip: { ja: '', en: '' } }, // 拾うと相棒がお礼（図鑑には入らない）
@@ -413,7 +413,7 @@ const CLOSET = [
   { id: 'suit_royal_ren', who: 'ren', slot: 'suit', v: 'royal', cost: 0, lg: 0, ja: '伝説の金の礼服', en: 'Legendary gold coat' },
   { id: 'suit_royal_jill', who: 'jill', slot: 'suit', v: 'royal', cost: 0, lg: 0, ja: '伝説の金の礼服', en: 'Legendary gold coat' },
   { id: 'suit_royal_pom', who: 'pom', slot: 'suit', v: 'royal', cost: 0, lg: 0, ja: '伝説の金の礼服', en: 'Legendary gold coat' },
-  // Pom (after you have met him): headband colours, hats in his size, a costume, and his own seasonal gifts
+  // Kuri (after you have met him): headband colours, hats in his size, a costume, and his own seasonal gifts
   { id: 'band_blue', who: 'pom', slot: 'band', v: 'blue', cost: 600, ja: '青いはちまき', en: 'Blue headband' },
   { id: 'band_green', who: 'pom', slot: 'band', v: 'green', cost: 600, ja: '緑のはちまき', en: 'Green headband' },
   { id: 'band_pink', who: 'pom', slot: 'band', v: 'pink', cost: 800, ja: 'ピンクのはちまき', en: 'Pink headband' },

@@ -1,6 +1,6 @@
 // 着せ替えの見た目：全キャラの帽子・コスプレを、走る後ろ姿・振り向き・正面で描いて一覧画像にする（shots/hatfit_<who>.png）
 // 帽子が頭に「のっているだけ」にならないこと：かぶる帽子（ヘルメット・ベレー帽・麦わら・サンタ帽など）は、つばが頭の上の端より下（おでこ側）に来ること
-// ジルの耳はかぶる帽子をつけても見えること（帽子の上に耳が出る）
+// ユズの耳はかぶる帽子をつけても見えること（帽子の上に耳が出る）
 const { chromium } = require('playwright'); const path = require('path'); const fs = require('fs');
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined }); const errs = [];

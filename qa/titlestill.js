@@ -1,6 +1,6 @@
 // ホーム画面で、顔が切りかわらないか（2026-11-16 オーナー：「キャラクター選択してる時に点滅するはいらない」。
 // 目を開けた顔 → まばたき → にっこり → あくび、と入れかわるのが点滅に見えた）。
-// 2026-11-17 オーナー「レンが寝てないのに ZZ と出るのはおかしい」→ Zz も出さない
+// 2026-11-17 オーナー「モチが寝てないのに ZZ と出るのはおかしい」→ Zz も出さない
 // 確かめること：ホーム画面で 3 人を順に選び、それぞれ 12 秒ぶんの時間で、舞台の 3 人と札の絵の顔がずっと「開いた目」のまま
 const { chromium } = require('playwright'); const path = require('path');
 (async () => { const bad = []; const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined });
