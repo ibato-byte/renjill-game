@@ -2470,6 +2470,131 @@
       "name": "のばした枠の分スタートを上げる",
       "file": "tools/home/home.css",
       "has": "[H88]"
+    },
+    {
+      "name": "飛び立ち：うしろの展望台をしばらく描く",
+      "file": "src/4_render.js",
+      "has": "[飛び立ち D1]"
+    },
+    {
+      "name": "飛び立ち：少し下を見る",
+      "file": "src/6_game.js",
+      "has": "[飛び立ち D2]"
+    },
+    {
+      "name": "飛び立ち：カメラが少しうしろ上へ",
+      "file": "src/6_game.js",
+      "has": "[飛び立ち D3]"
+    },
+    {
+      "name": "お寺の屋根の瓦の筋",
+      "file": "src/4i_realmap.js",
+      "has": "[飛び立ち D4]"
+    },
+    {
+      "name": "お寺の軒先の白い線",
+      "file": "src/4i_realmap.js",
+      "has": "[飛び立ち D5]"
+    },
+    {
+      "name": "お寺の棟の金のかざり",
+      "file": "src/4i_realmap.js",
+      "has": "[飛び立ち D6]"
+    },
+    {
+      "name": "赤い電波塔：足もとの建物",
+      "file": "src/4i_realmap.js",
+      "has": "[振り返り R1]"
+    },
+    {
+      "name": "赤い電波塔：向こう側の鉄骨",
+      "file": "src/4i_realmap.js",
+      "has": "[振り返り R2]"
+    },
+    {
+      "name": "赤い電波塔：日の当たる向きの明るさ",
+      "file": "src/4i_realmap.js",
+      "has": "[振り返り R3]"
+    },
+    {
+      "name": "赤い電波塔：横のはり",
+      "file": "src/4i_realmap.js",
+      "has": "[振り返り R4]"
+    },
+    {
+      "name": "赤い電波塔：細かい鉄骨",
+      "file": "src/4i_realmap.js",
+      "has": "[振り返り R5]"
+    },
+    {
+      "name": "赤い電波塔：脚の間のアーチ",
+      "file": "src/4i_realmap.js",
+      "has": "[振り返り R6]"
+    },
+    {
+      "name": "赤い電波塔：展望台の床の裏と屋根",
+      "file": "src/4i_realmap.js",
+      "has": "[振り返り R7]"
+    },
+    {
+      "name": "赤い電波塔：アンテナの柱",
+      "file": "src/4i_realmap.js",
+      "has": "[振り返り R8]"
+    },
+    {
+      "name": "赤い電波塔：展望台のガラスのうつりこみ",
+      "file": "src/4i_realmap.js",
+      "has": "[振り返り R9]"
+    },
+    {
+      "name": "赤い電波塔：夜の光のにじみ",
+      "file": "src/4i_realmap.js",
+      "has": "[振り返り R10]"
+    },
+    {
+      "name": "赤い電波塔：近くのすき間をうすく",
+      "file": "src/4i_realmap.js",
+      "has": "[振り返り R11]"
+    },
+    {
+      "name": "塔：屋上への出口の上のかべ",
+      "file": "src/3_world.js",
+      "has": "[塔 T201]"
+    },
+    {
+      "name": "塔：屋上のエレベーターの塔をはなす",
+      "file": "src/3_world.js",
+      "has": "[塔 T202]"
+    },
+    {
+      "name": "塔：エレベーターの塔は鉄の質感",
+      "file": "src/3_world.js",
+      "has": "[塔 T203]"
+    },
+    {
+      "name": "取る物が見え始めたら 0.18 秒でふわっと出る（チカチカ防止）",
+      "file": "src/4_render.js",
+      "has": "[T200]"
+    },
+    {
+      "name": "塔：建物の外の屋根をたいらに",
+      "file": "src/3_world.js",
+      "has": "[塔 T204]"
+    },
+    {
+      "name": "塔：高い建物の正面の窓の帯",
+      "file": "src/3_world.js",
+      "has": "[塔 T205]"
+    },
+    {
+      "name": "塔：150m の展望台に天井",
+      "file": "src/1b_places.js",
+      "has": "[塔 T206]"
+    },
+    {
+      "name": "塔：屋上から見上げる脚を鉄骨の組み方に",
+      "file": "src/3_world.js",
+      "has": "[塔 T207]"
     }
   ]
 }
