@@ -293,7 +293,7 @@ function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), setting
 let rvTimer = null;
 // ぶつかった物の絵を、続ける画面と結果画面に（C-69）。絵のある物だけ。書類に追いつかれた・壁・時間切れのときも、最後にぶつかった物
 function showHit(pre) { const box = $('#' + pre + 'Hit'); if (!box) return; const o = G.lastHit; let url = '';
-  try { const an = o && (o.art || o.picArt); /* 立体にした障害物（車など）は、結果の画面では今までの絵で見せる */ if (an && G.cause !== 'time' && G.cause !== 'quit' && G.cause !== 'rescue' && typeof ART !== 'undefined' && ART[an]) { const c = ART[an](o, false); url = c && c.toDataURL ? c.toDataURL() : ''; } } catch (e) { url = ''; }
+  try { const an = o && (o.art || o.picArt); /* 立体にした障害物（車など）は、結果の画面では今までの絵で見せる */ if (an && G.cause !== 'time' && G.cause !== 'quit' && G.cause !== 'rescue' && G.cause !== 'fall' /* [塔 F12] 落ちて終わった時は「ぶつかった物」の絵を出さない（前に当たった物が出てしまう） */ && typeof ART !== 'undefined' && ART[an]) { const c = ART[an](o, false); url = c && c.toDataURL ? c.toDataURL() : ''; } } catch (e) { url = ''; }
   box.hidden = !url; if (!url) return; $('#' + pre + 'HitImg').src = url; $('#' + pre + 'HitTxt').textContent = LANG === 'ja' && typeof OBS_JA !== 'undefined' && OBS_JA[o.type] ? t('hitWhatN', OBS_JA[o.type]) : t('hitWhat'); }
 function openRevive() {
   const c = reviveCost(), cap = (CAPS[G.cause] || CAPS.obstacle)[G.char];
@@ -651,6 +651,7 @@ function toastPlace(d) { try { const sub = $('#tSub'), logo = $('#tLogo'), app =
         /* 2026-11-19：背の低いスマホ（320×568）では、昇進の帯の下に出すと左の「ミッション」にかかった。その時は、左右のボタンの間の幅にしぼって、今日の目標の下に出す */
         const mb = $('#btnMissions'), mr = mb && mb.offsetParent ? mb.getBoundingClientRect() : null, td = $('#tToday'); d.classList.remove('hmn', 'hmw');
         if (c && ((mr && tt + app.top + h > mr.top - 4) || (innerWidth < 600 && innerHeight > innerWidth * 1.25))) { /* [H26] たて長のスマホでは、いつも今日の目標の下へ（背の高い画面で目標の札に重なっていた） */ d.classList.add('hmn'); const tr2 = td && td.offsetParent ? td.getBoundingClientRect() : null, tall = innerHeight > innerWidth * 1.25; const fd = $('#sTitle.home #tFeed'), fv = fd && fd.offsetParent && fd.getBoundingClientRect().height > 8; const feetY = typeof TITLE_DOCK !== 'undefined' && TITLE_DOCK.feet > 0 ? TITLE_DOCK.feet + app.top : r.top - 10, roomOk = tr2 && tr2.bottom + 8 + h < feetY - innerWidth * .34; /* 3 人の頭にかからない時だけ目標の下へ。かかる小さい画面は、昇進の帯の上に少しの間だけ重ねる */ tt = tall ? (fv ? c.bottom + 8 : roomOk ? tr2.bottom + 8 : c.top + 10) - app.top : (tr2 ? tr2.bottom : c.bottom) - app.top + 12; d.classList.toggle('hmw', tall && !fv && roomOk); } /* [ホーム iPhone H26] 2026-11-20：新作の札を外したので、お知らせは昇進の帯に重ねず、今日の目標のすぐ下（左右のボタンの間の、細いはば）に出す */ /* 新作の札が出ていない背の低いスマホでは、今日の目標ではなく昇進の帯の上に、少しの間だけ重ねる */ /* [ホーム iPhone H9] たて長のスマホでは、今日の目標の下（3 人の顔の上）に出していたお知らせを、昇進の帯のすぐ下（新作の札の上に少しの間だけ）に出す */
+        if (!d.classList.contains('hmn') && td && td.offsetParent) { const q = td.getBoundingClientRect(), y0 = tt + app.top; if (q.height > 8 && y0 < q.bottom + 4 && y0 + h > q.top - 4) tt = q.bottom - app.top + 10; } /* [H60] 2026-11-22：タブレット・パソコンの横長の画面で、お知らせが「今日の目標」の札の字の上に重なっていた。重なる時は、札のすぐ下に出す */
         d.style.setProperty('--tt-top', Math.max(8, Math.round(tt)) + 'px'); return; } } /* 新しいホーム（2026-11-19）：お知らせは、昇進の帯のすぐ下・まん中に出す（左右のボタンやスタートにかぶせない。昇進の帯がない横向きは、台のすぐ上） */
     const sr = sub && sub.offsetParent ? sub.getBoundingClientRect() : null, lr = logo && logo.offsetParent ? logo.getBoundingClientRect() : null;
     let top = null;

@@ -3,7 +3,7 @@
 const AER_TREE = { spring: [.4, ['#F4C6D2', '#EFB3C3', '#F9DCE4']], autumn: [.6, ['#E8B923', '#D9A21B', '#C8642E']], winter: [.7, ['#8A7A6C', '#7B6C60', '#96887A']] };
 /* [着地 A25] 2026-11-21：低い所（高さ 70m より下）では、上から見た森の木（地面にねた丸）が、遠くで平たいお皿のように見えた。立った木（幹と、少し高い所の丸い葉）として描く */
 function aerStandTree(Q, f, l, sz, col, night) { const q0 = Q(f, l, 0), qc = Q(f, l, 7); if (!q0 || !qc) return; const rx = sz * .5, ry = rx * .88; ctx.fillStyle = night ? '#2A2420' : '#6A5040'; ctx.fillRect(qc[0] - Math.max(.5, rx * .1), qc[1], Math.max(1, rx * .2), Math.max(1, q0[1] - qc[1])); ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(qc[0], qc[1] - ry * .2, rx, ry, 0, 0, 7); ctx.fill(); if (!night) { ctx.fillStyle = 'rgba(255,255,255,.16)'; ctx.beginPath(); ctx.ellipse(qc[0] - rx * .3, qc[1] - ry * .55, rx * .4, ry * .3, 0, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(20,30,20,.18)'; ctx.beginPath(); ctx.ellipse(qc[0] + rx * .25, qc[1] + ry * .2, rx * .6, ry * .35, 0, 0, 7); ctx.fill(); } else { ctx.fillStyle = 'rgba(150,172,215,.2)'; ctx.beginPath(); ctx.ellipse(qc[0] - rx * .28, qc[1] - ry * .5, rx * .5, ry * .34, 0, 0, 7); ctx.fill(); } } /* [着地 N4] 2026-11-22：夜、空から見る公園の木は、こい芝生と同じ暗さでとけて、着地の前の公園がただの暗い平らな面に見えた。月明かりのうすい明るみを上にのせる */
-function aerTreeCol(k, base) { let z = null; try { z = AER_TREE[seasonOf(G.planDay || 1)]; } catch (e) { } const h = ((k * 2654435761) >>> 0) % 1000 / 1000; if (z && h < z[0]) return z[1][k % 3]; return base[k % 3]; }
+function aerTreeCol(k, base) { let z = null; try { z = AER_TREE[seasonOf(G.planDay || 1)]; } catch (e) { } const h = ((k * 2654435761) >>> 0) % 1000 / 1000, i = ((Math.floor(k) % 3) + 3) % 3; /* [着地 C2] 2026-11-22：木の番号がマイナスの時（公園の場所による）、色の表から外れて色が決まらず、木がかげと同じ黒っぽい半透明の丸になっていた（空から見ると、公園のふちに枯れたような暗い木がならんで見えた） */ if (z && h < z[0]) return z[1][i]; return base[i]; }
 /* ================= 上から見た東京（2026-11-17） =================
    オーナー：「図形の組み合わせだけのような景色にならないように。現実のような絶景に」。
    前は、地平線の下が一色の地面（のちに、四角い色の板のならび）だった。
@@ -169,7 +169,7 @@ function aerWarm() { try { aerGet(LT.night > .4); } catch (e) { } } // コース
 function acHash(i, j, k) { let h = (i * 374761393 + j * 668265263 + k * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
 function aerialCity(seg, yb, alt, hz) {
   const N = LT.night, night = N > .4, cs = Math.sin(CAM.yaw), cc = Math.cos(CAM.yaw), th = seg.th, cx0 = CAM.x, cz0 = CAM.z, camH = alt + 2.4, F = FOCAL;
-  const lowq = typeof lowQ !== 'undefined' && lowQ, det = aerGet(night), mac = AER.mac[night ? 'n' : 'd'];
+  const lowq = typeof lowQ !== 'undefined' && lowQ, det = aerGet(night), mac = AER.mac[night ? 'n' : 'd']; let lateTower = null;
   const fog = night ? [30, 38, 68] : [LT.bot[0] * .92, LT.bot[1] * .94, LT.bot[2] * .97];
   const bay = th.bay, face = th.face != null ? segFace(seg) : 0, dirA = seg.dir * Math.PI / 2; /* [塔 L2] 地図の向きも、実際に曲がった向きから */
   // 町の「基準の点」：場所ごとに決まった所（塔の足もと）を原点にする。どの場所から見ても同じ町が同じ所にある
@@ -235,6 +235,7 @@ function aerialCity(seg, yb, alt, hz) {
       for (const [ln, w] of [[main, 6.2], [b1, 4.3], [b2, 4.3], [cross, 3.8]]) curve(ln, w, pe);
       for (const [ln, w] of [[main, 5.2], [b1, 3.5], [b2, 3.5], [cross, 3]]) curve(ln, w, pc);
       poly(ring(130, 0, 9, 9, 14), pc); /* 道が分かれる所の、丸い小さな広場 */
+      poly(ring(-10, 0, 7.4, 7.4, 16), pe); poly(ring(-10, 0, 6.6, 6.6, 16), pc); /* [着地 A26] 2026-11-22：着地する道の手前のはしに、丸い小さな広場（前は、芝生のまん中で道が四角く切れて始まり、着地の直前に「置いた板」のように見えた） */
       if (camH < 40 && !lowq) { /* [着地 A22] 2026-11-21：着地の直前（高さ 40m より下）は、着地する道が画面いっぱいののっぺりした砂色の板に見えた。立体の公園の砂利道と同じ見た目に：
            まん中のふみ固められた明るい帯・両はしの暗い帯・1.5m ごとの少しの色のちがい（着地した後の道と、つながって見える） */
         const kk = clamp((40 - camH) / 20, 0, 1), band = night ? 'rgba(255,240,210,' : 'rgba(255,255,255,', dark = 'rgba(58,46,32,';
@@ -273,7 +274,7 @@ function aerialCity(seg, yb, alt, hz) {
     if (RM) for (const o of RM.stand) { const dx = o.wx - cx0, dz = o.wz - cz0, d = dx * cs + dz * cc; if (!o.tower && (d < 20 || d > (o.tall >= 180 || o.bridge ? 13000 : 9000))) continue; if (!o.tower && Math.abs(dx * cc - dz * cs) > d * (W / 2 / F + .3) + 200) continue; if (park && !o.tower && !o.bridge && !o.pier && !o.crane && !o.pagoda && !o.brick && (!o.temple || camH < 150)) { const qx = o.wx - park.x, qz = o.wz - park.z, f2 = qx * park.fx + qz * park.fz, l2 = qx * park.ux + qz * park.uz; if (((f2 - 40) / 290) ** 2 + (l2 / 220) ** 2 < 1) continue; } /* [M58] 着地する公園（森・芝生）の中に、ビルを立てない。お寺も、低くなったら（150m より下）描かない（足もとが手前の芝生にかくれ、屋根だけが宙にういて見えた） */ list.push([d, o.wx, o.wz, .9, 0, 0, o]); } /* [M11] 本物の高いビル（6km 先まで） */
     list.sort((a, b) => b[0] - a[0]);
     for (const [d, wx, wz, h, i, j, ro] of list) { const fk = clamp(1 - Math.exp(-d / (4200 + camH * 8)), 0, .85);
-      if (ro && ro.tower) { rmTowerBody({ P, cx0, cz0, cs, cc, yb }, ro, night, fog, dd => clamp(1 - Math.exp(-dd / (4200 + camH * 8)), 0, .85)); continue; }
+      if (ro && ro.tower) { const tf = () => rmTowerBody({ P, cx0, cz0, cs, cc, yb }, ro, night, fog, dd => clamp(1 - Math.exp(-dd / (4200 + camH * 8)), 0, .85)); if (Math.hypot(ro.wx - cx0, ro.wz - cz0) < 700) lateTower = tf; else tf(); continue; } /* [空 T5] 2026-11-22：飛び立ったばかりの近い塔は、地平線のもやの帯の後に描く。前はもやを塔の上にもかけていたので、塔の体が地平線の高さで上と下にくっきり分かれて見えた（上は明るく、下は急にかすむ） */
       if (ro && ro.crane) { if (d < 3500) rmCrane({ P }, ro, night, (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * LT.amb[q], fog[q], fk)) | 0)})`); continue; }
       if (ro && ro.pier) { rmPier({ P }, ro, night, (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * (night ? 1 : LT.amb[q]), fog[q], fk)) | 0)})`); continue; }
       if (ro && ro.brick) { rmBrick({ P }, ro, night, (c, k) => `rgb(${c.map((v, q) => (lerp(v * k * (night ? 1 : LT.amb[q]), fog[q], fk)) | 0)})`); continue; }
@@ -303,5 +304,6 @@ function aerialCity(seg, yb, alt, hz) {
   // ---- 6) 空気の遠近：遠くほど青白くかすむ。地平線のすぐ下に、うすいもやの帯 ----
   { const hg = ctx.createLinearGradient(0, yb, 0, yb + (H - yb) * .55), f = fog.map(v => v | 0).join(); hg.addColorStop(0, `rgba(${f},${night ? .85 : .93})`); hg.addColorStop(.12, `rgba(${f},${night ? .5 : .62})`); hg.addColorStop(.4, `rgba(${f},.2)`); hg.addColorStop(1, `rgba(${f},0)`); ctx.fillStyle = hg; ctx.fillRect(0, yb, W, (H - yb) * .55);
     if (!night && !lowq) { ctx.fillStyle = 'rgba(255,255,255,.1)'; for (let k = 0; k < 3; k++) { const y = yb + 6 + k * 9 + Math.sin(G.t * .2 + k) * 2; ctx.beginPath(); ctx.ellipse(W * (.2 + k * .3) + Math.sin(G.t * .05 + k * 2) * 40, y, W * .5, 5 + k * 2, 0, 0, 7); ctx.fill(); } } }
+  if (lateTower) try { lateTower(); } catch (e) { reportErr(e); }
   ctx.restore();
 }

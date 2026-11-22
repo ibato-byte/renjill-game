@@ -578,3 +578,26 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
   #sTitle.home.hfit .card>#btnStart{min-height:0;height:50px;padding-top:0;padding-bottom:0;font-size:24px}
   #sTitle.home.hfit .chars .char .nm{margin-top:1px}
 }
+/* [H60〜H66] 2026-11-22 オーナー「さまざまなレスポンシブで、スタート画面を確認して改善して」：15 の画面の大きさ（320〜1920）で見て直した分
+   [H61] 音・設定の丸いボタンは、どの画面でも 40px（タブレット・パソコンで 32px と小さく、指で押しにくかった） */
+#sTitle.home .bank .tog .sub{width:40px;height:40px;background-size:22px}
+/* [H62] タブレットのたて長（600px〜）：上の数字の札と社員の帯の字が、画面の広さにくらべて小さすぎた */
+@media (orientation:portrait) and (min-width:600px){
+  #sTitle.home .bank>span:not(.tog){height:38px;font-size:12px;padding:0 14px 0 11px}
+  #sTitle.home .bank b{font-size:18px}
+  #sTitle.home .langtop{min-height:38px;font-size:13px}
+}
+/* [H63] 横向きの小さいスマホ（はば 700px まで）：3 人の丸がスタートボタンにかかっていた。丸を小さくして、間をあける */
+@media (orientation:landscape) and (max-height:559px) and (max-width:700px){
+  #sTitle.home .chars{gap:2px}
+  #sTitle.home .chars .char{width:46px!important;min-width:0!important}
+  #sTitle.home .chars .char canvas{width:40px!important;height:40px!important}
+  #sTitle.home .card>#btnStart{margin-left:10px}
+}
+/* [H64] 横向きのスマホ：下の「練習」「きろく」は、高さ 36px（32px で押しにくかった） */
+@media (orientation:landscape) and (max-height:559px){#sTitle.home #tKeepBtns .sub{min-height:36px}}
+/* [H65] はば 340px までの小さいスマホ：今日の目標の札が、右の音・設定のボタンの下にもぐっていた。札は「今日の目標」の数だけにして、左右のボタンの間に収める */
+@media (orientation:portrait) and (max-width:340px){
+  #sTitle.home .card>#tToday{grid-template-columns:minmax(0,1fr)!important;width:calc(100vw - 172px)!important}
+  #sTitle.home #tToday .tt-c+.tt-c,#sTitle.home #tToday .tt-ch{display:none!important}
+}

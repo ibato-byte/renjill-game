@@ -84,8 +84,9 @@ function newSeg(prev, step, opts) {
   buildGeometry(seg);
   if ((seg.tid === 'tlobby' || seg.tid === 'slobby') && seg.hp && seg.hp.shape === 'flights') { const h = seg.hp, sd = 1, l2 = sd * (HW - .06), nS = [-sd * seg.r[0], -sd * seg.r[1]]; for (let k = 0; k <= h.n; k++) { const s1 = h.a + k * h.P + .6; if (s1 > seg.len - 3) break; const e = segE(seg, s1) - (seg.e0 || 0), fl = k === h.n && seg.tid === 'tlobby' ? 'RF' : (k + 1) + 'F', a2 = segPos(seg, s1 + .9, l2), b2 = segPos(seg, s1, l2), E = segE(seg, s1); seg.decos.push({ v: [a2[0], E + 1.5, a2[1], b2[0], E + 1.5, b2[1], b2[0], E + 2.2, b2[1], a2[0], E + 2.2, a2[1]], n: nS, pat: 'stepsign', seg, w: .9, txt: fl, txt2: Math.round(segE(seg, s1) - (seg.base != null ? seg.base : 0)) + 'm' }); } } /* [H24] 入口の建物の階段：踊り場ごとに階の札（1F・2F…屋上）と、その高さ */
   if (th.truss) { const red = th.truss === 'red', c1 = red ? '#D9452B' : '#E6EAEE', c2 = red ? '#F2F0EC' : '#C9D1D9', L = seg.len, Hh = red ? (seg.wallH || 5) + 3 : (seg.wallH || 5) - .4; /* [T8][S4] 展望台のガラスの外に、塔の鉄骨（赤い電波塔は赤と白、押上は白いトラス）。窓の外が、塔の中にいるとわかる */
-    for (const sd of [-1, 1]) { if (th.core === sd) continue; const lt = sd * (HW + (red ? 2.2 : 1.6)); for (let a = 2; a < L - 2; a += red ? 9 : 14) { const b = Math.min(a + (red ? 9 : 14), L - 2); seg.lines.push({ a: [a, lt, 0], b: [b, lt, Hh], c: c1, w: red ? .16 : .08 }); seg.lines.push({ a: [a, lt, Hh], b: [b, lt, 0], c: c1, w: red ? .16 : .08 }); seg.lines.push({ a: [a, lt, 0], b: [a, lt, Hh], c: c2, w: red ? .22 : .16 }); } /* [塔 L1] 2026-11-21：鉄骨の線は床の高さから。前は床より 6m 下から引いていて、線は床の後に描くので、窓の外の鉄骨が床の上につきささった白い棒のように見えた */
-      seg.lines.push({ a: [2, lt, -.3], b: [L - 2, lt, -.3], c: c2, w: .14 }); seg.lines.push({ a: [2, lt, Hh - 1], b: [L - 2, lt, Hh - 1], c: c2, w: .14 }); } }
+    const flt = seg.hp && seg.hp.shape === 'flights' ? 1 : 0; /* [塔 L3] 2026-11-22：階段のある展望デッキ（押上）では、鉄骨の線の高さを床の上がり下がりに合わせない（線の両はしが別の階の高さになり、X の形がくずれて、とがったぎざぎざの落書きのように見えた。夜は特に目立った）。塔の骨組みは、床と関係なくまっすぐ立つ（線の abs：高さを床に合わせない） */
+    for (const sd of [-1, 1]) { if (th.core === sd) continue; const lt = sd * (HW + (red ? 2.2 : 1.6)); for (let a = 2; a < L - 2; a += red ? 9 : 14) { const b = Math.min(a + (red ? 9 : 14), L - 2); const lo = flt ? Math.max(segE(seg, a), segE(seg, b)) - (seg.e0 || 0) : 0, loA = flt ? segE(seg, a) - (seg.e0 || 0) : 0; /* 線の下のはしは、その場所の床の高さ（床より下へのばすと、床の上につきささって見える） */ const hi = flt ? Math.min(segE(seg, a), segE(seg, b)) - (seg.e0 || 0) + Hh : Hh, hiA = loA + Hh; /* 上のはしは、その場所の天井の高さまで（下の階から見上げた時、上の階の高さの線が天井の上に重なって見えた） */ if (hi - lo > 1.5) { seg.lines.push({ a: [a, lt, lo], b: [b, lt, hi], c: c1, w: red ? .16 : .08, abs: flt }); seg.lines.push({ a: [a, lt, hi], b: [b, lt, lo], c: c1, w: red ? .16 : .08, abs: flt }); } seg.lines.push({ a: [a, lt, loA], b: [a, lt, hiA], c: c2, w: red ? .22 : .16, abs: flt }); } /* [塔 L1] 2026-11-21：鉄骨の線は床の高さから。前は床より 6m 下から引いていて、線は床の後に描くので、窓の外の鉄骨が床の上につきささった白い棒のように見えた */
+      if (flt) { } else { seg.lines.push({ a: [2, lt, -.3], b: [L - 2, lt, -.3], c: c2, w: .14 }); seg.lines.push({ a: [2, lt, Hh - 1], b: [L - 2, lt, Hh - 1], c: c2, w: .14 }); } } }
   if (th.esc && seg.hp && seg.hp.shape === 'flights') { const h = seg.hp, sd = th.esc, c = sd * 3.7, nIn = [-sd * seg.r[0], -sd * seg.r[1]]; /* [H27] 4 階の入口：階段の横に、本物どおりのエスカレーター（銀の段・黒い手すり・ガラスのらんかん） */
     for (let k = 0; k < h.n; k++) { const s1 = h.a + k * h.P + h.F - 1.2, s2 = h.a + (k + 1) * h.P + 1.2;
       for (let a = s1; a < s2 - .01; a += .5) { const b = Math.min(a + .5, s2);
@@ -304,7 +305,7 @@ function buildRoom(seg, s0, lEnd, rEnd) {
         const lat = sd * (HW - .03), n = [-sd * seg.r[0], -sd * seg.r[1]];
         const a = s, b = s + sz[0], y0 = sz[1], y1 = Math.min(sz[2], H - .15);
         const pts = sd < 0 ? [[a, lat, y0], [b, lat, y0], [b, lat, y1], [a, lat, y1]] : [[b, lat, y0], [a, lat, y0], [a, lat, y1], [b, lat, y1]];
-        seg.decos.push({ v: quad(seg, pts), n, pat: type, v2: (Math.random() * 4) | 0, seg, w: sz[0] });
+        seg.decos.push({ v: quad(seg, pts), n, pat: type, v2: (Math.random() * 4) | 0, seg, w: sz[0], ds0: a, ds1: b, dsd: sd, dy0: y0, dy1: y1 });
         s += sz[0] + (th.kind === 'train' ? rand(.2, .6) : rand(1.2, 3.5));
       }
     }
@@ -342,7 +343,7 @@ function entryDoors(seg, a) { const H = seg.wallH, nE = [-seg.f[0], -seg.f[1]], 
   for (const sd of [-1, 1]) { const l0 = sd * 2.6, l1 = sd * HW, lo = Math.min(l0, l1), hi = Math.max(l0, l1);
     seg.walls.push({ v: quad(seg, [[a, lo, 0], [a, hi, 0], [a, hi, 2.9], [a, lo, 2.9]]), c: gl, n: nE, sh: 1, glass: 1 });
     seg.walls.push({ v: quad(seg, [[a, sd * 2.5, 0], [a, sd * 2.7, 0], [a, sd * 2.7, 2.9], [a, sd * 2.5, 2.9]].map(p => sd < 0 ? [p[0], Math.min(p[1], -2.5), p[2]] : p)), c: wc, n: nE, sh: .9 }); }
-  seg.walls.push({ v: quad(seg, [[a, -HW, 2.9], [a, HW, 2.9], [a, HW, H], [a, -HW, H]]), c: wc, n: nE, sh: .95, pat: 'doorhead' }); }
+  seg.props.push(mkProp(seg, [{ l0: -HW, l1: HW, s0: a - .02, s1: a + .14, y0: 2.94, y1: H, c: seg.th.wall || '#F4EFE6' }, { l0: -HW, l1: HW, s0: a - .05, s1: a + .17, y0: 2.86, y1: 2.94, c: '#8A949E' }], { big: 1 })); } /* [塔 E2] 2026-11-22：ドアの上のかべ。①建物のかべと同じ色に（前は銀色の板で、入る瞬間に画面の上 3 分の 1 が灰色の空白＝天井がぬけたように見えた）②うすい板（かべ）から箱に：かべは物より先に描くので、ドアの奥の階段の上にある物（案内所・ロープ・植木）が、手前のかべをつきぬけて見えていた。箱は奥の物の後に描くので、きちんとかくす ③「入口」の字の札はやめた（字をへらす） */
 function gangway(seg, c, noA, noB) {
   const H = seg.wallH, nE = [-seg.f[0], -seg.f[1]], a = c - .38, b = c + .38, hy = H - .34, wc = C('#CDD3D8');
   for (const sd of [-1, 1]) { const l0 = sd * TGW, l1 = sd * HW, lo = Math.min(l0, l1), hi = Math.max(l0, l1);
@@ -842,7 +843,7 @@ function courseExtras(seg) { const th = seg.th, L = seg.len, t = seg.tid, H = se
     seg.props.push(mkProp(seg, bx, { big: 1 })); }
   if (t === 'tdeck') { const bx = [], core = th.core || 1, win = -core; /* [C54〜C57] 赤い電波塔の展望台 */
     for (let a = 20; a < L - 24; a += 24) { bx.push({ l0: win * (HW - 1.4) - .45, l1: win * (HW - 1.4) + .45, s0: a, s1: a + .9, y0: 0, y1: .05, c: '#5A6670' }, { l0: win * (HW - 1.4) - .5, l1: win * (HW - 1.4) + .5, s0: a - .05, s1: a + .95, y0: .05, y1: .08, c: '#C9A85A' }); } /* [C54] ガラスの床のまわりの、金色のふちの線 */
-    { const a = L * .25, q = core * (HW - .03); bx.push({ l0: q - .03, l1: q + .03, s0: a, s1: a + 2.6, y0: .8, y1: 2.4, c: '#2B2B2E' }, { l0: q - .05, l1: q + .05, s0: a + .1, s1: a + 2.5, y0: .9, y1: 2.3, c: '#E9E4D8' }); } /* [C55] 柱のかべの、「この下は 145m」の大きな案内の板 */
+    { const a = L * .25, lat = core * (HW - .03), pts = core < 0 ? [[a, lat, .8], [a + 2.6, lat, .8], [a + 2.6, lat, 2.4], [a, lat, 2.4]] : [[a + 2.6, lat, .8], [a, lat, .8], [a, lat, 2.4], [a + 2.6, lat, 2.4]]; seg.decos = seg.decos.filter(d => d.dsd !== core || d.ds1 < a - .15 || d.ds0 > a + 2.75); seg.decos.push({ v: quad(seg, pts), n: [-core * seg.r[0], -core * seg.r[1]], pat: 'deckmap', v2: 0, seg, w: 2.6 }); } /* [塔 D2] 2026-11-22：立体の板（何も描いていない、うすい色の板）をやめて、かべの絵（窓から見える景色）に。同じ場所のポスターなどは外す */ /* [C55] 柱のかべの、「この下は 145m」の大きな案内の板 */
     { const a = L * .55, q = core * (HW - .5); bx.push({ l0: q - .4, l1: q + .4, s0: a, s1: a + .8, y0: 0, y1: 1.5, c: '#C8302A' }, { l0: q - .42, l1: q + .42, s0: a - .02, s1: a + .82, y0: 1.5, y1: 1.6, c: '#2B2B2E' }, { l0: q - .3, l1: q + .3, s0: a + .1, s1: a + .7, y0: .9, y1: 1.3, c: '#F2EEE6' }); } /* [C56] 赤い記念スタンプの台 */
     for (let a = 8; a < L - 18; a += 10) bx.push({ l0: -.25, l1: .25, s0: a, s1: a + .5, y0: (seg.wallH || 3) - .06, y1: (seg.wallH || 3) - .02, c: '#FFF4DA', glow: 2 }); /* [C57] 天井のまるい明かり */
     seg.props.push(mkProp(seg, bx, { big: 1 })); }
@@ -1075,9 +1076,12 @@ function courseExtras(seg) { const th = seg.th, L = seg.len, t = seg.tid, H = se
     { const a = L - 6, ll = o => -(HW + o); bx.push({ l0: ll(0), l1: ll(-.04), s0: a, s1: a + .9, y0: H - .55, y1: H - .2, c: '#2F8A4A', glow: 1 }, { l0: ll(-.04), l1: ll(-.05), s0: a + .1, s1: a + .8, y0: H - .5, y1: H - .25, c: '#E9F5EC', glow: 1 }); } /* [C5] 緑の非常口の明かり */
     seg.props.push(mkProp(seg, bx, { big: 1 }));
   }
-  if (t === 'tlobby') { const bx = []; for (const sd of [-1, 1]) for (let a = 10; a < L - 6; a += 9) { const ll = o => sd * (HW + o); bx.push({ l0: Math.min(ll(-.05), ll(0)), l1: Math.max(ll(-.05), ll(0)), s0: a, s1: a + 1.6, y0: 1.2, y1: 2.4, c: '#E9E4D8' }, { l0: Math.min(ll(-.07), ll(-.05)), l1: Math.max(ll(-.07), ll(-.05)), s0: a + .1, s1: a + 1.5, y0: 1.3, y1: 2.3, c: sd < 0 ? '#C8463C' : '#4E77A0' }); } /* [C7] 入口の建物のかべの、塔の写真のパネル（赤い塔の昼と夜の色） */
+  if (t === 'tlobby') { const bx = []; for (const sd of [-1, 1]) for (let a = 10; a < L - 6; a += 9) { const lat = sd * (HW - .03), E = Math.max(segE(seg, a), segE(seg, a + 1.6)) - (seg.e0 || 0), y0 = E + 1.2, y1 = E + 2.4, pts = sd < 0 ? [[a, lat, y0], [a + 1.6, lat, y0], [a + 1.6, lat, y1], [a, lat, y1]] : [[a + 1.6, lat, y0], [a, lat, y0], [a, lat, y1], [a + 1.6, lat, y1]]; seg.decos.push({ v: quad(seg, pts, 1), n: [-sd * seg.r[0], -sd * seg.r[1]], pat: 'towerphoto', v2: sd < 0 ? 0 : 1, seg, w: 1.6 }); } /* 階段の横でも、額は水平に掛ける */ /* [塔 D3] 2026-11-22：かべの「塔の写真のパネル」が、赤 1 色・青 1 色の四角い板だった。昼の塔（左のかべ）と夜の塔（右のかべ）の絵にした。字は入れない */ /* [C7] 入口の建物のかべの、塔の写真のパネル（赤い塔の昼と夜の色） */
     for (let a = 12; a < L - 4; a += 6) bx.push({ l0: -.25, l1: .25, s0: a, s1: a + .5, y0: H - .1, y1: H - .03, c: '#FFF4DA', glow: 2 }); /* [C8] 階段の天井の丸い明かり */
     seg.props.push(mkProp(seg, bx, { big: 1 })); }
+  if (th.course) { /* [塔 D1] 2026-11-22：かべに付けた立体の板（案内の板・写真のパネル・メニューの板）と、かべの絵（ポスター・エレベーターの扉など）が同じ場所に重なっていた（展望台で、大きな板の後ろからポスターがはみ出して見えた）。重なるかべの絵は外す */
+    const flush = []; for (const pr of seg.props) for (const b of pr.bx) { if (b.y1 - b.y0 < .5 || b.l1 - b.l0 > .12 || b.s1 - b.s0 < .5 || b.s1 - b.s0 > 6 || b.y0 < .25) continue; const sd = b.l1 >= HW - .12 ? 1 : b.l0 <= -HW + .12 ? -1 : 0; if (sd) flush.push([sd, b.s0, b.s1, b.y0, b.y1]); }
+    if (flush.length) seg.decos = seg.decos.filter(d => d.dsd == null || !flush.some(f => f[0] === d.dsd && f[1] < d.ds1 + .15 && f[2] > d.ds0 - .15 && f[3] < d.dy1 && f[4] > d.dy0)); }
 }
 function templeHall(seg, e) {
   const sc = e + 22, X = 17, D = 12, Hb = 1.8, Hw = 12.5, Hr = 27, f = seg.f, up = (k) => [-f[0] * k, Math.sqrt(1 - k * k), -f[1] * k], bx = [];
