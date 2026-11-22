@@ -572,6 +572,7 @@ html.calm .howanim .ha-cap span:first-child{opacity:1}
 /* 上の帯：ベスト・チモシー・音・設定 */
 #sTitle.home .card>.bank{grid-column:1/-1;grid-row:1;justify-content:flex-end;flex-wrap:nowrap;gap:6px;padding:calc(54px + env(safe-area-inset-top,0px)) 12px 0 150px;color:var(--ink)}
 #sTitle.home .bank>span:not(.tog){display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px 0 9px;border-radius:999px;background:rgba(255,252,246,.94);box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff;font-size:10px;white-space:nowrap}
+#sTitle.home .card>.bank{pointer-events:none}#sTitle.home .card>.bank>*{pointer-events:auto} /* [H89] 2026-11-23：上の帯（.bank）は横いっぱいの透明な箱なので、上に置いた設定・音のボタン（H85）を押せなかった。帯の中のチモシーの数だけ押せるように */
 #sTitle.home .bank b{font-size:14px}
 #sTitle.home .bank img{width:18px;height:18px;vertical-align:0}
 #sTitle.home .bank .tog{display:inline-flex;gap:6px;margin:0}
