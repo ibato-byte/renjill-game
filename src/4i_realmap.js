@@ -212,7 +212,12 @@ function rmTowerBody(o, t, night, fog, fkOf) {
   for (const [dy, dh, dw] of red ? [[145, 12, 20], [245, 7, 9]] : [[340, 22, 27], [440, 14, 21]]) { const ring = k => { const a = rot0 + k / 12 * Math.PI * 2; return [t.wx + Math.sin(a) * dw, t.wz + Math.cos(a) * dw]; }; /* [M16] 展望台：ガラスの帯の階（昼は空がうつり、夜は明かり） */
     for (let k = 0; k < 12; k++) { const a0 = ring(k), a1 = ring(k + 1), mx = (a0[0] + a1[0]) / 2, mz = (a0[1] + a1[1]) / 2; if ((mx - t.wx) * (mx - cx0) + (mz - t.wz) * (mz - cz0) > 0) continue;
       const q = [P(a0[0], a0[1], dy), P(a1[0], a1[1], dy), P(a1[0], a1[1], dy + dh), P(a0[0], a0[1], dy + dh)]; if (q.some(v => !v)) continue; ctx.fillStyle = night ? 'rgba(255,228,170,.95)' : `rgb(${[120, 140, 160].map((v, i) => (lerp(v, fog[i], fk)) | 0)})`; ctx.beginPath(); q.forEach((v, i) => i ? ctx.lineTo(v[0], v[1]) : ctx.moveTo(v[0], v[1])); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = night ? 'rgba(80,60,40,.5)' : 'rgba(230,236,240,.6)'; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(q[0][0], q[0][1]); ctx.lineTo(q[3][0], q[3][1]); ctx.stroke(); } }
+      ctx.strokeStyle = night ? 'rgba(80,60,40,.5)' : 'rgba(230,236,240,.6)'; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(q[0][0], q[0][1]); ctx.lineTo(q[3][0], q[3][1]); ctx.stroke();
+      if (Math.abs(q[1][0] - q[0][0]) > 12 && Math.abs(q[3][1] - q[0][1]) > 14) { /* [空 T6] 2026-11-22：近くで見る展望台は、階ごとの窓の列に。上と下に白い帯（屋根とゆか）、階のさかいの線、窓のたての枠（前は 1 色ののっぺりした帯で、夜は光る板に見えた） */
+        const m = (u, v) => [lerp(lerp(q[0][0], q[1][0], u), lerp(q[3][0], q[2][0], u), v), lerp(lerp(q[0][1], q[1][1], u), lerp(q[3][1], q[2][1], u), v)], band = (v0, v1, c) => { const a = m(0, v0), b2 = m(1, v0), c2 = m(1, v1), d2 = m(0, v1); ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b2[0], b2[1]); ctx.lineTo(c2[0], c2[1]); ctx.lineTo(d2[0], d2[1]); ctx.closePath(); ctx.fill(); };
+        const trim = night ? (red ? 'rgba(120,70,40,.9)' : 'rgba(70,84,120,.9)') : `rgb(${[236, 238, 240].map((v, i) => (lerp(v * LT.amb[i], fog[i], fk)) | 0)})`, fl = red ? 2 : 3;
+        band(0, .1, trim); band(.9, 1, trim); for (let f = 1; f < fl; f++) band(f / fl - .025, f / fl + .025, trim);
+        ctx.strokeStyle = night ? 'rgba(90,64,40,.55)' : 'rgba(236,240,244,.55)'; ctx.lineWidth = .8; ctx.beginPath(); for (let u = 1; u < 4; u++) { const a = m(u / 4, .1), b2 = m(u / 4, .9); ctx.moveTo(a[0], a[1]); ctx.lineTo(b2[0], b2[1]); } ctx.stroke(); } } }
   { const q = P(t.wx, t.wz, Ht); if (q && N_blink()) { ctx.fillStyle = '#FF4A3D'; ctx.beginPath(); ctx.arc(q[0], q[1], 2.5, 0, 7); ctx.fill(); } } } /* [M17] てっぺんの航空障害灯（点めつ） */
 function N_blink() { return Math.floor(G.t * 1.2) % 2 === 0; }
 

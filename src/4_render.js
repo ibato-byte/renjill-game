@@ -440,7 +440,7 @@ function occAt(d) {
 function linePieces(l) { const a = l.a, b = l.b, k = l.__pk;
   if (k && k[0] === a[0] && k[1] === a[1] && k[2] === a[2] && k[3] === b[0] && k[4] === b[1] && k[5] === b[2] && k[6] === l.c && k[7] === l.w && k[8] === l.glowN) return l.__pc;
   const len = Math.abs(b[0] - a[0]), n = Math.max(1, Math.ceil(len / 4)), out = [];
-  for (let i = 0; i < n; i++) { const t0 = i / n, t1 = (i + 1) / n; out.push(n === 1 ? l : { a: [a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0, a[2] + (b[2] - a[2]) * t0], b: [a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1, a[2] + (b[2] - a[2]) * t1], c: l.c, w: l.w, glowN: l.glowN }); }
+  for (let i = 0; i < n; i++) { const t0 = i / n, t1 = (i + 1) / n; out.push(n === 1 ? l : { a: [a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0, a[2] + (b[2] - a[2]) * t0], b: [a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1, a[2] + (b[2] - a[2]) * t1], c: l.c, w: l.w, glowN: l.glowN, abs: l.abs }); }
   l.__pk = [a[0], a[1], a[2], b[0], b[1], b[2], l.c, l.w, l.glowN]; l.__pc = out; return out; }
 function occDraw(d, fn) { const y = occAt(d); if (y === Infinity) return fn(); if (y <= 0) return; ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, y); ctx.clip(); try { fn(); } finally { ctx.restore(); } }
 const PROF = {}; let PT = 0; const pm = k => { if (!PROF.on) return; const t = performance.now(); PROF[k] = (PROF[k] || 0) + t - PT; PT = t; };
@@ -606,6 +606,7 @@ const SPA = [0, 0, 0], SPB = [0, 0, 0];
 function segPosTo(seg, s, lat, o) { o[0] = seg.sx + seg.f[0] * s + seg.r[0] * lat; o[1] = seg.sz + seg.f[1] * s + seg.r[1] * lat; o[2] = segE(seg, s); return o; } // segPos と同じ（答えを o に入れる）
 function drawLine(sg, l) {
   const a = segPosTo(sg, l.a[0], l.a[1], SPA), b = segPosTo(sg, l.b[0], l.b[1], SPB); /* [軽く 3-15] 入れ物を使い回す */
+  if (l.abs) { const e0 = sg.e0 || 0; a[2] = e0; b[2] = e0; } /* [塔 L3] abs の線は、床の上がり下がりに合わせない（塔の骨組み） */
   tc(a[0], l.a[2] + a[2], a[1], TMP, 0); tc(b[0], l.b[2] + b[2], b[1], TMP, 3);
   let z0 = TMP[2], z1 = TMP[5]; if (z0 < NEAR && z1 < NEAR) return; if (z0 > 95 && z1 > 95) return;
   let x0 = TMP[0], y0 = TMP[1], x1 = TMP[3], y1 = TMP[4];
@@ -848,7 +849,7 @@ function titleFX() {
 }
 // 足もとの土ぼこり（C-33）：地面の種類で色が変わる（砂・雪・草・道）。屋内・板の上は出さない。「動きを減らす」設定でも出さない
 function groundDust(seg) {
-  if (G.mode !== 'play' || OPT().calm || G.air || G.player.slide || G.pow.fly > 0 || LT.indoor) return; const u = ((G.player.ph / (Math.PI * 2)) % 1 + 1) % 1, kick = G.dustU != null && G.dustU < .14 && u >= .14; G.dustU = u; const ld = G.landDust; G.landDust = 0; if (!kick && !ld) return; // 土ぼこりは、後ろ足でけった瞬間（1 歩に 1 回）と、ジャンプの着地に出す（前は 0.09 秒ごとに出していた。2026-11-18）
+  if (G.mode !== 'play' || OPT().calm || G.air || G.player.slide || G.pow.fly > 0 || LT.indoor) return; const u = ((G.player.ph / (Math.PI * 2)) % 1 + 1) % 1, pu = G.dustU, kick = pu != null && (pu <= u ? pu < .14 && u >= .14 : pu < .14 || u >= .14); /* [軽く D5] 2026-11-22：コマ数の少ない端末（1 秒 20 コマ前後）では、1 コマで足の動きが「けった瞬間」を飛びこえてしまい、土ぼこりがほとんど出なかった。前のコマと今のコマの間にけった瞬間が入っていれば出す */ G.dustU = u; const ld = G.landDust; G.landDust = 0; if (!kick && !ld) return; // 土ぼこりは、後ろ足でけった瞬間（1 歩に 1 回）と、ジャンプの着地に出す（前は 0.09 秒ごとに出していた。2026-11-18）
   const rp = seg.th.rpat, c = G.weather === 'snow' ? 'rgba(244,247,250,.9)' : rp === 'sand' ? 'rgba(226,212,182,.85)' : rp === 'grass' || rp === 'lawn' ? 'rgba(150,180,100,.75)' : rp === 'gravel' ? 'rgba(196,182,156,.8)' : rp === 'planks' || rp === 'boards' ? '' : 'rgba(170,160,150,.55)'; if (!c) return;
   const sp = spriteAt(G.player.wx, G.player.wy, G.player.wz); if (!sp) return; G.dustC = c;
   const land = !!ld; for (let i = 0; i < (land ? 7 : 3); i++) FX.push({ x: sp.sx + rand(-14, 14) * sp.k * .01, y: sp.sy - 4, vx: land ? rand(-120, 120) : rand(-50, 50), vy: land ? rand(-50, -15) : rand(-75, -30), life: rand(.25, .45), t: 0, c, r: rand(2.5, land ? 6 : 5) }); // 着地は横へ広がる
