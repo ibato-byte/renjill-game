@@ -2430,6 +2430,16 @@
       "name": "見切れの見張り appfit",
       "file": "qa/run-all.mjs",
       "has": "n: 'appfit'"
+    },
+    {
+      "name": "エレベーターのかごは高く",
+      "file": "src/3_world.js",
+      "has": "[B61]"
+    },
+    {
+      "name": "通路の天井は明るい灰色",
+      "file": "src/1b_places.js",
+      "has": "[B62]"
     }
   ]
 }
