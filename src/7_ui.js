@@ -384,9 +384,9 @@ $('#shFb').onclick = e => { SFX.ui(); e.preventDefault(); shareFacebook(); };
 for (const [id, ch] of [['shX', 'x'], ['shLine', 'line'], ['shTh', 'th']]) $('#' + id).onclick = () => { SFX.ui(); copyText(SHARE.caption(ch)); }; // the link itself opens X / LINE with the text filled in; the text is also copied, just in case
 $('#resNameOk').onclick = () => { $('#resNameToggle').hidden = true; const v = cleanName($('#resNameIn').value); if (!v) return; if (nameBad(v)) { $('#resNameIn').value = ''; $('#resNameIn').placeholder = t('nameNG'); return; } SFX.ui(); setNick(v); SV.nickAsked = 1; save(); $('#resRank .rk-name').hidden = true; rankAfterRun(G.score); };
 $('#resNameIn').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('#resNameOk').click(); } };
-$('#pickRen').onclick = () => { G.char = 'ren'; SV.char = 'ren'; save(); refreshTitle(); audioInit(); SFX.ui(); };
-$('#pickJill').onclick = () => { G.char = 'jill'; SV.char = 'jill'; save(); refreshTitle(); audioInit(); SFX.ui(); };
-$('#pickPom').onclick = () => { audioInit(); if (!SV.pomMet) return; G.char = 'pom'; SV.char = 'pom'; save(); refreshTitle(); SFX.ui(); };
+$('#pickRen').onclick = () => { G.char = 'ren'; SV.char = 'ren'; save(); refreshTitle(); homeFitAgain(); audioInit(); SFX.ui(); };
+$('#pickJill').onclick = () => { G.char = 'jill'; SV.char = 'jill'; save(); refreshTitle(); homeFitAgain(); audioInit(); SFX.ui(); };
+$('#pickPom').onclick = () => { audioInit(); if (!SV.pomMet) return; G.char = 'pom'; SV.char = 'pom'; save(); refreshTitle(); homeFitAgain(); SFX.ui(); };
 $('#btnMissions').onclick = openMissions; $('#btnShop').onclick = openShop; $('#btnZukan').onclick = openZukan; $('#btnHow').onclick = openHow; $('#btnStamps').onclick = openStamps;
 $('#btnSet').onclick = openSettings;
 $('#btnRank').onclick = () => openRanking('month'); $('#btnRank2').onclick = () => { hideAll(); show('sTitle'); setupTitle(); refreshTitle(); openRanking('month'); };
@@ -751,9 +751,16 @@ addEventListener('resize', () => homePlace());
 function homeBottom() { const app = document.getElementById('app'), r = app ? app.getBoundingClientRect() : null; let b = innerHeight; if (r && r.height > 0) b = Math.min(b, r.bottom); if (window.visualViewport && visualViewport.height > innerHeight * .75) b = Math.min(b, visualViewport.offsetTop + visualViewport.height + 1); return Math.max(b, innerHeight * .6); }
 function homeFit() { try { const t = document.getElementById('sTitle'), st = document.getElementById('btnStart'); if (!t || !st || t.hidden) return; const ph = innerWidth < 600 && innerHeight > innerWidth; if (!ph) { t.classList.remove('hfit', 'hfit2'); return; }
   const over = () => st.getBoundingClientRect().bottom > homeBottom() - 4; if (!t.classList.contains('hfit') && over()) t.classList.add('hfit'); if (t.classList.contains('hfit') && !t.classList.contains('hfit2') && over()) t.classList.add('hfit2'); } catch (e) { } }
-function homeFitAgain() { const t = document.getElementById('sTitle'); if (t) t.classList.remove('hfit', 'hfit2'); requestAnimationFrame(() => { try { homePlace(); } catch (e) { } homeFit(); ttFit(); }); }
+function homeFitAgain() { const t = document.getElementById('sTitle'); try { const app = document.getElementById('app'), cut = app ? Math.max(0, Math.round(app.getBoundingClientRect().bottom - innerHeight)) : 0; document.documentElement.style.setProperty('--appCut', Math.min(cut, 130) + 'px'); } catch (e) { } /* [H88] アプリの枠を画面の大きさまでのばした分（iPhone の見えている高さより下）は、iPhone によって見えない時がある（写真で、スタートが下で切れた）。その分だけ、スタートを上に上げておく（見えている時は、スタートの下に少し余白が増えるだけ） */ if (t) t.classList.remove('hfit', 'hfit2'); requestAnimationFrame(() => { try { homePlace(); } catch (e) { } homeFit(); ttFit(); }); }
 /* [H76] 今日の目標・今日のチモシーの数（140,000 ✓・170/300）が、枠の右で切れていた（「/30」で切れる）。入りきらない時は、入るまで字を小さくする（いちばん小さくて 6 割） */
 function ttFit() { try { for (const b of document.querySelectorAll('#sTitle #tToday .tt-c b')) { b.style.fontSize = ''; if (!b.clientWidth || b.scrollWidth <= b.clientWidth + .5) continue; const f0 = parseFloat(getComputedStyle(b).fontSize) || 19; let k = 1; while (b.scrollWidth > b.clientWidth + .5 && k > .6) { k -= .05; b.style.fontSize = (f0 * k).toFixed(1) + 'px'; } } } catch (e) { } }
 addEventListener('resize', homeFitAgain);
 try { document.fonts && document.fonts.ready.then(homeFitAgain); if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', homeFitAgain); } catch (e) { } /* [H79] 字の形（フォント）が届いて字が太く・広くなった時も、入り直しを見る */
 setTimeout(homeFitAgain, 600); setTimeout(homeFitAgain, 2000);
+/* [H87] 2026-11-23 オーナー（iPhone アプリの写真）「また見切れるようになった」：キャラを切りかえた後・アプリにもどった後に、下の台の高さが変わったり、アプリの枠の高さが iPhone の都合で変わったりしても、入り直しを見ていなかった（見るのは起動の時と画面の大きさが変わった時だけ）。
+   ホーム画面が出ている間は 0.7 秒ごとに、①アプリの枠が見えている高さに合っているか ②スタートボタンが見えている所に入っているか ③今日の目標の数が枠に入っているか、を見て、ずれていたら直す（直す時だけ動く。見た目は変わらない） */
+let HF_LAST = '';
+setInterval(() => { try { const t = document.getElementById('sTitle'), st = document.getElementById('btnStart'); if (!t || t.hidden || !st || document.hidden) return; if (iosFill()) { try { resize(); } catch (e) { } }
+  const key = innerWidth + 'x' + innerHeight + '|' + Math.round(homeBottom()) + '|' + G.char + '|' + Math.round(st.getBoundingClientRect().height);
+  const over = st.getBoundingClientRect().bottom > homeBottom() - 4, clip = [...document.querySelectorAll('#sTitle #tToday .tt-c b')].some(b => b.clientWidth && b.scrollWidth > b.clientWidth + .5);
+  if (over || clip || key !== HF_LAST) { HF_LAST = key; homeFitAgain(); } } catch (e) { } }, 700);
