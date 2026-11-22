@@ -168,7 +168,9 @@ function boxFaces(seg, b, ds, dl, dy) {
 function boxFaces0(seg, b, s0, s1, l0, l1, y0, y1) {
   const f = seg.f, r = seg.r;
   if (b.noTop) return boxFaces0(seg, Object.assign({}, b, { noTop: 0 }), s0, s1, l0, l1, y0, y1).filter(fc => !fc.top); // 上の面を描かない箱（ホーム画面の敷きぶとん：上の面は床の絵＝シーツと掛けぶとん）
-  return [
+  /* [B7] 階段のある区間の、天井の明かり（fl: 'c'）は天井の線に、かべの窓・札（fl: 1）は水平に置く。前は 1 つの箱の前と後ろが別の段の高さになり、ゆがんで天井から飛び出したり、ななめの板に見えた */
+  const e0 = seg.e0 || 0, Ef = b.fl && seg.hp ? (b.fl === 'c' ? s => ceilE(seg, s) - e0 : (m => () => m)(Math.max(segE(seg, s0), segE(seg, s1)) - e0)) : null, quad = Ef ? (sg, pts) => quadAt(sg, pts.map(p => [p[0], p[1], p[2] + Ef(p[0])]), 1) : quadAt;
+  const fs = [
     { v: quad(seg, [[s0, l0, y1], [s0, l1, y1], [s1, l1, y1], [s1, l0, y1]]), n: [0, 1, 0], sh: FACE_SH.top, top: 1 },
     { v: quad(seg, [[s0, l0, y0], [s0, l1, y0], [s0, l1, y1], [s0, l0, y1]]), n: [-f[0], 0, -f[1]], sh: FACE_SH.front, front: 1 },
     { v: quad(seg, [[s1, l1, y0], [s1, l0, y0], [s1, l0, y1], [s1, l1, y1]]), n: [f[0], 0, f[1]], sh: FACE_SH.back, back: 1 },
@@ -176,6 +178,7 @@ function boxFaces0(seg, b, s0, s1, l0, l1, y0, y1) {
     { v: quad(seg, [[s0, l1, y0], [s1, l1, y0], [s1, l1, y1], [s0, l1, y1]]), n: [r[0], 0, r[1]], sh: FACE_SH.right, sideR: 1 },
     { v: quad(seg, [[s0, l1, y0], [s0, l0, y0], [s1, l0, y0], [s1, l1, y0]]), n: [0, -1, 0], sh: .7 },
   ];
+  return b.only ? fs.filter(fc => b.only.some(q => fc[q])) : fs; /* [B37] only：外がわの面だけを描く箱（建物の外のかべ。中からは見えない） */
 }
 function faceVisible(fc) { const v = fc.v; const cx = (v[0] + v[6]) / 2, cy = (v[1] + v[7]) / 2, cz = (v[2] + v[8]) / 2; const n = fc.n3 || fc.n; return n.length === 3 ? (CAM.x - cx) * n[0] + (CAM.y - cy) * n[1] + (CAM.z - cz) * n[2] > 0 : (CAM.x - cx) * n[0] + (CAM.z - cz) * n[1] > 0; }
 function spriteAt(x, y, z) { tc(x, y, z, TMP, 0); const zc = TMP[2]; if (zc < NEAR || zc > FAR) return null; return { sx: W / 2 + TMP[0] * FOCAL / zc, sy: HORIZON - TMP[1] * FOCAL / zc, k: FOCAL / zc, z: zc }; } // 答えは毎回新しい入れ物（受け取った側が、あとで使うことがある）
@@ -458,7 +461,7 @@ function floorLayers() { FLA.length = 0; FLB.length = 0; FLC.length = 0;
   for (const e of DRAW) { const p = e[1]; if (p.dec && p.dec !== 'futonD' && p.dec !== 'zabuTop') { if (!p.__fi) p.__fi = ++FLN; FLB.push(e); } else if (p.soft || p.dec) FLC.push(e); else FLA.push(e); }
   if (!FLB.length) return; FLB.sort((a, b) => a[1].__fi - b[1].__fi); DRAW.length = 0; for (const e of FLA) DRAW.push(e); for (const e of FLB) DRAW.push(e); for (const e of FLC) DRAW.push(e); }
 const BUBQ = [];
-function drawUnder(sg) { /* [塔 U1] 2026-11-21：床より下の物は、ぜんぶの区間の床より先に描く（前は区間ごとに描いたので、屋上の下のビルの面が、先に描いた次の区間（曲がった先の階段）の床の上にかぶり、曲がり角の床に穴があいてユズが宙に立って見えた） */
+function drawUnder(sg) { /* [塔 U1] 2026-11-21：床より下の物は、ぜんぶの区間の床より先に描く（前は区間ごとに描いたので、屋上の下のビルの面が、先に描いた次の区間（曲がった先の階段）の床の上にかぶり、曲がり角の床に穴があいてジルが宙に立って見えた） */
   if (!sg.under) return; LC = sg.th.lc || '#80C241';
   const near = d => d > -8 && d < FAR + 8;
   if (sg.under) { /* [塔 S2] 2026-11-21：床より下の高さにある物（屋上から見下ろす、まわりのビルの箱・下の道ぞいの窓の面）は、床より先に描く。
@@ -769,24 +772,24 @@ function drawBunnyWorld(b) {
   else if (b.fly) pose = 'run0'; /* 紙飛行機に乗っている間は、足を止めて座る（2026-11-17 オーナー：「紙飛行機に乗ってる時も走り続けてる動作をしてる」）。下半分は紙飛行機にかくれる */
   else if (b.slide) pose = 'slide'; else if (b.air) pose = !b.fly && (b === G.player ? G.vy : b.vy) < -2.5 ? 'fall' : 'air'; /* くだりは「落ちてくる絵」 */
   else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
-  else if (b.runLook) pose = 'rlook' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES; /* 走りながらふり向く（クリのあいさつ） */
+  else if (b.runLook) pose = 'rlook' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES; /* 走りながらふり向く（ポムのあいさつ） */
   else pose = 'run' + (((b.ph / (Math.PI * 2)) * RUN_FRAMES | 0) % RUN_FRAMES + RUN_FRAMES) % RUN_FRAMES;
   b.pose = pose; const img = bunFrame(b.who, pose, SV.mugOn);
   ctx.save(); ctx.translate(sp.sx, sp.sy); ctx.scale(sc, sc);
   if (b.tilt) ctx.rotate(b.tilt);
-  if (b.land > 0) ctx.scale(1 + b.land * .9, 1 - b.land * .9); /* クリのあいさつ：小さく跳んだあとの着地で、体がつぶれる */ if (b.lean) ctx.scale(1 + .05 * b.lean, 1 - .05 * b.lean); /* 走りぬける時は、体を低く長く */
+  if (b.land > 0) ctx.scale(1 + b.land * .9, 1 - b.land * .9); /* ポムのあいさつ：小さく跳んだあとの着地で、体がつぶれる */ if (b.lean) ctx.scale(1 + .05 * b.lean, 1 - .05 * b.lean); /* 走りぬける時は、体を低く長く */
   if (b === G.player && G.mode === 'play' && !OPT().calm && !b.fly) { const lc = G.laneT > 0 ? Math.sign(G.lane - G.prevLane) * Math.sin(G.laneT / .35 * Math.PI) * .09 : 0, tc = G.turnT > 0 && G.turnDir ? G.turnDir * Math.sin(G.turnT / .8 * Math.PI) * .12 : 0; if (lc || tc) ctx.rotate(lc + tc); if (G.laneT > 0 && !b.air && !b.slide) ctx.translate(0, -Math.sin(G.laneT / .35 * Math.PI) * 12); } // lean into a lane change and a corner (2026-11-08)。車線を変える時は、小さく横へ跳ぶ（本物のうさぎは向きを変える時に横へぴょんと跳ぶ。2026-11-18）
   if (b === G.player && G.mode === 'play' && !OPT().calm) { // squash on landing, a touch of stretch at the top of a jump
     if (G.landT > 0 && !b.air && !b.slide) { const q = Math.sin(G.landT / .14 * Math.PI) * .2 * (G.landK || 1); ctx.scale(1 + q, 1 - q); }
     else if (b.air && !b.fly && G.takeT > 0) { const q = Math.sin(clamp(G.takeT / .09, 0, 1) * Math.PI) * .11; ctx.scale(1 + q, 1 - q); G.takeN = (G.takeN || 0) + 1; } /* ふみ切り：跳ぶ瞬間だけ、ぐっと沈む（アニメの「予備動作」。跳び始めるのは今までどおり押した瞬間） */
     else if (b.air && !b.fly && G.vy > 5) { const q = Math.min(.08, (G.vy - 5) * .008); ctx.scale(1 - q, 1 + q); } }
-  if (b.who === 'pom' && b.air && !b.fly && b.vy != null) { ctx.translate(0, -140); ctx.rotate(-(1 - clamp((b.vy + JUMPV) / (2 * JUMPV), 0, 1)) * Math.PI * 2); ctx.translate(0, 140); } // Kuri flips on every jump
+  if (b.who === 'pom' && b.air && !b.fly && b.vy != null) { ctx.translate(0, -140); ctx.rotate(-(1 - clamp((b.vy + JUMPV) / (2 * JUMPV), 0, 1)) * Math.PI * 2); ctx.translate(0, 140); } // Pom flips on every jump
   if (b.who === 'pom' && b.slide) { ctx.translate(0, -110); ctx.rotate((G.t * 14) % (Math.PI * 2)); ctx.translate(0, 110); } // and rolls under things
   if (b.look > 0 && b.mood === 'sick') ctx.rotate(Math.sin(G.t * 7) * .07);
   if (b.look > 0 && b.mood === 'worry') { ctx.translate(0, -Math.abs(Math.sin(G.t * 9)) * 14); ctx.rotate(Math.sin(G.t * 9) * .05); }
   if (b.fly && b.who === 'pom') ctx.translate(0, Math.sin(G.t * 5) * 6);
   // フィーバー中は走る自分のうしろに、うすい残像を2つ（C-38）。手前（画面の下）に少しずらし、レーン移動の向きにも流す。「動きを減らす」設定では出さない
-  // 2026-11-09：相棒とクリにも（メインのキャラクターだけ残像が出ていた）。ダッシュ中も
+  // 2026-11-09：相棒とポムにも（メインのキャラクターだけ残像が出ていた）。ダッシュ中も
   if ((b === G.player || b === G.follow || b === G.pom) && (G.fever > 0 || G.pow.dash > 0) && G.mode === 'play' && !OPT().calm && !b.fly && !(b.look > 0)) { const lx = b === G.player && G.laneT > 0 ? -Math.sign(G.lane - G.prevLane) * 60 : 0; G.ghostN = (G.ghostN || 0) + 1; const tn = G.trailN || (G.trailN = {}); tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] = (tn[b === G.player ? 'p' : b === G.follow ? 'f' : 'm'] || 0) + 1;
     for (const [k, a] of [[1, .12]]) { ctx.globalAlpha = a; ctx.drawImage(img, -BS / 2, -GROUND_Y - BTOP + 30 * k, img.width, img.height); } ctx.globalAlpha = 1; } /* フィーバー・ダッシュの残像も、うすい 1 つだけ・横へは流さない（2026-11-17 オーナー：「残像がウザくなりすぎないように全体的に気をつけて」。前は 2 つ・レーン移動の向きにも流していた） */
   /* レーンを移る一瞬の残像は、やめた（2026-11-17 オーナー：「キャラクターが左右に移動した時の残像はうざったいのでいらない」）。qa/motion.js が、出ないことを見張る */
@@ -794,7 +797,7 @@ function drawBunnyWorld(b) {
   ctx.drawImage(LT.indoor ? img : litSprite(img, bunnyAmb(), 1, 1), -BS / 2, -GROUND_Y - BTOP, img.width, img.height);
   if (b.hawk && b.hawkIn != null && b.hawkIn > 0 && b.hawkIn < 1 && b === G.player) { const sp2 = spriteAt(b.wx, segE(curSeg(), G.s), b.wz); if (sp2) { const q = 1 - b.hawkIn; ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = `rgba(20,24,30,${(.22 * b.hawkIn).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(sp2.sx - q * 90, sp2.sy, sp2.k * (1.3 + q * 1.6), sp2.k * (.32 + q * .3), 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } } /* [F12] テラスの床に、おりてくるオオタカの大きなかげ（近づくほどこく、小さく） */
   if (b.hawk && !(b.hawkRel >= 1)) drawHawk(b); /* [D1] はなしたあとは、上へ飛び去って消える */
-  if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; const pl = planePic(); if (pl) ctx.drawImage(pl, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Kuri rides his own)
+  if (b.fly) { const pw = b.who === 'pom' ? 380 : 420, ph = pw * .4, yb = b.who === 'pom' ? -16 : -36; ctx.globalAlpha = 1; const pl = planePic(); if (pl) ctx.drawImage(pl, -pw / 2, yb - ph * .42, pw, ph); } // drawn over the lower body: they sit in the plane, not on air (Pom rides his own)
   if (G.weather === 'rain' && !LT.indoor && G.mode !== 'title' && !b.fly) { ctx.globalAlpha = .55; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 5; ctx.lineCap = 'round'; for (const [x, y, a] of [[-60, -190, 0], [55, -150, .6], [-20, -120, 1.2]]) { const k = .5 + .5 * Math.sin(G.t * 3 + a * 3); ctx.globalAlpha = .25 + .3 * k; ctx.beginPath(); ctx.arc(x, y, 14, -2.4, -1.3); ctx.stroke(); } ctx.globalAlpha = 1; G.wetN = (G.wetN || 0) + 1; } // 雨の日はうっすらぬれて光る（C-34）
   if (b.glow) { ctx.globalAlpha = .9; ctx.strokeStyle = b.glow; ctx.lineWidth = 7; ctx.beginPath(); ctx.ellipse(0, -110, 130, 120, 0, 0, Math.PI * 2); ctx.stroke(); }
   if (!(b.look > 0) && b.who !== 'pom') b.say = '';
@@ -845,7 +848,7 @@ function titleFX() {
   ctx.restore();
   { // steam from the mug on the low table
     const base = segPos(seg, 2.4, -2.18); for (let i = 0; i < 4; i++) { const t = (G.t * .35 + i * .25) % 1, q = spriteAt(base[0] + Math.sin(G.t * 1.3 + i) * .05 * t, .6 + t * .45 + base[2], base[1]); if (!q) continue; ctx.fillStyle = `rgba(255,255,255,${(.35 * (1 - t)).toFixed(2)})`; ctx.beginPath(); ctx.arc(q.sx, q.sy, q.k * (.03 + t * .05), 0, Math.PI * 2); ctx.fill(); } }
-  /* 2026-11-17 オーナー「モチが寝てないのに ZZ と出るのはおかしい」：ホーム画面では顔を切りかえない（目はあいたまま）ので、居眠りの「Zz」も出さない */
+  /* 2026-11-17 オーナー「レンが寝てないのに ZZ と出るのはおかしい」：ホーム画面では顔を切りかえない（目はあいたまま）ので、居眠りの「Zz」も出さない */
 }
 // 足もとの土ぼこり（C-33）：地面の種類で色が変わる（砂・雪・草・道）。屋内・板の上は出さない。「動きを減らす」設定でも出さない
 function groundDust(seg) {
@@ -882,8 +885,8 @@ function drawFX() {
   // 集中線はダッシュ・フィーバー・飛んでいる間だけ。ふつうに速いだけのときの薄い線は、画面のあちこちに「薄い斜めの残像」が出ているように見えたのでやめた（2026-11-08 の報告）
   const spdK = (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0;
   if (G.mode === 'play' && !OPT().calm && spdK > 0) { G.spdN = (G.spdN || 0) + 1;
-    ctx.strokeStyle = G.fever > 0 ? `rgba(242,194,48,${(.55 * spdK).toFixed(2)})` : `rgba(255,255,255,${(.55 * spdK).toFixed(2)})`; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.beginPath();
-    for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2 + G.t * .5, r0 = Math.min(W, H) * (.32 + ((G.t * 3 + k * .37) % 1) * .5); ctx.moveTo(W / 2 + Math.cos(a) * r0, HORIZON + Math.sin(a) * r0 * .8); ctx.lineTo(W / 2 + Math.cos(a) * (r0 + 40), HORIZON + Math.sin(a) * (r0 + 40) * .8); }
+    ctx.strokeStyle = G.fever > 0 ? `rgba(242,194,48,${(.4 * spdK).toFixed(2)})` : `rgba(255,255,255,${(.4 * spdK).toFixed(2)})`; ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.beginPath();
+    for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2 + G.t * .5, r0 = Math.min(W, H) * (.5 + ((G.t * 3 + k * .37) % 1) * .45), L = 30 + r0 * .18; ctx.moveTo(W / 2 + Math.cos(a) * r0, HORIZON + Math.sin(a) * r0 * .8); ctx.lineTo(W / 2 + Math.cos(a) * (r0 + L), HORIZON + Math.sin(a) * (r0 + L) * .8); } /* [B6] 集中線は画面のふちだけ・外ほど長く・うすく（.55 → .4）。前はまん中近くにも短い線が散って、ひっかき傷に見えた */
     ctx.stroke();
   }
   if (G.flashT > 0) { ctx.fillStyle = `rgba(200,70,60,${G.flashT * .45})`; ctx.fillRect(0, 0, W, H); }

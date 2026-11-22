@@ -8,8 +8,8 @@ function decalDraw(p, d) {
     case 'futonShadow': quadImage(futonShadowTex(), 6, 6); break;
     case 'zabuTop': quadImage(zabuTopTex(p.zc || '#B4572E'), 6, 6); break; // 2026-11-17 ホーム画面の第 2 段：座布団の上の面
     case 'zabuShadow': quadImage(futonShadowTex(), 4, 4); break; // the boss's futon, still unmade (a soft painted picture laid on the floor in perspective)
-    case 'manhole': { const c = bil(.5, .5), ex = bil(1, .5), ey = bil(.5, 1), rx = Math.hypot(ex[0] - c[0], ex[1] - c[1]), ry = Math.abs(ey[1] - c[1]) + Math.abs(ey[0] - c[0]) * .05;
-      ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(1, rx), Math.max(1, Math.max(rx * .18, ry)), Math.atan2(ex[1] - c[1], ex[0] - c[0]), 0, Math.PI * 2); ctx.fillStyle = T('#4E4C48'); ctx.fill(); ctx.strokeStyle = T('#2E2C2A'); ctx.lineWidth = Math.max(.8, 18 / d); ctx.stroke();
+    case 'manhole': { /* [B15] まるいふたを、床の上の円として 20 点で描く（前は画面の上でだ円を作っていて、カメラの近くでは縦長の黒いだ円に見えた） */
+      ctx.beginPath(); for (let k = 0; k < 20; k++) { const t = k / 20 * Math.PI * 2, q = bil(.5 + .5 * Math.cos(t), .5 + .5 * Math.sin(t)); k ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); } ctx.closePath(); ctx.fillStyle = T('#4E4C48'); ctx.fill(); ctx.strokeStyle = T('#2E2C2A'); ctx.lineWidth = Math.max(.8, 18 / d); ctx.stroke();
       if (d < 22) { ctx.globalAlpha = a * .5 * LODK(22, d); ctx.beginPath(); for (let k = 1; k < 4; k++) bline(.5 - k * .1, .2, .5 - k * .1, .8), bline(.5 + k * .1, .2, .5 + k * .1, .8); ctx.strokeStyle = T('#6E6A64'); ctx.lineWidth = Math.max(.6, 10 / d); ctx.stroke(); } break; }
     case 'zebra': { const f = stripeF(spanUV(0, .16)), ga = ctx.globalAlpha; if (f < 1) { ctx.globalAlpha = ga * .56 * (1 - f); bquad(0, .06, 1, .94, T('#EEEDE8')); ctx.globalAlpha = ga * f; } if (f > 0) for (let v = .06; v < .94; v += .16) bquad(.0, v, 1, v + .09, T('#EEEDE8')); ctx.globalAlpha = ga; break; } /* [遠く A13] 遠くの横断歩道のしまは、まざった色に（しまがチカチカしない） */
     case 'stop': bquad(.05, .2, .95, .8, 'rgba(0,0,0,0)'); if (d < 40) { const ga = ctx.globalAlpha; ctx.globalAlpha = ga * LODK(40, d); qtext(tr('とまれ', 'STOP'), .1, .15, .9, .85, T('#F2F1EC')); ctx.globalAlpha = ga; } break; /* [近づく P26] 道の「とまれ」の字も 34〜40m でうすく出る */
@@ -167,7 +167,7 @@ function floorPattern(p, d) {
       ctx.beginPath(); break; }
     /* [T6] 壁ぎわの畳寄せ（畳と壁のすき間をうめる細い木）：木目と、畳との境のかげ */
     case 'yose': ctx.globalAlpha = a * .5; ctx.strokeStyle = T('#5A3C22'); bline(0, .35, 1, .35); bline(0, .7, 1, .7); ctx.stroke(); ctx.beginPath(); ctx.globalAlpha = a * .6; bquad(0, p.sd < 0 ? .9 : 0, 1, p.sd < 0 ? 1 : .1, T('#2E2416')); break;
-    case 'boards': ctx.strokeStyle = T('#6B4631'); for (let k = 1; k < 8; k++) bline(0, k / 8, 1, k / 8); { const v = (p.ti * 3 % 8) / 8; bline(.5, v, .5, v + 1 / 8); } break;
+    case 'boards': ctx.strokeStyle = T('#6B4631'); for (let k = 1; k < 8; k++) bline(0, k / 8, 1, k / 8); if (d < 18) { ctx.stroke(); ctx.beginPath(); const ga = ctx.globalAlpha; ctx.globalAlpha = ga * .6 * LODK(18, d); for (let k = 0; k < 8; k++) bline(0, k / 8 + 1 / 16, 1, k / 8 + 1 / 16); for (let k = 0; k < 16; k++) { const u = ((k * .37 + p.ti * .29) % 1); bline(u, k / 16, u, (k + 1) / 16); } ctx.stroke(); ctx.beginPath(); ctx.globalAlpha = ga; } else { const v = (p.ti * 3 % 8) / 8; bline(.5, v, .5, v + 1 / 8); } break; /* [B34] 家の板の床：板 1 枚が約 65cm はばで、体育館の床のようだった。近く（18m まで）では本物のフローリングの 約 32cm はばにし、板ごとに継ぎ目をずらす */
     case 'rug': ctx.globalAlpha = a * .7; ctx.strokeStyle = T('#F2C230'); bline(0, .15, 1, .15); bline(0, .85, 1, .85); ctx.stroke(); ctx.beginPath(); ctx.strokeStyle = T('#7A2E24'); bline(0, .5, 1, .5); break;
     case 'grid': ctx.globalAlpha = a * .3; ctx.strokeStyle = T('#8F8676'); for (let k = 0; k <= 4; k++) bline(0, k / 4, 1, k / 4); bline(0, 0, 0, 1); bline(.5, 0, .5, 1); break;
     case 'carpet': ctx.globalAlpha = a * .28; ctx.strokeStyle = T('#4E5B68'); for (let k = 0; k <= 4; k++) bline(0, k / 4, 1, k / 4); bline(0, 0, 0, 1); break;
@@ -181,7 +181,7 @@ function floorPattern(p, d) {
         ctx.globalAlpha = a * .22; ctx.strokeStyle = '#4A3C28'; ctx.lineWidth = Math.max(.5, 6 / Math.max(d, 4)); ctx.beginPath(); const v0 = .42 + Math.sin(p.ti * .7) * .04, v1 = .42 + Math.sin(p.ti * .7 + .7) * .04; bline(0, v0, 1, v1); ctx.stroke(); ctx.beginPath(); ctx.globalAlpha = a * .4; } // [193] 自転車のわだち
       break;
     case 'leaves': for (let k = 0; k < 9; k++) bquad((k * .29 + p.ti * .17) % .92, (k * .53) % .9, (k * .29 + p.ti * .17) % .92 + .06, (k * .53) % .9 + .08, k % 2 ? T('#F2CD45') : T('#C9961B')); break;
-    case 'road': case 'hokoten': ctx.globalAlpha = Math.min(1, a * 1.5) * .8; ctx.strokeStyle = T('#ECEBE4'); ctx.lineWidth *= 1.25; if (p.ti % 3 !== 2) { bline(0, .355, 1, .355); bline(0, .645, 1, .645); } ctx.stroke(); ctx.beginPath(); ctx.strokeStyle = T('#E4E3DC'); ctx.lineWidth *= 1.2; bline(0, .03, 1, .03); bline(0, .97, 1, .97);
+    case 'road': case 'hokoten': ctx.globalAlpha = Math.min(1, a * 1.5) * .8; ctx.strokeStyle = T('#ECEBE4'); ctx.lineWidth *= 1.25; if (p.ti % 3 !== 2 && !p.res) { bline(0, .355, 1, .355); bline(0, .645, 1, .645); } /* [B14] 住宅街の細い道には、車線の点線は無い（本物の住宅街の道は、両はしの白い線だけ） */ ctx.stroke(); ctx.beginPath(); ctx.strokeStyle = T('#E4E3DC'); ctx.lineWidth *= 1.2; bline(0, .03, 1, .03); bline(0, .97, 1, .97);
       if (d < 42 && p.pat === 'road') roadWear(p, d, a * LODK(42, d), T); /* [近づく P28] 道路の使われたあとも 36〜42m でうすく出る */ // 2026-11-17 景色 21〜30：本物のアスファルトの使われたあと
  break;
     case 'scramble': ctx.globalAlpha = Math.min(1, a * 1.6); { const ph = p.ti % 12; if (ph < 7) { const f = stripeF(spanUV(0, .125)), ga = ctx.globalAlpha; if (f < 1) { ctx.globalAlpha = ga * .56 * (1 - f); bquad(0, .05, 1, .95, T('#ECECE6')); ctx.globalAlpha = ga * f; } if (f > 0) for (let v = .05; v < .95; v += .125) bquad(0, v, 1, v + .07, T('#ECECE6')); ctx.globalAlpha = ga; } /* [遠く A14] スクランブル交差点のしまも同じ */ else if (ph === 8) { ctx.globalAlpha = a * .6; ctx.strokeStyle = T('#ECECE6'); ctx.lineWidth *= 2; bline(0, 0, 1, 1); bline(0, 1, 1, 0); } } break;
@@ -197,13 +197,13 @@ function floorPattern(p, d) {
       for (const [u0, u1] of [[.24, .5], [.5, .76]]) { ctx.globalAlpha = a * .95; bquad(u0 - .015, sv[0] - .03, u1 + .015, sv[1] + .03, T('#C9CDD2')); bquad(u0, sv[0], u1, sv[1], T(LT.night > .4 ? '#1E2433' : '#56626E'));
         for (let k = 0; k < (d < 20 ? 5 : 2); k++) { const u = u0 + .03 + r2() * (u1 - u0 - .12), v = sv[0] + .03 + r2() * (sv[1] - sv[0] - .14); bquad(u, v, u + .03 + r2() * .06, v + .04 + r2() * .08, T(LT.night > .4 ? (k % 3 ? '#2A3044' : '#C9A15A') : roof[k % roof.length])); }
         ctx.globalAlpha = a * .22; bquad(u0 + .02, sv[0] + .02, u0 + .06, sv[1] - .02, '#FFFFFF'); ctx.globalAlpha = a * .95; }
-      ctx.strokeStyle = T('#D5DADF'); ctx.lineWidth *= 1.8; bline(.22, .08, .22, .92); bline(.5, .08, .5, .92); bline(.78, .08, .78, .92); bline(.22, .08, .78, .08); bline(.22, .92, .78, .92); break; }
+      ctx.strokeStyle = T(LT.night > .4 ? '#9AA3AD' : '#D5DADF'); ctx.lineWidth *= 1.4; { const v0 = sv[0] - .03, v1 = sv[1] + .03; bline(.225, v0, .225, v1); bline(.5, v0, .5, v1); bline(.775, v0, .775, v1); bline(.225, v0, .775, v0); bline(.225, v1, .775, v1); } break; } /* [B25] ガラスの床のステンレスの枠は、窓のまわりだけ（前は道のはばいっぱいの白い大きな四角が引かれ、夜は床に白い箱がならんで見えた） */
     case 'lawn': ctx.globalAlpha = a * .5; bquad(0, 0, 1, .5, T('#8DB26A')); break;
     case 'sand': ctx.globalAlpha = a * .45; for (let k = 0; k < 7; k++) bquad((k * .41 + p.ti * .13) % .9, (k * .67) % .9, (k * .41 + p.ti * .13) % .9 + .05, (k * .67) % .9 + .03, T('#C9B48A')); break;
     case 'brickroad': ctx.strokeStyle = T('#8A7558'); for (let k = 0; k <= 6; k++) bline(0, k / 6, 1, k / 6); for (let k = 0; k < 3; k++) bline(k / 3 + (p.ti % 2) * .16, 0, k / 3 + (p.ti % 2) * .16, 1); break;
     case 'walk': if (d < 30) { ctx.globalAlpha = a * .08 * LODK(30, d); bquad(0, 0, .5, .5, p.ti % 2 ? '#000000' : '#FFFFFF'); bquad(.5, .5, 1, 1, p.ti % 2 ? '#FFFFFF' : '#000000'); const v0 = p.sd < 0 ? .52 : .33; if (d < 16) { ctx.globalAlpha = a * .5 * LODK(16, d); for (let i = 0; i < 6; i++) for (let j = 0; j < 2; j++) bquad(i / 6 + .03, v0 + .03 + j * .07, i / 6 + .07, v0 + .06 + j * .07, '#B8961E'); } ctx.beginPath(); } /* [28] 歩道のタイル 1 枚ごとの色のちがい [29] 黄色い点字ブロックの点の出っぱり */
       ctx.globalAlpha = a * .25; ctx.strokeStyle = T('#8E887C'); bline(0, 0, 0, 1); bline(.5, 0, .5, 1); bline(0, .5, 1, .5); ctx.stroke(); ctx.globalAlpha = a * .95; { const v0 = p.sd < 0 ? .52 : .33; bquad(0, v0, 1, v0 + .15, T('#E8C23A')); } break;
-    case 'platform': ctx.globalAlpha = a * .95; bquad(0, .02, 1, .1, T('#FBF6EE')); bquad(0, .16, 1, .27, T('#E8C23A')); ctx.strokeStyle = T('#8F8676'); ctx.beginPath(); bline(0, .6, 1, .6); break;
+    case 'platform': ctx.globalAlpha = a * .95; bquad(0, .02, 1, .1, T('#FBF6EE')); bquad(0, .16, 1, .27, T('#E8C23A')); if (d < 16) { const ga = ctx.globalAlpha; ctx.globalAlpha = ga * .55 * LODK(16, d); for (let k = 0; k < 10; k++) { const u = (k + .5) / 10; for (const v of [.185, .215, .245]) bquad(u - .012, v - .006, u + .012, v + .006, T('#C9A02A')); } ctx.globalAlpha = ga; } /* [B30] ホームの黄色い点字ブロックに、近くでは点のでっぱり（のっぺりした黄色い帯だった） */ ctx.strokeStyle = T('#8F8676'); ctx.beginPath(); bline(0, .6, 1, .6); break;
     case 'train': { /* 電車の床（2026-11-16）：座席の前（足もと）は少しこい色、通路はうすい色、細かいつぶの模様。黄色い線は出さない（本物の車内には無い） */
       ctx.stroke(); ctx.globalAlpha = a * .5; bquad(0, 0, 1, .14, T('#6E7A86')); bquad(0, .86, 1, 1, T('#6E7A86')); ctx.globalAlpha = a * .8; ctx.beginPath(); ctx.strokeStyle = T('#5E6A76'); bline(0, .14, 1, .14); bline(0, .86, 1, .86); ctx.stroke(); /* [64] 床の横の継ぎ目の線をやめた（本物は 1 枚のシート。前は 3m ごとのタイルに見えた） */
       if (d < 16) { ctx.globalAlpha = a * .35 * LODK(16, d); const r = rnd(p.ti * 7 + 3); for (let k = 0; k < 26; k++) { const u = r(), v = .15 + r() * .7; bquad(u, v, u + .012, v + .012, k % 2 ? '#B9C2CA' : '#6E7A86'); } }
@@ -313,6 +313,7 @@ function ceiling(w, d) {
   const cp = w.cp, li = w.light;
   /* 2026-11-15：のっぺりした天井に、走っても動いて見えない（道に沿った）物だけを足す。壁ぎわのうすい陰・板の継ぎ目・電車の手すり棒と空調の筋。横切る線は足さない（上の数字の後ろでちらつくため） */
   bquad(0, 0, 1, .075, 'rgba(30,22,16,.085)'); bquad(0, .925, 1, 1, 'rgba(30,22,16,.085)'); bquad(0, .075, 1, .15, 'rgba(30,22,16,.035)'); bquad(0, .85, 1, .925, 'rgba(30,22,16,.035)');
+  if (li === 'round' && !w.glass) { bquad(0, 0, 1, .014, 'rgba(122,88,58,.75)'); bquad(0, .986, 1, 1, 'rgba(122,88,58,.75)'); } /* [B29] 家の部屋の天井とかべのさかいめの、木の回り縁（まわりぶち） */
   if (w.train) { /* 電車の天井（2026-11-16）：まん中に冷房の吹き出し口の帯（細いすき間の列）、両わきに乳白のカバーの明かり、つなぎ目、ときどき送風機の丸い格子 */
     const lw = Math.max(1, Math.min(3, 9 / Math.max(1, d)));
     bquad(0, .41, 1, .59, 'rgba(120,132,144,.16)'); ctx.strokeStyle = 'rgba(70,80,92,.45)'; ctx.lineWidth = lw; ctx.beginPath(); bline(0, .41, 1, .41); bline(0, .59, 1, .59); bline(0, .2, 1, .2); bline(0, .8, 1, .8); ctx.stroke();
@@ -327,17 +328,18 @@ function ceiling(w, d) {
   ctx.strokeStyle = 'rgba(0,0,0,.12)'; ctx.lineWidth = 1; ctx.beginPath();
   if (cp === 'plain' && !w.train) { bline(0, 1 / 3, 1, 1 / 3); bline(0, 2 / 3, 1, 2 / 3); }
   if (cp === 'wood') { for (let k = 1; k < 8; k++) bline(0, k / 8, 1, k / 8); bline(0, 0, 1, 0); if (d < 18) { const _ga = ctx.globalAlpha; ctx.stroke(); ctx.globalAlpha = _ga * LODK(18, d); const rr = rnd((w.ti || 0) * 7 + 5); ctx.save(); ctx.strokeStyle = 'rgba(90,60,30,.12)'; ctx.lineWidth = .8; ctx.beginPath(); for (let k = 0; k < 8; k++) for (let j = 0; j < 3; j++) { const v = k / 8 + .02 + rr() * .09, u = rr() * .6; bline(u, v, u + .25 + rr() * .3, v + (rr() - .5) * .01); } ctx.stroke(); ctx.restore(); ctx.beginPath();  ctx.globalAlpha = _ga; }
-    if (G.mode === 'title') { /* [H36] 2026-11-21 オーナー「上の方がボヤけている」：ホーム画面のたて長のスマホでは天井が画面の上 3 分の 1 を占め、うすい線だけののっぺりした面がぼやけて見えた。和室の竿縁天井らしく、板ごとの色のちがいと、くっきりした細い竿（さお）を足す */
+    if (G.mode === 'title' || d < 30) { /* [B16] 走っている時も、近くの和室の天井は竿縁天井に（30m より遠くはうすく消す。のっぺりした茶色の面だった） */ /* [H36] 2026-11-21 オーナー「上の方がボヤけている」：ホーム画面のたて長のスマホでは天井が画面の上 3 分の 1 を占め、うすい線だけののっぺりした面がぼやけて見えた。和室の竿縁天井らしく、板ごとの色のちがいと、くっきりした細い竿（さお）を足す */
       ctx.stroke(); ctx.beginPath(); const _ga = ctx.globalAlpha; for (let k = 0; k < 8; k++) if ((k + (w.ti || 0)) % 3 === 0) bquad(0, k / 8, 1, (k + 1) / 8, k % 2 ? 'rgba(255,240,215,.06)' : 'rgba(60,40,20,.06)');
-      ctx.globalAlpha = _ga * .9; for (let k = 0; k < 6; k++) { const u = (k + .5) / 6; bquad(u - .012, 0, u + .012, 1, 'rgba(92,64,38,.85)'); bquad(u + .012, 0, u + .02, 1, 'rgba(255,236,200,.18)'); } ctx.globalAlpha = _ga; } } // [110] 天井板の木目（2026-11-17）
+      ctx.globalAlpha = _ga * .9 * (G.mode === 'title' ? 1 : LODK(30, d)); for (let k = 0; k < 6; k++) { const u = (k + .5) / 6; bquad(u - .012, 0, u + .012, 1, 'rgba(92,64,38,.85)'); bquad(u + .012, 0, u + .02, 1, 'rgba(255,236,200,.18)'); } ctx.globalAlpha = _ga; } } // [110] 天井板の木目（2026-11-17）
   else if (cp === 'grid') { for (let k = 1; k < 4; k++) bline(0, k / 4, 1, k / 4); bline(0, 0, 1, 0); bline(.5, 0, .5, 1); }
+  else if (cp === 'vault') { ctx.stroke(); ctx.beginPath(); ctx.strokeStyle = 'rgba(40,18,12,.38)'; ctx.lineWidth = 1; for (let k = 1; k < 12; k++) bline(0, k / 12, 1, k / 12); ctx.stroke(); if (d < 22) { const _ga = ctx.globalAlpha; ctx.globalAlpha = _ga * LODK(22, d); ctx.beginPath(); for (let k = 0; k < 12; k++) for (let j = 0; j < 6; j++) { const u = (j + (k % 2) * .5) / 6; bline(u, k / 12, u, (k + 1) / 12); } ctx.stroke(); ctx.globalAlpha = _ga; } bquad(0, 0, .07, 1, 'rgba(30,14,10,.4)'); bquad(.07, 0, .1, 1, 'rgba(255,200,170,.08)'); ctx.beginPath(); } /* [B23] 有楽町のガード下：まっ黒な天井に線だけだった。本物の高架の、赤レンガのアーチの天井（レンガの目地と、3m ごとのアーチの帯） */
   else if (cp === 'beams' || cp === 'girder') { ctx.stroke(); bquad(0, 0, .12, 1, cp === 'girder' ? tint('#2B2B30') : tint('#7D8791')); if (cp === 'girder') { ctx.strokeStyle = tint('#55555C'); ctx.beginPath(); bline(0, 0, 1, 1); bline(0, 1, 1, 0); } }
   ctx.stroke();
   const on = `rgba(255,253,240,${(.95 * clamp((d - 1.2) / 3, 0, 1)).toFixed(2)})`; // fixtures right overhead fade out instead of slicing the top of the screen
   if (li === 'panel' && w.ti % 2 === 0) { bquad(.2, .18, .8, .32, on); bquad(.2, .68, .8, .82, on); }
   else if (li === 'strip' && w.train) { const halo = on.replace(/[\d.]+\)$/, m => (parseFloat(m) * .25).toFixed(3) + ')'); bquad(0, .21, 1, .37, halo); bquad(0, .63, 1, .79, halo); bquad(0, .25, 1, .33, on); bquad(0, .67, 1, .75, on); ctx.strokeStyle = 'rgba(150,160,170,.6)'; ctx.lineWidth = 1; ctx.beginPath(); bline(0, .25, 1, .25); bline(0, .33, 1, .33); bline(0, .67, 1, .67); bline(0, .75, 1, .75); ctx.stroke(); } // 電車：つながった乳白のカバーの明かりと、まわりのうすい光
   else if (li === 'strip') { bquad(.1, .3, .9, .36, on); bquad(.1, .64, .9, .7, on); }
-  else if (li === 'round' && w.ti % 3 === 1) { const c = bil(.5, .5), r = Math.abs(bil(.62, .5)[0] - c[0]) + Math.abs(bil(.5, .62)[1] - c[1]); ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(3, r * 1.9), Math.max(1.5, r * .68), 0, 0, Math.PI * 2); ctx.fillStyle = on.replace(/[\d.]+\)$/, m => (parseFloat(m) * .18).toFixed(3) + ')'); ctx.fill(); /* 明かりのまわりのうすい光 */ ctx.beginPath(); ctx.ellipse(c[0], c[1], Math.max(2, r), Math.max(1, r * .35), 0, 0, Math.PI * 2); ctx.fillStyle = on; ctx.fill(); }
+  else if (li === 'round' && w.ti % 3 === 1) { /* [B28] 家の丸い天井灯：本物の大きさ（直径 約 50cm）の、天井の上の円として描く（前は画面の上のだ円で、遠くは小さな点にしか見えなかった）。まわりのうすい光の輪も円で */ const disc = (ru, rv) => { ctx.beginPath(); for (let k = 0; k < 18; k++) { const t = k / 18 * Math.PI * 2, q = bil(.5 + ru * Math.cos(t), .5 + rv * Math.sin(t)); k ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); } ctx.closePath(); ctx.fill(); }; const rv = .25 / (w.wd || 9); ctx.fillStyle = on.replace(/[\d.]+\)$/, m => (parseFloat(m) * .16).toFixed(3) + ')'); disc(.19, rv * 2.3); ctx.fillStyle = on; disc(.085, rv); ctx.strokeStyle = 'rgba(150,140,125,.5)'; ctx.lineWidth = 1; ctx.stroke(); }
   else if (li === 'bulb') { /* 裸電球：すぐ頭の上では巨大な黄色い丸になっていた（ガード下・横丁）。大きさに上限をつけ、近づくと消え、まわりにうすい光の輪 */ const rr = Math.min(7, Math.max(1.5, 34 / d)), al = clamp((d - 2.2) / 3, 0, 1); if (al > .02) for (let k = 0; k < 3; k++) { const c = bil(.5, .2 + k * .3); ctx.globalAlpha = al * .22; ctx.beginPath(); ctx.arc(c[0], c[1], rr * 2.4, 0, Math.PI * 2); ctx.fillStyle = '#FFC860'; ctx.fill(); ctx.globalAlpha = al; ctx.beginPath(); ctx.arc(c[0], c[1], rr, 0, Math.PI * 2); ctx.fillStyle = '#FFE2A0'; ctx.fill(); } ctx.globalAlpha = 1; }
 }
 function glassFrame(w) { const gf = w.gf, nt = LT.night > .4; ctx.strokeStyle = gf === 'dark' ? (nt ? 'rgba(70,78,92,.85)' : 'rgba(96,104,116,.8)') : (nt ? 'rgba(190,200,215,.5)' : 'rgba(240,245,250,.75)'); ctx.lineWidth = gf === 'dark' ? 2.6 : 2; /* [S1] 窓わくの色：押上の展望デッキは、こい灰色の鉄（夜は暗く）。夜の白いわくは、うすく（光る線に見えていた） */ ctx.beginPath(); bline(0, 0, 1, 0); bline(0, 1, 1, 1); bline(0, 0, 0, 1); if (!w.ceil) bline(0, .05, 1, .05); ctx.stroke(); }
@@ -550,7 +552,7 @@ const DECO_DRAW = {
     for (let k = 0; k < 4; k++) bquad(.1 + k * .22, .58, .27 + k * .22, .9, k % 2 ? '#2F5579' : '#355F86'); qtext(['やきとり', '大衆酒場', 'もつ焼', 'おでん'][(e.v2 || 0) % 4], .15, .62, .85, .86, '#FBF6EE'); },
   menu(e) { bquad(0, 0, 1, 1, tint('#F6EBDC')); for (let k = 0; k < 5; k++) bquad(.15, .15 + k * .16, .85, .22 + k * .16, tint('#3B2A20')); },
   bigscreen(e) { bquad(0, 0, 1, 1, '#1C1919'); const k = Math.floor(G.t * .7 + (e.seed % 5)) % 4;
-    if (k === 0) { bquad(.03, .05, .97, .95, '#F6EBDC'); qtext('TOKYO USAGI OFFICE', .1, .45, .9, .85, '#3B2A20'); qtext('東京うさぎオフィス', .25, .15, .75, .42, '#A97A1E'); }
+    if (k === 0) { bquad(.03, .05, .97, .95, '#F6EBDC'); qtext('REN & JILL', .1, .45, .9, .85, '#3B2A20'); qtext('レンとジル', .25, .15, .75, .42, '#A97A1E'); }
     else { const C2 = [['#E86A75', '#F2C230'], ['#4E77A0', '#7FD06A'], ['#9C7BD0', '#6FC3E8'], ['#F08A2E', '#FBF6EE']][k]; bquad(.03, .05, .97, .95, C2[0]); bquad(.12, .2, .55, .8, C2[1]); bquad(.62, .55, .9, .7, '#FBF6EE'); bquad(.62, .3, .82, .42, '#FBF6EE'); } },
   selev(e) { /* [S1] 押上の電波塔のエレベーター：四季の絵（春＝桜・夏＝花火・秋＝紅葉・冬＝雪）の扉の上の板 [S2] 銀の扉と合わせ目 [S3] 行き先「天望デッキ 350」の表示 [S4] 上り下りの矢印のランプ */
     const k = (e.v2 || 0) % 4, BG = ['#F6DCE4', '#1C2340', '#F2D9B8', '#DCE8F2'][k];
@@ -766,7 +768,7 @@ function lmAngle(seg, lm) { const f = segFace(seg); return lm.brg != null && f !
 const LM_WORLD = {};
 function lmWorldAngle(seg, lm) { const own = seg.dir * Math.PI / 2 + lmAngle(seg, lm); if (lm.brg != null || lm.grow || G.mode === 'title') return own;
   if (!seg.lmA) seg.lmA = {}; if (seg.lmA[lm.t] != null) return seg.lmA[lm.t];
-  const reg = LM_WORLD[lm.t], a = reg && seg.id !== reg.id && Math.abs(seg.id - reg.id) <= 6 ? reg.a : own; LM_WORLD[lm.t] = { a, id: Math.max(seg.id, reg && Math.abs(seg.id - reg.id) <= 6 ? reg.id : 0) }; return seg.lmA[lm.t] = a; }
+  const reg = LM_WORLD[lm.t], a = reg && seg.id !== reg.id && Math.abs(seg.id - reg.id) <= 6 ? reg.a : own; let a2 = a; for (const k in seg.lmA) { const o = seg.lmA[k], dd = angDiff(a2, o); if (Math.abs(dd) < .32) a2 = o + (dd < 0 ? -.38 : .38); } /* [B18] 同じ場所の 2 つの目じるし（赤い電波塔と富士山など）が、画面で重ならないように離す（晴海で、塔が富士山の前に重なっていた） */ LM_WORLD[lm.t] = { a: a2, id: Math.max(seg.id, reg && Math.abs(seg.id - reg.id) <= 6 ? reg.id : 0) }; return seg.lmA[lm.t] = a2; }
 function landmark(seg, lm, yb) {
   const a = lmWorldAngle(seg, lm), dx = angDiff(a, CAM.yaw);
   if (Math.abs(dx) > 1.15) return;
@@ -774,7 +776,7 @@ function landmark(seg, lm, yb) {
   const x = W / 2 + Math.tan(dx) * FOCAL, N = LT.night, s = (lm.sc || 1) * grow * (seg.th.climb && lm.t !== 'fuji' && lm.t !== 'tsukuba' ? .6 : 1);
   if (lm.t === 'tower') drawTokyoTower(x, yb, FOCAL * .42 * s, N);
   else if (lm.t === 'skytree') drawSkytree(x, yb, FOCAL * .72 * s, N);
-  else if (lm.t === 'fuji') drawFuji(x, yb, FOCAL * (lm.brg != null ? .085 : .3) * s, N); // 電波塔コース PDCA 106（2026-11-17）：本当の方角で見る所（塔の上・空の上）では、富士山は 98km 先の高さ 3776m＝見上げる角度は約 2 度。前はその 5 倍以上の大きさで、目の前の山に見えた（少し大きめの 4.8 度。遠くの山らしく小さく）
+  else if (lm.t === 'fuji') drawFuji(x, yb, FOCAL * (lm.brg != null ? .085 : .18) * s, N); /* [B5] 湾岸の通りの富士山が、町のすぐ後ろの大きな山に見えた（.3）。遠くの山らしく小さく */ // 電波塔コース PDCA 106（2026-11-17）：本当の方角で見る所（塔の上・空の上）では、富士山は 98km 先の高さ 3776m＝見上げる角度は約 2 度。前はその 5 倍以上の大きさで、目の前の山に見えた（少し大きめの 4.8 度。遠くの山らしく小さく）
   else if (lm.t === 'pagoda') drawPagoda(x, yb, FOCAL * .2 * s, N);
   else if (lm.t === 'tocho') drawTocho(x, yb, FOCAL * .36 * s, N);
   else if (lm.t === 'clock') drawClockTower(x, yb, FOCAL * .24 * s, N);
@@ -851,7 +853,7 @@ function drawSkytree(x, yb, h, N) {
 // low blue mountain ranges in front of Fuji's foot, so the mountain sits on the land
 function ranges(seg, lm, yb) {
   const a = lmWorldAngle(seg, lm), dx = angDiff(a, CAM.yaw); if (Math.abs(dx) > 1.3) return;
-  const x0 = W / 2 + Math.tan(dx) * FOCAL, h = FOCAL * .3 * (lm.sc || 1), N = LT.night;
+  const x0 = W / 2 + Math.tan(dx) * FOCAL, h = FOCAL * (lm.brg != null ? .3 : .18) * (lm.sc || 1), N = LT.night; /* [B5] 山なみも富士山に合わせる */
   for (const [k, amp, alpha] of [[0, .16, .75], [1, .1, .9]]) {
     const c = N > .4 ? [34, 42, 74] : mixC(mixC([110, 124, 160], LT.bot, .45 + k * .2), [255, 255, 255], .05);
     ctx.fillStyle = `rgba(${c.map(v => v | 0)},${alpha})`; ctx.beginPath(); ctx.moveTo(x0 - h * 6, yb + 2);
@@ -980,7 +982,7 @@ function sakuraTree(dir, night, seed) {
   // limbs: wide, mostly level, longest on the leaning side
   const base = -Math.PI / 2;
   const L = [[base + dir * 1.25, 150, 15], [base + dir * .7, 135, 16], [base - dir * .15, 120, 14], [base - dir * .85, 110, 12], [base + dir * 1.55, 120, 10]];
-  for (const [a, len, w] of L) treeLimbs(g, r, tx, ty, a + (r() - .5) * .2, len, w, 2, bark, tips, 1);
+  const lc = mk(S), lg = lc.getContext('2d') || noCtx(); for (const [a, len, w] of L) treeLimbs(lg, r, tx, ty, a + (r() - .5) * .2, len, w * .62, 2, night ? bark : '#6E5248', tips, 1); /* [B17] 花のあいだからのぞく枝を細く・少し明るく（前は太いこげ茶の棒が、花の中にばらばらに浮いて見えた） */
   // blossom clumps
   const pal = night ? { sh: '#8E6680', md: '#E3BFCB', lt: '#FCE7EE', hi: '#FFFFFF' } : { sh: '#D497AB', md: '#F2C6D3', lt: '#FBE4EB', hi: '#FFF6F9' };
   const clumps = [];
@@ -988,12 +990,13 @@ function sakuraTree(dir, night, seed) {
   for (let i = 0; i < 26; i++) { const a = tips[(r() * tips.length) | 0], b = tips[(r() * tips.length) | 0]; const t = r(); clumps.push([a[0] + (b[0] - a[0]) * t, Math.min(a[1], b[1]) + (r() - .3) * 30, 26 + r() * 14]); }
   const dot = (x, y, rr, col) => { g.fillStyle = col; g.beginPath(); g.arc(x, y, rr, 0, Math.PI * 2); g.fill(); };
   for (const c of clumps) { c[2] = Math.min(c[2], 60); c[0] = clamp(c[0], c[2] + 16, S - c[2] - 16); c[1] = clamp(c[1], c[2] + 12, S - 150); } // keep every clump inside the canvas (no straight cut edges)
+  { lg.globalCompositeOperation = 'destination-in'; lg.fillStyle = '#000'; lg.beginPath(); for (const [x, y, R] of clumps) { lg.moveTo(x + R * .95, y); lg.ellipse(x, y, R * .95, R * .8, 0, 0, Math.PI * 2); } lg.rect(tx - 34, ty - 24, 68, S); lg.rect(Math.min(bx, tx) - 30, ty, Math.abs(bx - tx) + 60, S); lg.fill(); lg.globalCompositeOperation = 'source-over'; g.drawImage(lc, 0, 0); } /* [B17] 枝は、花のかたまりの中と幹のまわりだけ（花の外へつき出た枝の先が、こげ茶の短い棒に見えた） */
   for (const [x, y, R] of clumps) for (let i = 0; i < 20; i++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * R; dot(x + Math.cos(a) * d, y + R * .28 + Math.sin(a) * d * .6, 5 + r() * 7, pal.sh); }
   for (const [x, y, R] of clumps) for (let i = 0; i < 26; i++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * R; dot(x + Math.cos(a) * d, y + Math.sin(a) * d * .62, 4 + r() * 7, pal.md); }
   for (const [x, y, R] of clumps) for (let i = 0; i < 16; i++) { const a = -Math.PI * (.1 + r() * .8), d = Math.sqrt(r()) * R * .85; dot(x + Math.cos(a) * d, y - R * .12 + Math.sin(a) * d * .55, 3 + r() * 5, pal.lt); }
   for (const [x, y, R] of clumps) for (let i = 0; i < 7; i++) { const a = -Math.PI * (.15 + r() * .7), d = r() * R * .7; dot(x + Math.cos(a) * d, y - R * .2 + Math.sin(a) * d * .5, 1.6 + r() * 2, pal.hi); }
   // a few dark twigs showing through the blossoms
-  g.globalAlpha = .7; for (const [x, y, d] of tips) if (d === 0 && r() < .5) { g.strokeStyle = bark; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 30, y - 8 - r() * 14); g.stroke(); } g.globalAlpha = 1;
+  g.globalAlpha = .25; for (const [x, y, d] of tips) if (d === 0 && r() < .5) { g.strokeStyle = bark; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 30, y - 8 - r() * 14); g.stroke(); } g.globalAlpha = 1;
   if (night) { // lit from below by paper lanterns
     g.globalCompositeOperation = 'source-atop'; const gr = g.createLinearGradient(0, 120, 0, 380); gr.addColorStop(0, 'rgba(40,30,70,.25)'); gr.addColorStop(1, 'rgba(255,190,140,.38)'); g.fillStyle = gr; g.fillRect(0, 0, S, S); g.globalCompositeOperation = 'source-over'; }
   return c;

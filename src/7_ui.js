@@ -5,18 +5,18 @@ function show(id) { $('#' + id).hidden = false; }
 function goTitle() { hideAll(); setupTitle(); show('sTitle'); refreshTitle(); try { titleMusic(); } catch (e) { } }
 function applyLang() {
   { const a = $('#tGuide'); if (a) { a.textContent = tr('遊び方・キャラクター紹介', 'How to play & characters'); a.href = window.HAYDASH_APP ? (tr('./guide.html', './guide-en.html')) : 'https://hay-dash.coana.co.jp/' + (tr('guide', 'guide-en')); if (window.HAYDASH_APP) a.removeAttribute('target'); } }
-  { const a = $('#tSite'); if (a) { a.textContent = tr('TOKYO USAGI OFFICE 公式サイト', 'Tokyo Usagi Office official site'); a.href = SITE_REF; } } { const f = $('#tFollow'); if (f) f.innerHTML = followLinks(); } // タイトル画面の下の小さな文字：アニメの公式サイト（2026-10-31 オーナー指示）
-  document.documentElement.lang = ({ zh: 'zh-Hant', ko: 'ko' })[LANG] || LANG; $('#cv').setAttribute('aria-label', tr('東京うさぎオフィスのチモシーダッシュ', 'Tokyo Usagi Office: Hay Dash'));
+  { const a = $('#tSite'); if (a) { a.textContent = tr('REN & JILL 公式サイト', 'Ren & Jill official site'); a.href = SITE_REF; } } { const f = $('#tFollow'); if (f) f.innerHTML = followLinks(); } // タイトル画面の下の小さな文字：アニメの公式サイト（2026-10-31 オーナー指示）
+  document.documentElement.lang = ({ zh: 'zh-Hant', ko: 'ko' })[LANG] || LANG; $('#cv').setAttribute('aria-label', tr('レンとジルのチモシーダッシュ', 'Ren & Jill: Hay Dash'));
   /* 2026-11-15（オーナー：文字が多い）：題名画面の文字を減らす。①「朝・道中・夜」の説明は、はじめの 3 回だけ ②「前回：○点・○まで到達」はやめる（自己ベストは下に出ている） */
-  $('#tStory').innerHTML = t('story'); $('#tStory').hidden = (SV.runs || 0) >= 3; const lr = $('#tLast'); lr.hidden = true; $('#tSub').textContent = tr('東京うさぎオフィス　チモシーダッシュ', 'Two office bunnies, one mad dash across Tokyo');
+  $('#tStory').innerHTML = t('story'); $('#tStory').hidden = (SV.runs || 0) >= 3; const lr = $('#tLast'); lr.hidden = true; $('#tSub').textContent = tr('レンとジル　チモシーダッシュ', 'Two office bunnies, one mad dash across Tokyo');
   cardTxt('#tRenRole', t('renRole')); cardTxt('#tRenPerk', t('renPerk') + (SV.bond ? '・' + t('bondLbl', bondLv()) : '')); cardTxt('#tJillRole', t('jillRole')); cardTxt('#tJillPerk', t('jillPerk') + (SV.bond ? '・' + t('bondLbl', bondLv()) : '')); { const met = !!SV.pomMet; cardTxt('#tPomRole', t('pomRole')); cardTxt('#tPomPerk', t('pomPerk')); $('#pickPom').hidden = !met; $('#pickPom').parentNode.classList.toggle('three', met); } // the rookie stays a secret until you have met him on the road
   $('#tMis').textContent = t('missions'); $('#tSta').textContent = t('stamps'); $('#tBook').textContent = t('book'); $('#tShop').textContent = t('shop'); $('#tHow').textContent = t('how');
   $('#tBestL').textContent = t('best'); $('#sTitle .chars').setAttribute('aria-label', t('pickChar')); $('#sResult .shbtns').setAttribute('aria-label', tr('友だちに挑戦状を送ろう', 'Challenge a friend')); $('#sResult .shbtns').setAttribute('role', 'group'); $('#chatIn').setAttribute('aria-label', tr('ゲームについて質問してね', 'Ask about the game')); $('#btnRank').textContent = tr('ランキング', 'Ranking'); $('#btnRank2').textContent = tr('ランキングをもっと見る', 'See the full ranking');  { const lt = $('#btnLangTop'); if (lt) lt.setAttribute('aria-label', t('langLbl', LANG_NAME[LANG])); } $('#pauseBtn').setAttribute('aria-label', t('pauseLbl')); $('#btnSet').setAttribute('aria-label', t('settings')); $('#btnSet').title = t('settings'); for (const id of ['pClose', 'chatClose']) $('#' + id).setAttribute('aria-label', t('close')); $('#tPause').textContent = t('pause'); $('#btnQuit').textContent = t('quit');
   $('#btnRvNo').textContent = t('seeResult'); $('#btnMenu').textContent = t('menu'); { const m = $('#tResMore'); if (m) m.textContent = t('resMore'); } $('#tCopy').textContent = t('copy'); { const sb = $('#tShareBar'); if (sb) sb.textContent = tr('友だちに挑戦状を送ろう', 'Challenge a friend');} $('#tShare').textContent = t('share'); $('#tShareImg').textContent = t('shareImg');
-  $('#tKick').textContent = tr('東京うさぎオフィスの', 'TOKYO USAGI OFFICE'); logoBuild(); $('#tSub').textContent = t('tagline'); document.title = t('gameTitle');
-  $('#nmRen').textContent = tr('モチ', 'MOCHI'); $('#nmJill').textContent = tr('ユズ', 'YUZU'); $('#nmPom').textContent = tr('クリ', 'KURI'); $('#btnStart').textContent = t('start'); $('#btnAgain').textContent = t('again'); $('#btnResume').textContent = t('resume'); $('#tPauseH').textContent = lab('PAUSE'); $('#tPause').hidden = $('#tPause').textContent === $('#tPauseH').textContent;
+  $('#tKick').textContent = tr('レンとジルの', 'REN & JILL'); logoBuild(); $('#tSub').textContent = t('tagline'); document.title = t('gameTitle');
+  $('#nmRen').textContent = tr('レン', 'REN'); $('#nmJill').textContent = tr('ジル', 'JILL'); $('#nmPom').textContent = tr('ポム', 'POM'); $('#btnStart').textContent = t('start'); $('#btnAgain').textContent = t('again'); $('#btnResume').textContent = t('resume'); $('#tPauseH').textContent = lab('PAUSE'); $('#tPause').hidden = $('#tPause').textContent === $('#tPauseH').textContent;
   $('#lbScore').textContent = tr('スコア', 'SCORE'); $('#lbTime').textContent = tr('時刻', 'TIME'); $('#lbHay').textContent = tr('チモシー', 'HAY'); $('#resBest').textContent = lab('NEW BEST!');
-  $('#btnChat').textContent = $('#btnChat2').textContent = tr('ユズに聞く', 'Ask Yuzu');
+  $('#btnChat').textContent = $('#btnChat2').textContent = tr('ジルに聞く', 'Ask Jill');
   ['btnMute', 'btnMute2'].forEach(id => $('#' + id).textContent = SV.mute ? t('soundOff') : t('soundOn'));
   { const m = $('#btnMute'); m.classList.toggle('off', !!SV.mute); m.setAttribute('aria-label', m.textContent); m.setAttribute('aria-pressed', SV.mute ? 'false' : 'true'); /* 読み上げ：音が出ているかを伝える */ m.title = m.textContent; $('#btnSet').title = tr('設定', 'Settings'); /* PC：絵だけのボタンに、マウスをのせると名前が出る */ $('#btnSet').setAttribute('aria-label', tr('設定', 'Settings')); } /* ホームでは、音と設定は絵のボタン（字は読み上げ用に残す） */
 }
@@ -66,7 +66,7 @@ function shopHTML() {
   const clover = `<div class="shop-item"><img src="${SPR_URL.clover}" alt=""><p>${t('charmName')}<small>${t('charmNote', SV.clovers)}</small></p><button class="buy" data-buy="clover" ${SV.bank < 500 ? 'disabled' : ''}><img src="${SPR_URL.hay}" alt="">500</button></div>`;
   const mug = `<div class="shop-item"><img src="${SPR_URL.mugIcon}" alt=""><p>${t('mugName')}<small>${t('mugNote')}</small></p>${SV.mug ? `<button class="buy" data-mug="1">${SV.mugOn ? t('unwear') : t('wear')}</button>` : `<button class="buy" data-buy="mug" ${SV.bank < 1500 ? 'disabled' : ''}><img src="${SPR_URL.hay}" alt="">1,500</button>`}</div>`;
   const wear = SV.wear || (SV.wear = { ren: { tie: 'gold', hat: '', suit: '' }, jill: { frame: 'brown', hat: '', suit: '' }, pom: { band: 'red', hat: '', suit: '' } }); if (!wear.pom) wear.pom = { band: 'red', hat: '', suit: '' }; SV.closet = SV.closet || {};
-  const closet = ['ren', 'jill'].concat(SV.pomMet ? ['pom'] : []).map(who => `<section class="closet-sec"><h3 class="ph" style="font-size:16px;margin:10px 0 4px">${LANG === 'en' ? who.toUpperCase() : tr(({ ren: 'モチ', jill: 'ユズ', pom: 'クリ' })[who], who)}<small>${esc(t('closet'))}</small></h3>${fitHTML(who)}` + closetList(who).map(c => {
+  const closet = ['ren', 'jill'].concat(SV.pomMet ? ['pom'] : []).map(who => `<section class="closet-sec"><h3 class="ph" style="font-size:16px;margin:10px 0 4px">${LANG === 'en' ? who.toUpperCase() : tr(({ ren: 'レン', jill: 'ジル', pom: 'ポム' })[who], who)}<small>${esc(t('closet'))}</small></h3>${fitHTML(who)}` + closetList(who).map(c => {
     const own = SV.closet[c.id], on = own && wear[who][c.slot] === c.v;
     return `<div class="shop-item${TRYON[who][c.slot] === c.v && !on ? ' trying' : ''}" data-try="${c.id}"><img src="${closetIcon(c)}" alt=""><p>${esc(L(c))}${on ? `<small>${esc(t('wearing'))}</small>` : ''}</p>${own ? `<button class="buy${on ? '' : ' off'}" data-wear="${c.id}">${on ? t('takeOff') : t('putOn')}</button>` : c.lg != null ? `<button class="buy" disabled>${tr('伝説で解放', 'Legend only')}</button>` : `<button class="buy" data-buy="${c.id}" ${SV.bank < c.cost ? 'disabled' : ''}><img src="${SPR_URL.hay}" alt="">${fmt(c.cost)}</button>`}</div>`; }).join('') + '</section>').join('');
   const li = legendInfo(), ja = LANG === 'ja', tg = (k, on, ok) => ok ? `<button class="buy${on ? '' : ' off'}" data-lg="${k}">${on ? (tr('オン', 'On')) : (tr('オフ', 'Off'))}</button>` : `<span class="lock">🔒</span>`;
@@ -164,7 +164,7 @@ function openHow() {
 }
 // 文字の大きさ（C-29）：html に bigtext をつける
 function applyLook() { try { document.documentElement.classList.toggle('bigtext', !!OPT().big); document.documentElement.classList.toggle('calm', !!OPT().calm); } catch (e) { } }
-// 同じ見た目の品（例：モチのサンタ帽。買える物とクリスマスのプレゼント）は1つだけ出す：持っている物 → いつもの物 → 無料の物の順（2026-11-09 の報告）
+// 同じ見た目の品（例：レンのサンタ帽。買える物とクリスマスのプレゼント）は1つだけ出す：持っている物 → いつもの物 → 無料の物の順（2026-11-09 の報告）
 function closetList(who) { const vis = CLOSET.filter(c => c.who === who && (!c.ev || c.ev === EVENT || SV.closet[c.id])), pick = {};
   const rank = c => SV.closet[c.id] ? (c.ev ? 1 : 0) : 4 + (c.ev ? 1 : 0) + (c.cost ? 2 : 0);
   for (const c of vis) { const k = c.slot + ':' + c.v; if (!pick[k] || rank(c) < rank(pick[k])) pick[k] = c; }
@@ -305,7 +305,7 @@ function openRevive() {
   $('#rvHave').textContent = free ? t('reviveFreeNote') : t('reviveHave', SV.clovers, fmt(SV.bank + Math.floor(G.hay)));
   const ba = $('#btnRvAd'); if (ba) { ba.hidden = !PORTAL.adOK(); ba.textContent = t('reviveAd'); }
   if (bc.disabled && bh.disabled && (!ba || ba.hidden)) { endRun(); return; }
-  hideAll(); show('sRevive'); { const f = !bc.disabled ? bc : !bh.disabled && !bh.hidden ? bh : $('#btnRvNo'); try { f.focus({ preventScroll: true }); } catch (e) { } } // keyboard players can continue with Enter
+  hideAll(); show('sRevive'); if (LASTIN === 'kb') { const f = !bc.disabled ? bc : !bh.disabled && !bh.hidden ? bh : $('#btnRvNo'); try { f.focus({ preventScroll: true }); } catch (e) { } } /* [B12] 指で遊んでいる時は、つづけるボタンに青いわくを出さない（キーボードの時だけ選んでおく） */ // keyboard players can continue with Enter
   const ring = $('#rvRing'), num = $('#rvNum'), t0 = performance.now();
   clearInterval(rvTimer);
   let rvLeft = 5, rvLast = performance.now();
@@ -319,6 +319,7 @@ function resume() { if (G.mode !== 'pause') return; hideAll(); show('hud');
 
 /* ================= input ================= */
 const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'up', KeyW: 'up', Space: 'up', ArrowDown: 'down', KeyS: 'down' };
+let LASTIN = 'ptr'; const setIn = v => { LASTIN = v; try { document.documentElement.dataset.in = v; } catch (e) { } }; setIn('ptr'); addEventListener('keydown', () => setIn('kb'), true); addEventListener('pointerdown', () => setIn('ptr'), true); addEventListener('touchstart', () => setIn('ptr'), { capture: true, passive: true }); /* [B27] 指・マウスで使っている時は、選択のわく（青い太いわく）を見せない（パネルの × などに、開いたとたん出ていた） */ /* [B12] さいごに使ったのがキーボードか指・マウスか */
 addEventListener('keydown', e => {
   if (e.target && e.target.closest && e.target.closest('input,textarea,[contenteditable]') && e.code !== 'Escape') return; // typing a name or a code: letters are letters (P is not pause)
   if (e.code === 'KeyM' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) { toggleMute(); return; } /* M：音のオン・オフ */
@@ -602,7 +603,7 @@ function feedCard() {
   const fresh = /^\d{4}-\d\d-\d\d$/.test(e.date || '') && Date.now() - new Date(e.date + 'T00:00:00+09:00').getTime() < 7 * 864e5;
   el.hidden = false; el.href = e.url; el.innerHTML = `${fresh ? '<em class="newtag">NEW</em>' : ''}<small>${esc(t('feedNew'))}</small><b>${esc(e[LANG] || (LANG === 'ja' ? (e.ja || e.en) : (e.en || e.ja)) || '')}</b><i>▶</i>`;
 }
-/* ---- Follow Tokyo Usagi Office: the official profiles as plain text links (title, settings, result). Never a popup. ---- */
+/* ---- Follow Ren & Jill: the official profiles as plain text links (title, settings, result). Never a popup. ---- */
 function followLinks(kind) {
   const a = (u, txt) => `<a href="${esc(u)}" target="_blank" rel="noopener" data-fol="1">${esc(txt)}</a>`;
   const links = SNS.map(s => a(s.url, s.name)).concat(a(SITE_REF, t('followSite')));
@@ -687,10 +688,10 @@ function maintShow() {
   const MAINT = 1;
   const END = Date.UTC(2026, 10, 18, 3, 0); // 終了予定：2026-11-18（水）12:00（日本時間）。オーナー「一旦、明日のお昼の12時までにして」（2026-11-17）。延ばす時はここを変える
   try { if (!MAINT || Date.now() >= END || !window.HAYDASH_APP || navigator.webdriver || /[?&]preview=1/.test(location.search)) return; } catch (e) { return; } /* 2026-11-18：終了予定（END）を過ぎたら、新しく公開しなおさなくても、メンテナンス表示は自動で出なくなる（オーナー「一旦、明日のお昼の12時までにして」） */
-  const T = { ja: ['ただいまメンテナンス中', 'モチとユズとクリが、東京の町をもっと本物みたいにお手入れしています。', 'もうすぐもどります。また遊びに来てね！'],
-    en: ['Under maintenance', 'Mochi, Yuzu and Kuri are making Tokyo look even more real.', 'We will be back soon. Please come again!'],
-    zh: ['維護中', 'Mochi、Yuzu 和 Kuri 正在把東京的街道整理得更逼真。', '很快就回來，請再來玩！'], ko: ['점검 중', '모찌와 유자와 쿠리가 도쿄 거리를 더 진짜처럼 손보고 있어요.', '곧 돌아올게요. 또 놀러 와 주세요!'] }[LANG] || null;
-  const tx = T || ['ただいまメンテナンス中', 'モチとユズとクリが、東京の町をもっと本物みたいにお手入れしています。', 'もうすぐもどります。また遊びに来てね！'];
+  const T = { ja: ['ただいまメンテナンス中', 'レンとジルとポムが、東京の町をもっと本物みたいにお手入れしています。', 'もうすぐもどります。また遊びに来てね！'],
+    en: ['Under maintenance', 'Ren, Jill and Pom are making Tokyo look even more real.', 'We will be back soon. Please come again!'],
+    zh: ['維護中', 'Ren、Jill 和 Pom 正在把東京的街道整理得更逼真。', '很快就回來，請再來玩！'], ko: ['점검 중', '렌과 질과 폼이 도쿄 거리를 더 진짜처럼 손보고 있어요.', '곧 돌아올게요. 또 놀러 와 주세요!'] }[LANG] || null;
+  const tx = T || ['ただいまメンテナンス中', 'レンとジルとポムが、東京の町をもっと本物みたいにお手入れしています。', 'もうすぐもどります。また遊びに来てね！'];
   const d = document.createElement('div'); d.id = 'maint'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-live', 'polite');
   d.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 30% 20%,#FFF6E4 0,#FCE9D8 40%,#F3DCCB 100%);font-family:"Zen Maru Gothic","Hiragino Sans",sans-serif;color:#3B2A20;text-align:center;overflow:hidden';
   d.innerHTML = '<div style="max-width:420px;width:100%;background:rgba(255,253,248,.92);border-radius:28px;box-shadow:0 10px 30px rgba(120,80,40,.18);padding:22px 20px 26px;position:relative">'
@@ -710,14 +711,14 @@ function maintShow() {
   const draw = () => { if (!document.getElementById('maint')) return; const t = (performance.now() - t0) / 1000; g.clearRect(0, 0, 360, 200);
     g.fillStyle = 'rgba(160,120,80,.12)'; g.beginPath(); g.ellipse(180, 178, 160, 14, 0, 0, Math.PI * 2); g.fill();
     for (const p of pics) { if (!p.im || !p.im.width) continue; const k = (p.w === 'pom' ? 112 : 128) / p.im.width, bob = p.w === 'ren' ? Math.sin(t * 1.4) * 1.5 : -Math.abs(Math.sin(t * 2.6 + p.x)) * 6, w = p.im.width * k, h = p.im.height * k; g.drawImage(p.im, p.x - w / 2, 178 - h + bob, w, h); }
-    g.fillStyle = '#7A8EA4'; g.font = '900 16px sans-serif'; for (let k = 0; k < 3; k++) { const q = (t * .5 + k / 3) % 1; g.globalAlpha = Math.sin(q * Math.PI); g.fillText('z', 92 + q * 26 + k * 4, 70 - q * 46); } g.globalAlpha = 1; // ねているモチの Zz
+    g.fillStyle = '#7A8EA4'; g.font = '900 16px sans-serif'; for (let k = 0; k < 3; k++) { const q = (t * .5 + k / 3) % 1; g.globalAlpha = Math.sin(q * Math.PI); g.fillText('z', 92 + q * 26 + k * 4, 70 - q * 46); } g.globalAlpha = 1; // ねているレンの Zz
     for (let k = 0; k < 6; k++) { const q = (t * .25 + k / 6) % 1, x = 30 + ((k * 97) % 300); g.globalAlpha = Math.sin(q * Math.PI) * .8; g.fillStyle = k % 2 ? '#E86A75' : '#F2C230'; g.beginPath(); g.arc(x, 150 - q * 130, 3 + (k % 3), 0, Math.PI * 2); g.fill(); } g.globalAlpha = 1; // ふわふわ上がる光のつぶ
     requestAnimationFrame(draw); };
   requestAnimationFrame(draw);
 }
 
 /* [H40・H41] 2026-11-21 オーナー（iPhone の写真 3 枚目）「まだ上下が収まりきってない」「音と設定の位置は、スタート画面の空いている中心より少し右下でもいい」：
-   スマホのたて画面では、いちばん下の 1 行（きろく・練習・場所えらび）と、右上の 3 行目（音・設定）をやめ、右の列（ランキング・ユズに聞く）にまとめる。
+   スマホのたて画面では、いちばん下の 1 行（きろく・練習・場所えらび）と、右上の 3 行目（音・設定）をやめ、右の列（ランキング・ジルに聞く）にまとめる。
    横長・大きな画面では、今までの場所にもどす */
 function homePlace() { try {
   const ph = innerWidth < 600 && innerHeight > innerWidth, r2 = $('#sTitle .row2'), bank = $('#sTitle .bank'), tog = $('#sTitle .bank .tog') || $('#sTitle .row2 .tog'), keep = $('#tKeepBtns'); if (!r2) return;
