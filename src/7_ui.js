@@ -739,6 +739,10 @@ function homePlace() { try {
   else { if (tog && bank && tog.parentNode !== bank) bank.appendChild(tog); if (keep) for (const id of ids.slice().reverse()) { const b = $('#' + id); if (b && b.parentNode !== keep) keep.prepend(b); } const rv = $('#btnRev'); if (rv && keep && rv.parentNode === keep) keep.appendChild(rv); }
   { const q = $('#btnPractice'); if (q) q.textContent = ph ? tr('練習', 'Practice') : t('practice'); } /* [H44] 右の列の丸いボタンの名前は短く（「練習・場所えらび」は 2 行に切れた。中の画面で場所も選べる） */
   document.getElementById('sTitle') && document.getElementById('sTitle').classList.toggle('hph', ph);
+  /* [H85] たて長のスマホ：音・設定の丸 2 つは、いちばん上の段の「日本語」の左に（右の列では、せまい iPhone で設定の丸が画面の外へ出た）。題字にかかる時は今まで通り右の列 */
+  if (tog) { tog.classList.remove('toptog'); tog.style.left = tog.style.top = ''; const lang = document.getElementById('btnLangTop') || document.querySelector('#sTitle .langtop'), logo = document.querySelector('#sTitle.home .logo');
+    if (ph && lang && lang.offsetParent) { const lr = lang.getBoundingClientRect(), gr = logo ? logo.getBoundingClientRect() : { right: 0 }; tog.classList.add('toptog'); const tw = tog.getBoundingClientRect().width || 80, x = lr.left - tw - 8;
+      if (x > gr.right + 6) { const ty = lr.top + (lr.height - 36) / 2; tog.style.left = Math.round(x) + 'px'; tog.style.top = Math.round(ty) + 'px'; const q = tog.getBoundingClientRect(); if (Math.abs(q.left - x) > 1 || Math.abs(q.top - ty) > 1) { tog.style.left = Math.round(2 * x - q.left) + 'px'; tog.style.top = Math.round(2 * ty - q.top) + 'px'; } /* 親に動きの変形があっても、見た目の位置を合わせる */ } else tog.classList.remove('toptog'); } }
 } catch (e) { } }
 addEventListener('resize', () => homePlace());
 /* [H47] 本物の iPhone は字（ウェブの字体）の高さがちがうので、それでもスタートボタンが画面の下にはみ出す時は、下の台（3 人の丸とスタート）を一段小さくする */
@@ -747,7 +751,7 @@ addEventListener('resize', () => homePlace());
 function homeBottom() { const app = document.getElementById('app'), r = app ? app.getBoundingClientRect() : null; let b = innerHeight; if (r && r.height > 0) b = Math.min(b, r.bottom); if (window.visualViewport && visualViewport.height > innerHeight * .75) b = Math.min(b, visualViewport.offsetTop + visualViewport.height + 1); return Math.max(b, innerHeight * .6); }
 function homeFit() { try { const t = document.getElementById('sTitle'), st = document.getElementById('btnStart'); if (!t || !st || t.hidden) return; const ph = innerWidth < 600 && innerHeight > innerWidth; if (!ph) { t.classList.remove('hfit', 'hfit2'); return; }
   const over = () => st.getBoundingClientRect().bottom > homeBottom() - 4; if (!t.classList.contains('hfit') && over()) t.classList.add('hfit'); if (t.classList.contains('hfit') && !t.classList.contains('hfit2') && over()) t.classList.add('hfit2'); } catch (e) { } }
-function homeFitAgain() { const t = document.getElementById('sTitle'); if (t) t.classList.remove('hfit', 'hfit2'); requestAnimationFrame(() => { homeFit(); ttFit(); }); }
+function homeFitAgain() { const t = document.getElementById('sTitle'); if (t) t.classList.remove('hfit', 'hfit2'); requestAnimationFrame(() => { try { homePlace(); } catch (e) { } homeFit(); ttFit(); }); }
 /* [H76] 今日の目標・今日のチモシーの数（140,000 ✓・170/300）が、枠の右で切れていた（「/30」で切れる）。入りきらない時は、入るまで字を小さくする（いちばん小さくて 6 割） */
 function ttFit() { try { for (const b of document.querySelectorAll('#sTitle #tToday .tt-c b')) { b.style.fontSize = ''; if (!b.clientWidth || b.scrollWidth <= b.clientWidth + .5) continue; const f0 = parseFloat(getComputedStyle(b).fontSize) || 19; let k = 1; while (b.scrollWidth > b.clientWidth + .5 && k > .6) { k -= .05; b.style.fontSize = (f0 * k).toFixed(1) + 'px'; } } } catch (e) { } }
 addEventListener('resize', homeFitAgain);
