@@ -119,7 +119,7 @@ FOOD_GROUPS = [('main', '主食（毎日たっぷり）', 'Staples (every day)',
 def food_page(lang):
   ja = lang == 'ja'; L = (lambda a, b: a if ja else b); e = html.escape
   slug = 'food' if ja else 'food-en'; url = SITE + slug
-  title = L('うさぎが食べていい物・ダメな物｜えさ図鑑（東京うさぎオフィスのチモシーダッシュ）', 'What can rabbits eat? A bunny food guide | Tokyo Usagi Office: Hay Dash')
+  title = L('うさぎが食べていい物・ダメな物｜えさ図鑑（東京うさぎオフィスのチモシーダッシュ）', 'What can rabbits eat? Bunny food guide | Tokyo Usagi Office: Hay Dash')
   desc = L('うさぎの主食・野菜・おやつ・あげてはいけない物を、ゲームのえさ図鑑からまとめました。チモシー、小松菜、りんご、にんじん、チョコレートや玉ねぎがダメな理由など。一般的な目安です（出典：長野県動物愛護センター）。',
            'Hay, greens, treats and foods to avoid, from the food book of our free bunny game: timothy hay, leafy greens, carrot, and why chocolate and onions are dangerous.')
   items = {x['k']: x for x in food_items()}
