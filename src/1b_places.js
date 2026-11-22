@@ -1,7 +1,7 @@
 /* ================= places =================
    kind: room (walls + ceiling), street (sidewalks + building facades), deck (open air, railings, view), train, glass
    fac: facade style for streets. props: furniture / street furniture in the side zones. */
-const TREE = { green: ['#5F9E5A', '#4C8A48', '#7DB46A'], ginkgo: ['#E8B923', '#F2CD45', '#D9A21B'], sakura: ['#F4C6D2', '#EFB3C3', '#F9DCE4'], fresh: ['#8CC26A', '#A3D07C', '#79B25C'], bare: ['#6B5A50'], pine: ['#2F5A3A', '#3B6B45', '#27503A'], zelkova: ['#6FA35A', '#5F9450', '#88B86E'] };
+const TREE = { green: ['#5F9E5A', '#4C8A48', '#7DB46A'], ginkgo: ['#E8B923', '#F2CD45', '#D9A21B'], sakura: ['#F4C6D2', '#EFB3C3', '#F9DCE4'], fresh: ['#8CC26A', '#A3D07C', '#79B25C'], bare: ['#6B5A50'], pine: ['#2F5A3A', '#3B6B45', '#27503A'], zelkova: ['#6FA35A', '#5F9450', '#88B86E'], momiji: ['#C8642E', '#B04A2A', '#DE8A3C'] }; /* [B59] momiji：秋の桜の葉（赤とだいだい） */
 const THEMES = {
   /* ---- the boss's house ---- */
   titleroom: { ja: '課長の家・寝室', en: "The boss's bedroom", kind: 'room', len: [26, 26], road: ['#D6C98A', '#CEBF7E'], rpat: 'tatami', side: ['#D2C483', '#C9BA77'], spat: 'tatami',
@@ -269,7 +269,7 @@ Object.assign(THEMES, {
   toyosu:   { ja: '豊洲・海辺のプロムナード', lbl: '豊洲', en: 'Toyosu waterfront', kind: 'deck', len: [104, 116], road: ['#C9C1B2', '#BFB7A8'], rpat: 'planks', side: ['#2B5F86', '#285A80'], spat: 'water', view: 'sea', rail: '#E9EEF2',
     props: [['buoyS', 1]], obs: ['bench', 'bike', 'cone', 'stroller', 'kick'], lm: [{ t: 'tower', sc: .9, off: .25 }, { t: 'fuji', sc: .8, off: -.3 }],
     stamp: ST('豊洲', '豊洲の海辺', 'Toyosu', '新しい市場と高層マンションの町。海ぞいの遊歩道から東京の夜景が見える。', 'A new market town of high-rises, with city lights across the water from the promenade.') },
-  kaihin:   { ja: 'お台場の砂浜', lbl: 'お台場の砂浜', en: 'Odaiba beach', kind: 'deck', len: [104, 116], road: ['#E9DCC0', '#E2D4B6'], rpat: 'sand', side: ['#2B5F86', '#285A80'], spat: 'water', view: 'sea', rail: '#C9B48A',
+  kaihin:   { ja: 'お台場の砂浜', lbl: 'お台場の砂浜', en: 'Odaiba beach', kind: 'deck', len: [104, 116], road: ['#E9DCC0', '#E2D4B6'], rpat: 'sand', side: ['#2B5F86', '#285A80'], spat: 'water', view: 'sea', rail: '#C9B48A', beach: 1,
     props: [], obs: ['picnic', 'parasol', 'ring', 'cone', 'stroller'], lm: [{ t: 'tower', sc: .8, off: .25 }, { t: 'fuji', sc: .9, off: -.3 }],
     stamp: ST('砂浜', 'お台場の砂浜', 'Odaiba beach', '人工の砂浜。海の向こうに吊り橋と都心のビルが並ぶ。', 'A man-made beach facing the suspension bridge and the city skyline.') },
 });
@@ -290,6 +290,13 @@ Object.assign(ARRIVE, {
   zojoji: { ja: '朱色の門と赤い電波塔', en: 'A vermilion gate and the red tower' }, toyosu: { ja: '海ぞいの遊歩道', en: 'Along the waterfront' }, kaihin: { ja: '砂浜をかけぬける', en: 'Dash along the sand' },
 });
 Object.assign(SEASONAL, {
+  /* [B59] 桜の名所（千鳥ヶ淵・隅田公園）：秋や冬の日も、満開の桜と花びらが舞っていた。夏は緑の葉、秋は赤い桜もみじと落ち葉、冬は葉の落ちた木に。道の花びらの模様も、春だけ */
+  chidori: { summer: { ja: '千鳥ヶ淵・緑の並木', en: 'Chidorigafuchi, green trees', tree: 'green', petals: 0, spat: 'walk', rpat: 'stone', arrive: { ja: 'お堀にかかる緑の並木', en: 'Green trees over the moat' } },
+    autumn: { ja: '千鳥ヶ淵・桜もみじ', en: 'Chidorigafuchi, autumn leaves', tree: 'momiji', petals: 0, leaves: 1, spat: 'leaves', rpat: 'stone', arrive: { ja: '赤く色づいた桜の葉', en: 'Cherry leaves turned red' } },
+    winter: { ja: '千鳥ヶ淵・冬木立', en: 'Chidorigafuchi in winter', tree: 'bare', petals: 0, spat: 'walk', rpat: 'stone', arrive: { ja: '葉を落とした冬の並木', en: 'Bare winter trees' } } },
+  sumidakoen: { summer: { ja: '隅田公園・緑の並木', en: 'Sumida Park, green trees', tree: 'green', petals: 0, spat: 'walk', rpat: 'stone', arrive: { ja: '川ぞいの緑の並木', en: 'Green trees along the river' } },
+    autumn: { ja: '隅田公園・桜もみじ', en: 'Sumida Park, autumn leaves', tree: 'momiji', petals: 0, leaves: 1, spat: 'leaves', rpat: 'stone', arrive: { ja: '赤く色づいた桜の葉', en: 'Cherry leaves turned red' } },
+    winter: { ja: '隅田公園・冬木立', en: 'Sumida Park in winter', tree: 'bare', petals: 0, spat: 'walk', rpat: 'stone', arrive: { ja: '葉を落とした冬の並木', en: 'Bare winter trees' } } },
   meguro: { spring: { ja: '目黒川の桜', en: 'Meguro River cherries', tree: 'sakura', petals: 1, spat: 'petals', side: ['#B7A797', '#AE9E8E'], rpat: 'petalstone', props: [['bonbori', 3], ['benchS', 1]], obs: ['picnic', 'tripod', 'bench', 'stroller', 'cone'], arrive: { ja: '川の上をおおう桜のトンネル', en: 'Cherry blossoms arching over the river' } },
     winter: { ja: '目黒川・冬のイルミネーション', en: 'Meguro River winter lights', tree: 'illum', arrive: { ja: '川ぞいの木々に冬の光', en: 'Winter lights along the river' } } },
   gyoen: { spring: { ja: '新宿御苑・お花見', en: 'Shinjuku Gyoen in blossom', tree: 'sakura', petals: 1, spat: 'petals', side: ['#B7A797', '#AE9E8E'], props: [['benchS', 1], ['lampC', 1]], arrive: { ja: '芝生の上に満開の桜', en: 'Cherry trees in full bloom over the lawns' } },
@@ -335,7 +342,7 @@ Object.assign(THEMES, {
     fac: { style: 'market', mood: 'monja', h: [6, 12], pal: ['#E9E2D5', '#D6CDBF', '#C9BFAF', '#F3E8DA'] }, props: [['nobori', 3], ['vending', 1], ['bikes', 1]], obs: ['bike', 'sign', 'cone', 'stoolsO', 'kick'], lm: [{ t: 'cyl', sc: .7, off: -.25 }],
     stamp: ST('月島', '月島', 'Tsukishima', '鉄板で焼くもんじゃ焼きの店が70軒以上ならぶ。路地には古い長屋も残る。', 'Over seventy griddle restaurants serving monja-yaki (a runny savory pancake), with old row houses in the alleys.') },
   kanda:    { ja: '神田・明神さまの門前', lbl: '神田の門前', en: 'Kanda shrine approach', kind: 'street', len: [96, 108], road: ['#C9C2B6', '#BFB8AB'], rpat: 'plaza', side: ['#BDB5A7', '#B3AB9D'], spat: 'stone', curb: '#9A9384',
-    fac: { style: 'nakamise', h: [4.5, 6], pal: ['#C9432F', '#B83B29', '#D04A33'] }, torii: '#9A8A7A', toriiTop: '#4A4F57', plaque: '神田', props: [['chochin', 3], ['stoneLantern', 1]], obs: ['bench', 'rickshaw', 'stoneLanternO', 'cone'], flat: 1,
+    fac: { style: 'machiya', h: [5, 7.5], pal: ['#3B2E26', '#4A3A2E', '#5A4636', '#2E2622'] }, torii: '#9A8A7A', toriiTop: '#4A4F57', plaque: '神田', props: [['chochin', 3], ['stoneLantern', 2]], obs: ['bench', 'stoneLanternO', 'cone', 'bench'], flat: 1, /* [B44] 神田の明神さまの門前：浅草の仲見世と同じ赤い店と人力車で、同じ町に見えた。古い木の町家の店がならぶ門前にし、人力車を出さない */
     stamp: ST('神田', '神田の明神さま', 'Kanda shrine', '江戸の町を守ってきた神社の門前。商売繁盛を願う会社員も多くお参りする。', 'The approach to the shrine that has watched over Tokyo since it was Edo; many office workers pray here for good business.') },
   kuramae:  { ja: '蔵前・川沿いの工房の町', lbl: '蔵前', en: 'Kuramae workshops', kind: 'street', len: [96, 108], road: ['#7A7B80', '#74757A'], rpat: 'road', side: ['#B8B2A6', '#B0AA9E'], spat: 'walk', curb: '#D9D6CE',
     fac: { style: 'mixed', h: [6, 14], pal: ['#D6CDBF', '#B5A48A', '#9A8E80', '#E9E2D5', '#8A8F99'] }, props: [['cafe', 2], ['bikes', 1], ['planter', 1], ['tree', 1]], obs: ['bike', 'cone', 'bench', 'box', 'kick'], lm: [{ t: 'skytree', sc: 1.1, off: .2 }],
@@ -480,7 +487,7 @@ Object.assign(THEMES, {
     fac: { style: 'market', left: 'viaduct', h: [6, 12], pal: ['#E9E2D5', '#D6CDBF', '#9FB4C6', '#F3E8DA'] }, props: [['stall', 2], ['bikes', 1]], obs: ['box', 'crate', 'bike', 'cone', 'sign'], rumble: 1,
     stamp: ST('徒町', '御徒町', 'Okachimachi', '宝石の問屋や高架下の店がならぶ。上野まで商店街がつづく。', 'Jewelry wholesalers and shops under the tracks, all the way up to Ueno.') },
   monzen:   { ja: '門前仲町・深川のお不動さま', lbl: '門前仲町', en: 'Monzen-nakacho temple street', kind: 'street', len: [96, 108], road: ['#B9AE9C', '#AFA392'], rpat: 'stone', side: ['#A89C88', '#9F937F'], spat: 'stone',
-    fac: { style: 'nakamise', h: [4.5, 6.5], pal: ['#C9432F', '#8A6444', '#B83B29'] }, props: [['chochin', 3], ['nobori', 2], ['stoneLantern', 1]], obs: ['bench', 'rickshaw', 'jokoro', 'stoolsO'], flat: 1,
+    fac: { style: 'nakamise', h: [4.5, 6.5], pal: ['#8A6444', '#6B4631', '#A0412E', '#7A5538'] }, props: [['chochin', 3], ['nobori', 2], ['stoneLantern', 1]], obs: ['bench', 'jokoro', 'stoolsO', 'bench'], flat: 1, /* [B45] 門前仲町：浅草と同じ赤い店ばかりと人力車だった。木の色の店を多めにし（赤は 1 色だけ）、人力車は出さない */
     stamp: ST('門仲', '門前仲町', 'Monzen-nakacho', 'お寺と神社の門前町。毎月の縁日には屋台がならぶ。', 'A temple-and-shrine town with stalls on its monthly fair days.') },
   kiba:     { ja: '木場公園と運河', lbl: '木場', en: 'Kiba park and canals', kind: 'street', len: [100, 112], road: ['#C8B58F', '#BFAC86'], rpat: 'gravel', side: ['#7FA35E', '#77995A'], spat: 'lawn', curb: '#8A7A5A',
     fac: { style: 'park' }, moat: -1, props: [['tree', 4], ['benchS', 1], ['lampC', 1]], obs: ['bike', 'bench', 'stroller', 'cone', 'leafpile'], tree: 'green', lm: [{ t: 'skytree', sc: 1, off: .25 }],

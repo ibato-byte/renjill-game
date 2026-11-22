@@ -2280,6 +2280,156 @@
       "name": "和室とホーム画面は丸い天井灯を出さない",
       "file": "src/4b_patterns.js",
       "has": "[B42]"
+    },
+    {
+      "name": "夜の展望デッキの中を明るく",
+      "file": "src/4_render.js",
+      "has": "[B43]"
+    },
+    {
+      "name": "神田の門前は木の町家",
+      "file": "src/1b_places.js",
+      "has": "[B44]"
+    },
+    {
+      "name": "門前仲町に人力車を出さない",
+      "file": "src/1b_places.js",
+      "has": "[B45]"
+    },
+    {
+      "name": "参道の店の仕切りは町の色",
+      "file": "src/3_world.js",
+      "has": "[B46]"
+    },
+    {
+      "name": "雪の日の外の道はうすく白い",
+      "file": "src/4_render.js",
+      "has": "[B47]"
+    },
+    {
+      "name": "雪の日の木は上に雪",
+      "file": "src/4b_patterns.js",
+      "has": "[B48]"
+    },
+    {
+      "name": "庭の松は枝と葉のかたまり",
+      "file": "src/4b_patterns.js",
+      "has": "[B49]"
+    },
+    {
+      "name": "駅のドームはかべの上に",
+      "file": "src/3_world.js",
+      "has": "[B50]"
+    },
+    {
+      "name": "駅のかべの絵はくり返して細かく",
+      "file": "src/3_world.js",
+      "has": "[B51]"
+    },
+    {
+      "name": "とても低い点の時はベスト比の行を出さない",
+      "file": "src/6e_keep.js",
+      "has": "[B52]"
+    },
+    {
+      "name": "リンクをコピーが切れない",
+      "file": "src/head.html",
+      "has": "[B53]"
+    },
+    {
+      "name": "ホールの丸い照明は小さく天井ぎわ",
+      "file": "src/3_world.js",
+      "has": "[B54]"
+    },
+    {
+      "name": "ホールのドアは高いガラスの扉",
+      "file": "src/3_world.js",
+      "has": "[B55]"
+    },
+    {
+      "name": "デッキの天井は吹きぬけで高いまま",
+      "file": "src/3_world.js",
+      "has": "[B56]"
+    },
+    {
+      "name": "雨の日の外の道はぬれた色",
+      "file": "src/4_render.js",
+      "has": "[B57]"
+    },
+    {
+      "name": "空から見る木は 3 つのかたまり",
+      "file": "src/4g_aerial.js",
+      "has": "[B58]"
+    },
+    {
+      "name": "桜の名所は季節で木が変わる",
+      "file": "src/1b_places.js",
+      "has": "[B59]"
+    },
+    {
+      "name": "砂浜は手すりなしで波の線",
+      "file": "src/3_world.js",
+      "has": "[B60]"
+    },
+    {
+      "name": "ホーム画面アプリの見分けに display-mode",
+      "file": "src/7_ui.js",
+      "has": "[H70〜H72]"
+    },
+    {
+      "name": "アプリの枠は画面の本当の高さまで",
+      "file": "src/7_ui.js",
+      "has": "function isStandalone()"
+    },
+    {
+      "name": "どの画面でも枠の高さを見直す",
+      "file": "src/7_ui.js",
+      "has": "[H73]"
+    },
+    {
+      "name": "はみ出しは枠の下でくらべる",
+      "file": "src/7_ui.js",
+      "has": "function homeBottom()"
+    },
+    {
+      "name": "今日の目標の数は入るまで小さく",
+      "file": "src/7_ui.js",
+      "has": "function ttFit()"
+    },
+    {
+      "name": "ホームアプリは CSS でも画面いっぱい",
+      "file": "tools/home/home.css",
+      "has": "[H73]"
+    },
+    {
+      "name": "2 段目の小さいホーム",
+      "file": "tools/home/home.css",
+      "has": "[H75]"
+    },
+    {
+      "name": "音と設定は右の列の幅に入る",
+      "file": "tools/home/home.css",
+      "has": "[H77]"
+    },
+    {
+      "name": "左右の列は画面のふちからはなす",
+      "file": "tools/home/home.css",
+      "has": "[H78]"
+    },
+    {
+      "name": "せまい画面の社員の帯は 1 行",
+      "file": "tools/home/home.css",
+      "has": "[H80]"
+    },
+    {
+      "name": "低い画面の左右の丸は小さく",
+      "file": "tools/home/home.css",
+      "has": "[H81]"
+    },
+    {
+      "name": "見切れの見張り appfit",
+      "file": "qa/run-all.mjs",
+      "has": "n: 'appfit'"
     }
   ]
 }

@@ -127,7 +127,8 @@ function kpEnd(o) {
   const vs = !(prevBest > 0) ? kt('vsFirst') : newBest ? kt('vsUp', fmt(sc - prevBest)) : near ? kt('vsDownS', 0, Math.floor(sc / prevBest * 100)) : kt('vsDown', fmt(prevBest - sc + 1), Math.floor(sc / prevBest * 100)) /* 「あと○点」は、すぐ下の「おしい！」と同じ数（こえるのに要る点）にそろえる。前は 1 点ずれていた */;
   const subAll = []; if (last > 0 && sc !== last) subAll.push(sc > last ? kt('lastUp', fmt(sc - last)) : kt('lastDn', fmt(last - sc))); subAll.push(kt('todayB', fmt(k.db))); if (k.wb > k.db) subAll.push(kt('weekB', fmt(k.wb)));
   const sub = sc < k.db ? [kt('todayB', fmt(k.db))] : [], showTip = (SV.runs || 0) <= 12 || (prevBest > 0 && sc < prevBest * .5);
-  box.hidden = false; box.innerHTML = `<div class="kp-top">${grade ? `<b class="kp-grade g${grade}" aria-label="${grade}">${grade}</b>` : ''}<div class="kp-lines"><p class="kp-vs">${esc(vs)}</p>${sub.length ? `<p class="kp-sub">${sub.map(esc).join('<i>・</i>')}</p>` : ''}</div></div>`
+  const low = prevBest > 0 && !newBest && sc < prevBest * .25; /* [B52] 自己ベストの 4 分の 1 にも届かない時は、「D」と「自己ベストの 0%（あと 131,177点）」の行を出さない（数字が大きく、がっかりさせるだけで、画面の字が多かった。コツの一行は出る） */
+  box.hidden = false; box.innerHTML = (low ? '' : `<div class="kp-top">${grade ? `<b class="kp-grade g${grade}" aria-label="${grade}">${grade}</b>` : ''}<div class="kp-lines"><p class="kp-vs">${esc(vs)}</p>${sub.length ? `<p class="kp-sub">${sub.map(esc).join('<i>・</i>')}</p>` : ''}</div></div>`)
     + (near ? `<p class="kp-near">${esc(kt('near', fmt(prevBest - sc + 1)))}</p>` : '') + (badges.length ? `<div class="kp-badges">${badges.map(b => `<span class="${b[0]}">${esc(b[1])}</span>`).join('')}</div>` : '')
     + (showTip ? `<p class="kp-tip">${esc(kpTip(st))}</p>` : '') + `<p class="kp-rival" id="kpRival" hidden></p>`;
   if (near && !OPT().calm) again.classList.add('pulse');
@@ -178,6 +179,7 @@ function todayGrid() {
     + `<p class="tt-ch${cdone ? ' ok' : ''}"><span>${esc(L(dly.c.t(dly.n)))}</span><em>${cdone ? '✓' : '+300'}</em></p>`;
   const row = $('#tKeepBtns'); if (row) for (const id of ['btnPractice', 'btnRev']) { const b = $('#' + id); if (b && b.parentNode !== row) row.appendChild(b); } // 小さなボタンは 1 つの列に（1 行ずつ縦に並べない）
   if (typeof homePlace === 'function') homePlace();
+  if (typeof ttFit === 'function') requestAnimationFrame(ttFit); /* [H76] 数が枠に入るか見る */
 }
 function kpRecords() {
   SFX.ui(); const k = kp(), nm = { r: tr('モチ', 'Mochi'), j: tr('ユズ', 'Yuzu'), p: tr('クリ', 'Kuri') }, avg = k.h.length ? Math.round(k.h.reduce((a, b) => a + b, 0) / k.h.length) : 0;

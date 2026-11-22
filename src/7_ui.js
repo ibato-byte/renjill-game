@@ -523,8 +523,20 @@ let FONT_REDO = 0, FONT_T = 0;
 try { if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => { clearTimeout(FONT_T); FONT_T = setTimeout(() => { if (FONT_REDO >= 3 || G.mode !== 'title') return; FONT_REDO++; try { freePictures(); } catch (e) { } }, 600); }); } catch (e) { }
 /* 2026-11-15：iPhone のホーム画面アプリ（全画面）で、画面のいちばん下に暗い帯が残る（オーナーの画面で確認。iOS の既知の不具合：上のステータスバーの分だけ、画面の高さが短く計算される）。
    アプリの枠が画面より「ステータスバーくらい（8〜80px）」短い時だけ、画面いっぱいの高さにする。ふつうのブラウザ・Android・PC では何もしない。キーボードが出ている間（大きく短い）も何もしない */
-function iosFill() { try { if (navigator.standalone !== true) return false; const app = $('#app'); if (!app) return false; const port = innerHeight >= innerWidth, a = screen.height, b = screen.width, full = port ? Math.max(a, b) : Math.min(a, b);
-  const was = app.style.height; app.style.height = ''; app.style.bottom = ''; const h = app.getBoundingClientRect().height, gap = full - h; if (gap > 8 && gap < 80) { app.style.height = full + 'px'; app.style.bottom = 'auto'; } return app.style.height !== was; /* 高さを変えた時だけ true */ } catch (e) { return false; } }
+/* [H70〜H72] 2026-11-22 オーナー（iPhone のアプリの写真）「下が見切れている」：画面の下に暗い帯が残り、スタートボタンが半分かくれていた。
+   ①ホーム画面から開いた時の見分け方を増やす（navigator.standalone だけでは見分けられない iPhone があった。表示のしかた display-mode も見る）
+   ②画面の本当の高さは、画面の大きさ・ブラウザの 100vh・100lvh・innerHeight のうち、いちばん大きい物（ステータスバーの分 62px 前後の差を見落とさない）
+   ③アプリの枠（#app）が、見えている高さより短い時は、どんな画面でものばす（ふつうのブラウザでは同じ高さなので何もしない） */
+function isStandalone() { try { return navigator.standalone === true || ['standalone', 'fullscreen'].some(m => matchMedia('(display-mode: ' + m + ')').matches); } catch (e) { return false; } }
+let VH_PROBE = null;
+function vhProbe(u) { try { if (!VH_PROBE) { VH_PROBE = document.createElement('div'); VH_PROBE.setAttribute('aria-hidden', 'true'); VH_PROBE.style.cssText = 'position:fixed;left:-9px;top:0;width:1px;visibility:hidden;pointer-events:none'; document.body.appendChild(VH_PROBE); } VH_PROBE.style.height = '100' + u; if (VH_PROBE.style.height === '') return 0; return VH_PROBE.getBoundingClientRect().height; } catch (e) { return 0; } }
+function iosFill() { try { const app = $('#app'); if (!app) return false; const sa = isStandalone(), port = innerHeight >= innerWidth, a = screen.height, b = screen.width;
+  const was = app.style.height; app.style.height = ''; app.style.bottom = ''; const h = app.getBoundingClientRect().height;
+  let full = Math.max(innerHeight, document.documentElement.clientHeight || 0); /* ③ どの画面でも：見えている高さより短い枠はのばす */
+  const ios = navigator.standalone === true || /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); /* 画面の大きさを使うのは iPhone・iPad だけ（Android のアプリは画面の大きさに上下のシステムのバーが入るので、のばすと下が切れる） */
+  if (sa) full = Math.max(full, vhProbe('vh'), vhProbe('lvh'), ios ? (port ? Math.max(a, b) : Math.min(a, b)) : 0); /* ② ホーム画面のアプリだけ：画面の大きさと 100vh も見る（ブラウザでは下のバーの分まで広げない） */
+  const gap = full - h; if (gap > 2 && gap < 130 && !(window.visualViewport && visualViewport.height < h * .75)) { app.style.height = Math.round(full) + 'px'; app.style.bottom = 'auto'; } /* キーボードが出ている間（見える高さがとても短い）は何もしない */
+  return app.style.height !== was; /* 高さを変えた時だけ true */ } catch (e) { return false; } }
 function resizeKeep() { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); smoothOn(); G.drawNow = 1; }
 /* 重いとき：まず絵の細かさを1段ずつ下げ（見た目はほとんど変わらない）、それでも重ければ演出を減らす。とても重い端末（30コマ/秒に届かない）はすぐ軽くする。
    軽い状態が続いたら細かさを戻す（1回の走りで2回まで。行ったり来たりしない） */
@@ -544,7 +556,7 @@ function boot() {
   if (gfxMode() === 'low') lowQ = 1; /* 設定「画質：軽い」は最初から */
   applyLook();
   /* 2026-11-15：前は「全部描く → 着せかえを読んで、着がえた子をもう一度全部描く」で、着せかえている人ほど起動が遅かった。先に着せかえを読み、前向きの絵だけ描いて始める */
-  try { if (navigator.standalone === true) { iosFill(); const again = () => setTimeout(() => { if (iosFill()) resize(); }, 350); for (const ev of ['resize', 'orientationchange', 'focusout']) addEventListener(ev, again); document.addEventListener('visibilitychange', () => { if (!document.hidden) again(); }); } } catch (e) { }
+  try { iosFill(); const again = () => setTimeout(() => { if (iosFill()) { resize(); homeFitAgain(); } }, 350); for (const ev of ['resize', 'orientationchange', 'focusout', 'pageshow']) addEventListener(ev, again); document.addEventListener('visibilitychange', () => { if (!document.hidden) again(); }); try { matchMedia('(display-mode: standalone)').addEventListener('change', again); } catch (e) { } if (window.visualViewport) visualViewport.addEventListener('resize', again); setTimeout(again, 900); setTimeout(again, 2500); } catch (e) { } /* [H73] どの画面でも見直す（前はホーム画面アプリと分かった時だけ）。アプリにもどった時・表示のしかたが変わった時も */
   buildItemSprites(); buildWorldSprites(); BUN_LAZY = 1; try { applyWear(); for (const w of ['ren', 'jill', 'pom']) if (!BUN[w] || !BUN[w].front_open) buildBunnies(w); } finally { BUN_LAZY = 0; } bunniesLater(); rankIcons(); rankInit(); chatInit(); resize(); { let rz = 0; const later = () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { G.resizeN = (G.resizeN || 0) + 1; resize(); }); }; addEventListener('resize', later); addEventListener('orientationchange', later); } // 画面を回したとき、描き直しは 1 回だけ（C-63）
   $('#hHayIco').src = SPR_URL.hay; $('#tHayIco').src = SPR_URL.hay;
   G.char = SV.char || 'ren'; missionsFix();
@@ -730,8 +742,14 @@ function homePlace() { try {
 } catch (e) { } }
 addEventListener('resize', () => homePlace());
 /* [H47] 本物の iPhone は字（ウェブの字体）の高さがちがうので、それでもスタートボタンが画面の下にはみ出す時は、下の台（3 人の丸とスタート）を一段小さくする */
-function homeFit() { try { const t = document.getElementById('sTitle'), st = document.getElementById('btnStart'); if (!t || !st || t.hidden) return; const ph = innerWidth < 600 && innerHeight > innerWidth; if (!ph) { t.classList.remove('hfit'); return; }
-  if (!t.classList.contains('hfit') && st.getBoundingClientRect().bottom > innerHeight - 4) t.classList.add('hfit'); } catch (e) { } }
-addEventListener('resize', () => { const t = document.getElementById('sTitle'); if (t) t.classList.remove('hfit'); requestAnimationFrame(homeFit); });
-try { document.fonts && document.fonts.ready.then(() => requestAnimationFrame(homeFit)); } catch (e) { }
-setTimeout(homeFit, 600); setTimeout(homeFit, 2000);
+/* [H74〜H75] スタートボタンが画面の下にはみ出していないかは、ブラウザの高さではなく「アプリの枠の下」と「見えている高さ」の低い方でくらべる（前は innerHeight だけで、枠が短い iPhone では、はみ出しに気づかなかった）。
+   1 段小さくしても入らない時は、もう 1 段（左右の丸・3 人の丸・スタートを小さく）。どの段でも入るまで、たて長のスマホ以外でも見る */
+function homeBottom() { const app = document.getElementById('app'), r = app ? app.getBoundingClientRect() : null; let b = innerHeight; if (r && r.height > 0) b = Math.min(b, r.bottom); if (window.visualViewport && visualViewport.height > innerHeight * .75) b = Math.min(b, visualViewport.offsetTop + visualViewport.height + 1); return Math.max(b, innerHeight * .6); }
+function homeFit() { try { const t = document.getElementById('sTitle'), st = document.getElementById('btnStart'); if (!t || !st || t.hidden) return; const ph = innerWidth < 600 && innerHeight > innerWidth; if (!ph) { t.classList.remove('hfit', 'hfit2'); return; }
+  const over = () => st.getBoundingClientRect().bottom > homeBottom() - 4; if (!t.classList.contains('hfit') && over()) t.classList.add('hfit'); if (t.classList.contains('hfit') && !t.classList.contains('hfit2') && over()) t.classList.add('hfit2'); } catch (e) { } }
+function homeFitAgain() { const t = document.getElementById('sTitle'); if (t) t.classList.remove('hfit', 'hfit2'); requestAnimationFrame(() => { homeFit(); ttFit(); }); }
+/* [H76] 今日の目標・今日のチモシーの数（140,000 ✓・170/300）が、枠の右で切れていた（「/30」で切れる）。入りきらない時は、入るまで字を小さくする（いちばん小さくて 6 割） */
+function ttFit() { try { for (const b of document.querySelectorAll('#sTitle #tToday .tt-c b')) { b.style.fontSize = ''; if (!b.clientWidth || b.scrollWidth <= b.clientWidth + .5) continue; const f0 = parseFloat(getComputedStyle(b).fontSize) || 19; let k = 1; while (b.scrollWidth > b.clientWidth + .5 && k > .6) { k -= .05; b.style.fontSize = (f0 * k).toFixed(1) + 'px'; } } } catch (e) { } }
+addEventListener('resize', homeFitAgain);
+try { document.fonts && document.fonts.ready.then(homeFitAgain); if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', homeFitAgain); } catch (e) { } /* [H79] 字の形（フォント）が届いて字が太く・広くなった時も、入り直しを見る */
+setTimeout(homeFitAgain, 600); setTimeout(homeFitAgain, 2000);

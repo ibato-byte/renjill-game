@@ -131,6 +131,7 @@ function computeLight(seg) {
   LT.bot = G.weather === 'rain' ? mixC(bot, [170, 176, 182], .5 * (1 - LT.night * .6)) : G.weather === 'snow' ? mixC(bot, [235, 238, 242], .5) : bot;
   LT.amb = LT.indoor ? (LT.night > .4 ? [.96, .9, .8] : [1, .99, .97]) : amb.map(x => x * wet);
   if (seg.th.tid === 'yurakucho') LT.amb = [.86, .78, .66];
+  if (seg.th.solidCeil && !LT.indoor && LT.night > .3) LT.amb = mixC(LT.amb, [.8, .76, .7], clamp((LT.night - .3) / .4, 0, 1) * .75); /* [B43] 夜の押上の展望デッキ（屋根のあるガラスの部屋）：外の夜と同じ暗さで、中がまっ暗だった。中の明かりで、少しあたたかく明るく（外の空と町は夜のまま） */
   LT.fog = LT.indoor ? mixC(C(seg.th.wall || '#EEEEEE'), [255, 255, 255], .2).map((x, j) => x * LT.amb[j]) : LT.bot;
   computeSun();
 }
@@ -486,7 +487,8 @@ function drawSegment(sg, isCur) {
     if (sg === G.segs[G.ci]) { const n = Math.abs(m), pts = []; for (let i = 0; i < n; i++) pts.push(SCR[i * 2], SCR[i * 2 + 1]); (wPolys || (wPolys = [])).push(pts); } }
   if (wPolys) { // the sun's glitter only on this stretch's own water
     ctx.save(); ctx.beginPath(); for (const pts of wPolys) { ctx.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]); ctx.closePath(); } ctx.clip(); waterGlitter(sg); ctx.restore(); }
-  for (const [d, p] of DRAW) { if (isW(p)) continue; const m = project(p.v); if (!m) continue; if (p.dec) { if (m === 4) decalDraw(p, d); else clippedPattern(p, () => decalDraw(p, d)); continue; } pathPoly(Math.abs(m)); ctx.fillStyle = fogged(p.c, 1, d); ctx.fill(); if (p.soft) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1; ctx.stroke(); continue; } if (SEAMF) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = SEAMLW; ctx.stroke(); } /* [床 S1] 床の板と板の合わせ目に、1 ドットより細いすき間（下の色が線になって見え、走るとチカチカ）ができていた。板のふちを同じ色で 0.45 ドットだけ外へぬる */ if (!lowQ || d < 14) { floorTexture(p, d, m, sg); project(p.v); } if (m === 4 && d < patFar) { if (!LODOFF && p.pat !== 'tatami') { const v = p.v, wl = Math.hypot(v[9] - v[0], v[10] - v[1], v[11] - v[2]); if (wl > .2) LWK = clamp(Math.hypot(SCR[6] - SCR[0], SCR[7] - SCR[1]) / wl / 45, .35, 1); } try { floorPattern(p, d); } finally { LWK = 1; } } else if (m < 0) clippedPattern(p, () => floorPattern(p, d)); } /* [遠く A9] 床の模様（タイルの目地・段の線・板の目）の線も、床の 1m が画面で 45 ドットより小さい所では、その分細く（遠くの床の線がつぶれてざらざら・チカチカしていた） */
+  const SNOWF = G.weather === 'snow' && !LT.indoor && G.mode !== 'title'; const RAINF = G.weather === 'rain' && !LT.indoor && G.mode !== 'title'; /* [B57] 雨の日の外の道：雨が降っているのに、道が乾いた色のままだった。ぬれた道は暗く、少し青く（車道は多め、歩道は少し） */
+  for (const [d, p] of DRAW) { if (isW(p)) continue; const m = project(p.v); if (!m) continue; if (p.dec) { if (m === 4) decalDraw(p, d); else clippedPattern(p, () => decalDraw(p, d)); continue; } pathPoly(Math.abs(m)); ctx.fillStyle = fogged(p.c, 1, d); ctx.fill(); if (RAINF && !p.soft && p.pat !== 'water' && p.pat !== 'sea') { ctx.fillStyle = p.mid ? 'rgba(34,42,56,.2)' : 'rgba(40,48,62,.11)'; ctx.fill(); } if (SNOWF && !p.soft && p.pat !== 'water' && p.pat !== 'sea') { ctx.fillStyle = p.mid ? 'rgba(238,242,248,.16)' : 'rgba(242,245,250,.34)'; ctx.fill(); } /* [B47] 雪の日の外の道：雪が降っているのに地面がいつもの色だった。道はうすく、歩道は少し多く白く */ if (p.soft) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1; ctx.stroke(); continue; } if (SEAMF) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = SEAMLW; ctx.stroke(); } /* [床 S1] 床の板と板の合わせ目に、1 ドットより細いすき間（下の色が線になって見え、走るとチカチカ）ができていた。板のふちを同じ色で 0.45 ドットだけ外へぬる */ if (!lowQ || d < 14) { floorTexture(p, d, m, sg); project(p.v); } if (m === 4 && d < patFar) { if (!LODOFF && p.pat !== 'tatami') { const v = p.v, wl = Math.hypot(v[9] - v[0], v[10] - v[1], v[11] - v[2]); if (wl > .2) LWK = clamp(Math.hypot(SCR[6] - SCR[0], SCR[7] - SCR[1]) / wl / 45, .35, 1); } try { floorPattern(p, d); } finally { LWK = 1; } } else if (m < 0) clippedPattern(p, () => floorPattern(p, d)); } /* [遠く A9] 床の模様（タイルの目地・段の線・板の目）の線も、床の 1m が画面で 45 ドットより小さい所では、その分細く（遠くの床の線がつぶれてざらざら・チカチカしていた） */
   pm('floor'); streetShade(sg);
   objShadows(sg);
   if (isCur) drawShadows(sg); pm('shade');
@@ -634,8 +636,8 @@ function sprMip(img, dw) { if (LODOFF || !img || !img.width || img.width < 48 ||
   g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height); m[lv] = c; return c; }
 function drawSpr(s, sg, d) {
   const p = segPos(sg, s.s, s.lat), sp = spriteAt(p[0], s.y + p[2], p[1]); if (!sp) return;
-  const nm = s.pn && LT.night > .35 && SPR[s.img + 'N'] ? s.img + 'N' : LT.night > .35 && (s.img === 'canopy_illum' || ((s.nv || s.img === 'canopy_sakura') && SPR[s.img + 'N'])) ? (s.img === 'canopy_illum' ? 'canopy_illumN' : s.img + 'N') : s.img === 'canopy_illum' ? 'canopy_green' : s.img;
-  const nm2 = s.walk ? s.imgs[((G.t * 6.5 + s.ph) | 0) % s.imgs.length] : nm;
+  const nm = s.pn && LT.night > .35 && SPR[s.img + 'N'] ? s.img + 'N' : LT.night > .35 && (s.img === 'canopy_illum' || ((s.nv || s.img === 'canopy_sakura') && SPR[s.img + 'N'])) ? (s.img === 'canopy_illum' ? 'canopy_illumN' : s.img + 'N') : s.img === 'canopy_illum' ? 'canopy_green' : s.img; const nmS = G.weather === 'snow' && !LT.indoor && SPR[nm + 'S'] ? nm + 'S' : nm; /* [B48] 雪の日は、雪をのせた木の絵 */
+  const nm2 = s.walk ? s.imgs[((G.t * 6.5 + s.ph) | 0) % s.imgs.length] : nmS;
   let img = SPR[nm2] || (SPR_PEND[nm2] && d < 45 ? sprPaint(nm2) : null); if (!img || !img.width) return;
   if (!s.glow && s.img !== 'glow' && nm === s.img) img = litSprite(img, LT.amb); // trees and signs darken with the evening light
   const w = s.w * sp.k, h = s.h * sp.k;
