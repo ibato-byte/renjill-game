@@ -405,7 +405,7 @@ Object.assign(THEMES, {
     props: [], obs: ['cone', 'rope'], course: 'tower', lm: [{ t: 'fuji', sc: .9, brg: 250 }, { t: 'hills', sc: 1.3, brg: 282 }, { t: 'tocho', sc: .7, brg: 305 }],
     arrive: { ja: '金網の中の赤い階段。約600段', en: 'Red stairs inside wire mesh: about 600 steps' } },
   tpass:  { ja: '赤い電波塔・500段からの通路', lbl: '500段から', lblEn: 'Past step 500', en: 'Red tower, past step 500', kind: 'room', len: [70, 76], road: ['#D9DCDF', '#CFD3D6'], rpat: 'stairs', side: ['#CFD3D6', '#C5C9CD'], spat: 'stairs', climb: [125, 150], flights: { a: 6, P: 9, F: 3, R: 5, n: 5 } /* [H3] 500段からの通路と階段：125m → 150m（5m を 5 回） */,
-    wall: '#EEF0F1', base: '#B9BDC2', wallH: 3.0, ceil: '#A3A9AF', cpat: 'beams', light: 'strip', face: 250, /* [塔 P1] 2026-11-21：天井の明かり 'slim' は描く形が無く、暗い灰色ののっぺりした天井だった。塔の中の通路らしく、鉄のはり（beams）と細長い蛍光灯（strip）に */ wdeco: ['stepsign500', 'quizpanel', 'stepsign500'], props: [], obs: ['cone'], course: 'tower',
+    wall: '#EEF0F1', base: '#B9BDC2', wallH: 3.0, ceil: '#CDD1D5', cpat: 'beams', light: 'strip', face: 250, /* [B62] 天井を明るい灰色に（白いかべと階段の上だけ、暗い灰色の天井が重くのしかかって見えた） */ /* [塔 P1] 2026-11-21：天井の明かり 'slim' は描く形が無く、暗い灰色ののっぺりした天井だった。塔の中の通路らしく、鉄のはり（beams）と細長い蛍光灯（strip）に */ wdeco: ['stepsign500', 'quizpanel', 'stepsign500'], props: [], obs: ['cone'], course: 'tower',
     arrive: { ja: 'うす暗い通路。あと少しで展望台', en: 'A dim passage. The deck is just above' } },
   hawk:   { ja: 'オオタカにつかまって空の上', lbl: 'オオタカと空の上', lblEn: 'Carried by a goshawk', en: 'Over Tokyo with a goshawk', kind: 'deck', sky: 1, len: [200, 210], road: ['#9AA0A6', '#90969C'], rpat: 'road', side: ['#8A9096', '#80868C'], spat: 'road', climb: [150, 0], view: 'city',
     props: [], obs: [], course: 'tower', face: 135, rail: '#9AA0A6',
