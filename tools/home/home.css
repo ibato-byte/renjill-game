@@ -601,3 +601,10 @@ html[lang="ko"] #sTitle.home .row .mini em,html[lang="ko"] #sTitle.home .row2 .s
   #sTitle.home .card>#tToday{grid-template-columns:minmax(0,1fr)!important;width:calc(100vw - 172px)!important}
   #sTitle.home #tToday .tt-c+.tt-c,#sTitle.home #tToday .tt-ch{display:none!important}
 }
+/* [B1] 下の台の上の金の短い線を消す（引っぱれる取っ手に見えるが、引っぱれない）。[B2] 今日の目標の札の右上の金の丸も消す（何の印か分からない） */
+#sTitle.home .card>.chars::before,#sTitle.home .card>#tToday::before{display:none!important}
+/* [B13] 日本語は、ことばの切れ目で改行する（「ゲー／ジ」のように、ことばの途中で行が分かれていた。対応していない端末は前のまま） */
+html:lang(ja) body{word-break:auto-phrase}
+/* [B27] 指・マウスで使っている時（html[data-in=ptr]）は、選択のわくを出さない。キーボードの時は今まで通り出す */
+html[data-in="ptr"] button:focus-visible,html[data-in="ptr"] a:focus-visible,html[data-in="ptr"] #sTitle.home button:focus-visible,html[data-in="ptr"] #sTitle.home #tKeepBtns .sub:focus-visible,html[data-in="ptr"] #sTitle.home .bank .tog .sub:focus-visible,html[data-in="ptr"] #sTitle.home .langtop:focus-visible{outline:none!important;box-shadow:none!important}
+html[data-in="ptr"] #sTitle.home .chars .char:focus-visible canvas{box-shadow:none!important}

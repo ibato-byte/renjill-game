@@ -229,7 +229,7 @@ function aerialCity(seg, yb, alt, hz) {
          [A3] 横切る道も、まっすぐな棒ではなく、ゆるい S 字の小道（はば 3m）
          [A4] 道のふちに、少しこい色の線（上から見て道の形がはっきり）
          [A5] 道が森に入る所は、道の色をうすくして、森の色にとけこませる */
-      const pc = night ? '#3A3628' : tint('#D9CBA8'), pe = night ? '#2E2A20' : tint('#B9AA86'), /* [着地 A23] 2026-11-21：園路の色に、立体の道と同じ朝夕の光の色をかける（夕方に着地すると、空からの道は明るい砂色、着地した道は夕日色で、色が急にかわった） */ curve = (pts, w, col) => { for (let i = 0; i + 1 < pts.length; i++) { const [f0, l0] = pts[i], [f1, l1] = pts[i + 1], L = Math.hypot(f1 - f0, l1 - l0) || 1, nf = -(l1 - l0) / L * w / 2, nl = (f1 - f0) / L * w / 2; poly([[f0 + nf, l0 + nl], [f1 + nf, l1 + nl], [f1 - nf, l1 - nl], [f0 - nf, l0 - nl]], col); } };
+      const pc = night ? '#454750' : tint('#D9CBA8'), pe = night ? '#363840' : tint('#B9AA86'), /* [B26] 夜の園路は、着地した後の立体の道（街灯に照らされた青みの灰色）と同じ色に。前は茶色の大きな帯で、着地の直前に地面が泥のように見えた */ /* [着地 A23] 2026-11-21：園路の色に、立体の道と同じ朝夕の光の色をかける（夕方に着地すると、空からの道は明るい砂色、着地した道は夕日色で、色が急にかわった） */ curve = (pts, w, col) => { for (let i = 0; i + 1 < pts.length; i++) { const [f0, l0] = pts[i], [f1, l1] = pts[i + 1], L = Math.hypot(f1 - f0, l1 - l0) || 1, nf = -(l1 - l0) / L * w / 2, nl = (f1 - f0) / L * w / 2; poly([[f0 + nf, l0 + nl], [f1 + nf, l1 + nl], [f1 - nf, l1 - nl], [f0 - nf, l0 - nl]], col); } };
       const arc = (f0, l0, f1, l1, bend, n) => Array.from({ length: n + 1 }, (_, i) => { const t = i / n; return [lerp(f0, f1, t) + Math.sin(t * Math.PI) * bend * .3, lerp(l0, l1, t) + Math.sin(t * Math.PI) * bend]; });
       const main = [[-10, 0], [130, 0]], b1 = arc(130, 0, 250, -95, 22, 8), b2 = arc(130, 0, 240, 110, -26, 8), cross = arc(70, -170, 95, 170, 30, 12);
       for (const [ln, w] of [[main, 6.2], [b1, 4.3], [b2, 4.3], [cross, 3.8]]) curve(ln, w, pe);

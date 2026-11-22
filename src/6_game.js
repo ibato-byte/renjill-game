@@ -164,7 +164,7 @@ function titleFrame(dt) {
   /* 2026-11-16 オーナー：「クリを選んだ時にユズにもスポットが当たる。どのキャラを選んでいるのか直感的に分かりづらい」。
      前は、選んだ子が横や奥にいて、選んでいない子のほうが手前で大きく見える並びがあった。いまは、選んだ子がいつもまん中のいちばん手前、ほかの 2 人は左右の少し奥。
      明かり（titleLight）は選んだ子だけに当てる（ほかの子も画面も暗くしない） */
-  const wd = W > H * 1.25 && W >= 900, ph = W < H && W < 600, sideL = wd ? 1.6 : ph ? 1.25 : 1.3, sideR = wd ? 1.12 : ph ? 1.25 : 1.3; /* [H66] たて長のスマホは 1.2 → 1.25（CI の遅いパソコンで、カメラのゆれの時に左右の子が選んだ子にわずかに重なった＝homelight） */ /* [H45] 2026-11-21：たて長のスマホでは、左右の子を少し内側に（左右の丸いボタンの列のうしろに半分かくれていた） */ // 横長の画面：右の子は札にかくれないよう寄せ、左の子は選んだ子に重ならないよう広げる（本番の大きな画面で、左の子が選んだ子のすぐ後ろに重なっていた）
+  const wd = W > H * 1.25 && W >= 900, ph = W < H && W < 600, pt = W < H && !ph, sideL = wd ? 1.6 : ph ? 1.25 : pt ? 1.22 : 1.3, sideR = wd ? 1.12 : ph ? 1.25 : pt ? 1.22 : 1.3; /* [B24] たて長のスマホは 1.2 → 1.25（CI の遅いパソコンで、カメラのゆれの時に、左右の子が選んだ子にわずかに重なった。homelight） */ /* [B10] たて長のタブレット：右の子（モチ）が右の丸いボタンの列の後ろにかくれていた。少し内側に */ /* [H45] 2026-11-21：たて長のスマホでは、左右の子を少し内側に（左右の丸いボタンの列のうしろに半分かくれていた） */ // 横長の画面：右の子は札にかくれないよう寄せ、左の子は選んだ子に重ならないよう広げる（本番の大きな画面で、左の子が選んだ子のすぐ後ろに重なっていた）
   const pR = segPos(seg, TITLE_FRONT, 0), pJ = segPos(seg, TITLE_BACK, me === 'jill' ? sideL : -sideR);
   [P.wx, P.wz] = pR; P.wy = pR[2] + (me === 'pom' ? Math.abs(Math.sin(G.t * 5)) * .07 : Math.abs(Math.sin(P.ph)) * .05); [F.wx, F.wz] = pJ; F.wy = pJ[2]; // 跳ねるのは選んだ子だけ（ほかの子も跳ねていて、だれを選んだか分かりにくかった。2026-11-17 オーナー）
   P.air = F.air = P.slide = F.slide = false; P.tilt = F.tilt = 0; P.fly = F.fly = 0;
@@ -455,6 +455,7 @@ function onEnterSeg(n) {
   else if (n.tid === 'lobby' || n.tid === 'ehall') { G.stats.office = 1; const b = 500 * SV.mlevel; G.score += b; banner('9:00 ON TIME!', t('onTime', fmt(b)), 'good'); SFX.mission(); react('cheer', 1); }
   else if (n.t0 >= 1080 && !G.chimed) { G.chimed = 1; G.rush = 0; G.stats.chime = 1; const b = 1000 * SV.mlevel; G.score += b; SFX.chime(); startFever(7); bannerNow("IT'S 6 PM! FEVER", t('chime', fmt(b)), 'good'); react('sparkle', 1); }
   else if (n.step && n.step.last) banner('LAST TRAIN', t('lastTrain'), 'room');
+  else if (!firstVisit) { } /* [B36] 2 回目からは、場所の名前の帯を出さない（左上の札にいつも場所の名前があり、同じ字が 2 か所に出ていた） */
   else if (th.arrive || ARRIVE[n.tid]) banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), firstVisit ? L(th.arrive || ARRIVE[n.tid]) : '', 'room');
   else banner(LANG === 'en' ? lblOf(n.tid).en.toUpperCase() : L(lblOf(n.tid)), LANG === 'en' || !firstVisit ? '' : (L(th).split('・')[1] || ''), 'room');
   if (th.rush) { G.rush = 1; G.chaseT = 0; G.boss = { seg: n, rev: G.reviveN || 0 }; bannerNow('BOSS: DEADLINE', t('bossGo'), 'bad'); } else { G.rush = 0; G.boss = null; } // 締め切りの山（B-39）：ボス戦ふう
@@ -1058,7 +1059,7 @@ function hud() {
   lastTrainTick(); bossHud(); layoutHud();
   gigHud(); chalTick(); setText('hChal', CHAL && !G.chalWon ? t('chalHud', fmt(CHAL.s)) : '');
   setText('hScore', fmt(G.score)); fitScore(); setText('hHay', String(Math.floor(G.hay))); { const hn = Math.floor(G.hay); if (hn !== HUDC.hayN) { const up = hn > (HUDC.hayN || 0); HUDC.hayN = hn; const e = el('hHay'); if (up && e && !OPT().calm) { e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop'); } } } // the hay count hops a little when it goes up (2026-11-08)
-  setText('hMult', '×' + (SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1)));
+  { const mu = SV.mlevel * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1); setText('hMult', mu > 1 ? '×' + mu : ''); } /* [B31] 倍率が ×1 の時は出さない（いつも見える「×1」は情報がふえるだけだった） */
   setText('hClock', clockStr(G.clock)); setText('hDay', t('dayN', G.day));
   { const sg = curSeg(); const tail = sg.th.climb ? ` ${altitude(sg, G.s)}m` : '', key = sg.id + '|' + L(sg.th) + '|' + LANG + '|' + tail + '|' + innerWidth /* 同じ場所でも季節で名前が変わる（道ごとに見る） */, e = el('hRoom'); if (e && e.offsetParent && HUDC.roomK !== key) { HUDC.roomK = key; roomFit(e, sg.th, tail); } }
   { const danger = (G.chaseT > 0 && !G.chaseIntro) || G.rush; if (danger) G.bumped = 1; setCls('lives', 'hide', !G.bumped && !G.rush); setCls('lives', 'warn', danger); setCls('lives', 'one', danger);

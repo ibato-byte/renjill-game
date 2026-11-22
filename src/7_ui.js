@@ -305,7 +305,7 @@ function openRevive() {
   $('#rvHave').textContent = free ? t('reviveFreeNote') : t('reviveHave', SV.clovers, fmt(SV.bank + Math.floor(G.hay)));
   const ba = $('#btnRvAd'); if (ba) { ba.hidden = !PORTAL.adOK(); ba.textContent = t('reviveAd'); }
   if (bc.disabled && bh.disabled && (!ba || ba.hidden)) { endRun(); return; }
-  hideAll(); show('sRevive'); { const f = !bc.disabled ? bc : !bh.disabled && !bh.hidden ? bh : $('#btnRvNo'); try { f.focus({ preventScroll: true }); } catch (e) { } } // keyboard players can continue with Enter
+  hideAll(); show('sRevive'); if (LASTIN === 'kb') { const f = !bc.disabled ? bc : !bh.disabled && !bh.hidden ? bh : $('#btnRvNo'); try { f.focus({ preventScroll: true }); } catch (e) { } } /* [B12] 指で遊んでいる時は、つづけるボタンに青いわくを出さない（キーボードの時だけ選んでおく） */ // keyboard players can continue with Enter
   const ring = $('#rvRing'), num = $('#rvNum'), t0 = performance.now();
   clearInterval(rvTimer);
   let rvLeft = 5, rvLast = performance.now();
@@ -319,6 +319,7 @@ function resume() { if (G.mode !== 'pause') return; hideAll(); show('hud');
 
 /* ================= input ================= */
 const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'up', KeyW: 'up', Space: 'up', ArrowDown: 'down', KeyS: 'down' };
+let LASTIN = 'ptr'; const setIn = v => { LASTIN = v; try { document.documentElement.dataset.in = v; } catch (e) { } }; setIn('ptr'); addEventListener('keydown', () => setIn('kb'), true); addEventListener('pointerdown', () => setIn('ptr'), true); addEventListener('touchstart', () => setIn('ptr'), { capture: true, passive: true }); /* [B27] 指・マウスで使っている時は、選択のわく（青い太いわく）を見せない（パネルの × などに、開いたとたん出ていた） */ /* [B12] さいごに使ったのがキーボードか指・マウスか */
 addEventListener('keydown', e => {
   if (e.target && e.target.closest && e.target.closest('input,textarea,[contenteditable]') && e.code !== 'Escape') return; // typing a name or a code: letters are letters (P is not pause)
   if (e.code === 'KeyM' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) { toggleMute(); return; } /* M：音のオン・オフ */

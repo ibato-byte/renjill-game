@@ -2085,6 +2085,201 @@
       "name": "ホーム：いろいろな画面の大きさの直し（H61〜H65）",
       "file": "tools/home/home.css",
       "has": "[H65]"
+    },
+    {
+      "name": "ホーム：下の台の取っ手に見える線と、目標の札の金の丸を出さない",
+      "file": "tools/home/home.css",
+      "has": "[B1]"
+    },
+    {
+      "name": "家の台所の灯りは家の丸い灯り",
+      "file": "src/1b_places.js",
+      "has": "[B3]"
+    },
+    {
+      "name": "湾岸の富士山を遠くの山らしい大きさに",
+      "file": "src/4b_patterns.js",
+      "has": "[B5]"
+    },
+    {
+      "name": "集中線は画面のふちだけ",
+      "file": "src/4_render.js",
+      "has": "[B6]"
+    },
+    {
+      "name": "階段の区間で、かべの物は水平・天井の物は天井の線に",
+      "file": "src/4_render.js",
+      "has": "[B7]"
+    },
+    {
+      "name": "階段のある部屋の天井の物は天井の線に",
+      "file": "src/3_world.js",
+      "has": "[B9]"
+    },
+    {
+      "name": "たて長のタブレットのホームで左右の子を内側に",
+      "file": "src/6_game.js",
+      "has": "[B10]"
+    },
+    {
+      "name": "走るクリの体のふちの細い線",
+      "file": "src/2b_bunny.js",
+      "has": "[B11]"
+    },
+    {
+      "name": "指で遊ぶ時は続けるボタンに青いわくを出さない",
+      "file": "src/7_ui.js",
+      "has": "[B12]"
+    },
+    {
+      "name": "日本語はことばの切れ目で改行",
+      "file": "tools/home/home.css",
+      "has": "[B13]"
+    },
+    {
+      "name": "住宅街の道には車線の点線を引かない",
+      "file": "src/4b_patterns.js",
+      "has": "[B14]"
+    },
+    {
+      "name": "マンホールは床の上の円として描く",
+      "file": "src/4b_patterns.js",
+      "has": "[B15]"
+    },
+    {
+      "name": "走っている時も近くの和室の天井は竿縁天井",
+      "file": "src/4b_patterns.js",
+      "has": "[B16]"
+    },
+    {
+      "name": "桜の枝は花のかたまりの中と幹のまわりだけ",
+      "file": "src/4b_patterns.js",
+      "has": "[B17]"
+    },
+    {
+      "name": "遠くの目じるし同士を画面で重ねない",
+      "file": "src/4b_patterns.js",
+      "has": "[B18]"
+    },
+    {
+      "name": "勝どき橋は鉄のアーチと運転室",
+      "file": "src/3_world.js",
+      "has": "[B19]"
+    },
+    {
+      "name": "高架の裏の鉄のけた",
+      "file": "src/3_world.js",
+      "has": "[B20]"
+    },
+    {
+      "name": "のぼりの字を町に合わせる",
+      "file": "src/3_world.js",
+      "has": "[B22]"
+    },
+    {
+      "name": "ガード下の天井は赤レンガ",
+      "file": "src/4b_patterns.js",
+      "has": "[B23]"
+    },
+    {
+      "name": "ガラスの天井には明かりの板を置かない",
+      "file": "src/3_world.js",
+      "has": "[B21]"
+    },
+    {
+      "name": "たて長のスマホのホームの左右の子の間",
+      "file": "src/6_game.js",
+      "has": "[B24]"
+    },
+    {
+      "name": "ガラスの床の枠は窓のまわりだけ",
+      "file": "src/4b_patterns.js",
+      "has": "[B25]"
+    },
+    {
+      "name": "夜の着地の園路は立体の道と同じ色",
+      "file": "src/4g_aerial.js",
+      "has": "[B26]"
+    },
+    {
+      "name": "指で使う時は選択のわくを出さない",
+      "file": "src/7_ui.js",
+      "has": "[B27]"
+    },
+    {
+      "name": "家の丸い天井灯は天井の上の円",
+      "file": "src/4b_patterns.js",
+      "has": "[B28]"
+    },
+    {
+      "name": "家の天井の回り縁",
+      "file": "src/4b_patterns.js",
+      "has": "[B29]"
+    },
+    {
+      "name": "ホームの点字ブロックの点",
+      "file": "src/4b_patterns.js",
+      "has": "[B30]"
+    },
+    {
+      "name": "倍率は×2以上の時だけ出す",
+      "file": "src/6_game.js",
+      "has": "[B31]"
+    },
+    {
+      "name": "家の台所の流し台は木の戸",
+      "file": "src/4e_art.js",
+      "has": "[B32]"
+    },
+    {
+      "name": "家の台所の木の食器棚",
+      "file": "src/4e_art.js",
+      "has": "[B33]"
+    },
+    {
+      "name": "家の板の床は近くで細い板",
+      "file": "src/4b_patterns.js",
+      "has": "[B34]"
+    },
+    {
+      "name": "中づり広告の絵を言葉に合わせる",
+      "file": "src/4e_art.js",
+      "has": "[B35]"
+    },
+    {
+      "name": "場所の名前の帯ははじめて来た時だけ",
+      "file": "src/6_game.js",
+      "has": "[B36]"
+    },
+    {
+      "name": "外向きの面だけの箱（建物の外かべ）",
+      "file": "src/4_render.js",
+      "has": "[B37]"
+    },
+    {
+      "name": "タイルカーペットは近くで50cm角",
+      "file": "src/4b_patterns.js",
+      "has": "[B38]"
+    },
+    {
+      "name": "床のタイルは近くで細かい目地",
+      "file": "src/4b_patterns.js",
+      "has": "[B39]"
+    },
+    {
+      "name": "建物の外かべは入口の深さで並べ、中では描かない",
+      "file": "src/4_render.js",
+      "has": "[B40]"
+    },
+    {
+      "name": "電波塔の入口のホールの外かべ",
+      "file": "src/3_world.js",
+      "has": "[B41]"
+    },
+    {
+      "name": "和室とホーム画面は丸い天井灯を出さない",
+      "file": "src/4b_patterns.js",
+      "has": "[B42]"
     }
   ]
 }

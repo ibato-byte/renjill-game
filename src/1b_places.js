@@ -13,7 +13,7 @@ const THEMES = {
   living:   { ja: '課長の家・リビング', en: "The boss's living room", kind: 'room', len: [62, 72], road: ['#C49A6C', '#BB9163'], rpat: 'boards', side: ['#B5503F', '#AA4A3A'], spat: 'rug',
     wall: '#F3E8DA', base: '#7A5A48', wallH: 3.0, ceil: '#EFE6D8', cpat: 'plain', light: 'round', wdeco: ['window', 'frame', 'window', 'calendar'], props: [['sofa', 2], ['tvstand', 2], ['shelf', 2], ['plant', 2], ['lampS', 1]], obs: ['chabudai', 'zabuton', 'box', 'toys', 'papers'] },
   kitchen:  { ja: '課長の家・台所', en: "The boss's kitchen", kind: 'room', len: [60, 68], road: ['#E9E2D4', '#DCD3C2'], rpat: 'grid', side: ['#DCD3C2', '#D2C8B6'], spat: 'grid',
-    wall: '#FBF6EE', base: '#9A7F5A', wallH: 2.9, ceil: '#F3EEE6', cpat: 'plain', light: 'panel', wdeco: ['window', 'window'], props: [['counter', 3], ['fridge', 1], ['rack', 2]], obs: ['table', 'pot', 'noren', 'box'] },
+    wall: '#FBF6EE', base: '#9A7F5A', wallH: 2.9, ceil: '#F3EEE6', cpat: 'plain', light: 'round', /* [B3] 家の台所に会社の四角い天井灯が並んでいた → 家の丸い灯り */ wdeco: ['window', 'window'], props: [['counterH', 3], ['fridge', 1], ['rackH', 2]], obs: ['table', 'pot', 'noren', 'box'] }, /* [B32] */
   genkan:   { ja: '課長の家・玄関', en: "The boss's entryway", kind: 'room', len: [56, 64], road: ['#9A9890', '#8F8D85'], rpat: 'stone', side: ['#8F8D85', '#86847C'], spat: 'stone',
     wall: '#EAD7BE', base: '#6B4631', wallH: 3.0, ceil: '#D9C6AA', cpat: 'wood', light: 'round', wdeco: ['frame', 'window'], props: [['getabako', 3], ['umbrellaS', 2], ['plant', 1]], obs: ['shoes', 'umbrella', 'step', 'box'] },
   /* ---- commute ---- */
@@ -45,7 +45,7 @@ const THEMES = {
     fac: { style: 'luxury', h: [20, 34], pal: ['#E8E1D3', '#D9D0BF', '#C9C3B8', '#9FB4C6', '#E3DACA', '#BDB3A3'] }, props: [['lampC', 3], ['tree', 2], ['flowers', 2]], obs: ['parasol', 'bench', 'flowers', 'cone', 'supercar'], lm: [{ t: 'clock', sc: 1, off: .18 }], tree: 'green',
     stamp: { k: '銀座', ja: '銀座', en: 'Ginza', note: { ja: '週末・祝日の午後、中央通りは歩行者天国になり、車道を歩ける。', en: 'On weekend and holiday afternoons Chuo-dori becomes a pedestrian street.' } } },
   yurakucho:{ ja: '有楽町ガード下', en: 'Yurakucho, under the tracks', kind: 'room', len: [92, 104], road: ['#6E6A63', '#67635C'], rpat: 'stone', side: ['#615D56', '#5A5650'], spat: 'stone',
-    wall: '#9A4A36', wpat: 'bricks', base: '#4A2A20', wallH: 3.4, ceil: '#3A3A3E', cpat: 'girder', light: 'bulb', wdeco: ['izakaya', 'izakaya', 'izakaya', 'menu'], props: [['crates', 2], ['stools', 2], ['chochin', 3]], obs: ['crate', 'crate', 'stoolsO', 'noren'], rumble: 1,
+    wall: '#9A4A36', wpat: 'bricks', base: '#4A2A20', wallH: 3.4, ceil: '#6E3B2C', cpat: 'vault' /* [B23] */, light: 'bulb', wdeco: ['izakaya', 'izakaya', 'izakaya', 'menu'], props: [['crates', 2], ['stools', 2], ['chochin', 3]], obs: ['crate', 'crate', 'stoolsO', 'noren'], rumble: 1,
     stamp: { k: '有楽', ja: '有楽町ガード下', en: 'Yurakucho', note: { ja: '線路の高架下に、レンガのアーチと飲み屋が並ぶ。', en: 'Brick arches and small bars under the elevated tracks.' } } },
   /* ---- evening, east ---- */
   asakusa:  { ja: '浅草・雷門と仲見世', en: 'Asakusa, Kaminarimon', kind: 'street', len: [104, 116], road: ['#B9AE9C', '#AFA392'], rpat: 'stone', side: ['#A89C88', '#9F937F'], spat: 'stone',
@@ -512,7 +512,7 @@ Object.assign(THEMES, {
   harumi:   { ja: '晴海ふ頭', lbl: '晴海', en: 'Harumi pier', kind: 'deck', len: [100, 112], road: ['#BDB7AC', '#B5AFA4'], rpat: 'plaza', side: ['#2B5F86', '#285A80'], spat: 'water', view: 'sea', rail: '#E9EEF2',
     props: [], obs: ['bench', 'ring', 'cone', 'rope', 'stroller'], lm: [{ t: 'tower', sc: .9, off: -.2 }, { t: 'fuji', sc: .8, off: .3 }],
     stamp: ST('晴海', '晴海ふ頭', 'Harumi pier', '大きな客船が来る港。海の向こうに都心のビルと吊り橋が見える。', 'A cruise-ship pier with the city towers and the suspension bridge across the water.') },
-  kachidoki:{ ja: '勝どき橋', en: 'Kachidoki Bridge', kind: 'deck', len: [100, 112], road: ['#6E6F74', '#68696E'], rpat: 'road', side: ['#2E6E99', '#2A6690'], spat: 'water', view: 'river', rail: '#7F95A8', bridge: 1,
+  kachidoki:{ ja: '勝どき橋', en: 'Kachidoki Bridge', kind: 'deck', len: [100, 112], road: ['#6E6F74', '#68696E'], rpat: 'road', side: ['#2E6E99', '#2A6690'], spat: 'water', view: 'river', rail: '#7F95A8', bridge: 'arch', /* [B19] */
     props: [], obs: ['cone', 'kick', 'car', 'bike', 'barrier'], lm: [{ t: 'cyl', sc: .8, off: .2 }],
     stamp: ST('勝鬨', '勝どき橋', 'Kachidoki Bridge', '昔は真ん中が開いて船を通した、鉄の跳ね橋。', 'An iron drawbridge whose middle once opened to let ships through.') },
   monorail: { ja: '空港へのモノレール（車内）', lbl: 'モノレール', en: 'Airport monorail', kind: 'train', len: [92, 104], road: ['#9AA6B2', '#93A0AC'], rpat: 'train', side: ['#93A0AC', '#8C99A5'], spat: 'train',

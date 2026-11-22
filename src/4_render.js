@@ -168,7 +168,9 @@ function boxFaces(seg, b, ds, dl, dy) {
 function boxFaces0(seg, b, s0, s1, l0, l1, y0, y1) {
   const f = seg.f, r = seg.r;
   if (b.noTop) return boxFaces0(seg, Object.assign({}, b, { noTop: 0 }), s0, s1, l0, l1, y0, y1).filter(fc => !fc.top); // 上の面を描かない箱（ホーム画面の敷きぶとん：上の面は床の絵＝シーツと掛けぶとん）
-  return [
+  /* [B7] 階段のある区間の、天井の明かり（fl: 'c'）は天井の線に、かべの窓・札（fl: 1）は水平に置く。前は 1 つの箱の前と後ろが別の段の高さになり、ゆがんで天井から飛び出したり、ななめの板に見えた */
+  const e0 = seg.e0 || 0, Ef = b.fl && seg.hp ? (b.fl === 'c' ? s => ceilE(seg, s) - e0 : (m => () => m)(Math.max(segE(seg, s0), segE(seg, s1)) - e0)) : null, quad = Ef ? (sg, pts) => quadAt(sg, pts.map(p => [p[0], p[1], p[2] + Ef(p[0])]), 1) : quadAt;
+  const fs = [
     { v: quad(seg, [[s0, l0, y1], [s0, l1, y1], [s1, l1, y1], [s1, l0, y1]]), n: [0, 1, 0], sh: FACE_SH.top, top: 1 },
     { v: quad(seg, [[s0, l0, y0], [s0, l1, y0], [s0, l1, y1], [s0, l0, y1]]), n: [-f[0], 0, -f[1]], sh: FACE_SH.front, front: 1 },
     { v: quad(seg, [[s1, l1, y0], [s1, l0, y0], [s1, l0, y1], [s1, l1, y1]]), n: [f[0], 0, f[1]], sh: FACE_SH.back, back: 1 },
@@ -176,6 +178,7 @@ function boxFaces0(seg, b, s0, s1, l0, l1, y0, y1) {
     { v: quad(seg, [[s0, l1, y0], [s1, l1, y0], [s1, l1, y1], [s0, l1, y1]]), n: [r[0], 0, r[1]], sh: FACE_SH.right, sideR: 1 },
     { v: quad(seg, [[s0, l1, y0], [s0, l0, y0], [s1, l0, y0], [s1, l1, y0]]), n: [0, -1, 0], sh: .7 },
   ];
+  return b.only ? fs.filter(fc => b.only.some(q => fc[q])) : fs; /* [B37] only：外がわの面だけを描く箱（建物の外のかべ。中からは見えない） */
 }
 function faceVisible(fc) { const v = fc.v; const cx = (v[0] + v[6]) / 2, cy = (v[1] + v[7]) / 2, cz = (v[2] + v[8]) / 2; const n = fc.n3 || fc.n; return n.length === 3 ? (CAM.x - cx) * n[0] + (CAM.y - cy) * n[1] + (CAM.z - cz) * n[2] > 0 : (CAM.x - cx) * n[0] + (CAM.z - cz) * n[1] > 0; }
 function spriteAt(x, y, z) { tc(x, y, z, TMP, 0); const zc = TMP[2]; if (zc < NEAR || zc > FAR) return null; return { sx: W / 2 + TMP[0] * FOCAL / zc, sy: HORIZON - TMP[1] * FOCAL / zc, k: FOCAL / zc, z: zc }; } // 答えは毎回新しい入れ物（受け取った側が、あとで使うことがある）
@@ -544,7 +547,7 @@ function drawObjects(sg, isCur, oc) { SKYV = !!(curSeg().th.sky);
     dput(d, 3, o);
   }
   if (sg.movers) for (const m of sg.movers) { const mid = m.cross ? segPos(sg, (m.bx[0].s0 + m.bx[0].s1) / 2, (m.bx[0].l0 + m.bx[0].l1) / 2 + (m.dl || 0)) : segPos(sg, m.ds + 20, (m.bx[0].l0 + m.bx[0].l1) / 2); const d = (mid[0] - CAM.x) * CAM.s + (mid[1] - CAM.z) * CAM.c; if (d > -20 && d < FAR) dput(m.cross ? d + 8 : d, 8, m); } // 橋の上の電車は、橋げた・かべ高欄より先に描く（下から見上げても、電車の床下は橋げたにかくれる。2026-11-17）
-  for (const p of sg.props) { if (p.nodraw || p.under) continue; const d = segDepth(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); if (d < -3 || d > (p.big || SKYV ? FAR : lowQ ? 60 : 85)) continue; /* [降りる時 D3] 降りる間は、下の公園のベンチ・街灯なども遠くから描く（近づいた時に急に出てこない） */ dput(d, 6, p); }
+  for (const p of sg.props) { if (p.nodraw || p.under) continue; const d = p.extOnly ? segDepth(sg, p.s0, 0) - .5 : segDepth(sg, (p.s0 + p.s1) / 2, (p.l0 + p.l1) / 2); /* [B40] 建物の外かべは、いちばん手前（入口）の深さで並べる（建物の中の物が、外かべの上に描かれて透けて見えた） */ if (d < -3 || d > (p.big || SKYV ? FAR : lowQ ? 60 : 85)) continue; /* [降りる時 D3] 降りる間は、下の公園のベンチ・街灯なども遠くから描く（近づいた時に急に出てこない） */ dput(d, 6, p); }
   for (const s of sg.spr) { if (s.under) continue; if (s.night && LT.night < .3) continue; if (s.img === 'glow' && LT.night < .3 && !LT.indoor) continue; const d = segDepth(sg, s.s, s.lat); if (d < .5 || d > (s.far || SKYV ? FAR : 80)) continue; /* [降りる時 D2] オオタカと降りる間は、下の公園の木や物が 80m より遠くても描く（前は、高い所では消え、近づくと急に出てきた） */ dput(d, 7, s); }
   // pigeons on the street: they peck about and fly off as you run up (2026-11-08)
   // rain: puddles on the street that splash when you run through (2026-11-08)
@@ -572,7 +575,7 @@ function drawObjects(sg, isCur, oc) { SKYV = !!(curSeg().th.sky);
 function drawObj(e, sg) {
   {
     if (e[1] === 3) { drawObstacle(e[2], sg, e[0]); pm('obs'); }
-    else if (e[1] === 6) { const p = e[2]; if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], (p.l0 < ROAD && p.l1 > -ROAD) ? passFade(e[0]) : 1, 0, 0, 0, p.fc); pm('props'); } // 道のわきの家具・箱は、通りすぎてもうすくしない（2026-11-17）
+    else if (e[1] === 6) { const p = e[2]; if (p.extOnly && sg === G.segs[G.ci]) return; /* [B40] 建物の外からだけ見る物（中に入ったら描かない） */ if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], (p.l0 < ROAD && p.l1 > -ROAD) ? passFade(e[0]) : 1, 0, 0, 0, p.fc); pm('props'); } // 道のわきの家具・箱は、通りすぎてもうすくしない（2026-11-17）
     else if (e[1] === 7) { drawSpr(e[2], sg, e[0]); pm('spr'); }
     else if (e[1] === 8) drawBoxes(moverBoxes(e[2]), sg, e[0], 1, e[2].cross ? 0 : e[2].ds, e[2].cross ? e[2].dl || 0 : 0, 0);
     else if (e[1] === 4) { drawItem(e[2], sg, e[0]); pm('items'); }
@@ -882,8 +885,8 @@ function drawFX() {
   // 集中線はダッシュ・フィーバー・飛んでいる間だけ。ふつうに速いだけのときの薄い線は、画面のあちこちに「薄い斜めの残像」が出ているように見えたのでやめた（2026-11-08 の報告）
   const spdK = (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0;
   if (G.mode === 'play' && !OPT().calm && spdK > 0) { G.spdN = (G.spdN || 0) + 1;
-    ctx.strokeStyle = G.fever > 0 ? `rgba(242,194,48,${(.55 * spdK).toFixed(2)})` : `rgba(255,255,255,${(.55 * spdK).toFixed(2)})`; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.beginPath();
-    for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2 + G.t * .5, r0 = Math.min(W, H) * (.32 + ((G.t * 3 + k * .37) % 1) * .5); ctx.moveTo(W / 2 + Math.cos(a) * r0, HORIZON + Math.sin(a) * r0 * .8); ctx.lineTo(W / 2 + Math.cos(a) * (r0 + 40), HORIZON + Math.sin(a) * (r0 + 40) * .8); }
+    ctx.strokeStyle = G.fever > 0 ? `rgba(242,194,48,${(.4 * spdK).toFixed(2)})` : `rgba(255,255,255,${(.4 * spdK).toFixed(2)})`; ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.beginPath();
+    for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2 + G.t * .5, r0 = Math.min(W, H) * (.5 + ((G.t * 3 + k * .37) % 1) * .45), L = 30 + r0 * .18; ctx.moveTo(W / 2 + Math.cos(a) * r0, HORIZON + Math.sin(a) * r0 * .8); ctx.lineTo(W / 2 + Math.cos(a) * (r0 + L), HORIZON + Math.sin(a) * (r0 + L) * .8); } /* [B6] 集中線は画面のふちだけ・外ほど長く・うすく（.55 → .4）。前はまん中近くにも短い線が散って、ひっかき傷に見えた */
     ctx.stroke();
   }
   if (G.flashT > 0) { ctx.fillStyle = `rgba(200,70,60,${G.flashT * .45})`; ctx.fillRect(0, 0, W, H); }
