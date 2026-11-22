@@ -644,3 +644,12 @@ html[data-in="ptr"] #sTitle.home .chars .char:focus-visible canvas{box-shadow:no
   #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:1px!important;padding-top:0;padding-bottom:0}
   #sTitle.home .row .mini em,#sTitle.home .row2 .sub{font-size:9px}
 }
+/* [H83] 2026-11-23 オーナー「今日の目標などが見切れている。もう少し小さくていい。何桁に行っても見切れないように」
+   数（.ttn）の字の大きさは「枠の幅 ÷ 字の数（--n）」より大きくしない（cqw＝枠の幅）。どの桁でも、✓ がついても枠に入る。ふだんの大きさも少し小さく */
+#sTitle.home #tToday .tt-c{container-type:inline-size;min-width:0}
+#sTitle.home #tToday .tt-c b,#sTitle.home #tToday .tt-c b.nl,#sTitle.home #tToday .tt-c b.nxl{overflow:visible}
+#sTitle.home #tToday .tt-c .ttn{display:inline-block;white-space:nowrap;font-size:min(1em,calc((100cqw - 6px) / (var(--n,7) * .72)))}
+@media (orientation:portrait) and (max-width:599px){#sTitle.home #tToday .tt-c b{font-size:17px!important}#sTitle.home #tToday .tt-c small{font-size:9.5px}}
+/* [H85] 音・設定の丸 2 つは、たて長のスマホでは右の列からはずし、いちばん上の段（題字と「日本語」の間の空き）に置く（右の列の幅が足りず、設定の丸が画面の右のふちから外へ出ていた）。置き場所は JS（homePlace） */
+#sTitle.home .tog.toptog{position:fixed;z-index:3;display:flex!important;gap:8px;margin:0}
+#sTitle.home .tog.toptog .sub{width:36px!important;height:36px!important;aspect-ratio:auto}
