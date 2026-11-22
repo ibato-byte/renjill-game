@@ -4,7 +4,7 @@
 const fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 // 旧名の一覧（この行は「旧名」を含む。置き換えの道具は書き換えない）
-const OLD = /レンとジル|(?<![ァ-ー])(?:レン|ジル|ポム)(?![ァ-ー])|(?<![A-Za-z0-9_.$\/-])(?:R(?=en\b)en|J(?=ill\b)ill|P(?=om\b)om|R(?=EN\b)EN|J(?=ILL\b)ILL|P(?=OM\b)OM)(?![A-Za-z0-9_\/-])|蓮與吉兒|renjill_office/g;
+const OLD = /レンとジル|(?<![ァ-ー])(?:レン|ジル|ポム)(?![ァ-ー])|(?<![A-Za-z0-9_.$\/-])(?:R(?=en\b)en|J(?=ill\b)ill|P(?=om\b)om|R(?=EN\b)EN|J(?=ILL\b)ILL|P(?=OM\b)OM)(?![A-Za-z0-9_\/-])|蓮與吉兒|renjill_office/g;  // 旧名
 const files = ['app/index.html', 'app/guide.html', 'app/guide-en.html', 'app/food.html', 'app/food-en.html', 'app/ranking.html', 'app/manifest.webmanifest', 'i18n.json', 'seo.py']
   .concat(fs.readdirSync(path.join(ROOT, 'src')).map(f => 'src/' + f));
 let bad = 0;

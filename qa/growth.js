@@ -24,7 +24,7 @@ const errs = []; const E = (tag, m) => errs.push(tag + ' ' + m);
     const ti = await p.evaluate(() => ({ links: [...document.querySelectorAll('#tFollow a')].map(a => [a.href, a.target, a.rel]), feed: (document.querySelector('#tFeed') || {}).textContent || '', site: document.querySelector('#tSite').href }));
     for (const u of PROFILES) if (!ti.links.some(l => l[0] === u && l[1] === '_blank' && /noopener/.test(l[2]))) E(tag, 'title follow missing ' + u);
     if (!/NEW/.test(ti.feed)) E(tag, 'feed card NEW ' + ti.feed);
-    if (!/renjill\.coana\.co\.jp\/\?ref=haydash/.test(ti.site)) E(tag, 'site ref ' + ti.site);
+    if (!/usagi\.coana\.co\.jp\/\?ref=haydash/.test(ti.site)) E(tag, 'site ref ' + ti.site);
     if (w < 600) { const over = await p.evaluate(() => { const e = document.querySelector('#tFollow'); return e.scrollWidth > e.clientWidth + 1 || e.getBoundingClientRect().right > innerWidth; }); if (over) E(tag, 'title follow overflows'); }
     // settings: the official profiles
     await p.click('#btnSet'); await p.waitForTimeout(400);
