@@ -572,6 +572,7 @@ html.calm .howanim .ha-cap span:first-child{opacity:1}
 /* 上の帯：ベスト・チモシー・音・設定 */
 #sTitle.home .card>.bank{grid-column:1/-1;grid-row:1;justify-content:flex-end;flex-wrap:nowrap;gap:6px;padding:calc(54px + env(safe-area-inset-top,0px)) 12px 0 150px;color:var(--ink)}
 #sTitle.home .bank>span:not(.tog){display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px 0 9px;border-radius:999px;background:rgba(255,252,246,.94);box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff;font-size:10px;white-space:nowrap}
+#sTitle.home .card>.bank{pointer-events:none}#sTitle.home .card>.bank>*{pointer-events:auto} /* [H89] 2026-11-23：上の帯（.bank）は横いっぱいの透明な箱なので、上に置いた設定・音のボタン（H85）を押せなかった。帯の中のチモシーの数だけ押せるように */
 #sTitle.home .bank b{font-size:14px}
 #sTitle.home .bank img{width:18px;height:18px;vertical-align:0}
 #sTitle.home .bank .tog{display:inline-flex;gap:6px;margin:0}
@@ -1201,5 +1202,16 @@ html[data-in="ptr"] #sTitle.home .chars .char:focus-visible canvas{box-shadow:no
   #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:1px!important;padding-top:0;padding-bottom:0}
   #sTitle.home .row .mini em,#sTitle.home .row2 .sub{font-size:9px}
 }
+/* [H83] 2026-11-23 オーナー「今日の目標などが見切れている。もう少し小さくていい。何桁に行っても見切れないように」
+   数（.ttn）の字の大きさは「枠の幅 ÷ 字の数（--n）」より大きくしない（cqw＝枠の幅）。どの桁でも、✓ がついても枠に入る。ふだんの大きさも少し小さく */
+#sTitle.home #tToday .tt-c{container-type:inline-size;min-width:0}
+#sTitle.home #tToday .tt-c b,#sTitle.home #tToday .tt-c b.nl,#sTitle.home #tToday .tt-c b.nxl{overflow:visible}
+#sTitle.home #tToday .tt-c .ttn{display:inline-block;white-space:nowrap;font-size:min(1em,calc((100cqw - 6px) / (var(--n,7) * .72)))}
+@media (orientation:portrait) and (max-width:599px){#sTitle.home #tToday .tt-c b{font-size:17px!important}#sTitle.home #tToday .tt-c small{font-size:9.5px}}
+/* [H85] 音・設定の丸 2 つは、たて長のスマホでは右の列からはずし、いちばん上の段（題字と「日本語」の間の空き）に置く（右の列の幅が足りず、設定の丸が画面の右のふちから外へ出ていた）。置き場所は JS（homePlace） */
+#sTitle.home .tog.toptog{position:fixed;z-index:3;display:flex!important;gap:8px;margin:0}
+#sTitle.home .tog.toptog .sub{width:36px!important;height:36px!important;aspect-ratio:auto}
+/* [H88] アプリの枠が、iPhone の見えている高さより下までのびている時は、その分だけスタートを上に（JS が --appCut に入れる。ふつうは 0） */
+@media (orientation:portrait) and (max-width:599px){#sTitle.home .card>#btnStart{margin-bottom:calc(10px + env(safe-area-inset-bottom,0px) + var(--appCut,0px))!important}}
 /* ==== HOME-V2 END ==== */
 </style>
