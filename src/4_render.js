@@ -429,7 +429,7 @@ function render() {
 const OCC = { on: false, n: 0, d: new Float32Array(160), y: new Float32Array(160), m: new Float32Array(160) };
 function buildOcc(sg) {
   OCC.on = false; if (!sg.hp) return; let n = 0, mn = 1e9;
-  for (let s = Math.max(0, G.s - 4); s < sg.len + HW && n < 160; s += 1.5) {
+  for (let s = Math.max(0, Math.ceil((G.s - 4) / 1.5) * 1.5); s < sg.len + HW && n < 160; s += 1.5) { /* [塔 T214] 2026-11-23 オーナー「階段を登る時に、点滅する障害物がまだたくさん」：坂・階段の向こうの物を切る線（いちばん高い所の画面の高さ）は、モチの位置から 1.5m ごとに道の高さを調べていたので、調べる点が 1 コマごとに段の角の手前・向こうへずれ、切る線が上下にとび、階段の上の障害物・牧草が、切られたり切られなかったりして点滅した（外階段 600 コマで 1,901 回）。調べる点を、道の上の決まった位置（1.5m の目もり）にする */
     const p = segPos(sg, s, 0); tc(p[0], p[2], p[1], TMP, 0); const z = TMP[2]; if (z < NEAR + .3) continue;
     const y = HORIZON - TMP[1] * FOCAL / z; mn = Math.min(mn, y); OCC.d[n] = z; OCC.y[n] = y; OCC.m[n] = mn; n++; }
   OCC.n = n; OCC.on = n > 2;
@@ -496,7 +496,8 @@ function drawSegment(sg, isCur) {
   dclear();
   const wing = wingOn(sg), cap = wing || capOn(sg);
   const fallE = G.mode === 'dying' && G.fallSeg === sg; /* [塔 F11] 曲がりそこねて落ちる間は、つきあたりの壁と飾りを描かない（へりの先へ飛び出す） */
-  for (const w of sg.walls) { if (skyRM && w.far) continue; if (w.under) continue; if (fallE && w.endW) continue; /* [M67] 空から見る間は、着地の公園のうしろの町の正面（うすいかべ）を描かない（上から見ると屋根の無い板に見えた） */ if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; dput(d, 1, w); }
+  const skyFar = skyRM && G.segs.indexOf(sg) > G.ci + 1; /* [着地 L2] 2026-11-23 オーナー「着地する時の景色のクオリティが低い」：空からおりる間、着地の公園の先の通りのビルの正面（道に向いた板だけで、屋根もうらも無い）が、木の上に、空にうかぶ白い板のように見えた。公園の先の通りのビルの正面は、着地してから描く（着地すると公園の木にかくれる高さ） */
+  for (const w of sg.walls) { if (skyRM && w.far) continue; if (skyFar && w.pat === 'fac') continue; if (w.under) continue; if (fallE && w.endW) continue; /* [M67] 空から見る間は、着地の公園のうしろの町の正面（うすいかべ）を描かない（上から見ると屋根の無い板に見えた） */ if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; dput(d, 1, w); }
   const behind = G.segs.indexOf(sg) >= 0 && G.segs.indexOf(sg) < G.ci; // 曲がり終えた角の矢印の看板は描かない（横に浮いた板に見えていた）
   for (const e of sg.decos) { if (e.sign && behind) continue; if (e.endW && G.mode === 'dying' && G.fallSeg === sg) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (e.glow || e.pat === 'bigscreen' ? FAR : lowQ ? 70 : 90)) continue; /* [R14] 光る大画面は遠くでも見える */ dput(d - 1.6, 2, e); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
   DRAW.sort(byE0);

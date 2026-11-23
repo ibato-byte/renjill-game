@@ -5,10 +5,13 @@ const { chromium } = require('playwright'); const path = require('path');
   const p = await b.newPage({ viewport: { width: 390, height: 844 } }); p.on('pageerror', e => errs.push(e.message)); await p.route('**/fonts.googleapis.com/**', r => r.abort());
   await p.addInitScript(() => { localStorage.setItem('renjill-hay-dash-v1', JSON.stringify({ tutDone: 1, nickAsked: 1, runs: 9 })); });
   await p.goto('file://' + path.resolve(__dirname, '../dist') + '/test.html'); await p.waitForTimeout(800); await p.click('#btnStart'); await p.waitForTimeout(1000);
-  const step = async js => { await p.evaluate(js => { const G = window.__hayDash.G; eval(js); G.invT = 99; }, js); await p.waitForTimeout(700); return p.evaluate(() => { const G = window.__hayDash.G; return { wet: G.wetN || 0, shaft: G.shaftN || 0, dust: G.dustC || '' }; }); };
-  const rain = await step("G.jumpTo('shinjuku', 600, 2); G.weather = 'rain'; G.wetN = 0; G.dustC = '';");
+  const read = () => p.evaluate(() => { const G = window.__hayDash.G; return { wet: G.wetN || 0, shaft: G.shaftN || 0, dust: G.dustC || '' }; });
+  /* 2026-11-23：CI がこんでいる時、0.7 秒では足もとの土ぼこりが 1 回も出ないことがあり、ときどき落ちた（手元でも 3 回に 1 回）。
+     出るはずの物（until）は、出るまで最長 4 秒待つ。調べる中身と合格の条件は同じ（出ないはずの物は今までどおり 0.7 秒で見る） */
+  const step = async (js, until) => { await p.evaluate(js => { const G = window.__hayDash.G; eval(js); G.invT = 99; }, js); await p.waitForTimeout(700); let r = await read(); for (let k = 0; until && !until(r) && k < 33; k++) { await p.waitForTimeout(100); r = await read(); } return r; };
+  const rain = await step("G.jumpTo('shinjuku', 600, 2); G.weather = 'rain'; G.wetN = 0; G.dustC = '';", r => r.wet > 0 && r.dust);
   const room = await step("G.jumpTo('desk', 600, 1); G.weather = 'clear'; G.shaftN = 0; G.wetN = 0;");
-  const snow = await step("G.jumpTo('ueno', 600, 4); G.weather = 'snow'; G.dustC = '';");
+  const snow = await step("G.jumpTo('ueno', 600, 4); G.weather = 'snow'; G.dustC = '';", r => /244,247,250/.test(r.dust));
   // 集中線（2026-11-08 の報告）：ふつうに速いだけなら出ない（薄い斜めの線が残像に見えた）、ダッシュ中は出る
   const spd = await p.evaluate(async () => { const G = window.__hayDash.G; G.jumpTo('shinjuku', 600, 3); G.weather = 'clear'; G.invT = 99; G.fever = 0; G.pow.dash = 0; G.pow.fly = 0;
     let on = true; const keep = () => { if (!on) return; G.speed = 22; G.fever = 0; G.pow.dash = 0; G.pow.fly = 0; requestAnimationFrame(keep); }; keep(); await new Promise(r => setTimeout(r, 200)); G.spdN = 0; await new Promise(r => setTimeout(r, 600)); const fast = G.spdN; on = false;
