@@ -8,6 +8,7 @@ async function rankInit() {
   const cfg = (window.HAYDASH_CONFIG || {}).firebase;
   if (cfg && cfg.apiKey && cfg.projectId && !(window.claude && window.claude.use)) { // the app build: our own Firebase project
     try { RANK.db = fsdbMake(cfg); RANK.uid = await RANK.db.uid(); RANK.own = 1; } catch (e) { RANK.db = null; RANK.uid = null; }
+    try { await rankClaimPrev(); } catch (e) { }
     RANK.ready = true; goldTieCheck(); commFetch(); return;
   }
   try {
@@ -19,6 +20,24 @@ async function rankInit() {
   RANK.ready = true; goldTieCheck(); commFetch();
 }
 const rankOn = () => !!(RANK.db && RANK.uid);
+// 保存先を作り直した時（2026-11-24）の引き取り：前の番号の行（写した行・imp:1）を、自分の新しい行に合わせてから消す。1台につき1回。
+// 数字は大きいほう、遊んだ回数は足す、ほかは自分の行に無い物だけもらう。失敗したら次に開いた時にもう一度
+async function rankClaimPrev() {
+  if (!RANK.own || !rankOn() || !RANK.db.prev) return;
+  const prev = RANK.db.prev(); let done = ''; try { done = localStorage.getItem('hd_fsclaim') || ''; } catch (e) { }
+  if (!prev || prev === RANK.uid || done === prev) return;
+  const oref = RANK.db.doc('ranks/' + prev), osn = await oref.get();
+  if (osn.exists && osn.data().imp === 1) {
+    const old = osn.data(), ref = RANK.db.doc('ranks/' + RANK.uid); let cur = {};
+    const sn = await ref.get(); if (sn.exists) cur = Object.assign({}, sn.data());
+    for (const k in old) { if (k === 'imp' || k === 'prev') continue; const v = old[k];
+      if (k === 'runs') cur.runs = Math.min(1e6, (cur.runs | 0) + (v | 0));
+      else if (typeof v === 'number') { if (!(cur[k] >= v)) cur[k] = v; }
+      else if (cur[k] == null || cur[k] === '') cur[k] = v; }
+    cur.prev = prev; await ref.set(cur); await oref.delete();
+  }
+  try { localStorage.setItem('hd_fsclaim', prev); } catch (e) { }
+}
 // 金のネクタイ（B-43）：先月の月間ランキングで 3 位以内なら、題名のカードに「金のネクタイ」の印とお知らせ（月に 1 回だけ調べる）
 function prevMonthKey() { const j = new Date(Date.now() + 9 * 3600e3); j.setUTCDate(1); j.setUTCMonth(j.getUTCMonth() - 1); return 'm' + j.getUTCFullYear() + String(j.getUTCMonth() + 1).padStart(2, '0'); }
 async function goldTieCheck() { if (!rankOn()) return; const pk = prevMonthKey(); if (SV.gtChecked === pk) return; SV.gtChecked = pk; save();

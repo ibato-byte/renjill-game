@@ -4,9 +4,11 @@
 function fsdbMake(cfg) {
   const KEY = cfg.apiKey, PID = cfg.projectId, BASE = `https://firestore.googleapis.com/v1/projects/${PID}/databases/(default)/documents`;
   const AUTH = { id: null, exp: 0, uid: null, refresh: null };
-  try { const a = JSON.parse(localStorage.getItem('hd_fsauth') || 'null'); if (a) { AUTH.refresh = a.r; AUTH.uid = a.u; } } catch (e) { }
+  // 2026-11-24：保存先を作り直した。前の保存先の番号（p が無い・違う）はここでは使えないので、「前の番号」として覚えて（hd_fsprev）、新しい番号を作る。
+  // 前の番号の行は同じ ID で写してあり、rankClaimPrev（6c_rank.js）が自分の行に引き取る
+  try { const a = JSON.parse(localStorage.getItem('hd_fsauth') || 'null'); if (a) { const home = a.p || cfg.prevProjectId || PID; if (home === PID) { AUTH.refresh = a.r; AUTH.uid = a.u; } else if (a.u) { localStorage.setItem('hd_fsprev', String(a.u)); localStorage.removeItem('hd_fsclaim'); } } } catch (e) { } // 印（p）の無い古い番号は、cfg.prevProjectId（前の保存先）で作られた物とみなす
   // never written while the save is being wiped or replaced (a transfer brings its own account)
-  const keep = () => { if (typeof RESETTING !== 'undefined' && RESETTING) return; try { localStorage.setItem('hd_fsauth', JSON.stringify({ r: AUTH.refresh, u: AUTH.uid })); } catch (e) { } };
+  const keep = () => { if (typeof RESETTING !== 'undefined' && RESETTING) return; try { localStorage.setItem('hd_fsauth', JSON.stringify({ r: AUTH.refresh, u: AUTH.uid, p: PID })); } catch (e) { } };
   async function token() { // an anonymous Firebase account per device, refreshed when its token runs out
     if (AUTH.id && Date.now() < AUTH.exp - 60e3) return AUTH.id;
     if (AUTH.refresh) {
@@ -47,5 +49,5 @@ function fsdbMake(cfg) {
     };
     return api;
   }
-  return { doc, collection, async uid() { await token(); return AUTH.uid; } };
+  return { doc, collection, async uid() { await token(); return AUTH.uid; }, prev() { try { return localStorage.getItem('hd_fsprev') || ''; } catch (e) { return ''; } } };
 }
