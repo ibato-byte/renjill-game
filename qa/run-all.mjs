@@ -24,6 +24,7 @@ const T = [
   { n: 'tut2', why: 'チュートリアルの続き', ok: noErr },
   { n: 'fever2', why: 'フィーバーの取りこぼし', ok: o => noErr(o) && /"missedBehind":0/.test(o) },
   { n: 'ranktest', why: 'ランキング表示', ok: noErr },
+  { n: 'rankmove', why: 'ランキングの保存先を作り直した時、前の番号の行を1回だけ引き取る（同じ人が2行にならない）（2026-11-24）', ok: has('RANKMOVE OK') },
   { n: 'saves', why: '壊れたセーブからの復旧', ok: noErr },
   { n: 'practice', why: '練習・場所えらび（ぶつかっても終わらない・記録に入らない）', ok: has('PRACTICE OK') },
   { n: 'matsuri', why: 'お祭りの日（提灯の通りで祭りばやし）', ok: has('MATSURI OK') },

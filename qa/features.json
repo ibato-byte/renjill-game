@@ -2645,6 +2645,16 @@
       "name": "坂・階段の向こうを切る線が点滅しない",
       "file": "src/4_render.js",
       "has": "[塔 T214]"
+    },
+    {
+      "name": "ランキングの保存先を作り直した時の引き取り（前の番号の行を1回だけ自分の行に合わせて消す）2026-11-24",
+      "file": "src/6c_rank.js",
+      "has": "async function rankClaimPrev()"
+    },
+    {
+      "name": "前の保存先で作った番号を見分ける（印 p と prevProjectId）2026-11-24",
+      "file": "src/6c0_fsdb.js",
+      "has": "cfg.prevProjectId"
     }
   ]
 }

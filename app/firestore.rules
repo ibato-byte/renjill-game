@@ -7,7 +7,13 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == uid
         && request.resource.data.keys().size() <= 60
         && (!('nick' in request.resource.data) || (request.resource.data.nick is string && request.resource.data.nick.size() <= 12))
-        && (!('all' in request.resource.data) || (request.resource.data.all is int && request.resource.data.all >= 0 && request.resource.data.all < 50000000));
+        && (!('all' in request.resource.data) || (request.resource.data.all is int && request.resource.data.all >= 0 && request.resource.data.all < 50000000))
+        && !('imp' in request.resource.data);
+      // 2026-11-24 moved here from the previous project: the old rows were copied with the same names and imp: 1.
+      // a device takes its old row over once: it writes prev: <old name> on its own row (with at least the old best), then may remove the copied row
+      allow delete: if request.auth != null && resource.data.imp == 1
+        && get(/databases/$(database)/documents/ranks/$(request.auth.uid)).data.prev == uid
+        && (!('all' in resource.data) || get(/databases/$(database)/documents/ranks/$(request.auth.uid)).data.all >= resource.data.all);
     }
     // one account across browsers: a short code (the document name, 8 random letters) holds a transfer code for 15 minutes
     match /links/{code} {
