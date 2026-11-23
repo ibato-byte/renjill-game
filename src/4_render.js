@@ -429,7 +429,7 @@ function render() {
 const OCC = { on: false, n: 0, d: new Float32Array(160), y: new Float32Array(160), m: new Float32Array(160) };
 function buildOcc(sg) {
   OCC.on = false; if (!sg.hp) return; let n = 0, mn = 1e9;
-  for (let s = Math.max(0, G.s - 4); s < sg.len + HW && n < 160; s += 1.5) {
+  for (let s = Math.max(0, Math.ceil((G.s - 4) / 1.5) * 1.5); s < sg.len + HW && n < 160; s += 1.5) { /* [塔 T214] 2026-11-23 オーナー「階段を登る時に、点滅する障害物がまだたくさん」：坂・階段の向こうの物を切る線（いちばん高い所の画面の高さ）は、モチの位置から 1.5m ごとに道の高さを調べていたので、調べる点が 1 コマごとに段の角の手前・向こうへずれ、切る線が上下にとび、階段の上の障害物・牧草が、切られたり切られなかったりして点滅した（外階段 600 コマで 1,901 回）。調べる点を、道の上の決まった位置（1.5m の目もり）にする */
     const p = segPos(sg, s, 0); tc(p[0], p[2], p[1], TMP, 0); const z = TMP[2]; if (z < NEAR + .3) continue;
     const y = HORIZON - TMP[1] * FOCAL / z; mn = Math.min(mn, y); OCC.d[n] = z; OCC.y[n] = y; OCC.m[n] = mn; n++; }
   OCC.n = n; OCC.on = n > 2;
