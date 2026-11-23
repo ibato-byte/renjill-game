@@ -507,12 +507,13 @@ function drawSegment(sg, isCur) {
   pm('walls');
   // 坂の向こうの線（ガードレール・手すり）も、坂のかげに隠す（2026-11-09：渋谷の上り坂で、先の下り坂のガードレールが透けて見えた）。長い線は 4m ごとに分けて、それぞれの奥行きで
   const cur0 = G.segs[G.ci], walled = !isCur && cur0 && cur0 !== sg && cur0.th.kind === 'room' && G.segs.indexOf(sg) > G.ci; /* [T6] 部屋（塔の入口の建物など）の中にいる時は、この先の場所の線（塔の骨組み・手すり）を描かない（壁ごしに透けて見えた） */
-  if (walled) { } else
+  const okL = walled ? 0 : camOutK(sg), gaL = ctx.globalAlpha; if (okL < 1) ctx.globalAlpha = gaL * okL;
+  if (okL <= 0) { } else
   if (oc) { for (const l of sg.lines) { const ps = linePieces(l);
       for (const piece of ps) { const d = segDepth(sg, (piece.a[0] + piece.b[0]) / 2, (piece.a[1] + piece.b[1]) / 2); G.occLines = (G.occLines || 0) + 1;
         const y = occAt(d); if (y === Infinity) drawLine(sg, piece); else if (y > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, y); ctx.clip(); try { drawLine(sg, piece); } finally { ctx.restore(); } } } } } /* occDraw と同じ（入れ物を作らない形） */
   else for (const l of sg.lines) drawLine(sg, l);
-  pm('lines');
+  ctx.globalAlpha = gaL; pm('lines');
   drawObjects(sg, isCur, oc);
 }
 function drawWallItem(d, t, w) {
@@ -577,7 +578,7 @@ function drawObjects(sg, isCur, oc) { SKYV = !!(curSeg().th.sky);
 function drawObj(e, sg) {
   {
     if (e[1] === 3) { drawObstacle(e[2], sg, e[0]); pm('obs'); }
-    else if (e[1] === 6) { const p = e[2]; if (p.extOnly && sg === G.segs[G.ci]) return; /* [B40] 建物の外からだけ見る物（中に入ったら描かない） */ if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], (p.l0 < ROAD && p.l1 > -ROAD) ? passFade(e[0]) : 1, 0, 0, 0, p.fc); pm('props'); } // 道のわきの家具・箱は、通りすぎてもうすくしない（2026-11-17）
+    else if (e[1] === 6) { const p = e[2]; if (p.extOnly && sg === G.segs[G.ci]) return; const tk = p.tall ? camOutK(sg) : 1; if (tk <= 0) return; /* [B40] 建物の外からだけ見る物（中に入ったら描かない） */ if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], tk * ((p.l0 < ROAD && p.l1 > -ROAD) ? passFade(e[0]) : 1), 0, 0, 0, p.fc); pm('props'); } // 道のわきの家具・箱は、通りすぎてもうすくしない（2026-11-17）
     else if (e[1] === 7) { drawSpr(e[2], sg, e[0]); pm('spr'); }
     else if (e[1] === 8) drawBoxes(moverBoxes(e[2]), sg, e[0], 1, e[2].cross ? 0 : e[2].ds, e[2].cross ? e[2].dl || 0 : 0, 0);
     else if (e[1] === 4) { drawItem(e[2], sg, e[0]); pm('items'); }
@@ -609,6 +610,12 @@ function drawObstacle(o, sg, d) {
 }
 const SPA = [0, 0, 0], SPB = [0, 0, 0];
 function segPosTo(seg, s, lat, o) { o[0] = seg.sx + seg.f[0] * s + seg.r[0] * lat; o[1] = seg.sz + seg.f[1] * s + seg.r[1] * lat; o[2] = segE(seg, s); return o; } // segPos と同じ（答えを o に入れる）
+/* [塔 T210] 2026-11-23 オーナー「東京タワーの最初の階段を登り終わった直後の右折で、地面が透けている」：
+   入口の建物の中から屋上へ曲がる時、モチたちが角のまん中をこえると、今いる場所が屋上に変わるが、カメラはまだ建物の中（角の部屋）にいる。
+   屋上の物（太いエレベーターの塔・塔の脚の線）は、建物の部屋のかべ・天井より後に描くので、かべと天井をつきぬけて、手前に大きく見えた（前の T6 は、建物の中を走っている間だけ止めていた）。
+   カメラが前の部屋の中（角の出口より手前）にいる間は、屋上の高い物と線を描かない */
+function camOutK(sg) { const cur = G.segs[G.ci]; if (sg !== cur || G.mode === 'title') return 1; const pv = G.segs[G.ci - 1]; if (!pv || pv.th.kind !== 'room' || IN_K(cur.th.kind)) return 1;
+  const o = segPos(sg, 0, 0), q = segPos(sg, 1, 0), fx = q[0] - o[0], fz = q[1] - o[1]; return clamp(((CAM.x - o[0]) * fx + (CAM.z - o[1]) * fz - HW - .2) / 3, 0, 1); } /* 出口をこえてから 3m で、ふわっと出す（ぱっと出ない） */
 function drawLine(sg, l) {
   const a = segPosTo(sg, l.a[0], l.a[1], SPA), b = segPosTo(sg, l.b[0], l.b[1], SPB); /* [軽く 3-15] 入れ物を使い回す */
   if (l.abs) { const e0 = sg.e0 || 0; a[2] = e0; b[2] = e0; } /* [塔 L3] abs の線は、床の上がり下がりに合わせない（塔の骨組み） */
