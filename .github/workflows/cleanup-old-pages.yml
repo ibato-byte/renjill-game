@@ -1,0 +1,43 @@
+name: cleanup-old-pages
+# 2026-11-24 オーナーの決定：旧い公開先（Cloudflare Pages の renjill-hay-dash）を消す。
+# 公開先は usagi-office-hay-dash に移し、hay-dash.coana.co.jp も付け替え済み。
+# 旧い公開先は公開の記録（deployments）が多すぎて画面から消せないため、記録を全部消してから本体を消す。手で動かす時だけ動く（1回きり）。
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "消すなら renjill-hay-dash と入れる（それ以外は数えるだけ）"
+        required: false
+        default: ""
+permissions:
+  contents: read
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 旧い公開先を消す
+        env:
+          RAW_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACC: b3563f7747cafbc81a977a3b4edbfca3
+          CONFIRM: ${{ github.event.inputs.confirm }}
+        run: |
+          T="$(printf '%s' "$RAW_TOKEN" | tr -d '[:space:]')"; T="${T#Bearer}"
+          P="https://api.cloudflare.com/client/v4/accounts/$ACC/pages/projects/renjill-hay-dash"
+          H=(-H "Authorization: Bearer $T")
+          # 新しい公開先が動いていることを先に確かめる（動いていなければ何も消さない）
+          code=$(curl -s -o /dev/null -w '%{http_code}' https://usagi-office-hay-dash.pages.dev/); echo "usagi-office-hay-dash.pages.dev: $code"
+          [ "$code" = "200" ] || { echo "::error::新しい公開先が開けないので止める"; exit 1; }
+          dom=$(curl -s "${H[@]}" "$P/domains" | python3 -c "import json,sys; print(len(json.load(sys.stdin).get('result') or []))"); echo "旧い公開先に付いている独自ドメイン: $dom"
+          [ "$dom" = "0" ] || { echo "::error::旧い公開先にまだ独自ドメインが付いているので止める"; exit 1; }
+          ids=$(for page in $(seq 1 20); do curl -s "${H[@]}" "$P/deployments?per_page=25&page=$page" | python3 -c "import json,sys; r=json.load(sys.stdin).get('result') or []; print('\n'.join(d['id'] for d in r))"; done | sort -u)
+          n=$(printf '%s\n' "$ids" | grep -c . || true); echo "公開の記録: $n 件"
+          if [ "$CONFIRM" != "renjill-hay-dash" ]; then echo "確認の文字が無いので数えるだけ"; exit 0; fi
+          ok=0; ng=0
+          for id in $ids; do
+            if curl -s -X DELETE "${H[@]}" "$P/deployments/$id?force=true" | grep -q '"success":true'; then ok=$((ok+1)); else ng=$((ng+1)); fi
+          done
+          echo "記録を消した: $ok 件／消せなかった: $ng 件（最後の1件は本体と一緒に消える）"
+          r=$(curl -s -X DELETE "${H[@]}" "$P"); echo "$r" | head -c 300; echo
+          echo "$r" | grep -q '"success":true' || { echo "::error::本体を消せなかった"; exit 1; }
+          echo "旧い公開先 renjill-hay-dash を消した"
