@@ -2620,6 +2620,21 @@
       "name": "曲がる瞬間に仲間が消えない",
       "file": "src/6_game.js",
       "has": "[曲がり角 K1]"
+    },
+    {
+      "name": "塔：遠くの金網をしまにしない",
+      "file": "src/4b_patterns.js",
+      "has": "[塔 T212]"
+    },
+    {
+      "name": "着地：下の町の地面がずれない",
+      "file": "src/4g_aerial.js",
+      "has": "[着地 L1]"
+    },
+    {
+      "name": "塔：わきの段の線を走る時にぼかす",
+      "file": "src/4b_patterns.js",
+      "has": "[塔 T213]"
     }
   ]
 }
