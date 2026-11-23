@@ -167,8 +167,13 @@ function aerGet(night) { const k = night ? 'n' : 'd'; if (AER.det[k]) return AER
   AER.det[k] = mips.map(c => ctx.createPattern(c, 'repeat')); AER.mac[k] = ctx.createPattern(aerMacro(night), 'repeat'); return AER.det[k]; }
 function aerWarm() { try { aerGet(LT.night > .4); } catch (e) { } } // コースが始まる前に作っておく（その場で作ると一瞬止まる）
 function acHash(i, j, k) { let h = (i * 374761393 + j * 668265263 + k * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+/* [着地 L1] 2026-11-23 オーナー「東京タワーやスカイツリーの上から着地する時の景色や道路が少し動いてしまう」：
+   空から見る下の町（地図の地面・道・公園）は、カメラの高さを「高さの表示」の数（1m ごとに丸めた数）＋目の高さで決めていたので、
+   1m 下がるたびに地面の絵の大きさがぽんと変わり、立体の木・道・ベンチに対して、地面がずるっとずれて見えた（地面に近いほど大きくずれる：高さ 3m で 0.5m ちがうと、絵が 2 割近くずれる）。
+   本当のカメラの高さ（カメラの位置 − 地面の高さ）を使う */
+function groundEyeH(seg, alt) { const c = seg.th.climb; let g = null; if (c && seg.th.sky) g = (seg.e0 || 0) - c[0]; else if (c && seg.base != null) g = seg.base; if (g == null || typeof CAM === 'undefined' || !isFinite(CAM.y)) return alt + 2.4; return Math.max(1.5, CAM.y - g); }
 function aerialCity(seg, yb, alt, hz) {
-  const N = LT.night, night = N > .4, cs = Math.sin(CAM.yaw), cc = Math.cos(CAM.yaw), th = seg.th, cx0 = CAM.x, cz0 = CAM.z, camH = alt + 2.4, F = FOCAL;
+  const N = LT.night, night = N > .4, cs = Math.sin(CAM.yaw), cc = Math.cos(CAM.yaw), th = seg.th, cx0 = CAM.x, cz0 = CAM.z, camH = groundEyeH(seg, alt), F = FOCAL;
   const lowq = typeof lowQ !== 'undefined' && lowQ, det = aerGet(night), mac = AER.mac[night ? 'n' : 'd']; let lateTower = null;
   const fog = night ? [30, 38, 68] : [LT.bot[0] * .92, LT.bot[1] * .94, LT.bot[2] * .97];
   const bay = th.bay, face = th.face != null ? segFace(seg) : 0, dirA = seg.dir * Math.PI / 2; /* [塔 L2] 地図の向きも、実際に曲がった向きから */
