@@ -94,7 +94,10 @@ jobs:
             exit 1
           fi
           export CLOUDFLARE_API_TOKEN="$T"
-          python3 build.py && npx --yes wrangler@3 pages deploy app --project-name renjill-hay-dash --branch main --commit-dirty=true
+          python3 build.py
+          # 2026-11-23：公開先の名前を新ブランドに（renjill-hay-dash → usagi-office-hay-dash）。まだ無ければ作る（あれば何もしない）
+          npx --yes wrangler@3 pages project create usagi-office-hay-dash --production-branch main || true
+          npx --yes wrangler@3 pages deploy app --project-name usagi-office-hay-dash --branch main --commit-dirty=true
       - name: 検索エンジンに更新を知らせる（IndexNow・アカウント不要）
         if: steps.chk.outputs.ok == 'true'
         run: |
