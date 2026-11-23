@@ -496,7 +496,8 @@ function drawSegment(sg, isCur) {
   dclear();
   const wing = wingOn(sg), cap = wing || capOn(sg);
   const fallE = G.mode === 'dying' && G.fallSeg === sg; /* [塔 F11] 曲がりそこねて落ちる間は、つきあたりの壁と飾りを描かない（へりの先へ飛び出す） */
-  for (const w of sg.walls) { if (skyRM && w.far) continue; if (w.under) continue; if (fallE && w.endW) continue; /* [M67] 空から見る間は、着地の公園のうしろの町の正面（うすいかべ）を描かない（上から見ると屋根の無い板に見えた） */ if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; dput(d, 1, w); }
+  const skyFar = skyRM && G.segs.indexOf(sg) > G.ci + 1; /* [着地 L2] 2026-11-23 オーナー「着地する時の景色のクオリティが低い」：空からおりる間、着地の公園の先の通りのビルの正面（道に向いた板だけで、屋根もうらも無い）が、木の上に、空にうかぶ白い板のように見えた。公園の先の通りのビルの正面は、着地してから描く（着地すると公園の木にかくれる高さ） */
+  for (const w of sg.walls) { if (skyRM && w.far) continue; if (skyFar && w.pat === 'fac') continue; if (w.under) continue; if (fallE && w.endW) continue; /* [M67] 空から見る間は、着地の公園のうしろの町の正面（うすいかべ）を描かない（上から見ると屋根の無い板に見えた） */ if (w.wing && !wing) continue; if (w.cap && !cap) continue; if (!faceVisible(w)) continue; const d = depthOf(w.v); if (d >= FAR + 8 || depthMax(w.v) < -.5) continue; G.wallN = (G.wallN || 0) + 1; dput(d, 1, w); }
   const behind = G.segs.indexOf(sg) >= 0 && G.segs.indexOf(sg) < G.ci; // 曲がり終えた角の矢印の看板は描かない（横に浮いた板に見えていた）
   for (const e of sg.decos) { if (e.sign && behind) continue; if (e.endW && G.mode === 'dying' && G.fallSeg === sg) continue; if (!faceVisible(e)) continue; const d = depthOf(e.v); if (depthMax(e.v) < -.5 || d > (e.glow || e.pat === 'bigscreen' ? FAR : lowQ ? 70 : 90)) continue; /* [R14] 光る大画面は遠くでも見える */ dput(d - 1.6, 2, e); } /* 重い端末（lowQ）では遠くの小物を早めに間引く（C-58） */ // a decoration sits on a 3 m wall piece whose centre can be nearer than its own: drawn after the walls around it
   DRAW.sort(byE0);
