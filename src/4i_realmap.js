@@ -89,7 +89,7 @@ function realMapLayer(seg, o) {
   const toCam = (wx, wz) => { const dx = wx - cx0, dz = wz - cz0; return [dx * cs + dz * cc, dx * cc - dz * cs]; };
   const polyW = (pts, fill, y) => { const cam = pts.map(q => toCam(q[0], q[1])), NR = 1.5, out = []; // 目の前の面で切ってから描く（カメラのうしろに出た角があっても、消えない）
     for (let i = 0; i < cam.length; i++) { const A = cam[i], B = cam[(i + 1) % cam.length], ia = A[0] >= NR, ib = B[0] >= NR; if (ia) out.push(A); if (ia !== ib) { const t = (NR - A[0]) / (B[0] - A[0]); out.push([NR, A[1] + (B[1] - A[1]) * t]); } }
-    if (out.length < 3) return false; ctx.beginPath(); out.forEach(([d, l], i) => { const x = W / 2 + l / d * F, yy = hz + (camH - (y || 0)) / d * F; i ? ctx.lineTo(x, yy) : ctx.moveTo(x, yy); }); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); return true; };
+    if (out.length < 3) return false; ctx.beginPath(); out.forEach(([d, l], i) => { const [x, yy] = o.scr ? o.scr(d, l, y) : [W / 2 + l / d * F, hz + (camH - (y || 0)) / d * F]; i ? ctx.lineTo(x, yy) : ctx.moveTo(x, yy); }); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); return true; };
   const ribbon = (line, w, fill, y) => { for (let i = 0; i + 1 < line.length; i++) { const a = Wk(line[i][0], line[i][1]), b = Wk(line[i + 1][0], line[i + 1][1]), dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz) || 1, nx = -dz / L * w / 2, nz = dx / L * w / 2;
       polyW([[a[0] + nx, a[1] + nz], [b[0] + nx, b[1] + nz], [b[0] - nx, b[1] - nz], [a[0] - nx, a[1] - nz]], fill, y); } };
   const along = (line, t) => { const segs = []; let tot = 0; for (let i = 0; i + 1 < line.length; i++) { const a = Wk(...line[i]), b = Wk(...line[i + 1]), l = Math.hypot(b[0] - a[0], b[1] - a[1]); segs.push([a, b, l]); tot += l; }

@@ -88,7 +88,7 @@ function newSeg(prev, step, opts) {
   if (th.sky && (seg.tid === 'hawk' || seg.tid === 'hawk2') && THEMES.tland && THEMES.sland) { /* [着地 L4] 2026-11-24 オーナー「塔から飛んで着地する所で、まだ着地する場所の道路が左から右にスライドしてる」：
        おりる最後の 60m、足もとの地面は空から見る地図の絵（ななめの小道と広場）だけで、その先の着地の公園の道（立体）と向きが合っていなかった。地面に近づくほど、地図の小道がななめに横切って動き、立体の道に合わさるように見えた。
        おりる最後の 60m の真下に、着地の公園と同じ道（砂利）と道ばたの芝生を、地面の高さに置く（着地の道と一本につながる） */
-    const lt = THEMES[seg.tid === 'hawk' ? 'tland' : 'sland'], g = (seg.e0 || 0) - th.climb[0], L = seg.len, yAt = s => g - segE(seg, s);
+    const lt = THEMES[seg.tid === 'hawk' ? 'tland' : 'sland'], g = (seg.e0 || 0) - th.climb[0], L = seg.len, yAt = s => g - segE(seg, s); seg.apron = { th: lt, g, a0: L - 60, a1: L };
     for (let a = L - 60, i = 0; a < L - .01; a += 1.5, i++) { const b = Math.min(L, a + 1.5);
       seg.floor.push({ v: quad(seg, [[a, -ROAD, yAt(a)], [b, -ROAD, yAt(b)], [b, ROAD, yAt(b)], [a, ROAD, yAt(a)]]), c: floorTone(lt, 'road', i), pat: lt.rpat, ti: i, a, b, mid: 1, apron: 1 });
       for (const sd of [-1, 1]) { const l0 = sd < 0 ? -HW : ROAD, l1 = sd < 0 ? -ROAD : HW; seg.floor.push({ v: quad(seg, [[a, l0, yAt(a)], [b, l0, yAt(b)], [b, l1, yAt(b)], [a, l1, yAt(a)]]), c: floorTone(lt, 'side', i + (sd > 0)), pat: lt.spat, ti: i, a, b, sd, apron: 1 }); } } }
