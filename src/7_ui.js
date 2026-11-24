@@ -74,7 +74,7 @@ function shopHTML() {
     <div class="row3${li ? '' : ' lock'}"><span>${tr('伝説モード（速さ＋15%・スコア×1.5）', 'Legend mode (15% faster, score x1.5)')}</span>${tg('mode', !!SV.lgMode, legendOn('mode'))}</div>
     <div class="row3${legendOn('aura') ? '' : ' lock'}"><span>${tr('伝説の輝き（★1）', 'Golden sparkle trail (★1)')}</span>${tg('aura', SV.lgAura !== 0, legendOn('aura'))}</div>
     <div class="row3${legendOn('gold') ? '' : ' lock'}"><span>${tr('ランキングの金の名札（★2）', 'Gold name on the ranking (★2)')}</span>${legendOn('gold') ? '✓' : '<span class="lock">🔒</span>'}</div>
-    <p class="note">${tr('月桂冠と金の礼服は、下の着せ替えにあります（3人とも）。★ごとにチモシー2,000本とお守り。', 'The laurel and the gold coat are in the wardrobe below (all three). Every ★: 2,000 hay and a charm.')}</p></div>`;
+    <p class="note">${tr('月桂冠と金の礼服は、下の着せ替えにあります（3匹とも）。★ごとにチモシー2,000本とお守り。', 'The laurel and the gold coat are in the wardrobe below (all three). Every ★: 2,000 hay and a charm.')}</p></div>`;
   return `<div class="bank"><span>${t('bankHave')}</span><span><img src="${SPR_URL.hay}" alt=""> <b>${fmt(SV.bank)}</b></span></div>${ups}${clover}${mug}${legend}${closet}<p class="note">${t('closetNote')}</p><p class="note">${t('shopNote')}</p>`;
 }
 /* 試着室（2026-11-16。オーナー：「着せかえをしっかり楽しめるように」）：着せかえの列を押すと、買う前でも、鏡の中のキャラクターがその場で着てみせる（前と後ろ）。
@@ -185,7 +185,7 @@ function settingsHTML() {
     `<div class="m xfer"><p><b>${esc(t('codeH'))}</b></p><p class="note">${esc(t('codeNote'))}</p><div class="btns" style="display:flex;gap:8px"><input id="codeIn" aria-label="${esc(t('codeH'))}" maxlength="24" autocomplete="off" autocapitalize="characters" enterkeyhint="done" placeholder="${esc(t('codePh'))}" style="flex:1;min-width:0;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:10px"><button class="sub" id="btnCode" style="width:auto">${esc(t('codeOk'))}</button></div><p class="note" id="codeMsg" aria-live="polite"></p></div>` +
     `<div class="m xfer sns"><p><b>${esc(t('snsH'))}</b></p><p class="note">${esc(t('snsNote'))}</p>${followLinks('chips')}</div>` + linkHTML() + `<div class="m xfer"><p><b>${esc(t('xfer'))}</b></p><p class="note">${esc(t('xferNote'))}</p><button class="sub" id="btnXferMake">${esc(t('xferMake'))}</button><textarea id="xferOut" aria-label="${esc(t('xfer'))}" readonly rows="3" hidden></textarea>` +
     `<textarea id="xferIn" aria-label="${esc(t('xferPaste'))}" rows="3" placeholder="${esc(t('xferPaste'))}"></textarea><button class="sub" id="btnXferLoad">${esc(t('xferLoad'))}</button><p class="note" id="xferMsg" aria-live="polite"></p></div>` +
-    errLogHTML() + `<div class="m xfer reset"><p><b>${esc(t('resetH'))}</b></p><p class="note">${esc(t('resetNote'))}</p><button class="sub danger" id="btnReset">${esc(t('resetBtn'))}</button>` +
+    errLogHTML() + perfLogHTML() + `<div class="m xfer reset"><p><b>${esc(t('resetH'))}</b></p><p class="note">${esc(t('resetNote'))}</p><button class="sub danger" id="btnReset">${esc(t('resetBtn'))}</button>` +
     `<div id="resetAsk" hidden><p class="note"><b>${esc(t('resetAsk'))}</b></p><div style="display:flex;gap:8px"><button class="sub danger" id="btnResetYes">${esc(t('resetYes'))}</button><button class="sub" id="btnResetNo">${esc(t('resetNo'))}</button></div></div><p class="note" id="resetMsg" aria-live="polite"></p></div>` + (window.HAYDASH_VER ? `<p class="note setver">${esc(t('verL', window.HAYDASH_VER))}</p>` : '');
 }
 /* ---- the player's name for the ranking: asked before the first run, editable any time ---- */
@@ -480,13 +480,16 @@ function frameBody(now) {
   /* [軽く 2] 画質の自動調整は「ずっと重い」時だけ：準備中・走り出してすぐの 1.5 秒・一瞬だけの引っかかり（ふだんの 2.5 倍以上）は数えない。たまたまの 1 コマで画質を下げない */
   if (G.mode === 'play' && raw < .25 && !G.prepHold && performance.now() - (G.prepEndT || 0) > 1500 && !(FT_AVG && raw > FT_AVG * 2.5 && raw > .03)) { perfAcc += raw; perfN++; if (perfN >= 90) { const avg = perfAcc / perfN; perfAcc = perfN = 0; qualityStep(avg); } }
   TEXN = 0; TEXB = performance.now() + 3; wakeTick(now); if (G.mode === 'play') cpTick(now);
+  const pfOn = G.mode === 'play' && !G.prepHold, pf0 = pfOn ? performance.now() : 0; let pf1 = 0, pfS = 0;
   { let bad = null; if (G.mode !== 'pause' && G.mode !== 'dead' && G.mode !== 'result') { try { update(dt); } catch (e) { bad = e; } }
     if (bad) reportErr(bad); runGuard(Math.min(.1, Math.max(0, raw)), bad); } // a broken frame still draws, and the safety net looks at every frame
   // battery: while paused nothing on the stage moves, so it is drawn only a couple of times a second (2026-11-08)
   /* 2026-11-15：結果の画面・「続ける？」の画面も、舞台は止まっているので 1 秒に 2 回だけ描く（結果の画面を開いたままシェアしている間、スマホが熱くなりにくい）。
      題名画面は 1 秒に 30 コマ（メニューを開いている間は 4 コマ）。走っている間は今までどおり毎コマ */
   { const still = G.mode === 'pause' || G.mode === 'result' || G.mode === 'dead', gap = still ? 500 : G.mode === 'title' ? ($('#sPanel').hidden && $('#sChat').hidden ? 30 : 250) : 0;
-    if (!gap || now - (G.pauseDrawT || 0) >= gap || G.drawNow) { G.pauseDrawT = now; G.drawNow = 0; render(); G.drawN = (G.drawN || 0) + 1; } }
+    if (pfOn) { pf1 = performance.now(); pfS = PERFR.n % 60 === 30; if (pfS) { for (const k in PROF) PROF[k] = 0; PROF.on = 1; } }
+    if (!gap || now - (G.pauseDrawT || 0) >= gap || G.drawNow) { G.pauseDrawT = now; G.drawNow = 0; render(); G.drawN = (G.drawN || 0) + 1; }
+    if (pfOn) perfRec(raw, pf1 - pf0, performance.now() - pf1, pfS); else if (PERFR.n > 120 && PERFR.saveN !== PERFR.n && G.mode !== 'play') { PERFR.saveN = PERFR.n; perfSave(); } }
   if (G.mode === 'play') texWarm(Math.max(0, Math.min(3, TEXB - performance.now())));
   if (G.capture && G.capture.t <= 0) { takePhoto(G.capture.tid); G.capture = null; }
   if (G.mode === 'title') { if ((G.cardFitT = (G.cardFitT || 0) + 1) % 45 === 1) charCardFit(); drawCharCard($('#cvRen'), 'ren', G.t); drawCharCard($('#cvJill'), 'jill', G.t + 1.3); if (SV.pomMet) drawCharCard($('#cvPom'), 'pom', G.t + .6); }
@@ -537,6 +540,20 @@ function iosFill() { try { const app = $('#app'); if (!app) return false; const 
   if (sa) full = Math.max(full, vhProbe('vh'), vhProbe('lvh'), ios ? (port ? Math.max(a, b) : Math.min(a, b)) : 0); /* ② ホーム画面のアプリだけ：画面の大きさと 100vh も見る（ブラウザでは下のバーの分まで広げない） */
   const gap = full - h; if (gap > 2 && gap < 130 && !(window.visualViewport && visualViewport.height < h * .75)) { app.style.height = Math.round(full) + 'px'; app.style.bottom = 'auto'; } /* キーボードが出ている間（見える高さがとても短い）は何もしない */
   return app.style.height !== was; /* 高さを変えた時だけ true */ } catch (e) { return false; } }
+/* [軽く 4-0] 2026-11-24 オーナー「スマホは全体的（に重い）」：クラウドの画面なしのパソコンでは、スマホの本当の重さ（絵をぬる速さ）が測れない。
+   走っている間の、この端末での本当の重さ（1 秒のコマ数・重いコマの割合・計算と描く命令にかかった時間・画質の自動調整・描く部分ごとの時間）を、この端末にだけ残し、設定の「動作の記録」に出す。
+   写真を送ってもらえば、計算が重いのか、絵をぬるのが重いのかが分かる（記録は 60 コマに 1 回だけ部分ごとの時間を測るので、ほぼ軽さは変わらない） */
+const PERFR = { id: 0, n: 0, sum: 0, slow: 0, worst: 0, upd: 0, rnd: 0, pn: 0, parts: {}, saveN: 0 };
+function perfRec(raw, tu, tr, sampled) {
+  if (PERFR.id !== G.perfId) { if (PERFR.n > 120) perfSave(); Object.assign(PERFR, { id: G.perfId || 0, n: 0, sum: 0, slow: 0, worst: 0, upd: 0, rnd: 0, pn: 0, parts: {}, saveN: 0 }); }
+  if (sampled) { PROF.on = 0; PERFR.pn++; for (const k in PROF) if (k !== 'on') { PERFR.parts[k] = (PERFR.parts[k] || 0) + PROF[k]; PROF[k] = 0; } }
+  if (!(raw > 0 && raw < .5)) return; PERFR.n++; PERFR.sum += raw; if (raw > .025) PERFR.slow++; if (raw > PERFR.worst) PERFR.worst = raw; PERFR.upd += tu; PERFR.rnd += tr;
+  if (PERFR.n - PERFR.saveN >= 600) { PERFR.saveN = PERFR.n; perfSave(); } }
+function perfSave() { try { const P = PERFR; if (!P.n) return; const parts = Object.entries(P.parts).filter(([k]) => k !== 'on').sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => k + ' ' + (v / Math.max(1, P.pn)).toFixed(1));
+    const e = { t: P.id || Date.now(), n: P.n, fps: +(P.n / P.sum).toFixed(1), slow: Math.round(P.slow / P.n * 100), worst: Math.round(P.worst * 1000), upd: +(P.upd / P.n).toFixed(1), rnd: +(P.rnd / P.n).toFixed(1), dpr: +DPR.toFixed(2), dev: +(window.devicePixelRatio || 1).toFixed(2), px: cv.width + 'x' + cv.height, q: QLOG.join(',') || '-', lq: lowQ, gfx: gfxMode(), parts: parts.join(', '), course: (G.segs[G.ci] && G.segs[G.ci].tid) || '' };
+    let a = []; try { a = JSON.parse(localStorage.getItem('rjPerfLog') || '[]'); } catch (x) { } a = a.filter(x => x.t !== e.t); a.push(e); localStorage.setItem('rjPerfLog', JSON.stringify(a.slice(-6))); } catch (x) { } }
+function perfLogHTML() { let a = []; try { a = JSON.parse(localStorage.getItem('rjPerfLog') || '[]'); } catch (e) { }
+  return `<details class="m xfer errlog"><summary><b>${esc(t('perfLogH'))}</b> (${a.length})</summary><p class="note">${esc(t('perfLogNote'))}</p>${a.length ? `<ul>${a.slice().reverse().map(x => `<li><code>${esc(new Date(x.t).toLocaleString())}</code> ${esc(x.fps + ' fps · ' + t('perfSlow') + ' ' + x.slow + '% · max ' + x.worst + 'ms · upd ' + x.upd + 'ms · draw ' + x.rnd + 'ms · ' + x.dpr + '/' + x.dev + 'x ' + x.px + ' · q ' + x.q + ' L' + x.lq + ' ' + x.gfx + ' · ' + x.course + ' · ' + x.parts)}</li>`).join('')}</ul>` : `<p class="note">${esc(t('errLogNone'))}</p>`}</details>`; }
 function resizeKeep() { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); smoothOn(); G.drawNow = 1; }
 /* 重いとき：まず絵の細かさを1段ずつ下げ（見た目はほとんど変わらない）、それでも重ければ演出を減らす。とても重い端末（30コマ/秒に届かない）はすぐ軽くする。
    軽い状態が続いたら細かさを戻す（1回の走りで2回まで。行ったり来たりしない） */

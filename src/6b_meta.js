@@ -122,7 +122,7 @@ function plantHTML() { let url = ''; try { url = PROP_ART.plant().toDataURL(); }
    Every LEGEND_STEP more experience adds a star: ★1 the golden sparkle trail, ★2 a gold name on the ranking, and every star hay + a charm. */
 const LEGEND_STEP = 50000;
 function legendInfo() { const c = careerLevel(careerXP()); if (!c.max) return null; const stars = Math.floor(c.into / LEGEND_STEP); return { stars, into: c.into % LEGEND_STEP, need: LEGEND_STEP }; }
-const LEGEND_PERKS = [{ star: 0, ja: '伝説の月桂冠と金の礼服（3人とも）・伝説モード', en: 'Laurel & gold coat for all three, Legend mode' }, { star: 1, ja: '伝説の輝き（走ると金色の光の粒）', en: 'Golden sparkle trail' }, { star: 2, ja: 'ランキングの金の名札', en: 'A gold name on the ranking' }];
+const LEGEND_PERKS = [{ star: 0, ja: '伝説の月桂冠と金の礼服（3匹とも）・伝説モード', en: 'Laurel & gold coat for all three, Legend mode' }, { star: 1, ja: '伝説の輝き（走ると金色の光の粒）', en: 'Golden sparkle trail' }, { star: 2, ja: 'ランキングの金の名札', en: 'A gold name on the ranking' }];
 function legendGrant() { const li = legendInfo(); if (!li) return ''; let msg = ''; const seen = SV.lstar == null ? -1 : SV.lstar;
   if (seen < 0) { for (const c of CLOSET) if (c.lg != null && c.lg <= li.stars) SV.closet[c.id] = 1; msg = tr('伝説のうさぎ！ 月桂冠・金の礼服・伝説モードが使えます', 'Legendary bunny! Laurel, gold coat and Legend mode unlocked'); }
   if (li.stars > Math.max(0, seen)) { const n = li.stars - Math.max(0, seen); SV.bank += 2000 * n; SV.clovers = (SV.clovers || 0) + n; const p = LEGEND_PERKS.find(x => x.star === li.stars);
