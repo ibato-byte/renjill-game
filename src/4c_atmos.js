@@ -126,6 +126,10 @@ function shadeQuad(sg, a, b, l0, l1) {
 }
 function streetShade(sg) {
   const th = sg.th, k = th.kind, room = k === 'room' || k === 'train' || k === 'glass';
+  if (sg.apron && SUN.k >= .05) { /* [着地 L6] 2026-11-24 オーナー「着地の時、まだ少し動いて見える」：おりる最後の 60m の道（L4）には、着地の公園の道と同じ、道ばたの木の日かげが無かったので、着地した瞬間に、足もとの道がパッと暗い色に入れかわった。同じ日かげを、同じ向き・同じ幅で落とす */
+    const lt = sg.apron.th, g0 = sg.apron.g + .012, fh = lt.fac && lt.fac.h ? (lt.fac.h[0] + lt.fac.h[1]) / 2 : lt.fac && lt.fac.style === 'park' ? 3 : 9, sx = -Math.sin(SUN.az), sz = -Math.cos(SUN.az), across = sx * sg.r[0] + sz * sg.r[1], sd = across > 0 ? -1 : 1, w = clamp(fh * Math.abs(across) / Math.max(.18, Math.tan(SUN.alt)), 0, HW * 2);
+    const pt = (s2, l, o) => { SHQV[o] = sg.sx + sg.f[0] * s2 + sg.r[0] * l; SHQV[o + 1] = g0; SHQV[o + 2] = sg.sz + sg.f[1] * s2 + sg.r[1] * l; }, sq = (a, b, l0, l1) => { pt(a, l0, 0); pt(b, l0, 3); pt(b, l1, 6); pt(a, l1, 9); shqDraw(SHQV); };
+    if (w >= .3) for (const [al, l1] of [[.24, sd * (HW - w)], [.08, sd * (HW - w - .5)]]) { ctx.fillStyle = `rgba(30,42,78,${(al * SUN.k).toFixed(3)})`; for (let a = sg.apron.a0, a1 = sg.apron.a1; a < a1 - .01; a += 6) sq(a, Math.min(a1, a + 6), al > .1 ? sd * HW : sd * (HW - w), l1); } }
   if (k === 'deck') return;
   // contact darkening along the base of the side walls (rooms and streets)
   ctx.fillStyle = room ? 'rgba(40,30,20,.14)' : 'rgba(25,30,45,.16)';
@@ -138,11 +142,12 @@ function streetShade(sg) {
   const sd = across > 0 ? -1 : 1; // the wall on this side throws its shade across the street
   const w = clamp(fh * Math.abs(across) / Math.max(.18, Math.tan(SUN.alt)), 0, HW * 2);
   if (w < .3) return;
+  const pv = G.segs[G.segs.indexOf(sg) - 1], aS = pv && pv.apron ? -HW : 0; /* [着地 L6] 着地の公園の道は、始まりの手前（おりてきた道と重なる所）にも日かげを落とす（着地したあと、足もとだけ明るい色のまま残っていた） */
   ctx.fillStyle = `rgba(30,42,78,${(.24 * SUN.k).toFixed(3)})`;
-  for (let a = 0; a < sg.len + HW; a += 12) { const b = Math.min(a + 12, sg.len + HW); shadeQuad(sg, a, b, sd * HW, sd * (HW - w)); }
+  for (let a = aS; a < sg.len + HW; a += 12) { const b = Math.min(a + 12, sg.len + HW); shadeQuad(sg, a, b, sd * HW, sd * (HW - w)); }
   // a soft penumbra
   ctx.fillStyle = `rgba(30,42,78,${(.08 * SUN.k).toFixed(3)})`;
-  for (let a = 0; a < sg.len + HW; a += 12) { const b = Math.min(a + 12, sg.len + HW); shadeQuad(sg, a, b, sd * (HW - w), sd * (HW - w - .5)); }
+  for (let a = aS; a < sg.len + HW; a += 12) { const b = Math.min(a + 12, sg.len + HW); shadeQuad(sg, a, b, sd * (HW - w), sd * (HW - w - .5)); }
 }
 
 /* ---- finishing: lens vignette, gentle contrast, a little film grain ---- */
