@@ -435,11 +435,21 @@ function buildOcc(sg) {
   OCC.n = n; OCC.on = n > 2;
 }
 // the screen y above which something at camera depth d is visible (Infinity when nothing in front rises above it)
+/* [塔 T217] 2026-11-24 オーナー「タワーで床や壁が透けてる場面がある」：階段のある部屋（500 段からの通路など）では、天井が段ごとに下がって見えるが、
+   物（かべの画面・札・取る物・じゃま物）は天井より後に描くので、手前の低い天井の向こうにある物が、天井をつきぬけて空中にうかんで見えた。
+   床の OCC と同じしくみで、天井側も「手前のいちばん低い天井のへり」より上は切る */
+const COCC = { on: false, n: 0, d: new Float32Array(160), m: new Float32Array(160) };
+function buildCOcc(sg) { COCC.on = false; const H = sg.ceilH || 0; if (!sg.hp || !H || typeof ceilE !== 'function' || !IN_K(sg.th.kind)) return; let n = 0, mx = -1e9;
+  for (let s = Math.max(0, Math.ceil((G.s - 4) / 1.5) * 1.5); s < sg.len + HW && n < 160; s += 1.5) { const p = segPos(sg, s, 0); tc(p[0], ceilE(sg, s) + H, p[1], TMP, 0); const z = TMP[2]; if (z < NEAR + .3) continue; const y = HORIZON - TMP[1] * FOCAL / z; mx = Math.max(mx, y); COCC.d[n] = z; COCC.m[n] = mx; n++; }
+  COCC.n = n; COCC.on = n > 2; }
+function coccAt(d) { if (!COCC.on || d < COCC.d[0] + .6) return -Infinity; let i = 0; while (i < COCC.n - 1 && COCC.d[i + 1] < d - .6) i++; return COCC.m[i]; }
 function occAt(d) {
   if (!OCC.on || d < OCC.d[0]) return Infinity; let i = 0; while (i < OCC.n - 1 && OCC.d[i + 1] < d - .6) i++;
-  const prev = OCC.m[i]; let j = i; while (j < OCC.n - 1 && OCC.d[j] < d) j++; const gy = OCC.y[j];
-  return prev < gy - 1.5 ? prev : Infinity;
+  const prev = OCC.m[i]; let j = i; while (j < OCC.n - 1 && OCC.d[j] < d) j++; const j0 = Math.max(0, j - 1), dd = OCC.d[j] - OCC.d[j0], gy = dd > .01 && d > OCC.d[j0] && d < OCC.d[j] ? Math.max(OCC.y[j0], OCC.y[j]) : OCC.y[j]; /* [塔 T215] 2026-11-23 オーナー「点滅が 0 になるまで」：物の足もとの地面の高さを、物より先の 1 点だけで見ていたので、階段の段の角が物の手前・向こうへ入れかわるたびに、切る・切らないが入れかわった（牧草が少し欠けたり、全部見えたり）。物の前後 2 点の、低い方（画面で下）の地面で決める */
+  return prev < gy + 2 ? prev : Infinity; /* [塔 T215] 切るか切らないかを「足もとより 1.5 ドット上か」で決めていたので、その近くで、物の下のはしが 1 コマごとに欠けたりもどったりした。足もとの近くでも、そのまま切る線を使う（欠ける量が少しずつ変わるだけで、とばない） */
 }
+let OCC_HYS = 0; /* [塔 T215] 前のコマで切っていた物は、少しの差では切るのをやめない（入れかわりのくり返しを止める） */
+function occAtObj(d, o) { if (!o || typeof o !== 'object') return occAt(d); const t = G.t || 0; OCC_HYS = o.__oc != null && t - o.__oc < .1 && t >= o.__oc ? -4.5 : 0; const y = occAt(d); OCC_HYS = 0; if (y !== Infinity) o.__oc = t; return y; }
 /* [軽く 3-14] 線（線路・電線・手すり）を 4m ごとに分けた切れはしは、線ごとに 1 回だけ作って覚える（前は毎コマ作り直していた） */
 function linePieces(l) { const a = l.a, b = l.b, k = l.__pk;
   if (k && k[0] === a[0] && k[1] === a[1] && k[2] === a[2] && k[3] === b[0] && k[4] === b[1] && k[5] === b[2] && k[6] === l.c && k[7] === l.w && k[8] === l.glowN) return l.__pc;
@@ -472,7 +482,7 @@ function drawUnder(sg) { /* [塔 U1] 2026-11-21：床より下の物は、ぜん
     dclear(); for (const sp of sg.spr) { if (!sp.under) continue; const d = segDepth(sg, sp.s, sp.lat); if (d < .5 || d > FAR) continue; dput(d, 7, sp); } DRAW.sort(byE0); for (const [d, , sp] of DRAW) drawSpr(sp, sg, d); }
 }
 function drawSegment(sg, isCur) {
-  LC = sg.th.lc || '#80C241'; if (isCur) buildOcc(sg); const oc = isCur && OCC.on;
+  LC = sg.th.lc || '#80C241'; if (isCur) { buildOcc(sg); buildCOcc(sg); } else COCC.on = false; const oc = isCur && (OCC.on || COCC.on);
   const near = d => d > -8 && d < FAR + 8; if (PROF.on) PT = performance.now();
   // floor
   dclear();
@@ -512,7 +522,7 @@ function drawSegment(sg, isCur) {
   if (okL <= 0) { } else
   if (oc) { for (const l of sg.lines) { const ps = linePieces(l);
       for (const piece of ps) { const d = segDepth(sg, (piece.a[0] + piece.b[0]) / 2, (piece.a[1] + piece.b[1]) / 2); G.occLines = (G.occLines || 0) + 1;
-        const y = occAt(d); if (y === Infinity) drawLine(sg, piece); else if (y > 0) { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, y); ctx.clip(); try { drawLine(sg, piece); } finally { ctx.restore(); } } } } } /* occDraw と同じ（入れ物を作らない形） */
+        const y = occAt(d), cy = coccAt(d); if (y === Infinity && cy === -Infinity) drawLine(sg, piece); else { const y0 = Math.max(0, cy), y1 = Math.min(H, y); if (y1 > y0) { ctx.save(); ctx.beginPath(); ctx.rect(0, y0, W, y1 - y0); ctx.clip(); try { drawLine(sg, piece); } finally { ctx.restore(); } } } } } } /* occDraw と同じ（入れ物を作らない形） */
   else for (const l of sg.lines) drawLine(sg, l);
   ctx.globalAlpha = gaL; pm('lines');
   drawObjects(sg, isCur, oc);
@@ -572,14 +582,14 @@ function drawObjects(sg, isCur, oc) { SKYV = !!(curSeg().th.sky);
   DRAW.sort(byE0);
   pm('sort');
   for (const e of DRAW) {
-    if (oc && e[1] !== 5 && occAt(e[0]) !== Infinity) { occDraw(e[0], () => drawObj(e, sg)); continue; }
+    if (oc && e[1] !== 5) { const oy = OCC.on ? occAtObj(e[0], e[2]) : Infinity, cy = coccAt(e[0]); if (oy !== Infinity || cy > -Infinity) { const y0 = Math.max(0, cy), y1 = Math.min(H, oy); if (y1 > y0) { ctx.save(); ctx.beginPath(); ctx.rect(0, y0, W, y1 - y0); ctx.clip(); try { drawObj(e, sg); } finally { ctx.restore(); } } continue; } }
     drawObj(e, sg);
   }
 }
 function drawObj(e, sg) {
   {
     if (e[1] === 3) { drawObstacle(e[2], sg, e[0]); pm('obs'); }
-    else if (e[1] === 6) { const p = e[2]; if (p.extOnly && sg === G.segs[G.ci]) return; const tk = p.tall ? camOutK(sg) : 1; if (tk <= 0) return; /* [B40] 建物の外からだけ見る物（中に入ったら描かない） */ if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], tk * ((p.l0 < ROAD && p.l1 > -ROAD) ? passFade(e[0]) : 1), 0, 0, 0, p.fc); pm('props'); } // 道のわきの家具・箱は、通りすぎてもうすくしない（2026-11-17）
+    else if (e[1] === 6) { const p = e[2]; if (p.extOnly && sg === G.segs[G.ci]) return; const tk = p.tall ? camOutK(sg) : 1; if (tk <= 0) return; /* [B40] 建物の外からだけ見る物（中に入ったら描かない） */ if (!p.fc) { p.fc = []; for (const b of p.bx) for (const fc of boxFaces(sg, b, 0, 0, 0)) p.fc.push([fc, b]); } drawBoxes(null, sg, e[0], tk * ((p.l0 < ROAD && p.l1 > -ROAD && !p.extOnly) ? passFade(e[0]) : 1), /* [塔 T216] 2026-11-24 オーナー「タワーで床や壁が透けてる場面がある」：外階段の上の、通路の建物の正面のかべ（道をまたぐ箱）が、近づくと「くぐる物」と同じようにうすくなり、かべの向こうの手すりや階段が透けて見えた。建物の外かべはうすくしない（入口の戸口からくぐる） */ 0, 0, 0, p.fc); pm('props'); } // 道のわきの家具・箱は、通りすぎてもうすくしない（2026-11-17）
     else if (e[1] === 7) { drawSpr(e[2], sg, e[0]); pm('spr'); }
     else if (e[1] === 8) drawBoxes(moverBoxes(e[2]), sg, e[0], 1, e[2].cross ? 0 : e[2].ds, e[2].cross ? e[2].dl || 0 : 0, 0);
     else if (e[1] === 4) { drawItem(e[2], sg, e[0]); pm('items'); }

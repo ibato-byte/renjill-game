@@ -85,6 +85,13 @@ function newSeg(prev, step, opts) {
   if (th.sky) { /* オオタカに運ばれる空：本当に高い所（climb[0] m）から、地面（0 m）までおりる。先の場所（着地する公園）は本当に真下の地面にある */
     seg.e0 = prev ? segE(prev, prev.len) : th.climb[0]; seg.hp = { a: 0, b: seg.len - 22, d: -th.climb[0], /* [H4] 空の道は、飛び立った展望台の本当の高さから始まる（前は、展望台が低いのに 150m から始まり、カメラが 120m 以上とんで、モチとユズが画面から消えた） */ hump: 0, w2: 0, shape: 'sky', lift: 3.4 }; } /* [F5] 飛び立ちは、テラスの手すりの上へ少し持ち上がってから、おりていく */
   buildGeometry(seg);
+  if (th.sky && (seg.tid === 'hawk' || seg.tid === 'hawk2') && THEMES.tland && THEMES.sland) { /* [着地 L4] 2026-11-24 オーナー「塔から飛んで着地する所で、まだ着地する場所の道路が左から右にスライドしてる」：
+       おりる最後の 60m、足もとの地面は空から見る地図の絵（ななめの小道と広場）だけで、その先の着地の公園の道（立体）と向きが合っていなかった。地面に近づくほど、地図の小道がななめに横切って動き、立体の道に合わさるように見えた。
+       おりる最後の 60m の真下に、着地の公園と同じ道（砂利）と道ばたの芝生を、地面の高さに置く（着地の道と一本につながる） */
+    const lt = THEMES[seg.tid === 'hawk' ? 'tland' : 'sland'], g = (seg.e0 || 0) - th.climb[0], L = seg.len, yAt = s => g - segE(seg, s);
+    for (let a = L - 60, i = 0; a < L - .01; a += 1.5, i++) { const b = Math.min(L, a + 1.5);
+      seg.floor.push({ v: quad(seg, [[a, -ROAD, yAt(a)], [b, -ROAD, yAt(b)], [b, ROAD, yAt(b)], [a, ROAD, yAt(a)]]), c: floorTone(lt, 'road', i), pat: lt.rpat, ti: i, a, b, mid: 1, apron: 1 });
+      for (const sd of [-1, 1]) { const l0 = sd < 0 ? -HW : ROAD, l1 = sd < 0 ? -ROAD : HW; seg.floor.push({ v: quad(seg, [[a, l0, yAt(a)], [b, l0, yAt(b)], [b, l1, yAt(b)], [a, l1, yAt(a)]]), c: floorTone(lt, 'side', i + (sd > 0)), pat: lt.spat, ti: i, a, b, sd, apron: 1 }); } } }
   if ((seg.tid === 'tlobby' || seg.tid === 'slobby') && seg.hp && seg.hp.shape === 'flights') { const h = seg.hp, sd = 1, l2 = sd * (HW - .06), nS = [-sd * seg.r[0], -sd * seg.r[1]]; for (let k = 0; k <= h.n; k++) { const s1 = h.a + k * h.P + .6; if (s1 > seg.len - 3) break; const e = segE(seg, s1) - (seg.e0 || 0), fl = k === h.n && seg.tid === 'tlobby' ? 'RF' : (k + 1) + 'F', a2 = segPos(seg, s1 + .9, l2), b2 = segPos(seg, s1, l2), E = segE(seg, s1); seg.decos.push({ v: [a2[0], E + 1.5, a2[1], b2[0], E + 1.5, b2[1], b2[0], E + 2.2, b2[1], a2[0], E + 2.2, a2[1]], n: nS, pat: 'stepsign', seg, w: .9, txt: fl, txt2: Math.round(segE(seg, s1) - (seg.base != null ? seg.base : 0)) + 'm' }); } } /* [H24] 入口の建物の階段：踊り場ごとに階の札（1F・2F…屋上）と、その高さ */
   if (th.truss) { const red = th.truss === 'red', c1 = red ? '#D9452B' : '#E6EAEE', c2 = red ? '#F2F0EC' : '#C9D1D9', L = seg.len, Hh = red ? (seg.wallH || 5) + 3 : (seg.wallH || 5) - .4; /* [T8][S4] 展望台のガラスの外に、塔の鉄骨（赤い電波塔は赤と白、押上は白いトラス）。窓の外が、塔の中にいるとわかる */
     const flt = seg.hp && seg.hp.shape === 'flights' ? 1 : 0; /* [塔 L3] 2026-11-22：階段のある展望デッキ（押上）では、鉄骨の線の高さを床の上がり下がりに合わせない（線の両はしが別の階の高さになり、X の形がくずれて、とがったぎざぎざの落書きのように見えた。夜は特に目立った）。塔の骨組みは、床と関係なくまっすぐ立つ（線の abs：高さを床に合わせない） */
