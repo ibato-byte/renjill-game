@@ -162,7 +162,7 @@ const STR = {
   pomRole: ['新人', 'Rookie'], pomPerk: ['60本で\u200bボーナス', 'Bonus every 60 hay'], pomUnlock: ['新人のクリで走れるようになりました！', 'You can now run as Kuri, the rookie!'], worryPom: ['クリ、大丈夫か!?', 'Kuri, you OK!?'],
   mateRenH: ['モチ課長、合流！', 'MOCHI JOINS!'], mateRen: ['寝坊した課長が追いついた！', 'The sleepy boss caught up!'],
   mateJillH: ['ユズ先輩、合流！', 'YUZU JOINS!'], mateJill: ['ユズ先輩が追いついた！', 'Yuzu caught up!'],
-  mateAll: ['　3人そろって出社！', ' The whole team is here!'], mateRenSay: ['クリ、早すぎるぞ…！', 'Kuri, slow down...!'], mateJillSay: ['クリくん、お待たせ！', 'Sorry I’m late, Kuri!'],
+  mateAll: ['　3匹そろって出社！', ' The whole team is here!'], mateRenSay: ['クリ、早すぎるぞ…！', 'Kuri, slow down...!'], mateJillSay: ['クリくん、お待たせ！', 'Sorry I’m late, Kuri!'],
   matePomSay: ['先輩！待ってたっす！', 'Senpai! I waited for you!'], matePomAll: ['全員そろったっす！', 'The whole team, let’s go!'],
   renRole: ['課長', 'Boss'] /* 2026-11-15：題名のカードの文字を減らす（種類の名前は「遊び方・キャラクター紹介」のページにある） */, jillRole: ['部下', 'Assistant'],
   renPerk: ['チモシー +20%', '+20% hay'], jillPerk: ['パワーアップ +30%', 'Power-ups +30%'],

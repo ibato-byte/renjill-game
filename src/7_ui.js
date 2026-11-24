@@ -74,7 +74,7 @@ function shopHTML() {
     <div class="row3${li ? '' : ' lock'}"><span>${tr('伝説モード（速さ＋15%・スコア×1.5）', 'Legend mode (15% faster, score x1.5)')}</span>${tg('mode', !!SV.lgMode, legendOn('mode'))}</div>
     <div class="row3${legendOn('aura') ? '' : ' lock'}"><span>${tr('伝説の輝き（★1）', 'Golden sparkle trail (★1)')}</span>${tg('aura', SV.lgAura !== 0, legendOn('aura'))}</div>
     <div class="row3${legendOn('gold') ? '' : ' lock'}"><span>${tr('ランキングの金の名札（★2）', 'Gold name on the ranking (★2)')}</span>${legendOn('gold') ? '✓' : '<span class="lock">🔒</span>'}</div>
-    <p class="note">${tr('月桂冠と金の礼服は、下の着せ替えにあります（3人とも）。★ごとにチモシー2,000本とお守り。', 'The laurel and the gold coat are in the wardrobe below (all three). Every ★: 2,000 hay and a charm.')}</p></div>`;
+    <p class="note">${tr('月桂冠と金の礼服は、下の着せ替えにあります（3匹とも）。★ごとにチモシー2,000本とお守り。', 'The laurel and the gold coat are in the wardrobe below (all three). Every ★: 2,000 hay and a charm.')}</p></div>`;
   return `<div class="bank"><span>${t('bankHave')}</span><span><img src="${SPR_URL.hay}" alt=""> <b>${fmt(SV.bank)}</b></span></div>${ups}${clover}${mug}${legend}${closet}<p class="note">${t('closetNote')}</p><p class="note">${t('shopNote')}</p>`;
 }
 /* 試着室（2026-11-16。オーナー：「着せかえをしっかり楽しめるように」）：着せかえの列を押すと、買う前でも、鏡の中のキャラクターがその場で着てみせる（前と後ろ）。
