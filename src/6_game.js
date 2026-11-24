@@ -181,7 +181,7 @@ function titleFrame(dt) {
 }
 
 /* ---------- run lifecycle ---------- */
-function startRun() { G.drawRetry = 0; try { const m0 = G.mode; G.mode = 'play'; const d = dprWant(); G.mode = m0; if (d !== DPR && W) { DPR = d; resizeKeep(); } } catch (e) { } /* [H34] 走る時は、今までどおりの細かさにもどす */ cpClear(); G.resumeN = 0; G.cpT = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); } catch (e) { } bunniesNow(); kpPre();
+function startRun() { G.drawRetry = 0; G.perfId = Date.now(); /* [軽く 4-0] 動作の記録は 1 回の走りごと */ try { const m0 = G.mode; G.mode = 'play'; const d = dprWant(); G.mode = m0; if (d !== DPR && W) { DPR = d; resizeKeep(); } } catch (e) { } /* [H34] 走る時は、今までどおりの細かさにもどす */ cpClear(); G.resumeN = 0; G.cpT = 0; try { Q_UP = 0; Q_GOOD = 0; bunHiFree(); } catch (e) { } bunniesNow(); kpPre();
   audioInit(); SFX.ui(); { const f = document.getElementById('tFresh'); if (f) f.remove(); } toastClear();
   if (G.player) G.player.fallHide = false; /* [塔 F11] */
   G.runId = (G.runId || 0) + 1; Object.assign(G, { mode: 'play', t: 0, s: 0, lane: 1, prevLane: 1, lat: 0, y: 0, vy: 0, slideT: 0, air: false, speed: SV.tutDone ? 12.5 : 10.5, dist: 0, distEst: 0, speedEst: 10, score: 0, hay: 0, combo: 0, comboT: 0,
@@ -991,7 +991,7 @@ function collect(it, seg) {
   it.got = 1; const def = ITEMS[it.type]; const mult = SV.mlevel * (G.legend ? 1.5 : 1) * (G.pow.x2 > 0 ? 2 : 1) * (G.fever > 0 ? 2 : 1) * (pomOn() ? 1.2 : 1);
   const sp = spriteAt(G.player.wx, G.player.wy + .6, G.player.wz); const sx = sp ? sp.sx : W / 2, sy = sp ? sp.sy : H * .6;
   if (def.kind === 'stamp') {
-    const tid = seg.tid, isNew = !SV.stamps[tid]; SV.stamps[tid] = (SV.stamps[tid] || 0) + 1; save();
+    const tid = seg.tid, isNew = !SV.stamps[tid]; SV.stamps[tid] = (SV.stamps[tid] || 0) + 1; if (isNew) { if (!SV.stampT || typeof SV.stampT !== 'object') SV.stampT = {}; SV.stampT[tid] = Date.now(); } /* [ラリー 19] はじめて行った日を残す（スタンプ帳の札に出す） */ save();
     G.score += def.pts * mult; SFX.mission(); burst(sx, sy, '#C8463C', 24); buzz(30); G.hitStop = .08; if (isNew) G.stats.stampsNew.push(tid); G.stats.stampsGot = (G.stats.stampsGot || 0) + 1;
     banner('STAMP!', LANG === 'en' ? `${t('stampGet')} ${L(THEMES[tid].stamp)}` : `${t('stampGet')}「${L(THEMES[tid].stamp)}」`, 'good'); react('sparkle', 1); if (Math.random() < .5) pomSay(t('pomStamp'), 'sparkle', 1.2); return;
   }
@@ -1138,11 +1138,12 @@ function checkMissions(live) {
     if (missionProg(sl, live) >= sl.target) { sl.done = 1; save(); SFX.mission(); if (live) react('cheer', 0); const m = MT.find(x => x.id === sl.id); banner('MISSION CLEAR', L(m.t(sl.target)), 'good'); react('happy', 0); }
   }
 }
-function missionHTML() {
+function missionHTML(re) { /* re：ミッションの画面だけ、入れかえのボタンを出す（結果・一時停止の画面では出さない） */
   if (!SV.missions) newMissions();
   const live = G.mode === 'play' || G.mode === 'pause', ratio = sl => sl.done ? -1 : Math.min(1, missionProg(sl, live) / Math.max(1, sl.target));
   return [...SV.missions.slots].sort((a, b) => ratio(b) - ratio(a)).map(sl => { const m = MT.find(x => x.id === sl.id); if (!m) return ''; const p = Math.min(sl.target, Math.floor(missionProg(sl, live))); const done = sl.done || p >= sl.target; // the one you are closest to comes first (2026-11-08)
-    return `<div class="m${done ? ' done' : ''}"><p>${esc(L(m.t(sl.target)))}</p><span class="n">${done ? 'CLEAR' : fmt(p) + ' / ' + fmt(sl.target)}</span><div class="prog"><i style="width:${(done ? 1 : p / sl.target) * 100}%"></i></div></div>`; }).join('');
+    const ic = micon(m.stat), canRe = !done && SV.bank >= KP_REROLL && G.mode !== 'play'; /* [ミッション 7] ミッションの札：種類の絵（色の丸）・文・太い進み具合の帯と数・クリアの判子。入れかえは、札の右の小さなボタン（前は下に、文の長いボタンが並んでいた） */
+    return `<div class="m mcard mm${done ? ' done' : ''}" style="--mc:${ic.c}"><span class="mci">${ic.html}</span><div class="mcb"><p>${esc(L(m.t(sl.target)))}</p><span class="mbar"><i style="width:${((done ? 1 : p / sl.target) * 100).toFixed(0)}%"></i></span><span class="mnum">${done ? tr('クリア！', 'Cleared!') : `<b>${fmt(p)}</b> / ${fmt(sl.target)}<small class="mleft">${tr('あと', '')} ${fmt(sl.target - p)}${LANG === 'en' ? ' to go' : ''}</small>`}</span></div>${done ? `<span class="mok">${msvg('check')}</span>` : !re ? '' : `<button class="mre" data-reroll="${esc(sl.id)}"${canRe ? '' : ' disabled'} aria-label="${esc(kt('reroll', KP_REROLL))}">${msvg('reroll')}<small><img src="${SPR_URL.hay}" alt="">${KP_REROLL}</small></button>`}</div>`; }).join('');
 }
 
 /* ---------- photos ---------- */
