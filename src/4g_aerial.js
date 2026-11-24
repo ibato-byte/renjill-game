@@ -181,7 +181,7 @@ function aerialCity(seg, yb, alt, hz) {
   const bay = th.bay, face = th.face != null ? segFace(seg) : 0, dirA = seg.dir * Math.PI / 2; /* [塔 L2] 地図の向きも、実際に曲がった向きから */
   // 町の「基準の点」：場所ごとに決まった所（塔の足もと）を原点にする。どの場所から見ても同じ町が同じ所にある
   const ox = seg.sx, oz = seg.sz, rx = cx0 - ox, rz = cz0 - oz;
-  const P = (wx, wz, y) => { const dx = wx - cx0, dz = wz - cz0, d = dx * cs + dz * cc; if (d < 1) return null; const l = dx * cc - dz * cs; const q = scr(d, l, y); return [q[0], q[1], d]; };
+  const P = (wx, wz, y) => { const dx = wx - cx0, dz = wz - cz0, d = dx * cs + dz * cc; if (d < 1 || d * pc - ((y || 0) - camH) * ps < 1) return null; /* [着地 L7] 2026-11-24 オーナー「東京タワー（押上も）から旅立つ時、塔の方を向いていないのに、鉄骨のような物がチカチカ見える」：本当の下向き（L5）にしてから、カメラより高い所（塔の上の鉄骨）は、前に 1m 以上あっても、本当の奥行きが 0 より手前（カメラのうしろ）になることがあり、画面の反対側に大きくはね返って描かれていた。本当の奥行きが 1m より手前の点は描かない */ const l = dx * cc - dz * cs; const q = scr(d, l, y); return [q[0], q[1], d]; };
   ctx.save(); ctx.beginPath(); ctx.rect(0, yb - 1, W, H - yb + 1); ctx.clip();
   ctx.fillStyle = `rgb(${fog.map(v => v | 0)})`; ctx.fillRect(0, yb - 1, W, H - yb + 1);
   // ---- 1) 地面の絵を、画面の横 1 すじずつ、本当の遠近でしきつめる ----
@@ -215,7 +215,7 @@ function aerialCity(seg, yb, alt, hz) {
   if (!night && !lowq && G.weather === 'clear') { ctx.fillStyle = 'rgba(24,34,60,.13)'; for (let k = 0; k < 5; k++) { const wx = ox + ((acHash(k, 3, 1) * 5000 + G.t * 9) % 5000) - 2500 + rx * 0, wz = oz + acHash(k, 5, 2) * 5000 - 2500, a = 260 + acHash(k, 9, 4) * 340, b2 = a * .55; ctx.beginPath(); let ok = 1;
       for (let m = 0; m <= 14; m++) { const t = m / 14 * Math.PI * 2, q = P(wx + Math.cos(t) * a * (1 + .15 * Math.sin(t * 3 + k)), wz + Math.sin(t) * b2 * (1 + .2 * Math.cos(t * 2 + k))); if (!q) { ok = 0; break; } m ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); } if (ok) ctx.fill(); } }
   // ---- 4.4) 本物の地図：公園・川・線路・首都高（地面の物） ----
-  let RM = null; try { RM = realMapLayer(seg, { P, scr, cx0, cz0, cs, cc, hz, camH, F, night, fog, yb, lowq, ox, oz, dirA, face }); } catch (e) { reportErr(e); }
+  let RM = null; try { RM = realMapLayer(seg, { P, scr, nrD: y => Math.max(1.5, (1 - (camH - (y || 0)) * ps) / pc), cx0, cz0, cs, cc, hz, camH, F, night, fog, yb, lowq, ox, oz, dirA, face }); } catch (e) { reportErr(e); }
   // ---- 4.5) 着地する公園（空の上の時）：森・芝生・園路・池。おりていく先に、本当に公園がある ----
   let park = null;
   if (th.sky) { const e = segPos(seg, seg.len - 10, 0), fx = Math.sin(dirA), fz = Math.cos(dirA), ux = Math.cos(dirA), uz = -Math.sin(dirA); park = { x: e[0], z: e[1], fx, fz, ux, uz };
