@@ -182,12 +182,26 @@ function todayGrid() {
   if (typeof ttFit === 'function') requestAnimationFrame(ttFit); /* [H76] 数が枠に入るか見る */
 }
 function kpRecords() {
-  SFX.ui(); const k = kp(), nm = { r: tr('モチ', 'Mochi'), j: tr('ユズ', 'Yuzu'), p: tr('クリ', 'Kuri') }, avg = k.h.length ? Math.round(k.h.reduce((a, b) => a + b, 0) / k.h.length) : 0;
-  const top = k.top.length ? `<ol class="kp-top10">${k.top.map(r => { const th = THEMES[r[3]]; return `<li><b>${fmt(r[0])}</b><span>${esc(nm[r[1]] || '')}${th ? '・' + esc(L(th)) : ''}</span><em>${esc(String(r[2] || '').split('-').slice(1).join('/'))}</em></li>`; }).join('')}</ol>` : `<p class="note">${esc(kt('recNone'))}</p>`;
-  const chars = ['ren', 'jill'].concat(SV.pomMet ? ['pom'] : []).map(w => `<span><small>${esc(nm[w[0]])}</small><b>${fmt(kpN(k.cb[w]))}</b></span>`).join('');
-  const medals = KP_MEDAL.map((m, i) => `<span class="${i < k.md ? 'got' : ''}" title="${fmt(m[0])}">${i < k.md ? '★' : '☆'} ${esc(tr(m[1], m[2]))}</span>`).join(''), nx = KP_MEDAL[k.md];
-  openPanel('RECORDS', kt('recH'), `<div class="kp-rec"><div class="kp-big"><span><small>${esc(t('best'))}</small><b>${fmt(SV.best || 0)}</b></span><span><small>${esc(kt('nextToday'))}</small><b>${fmt(k.db)}</b></span><span><small>${esc(kt('recAvg'))}</small><b>${fmt(avg)}</b></span></div>`
-    + `<p class="kp-h">${esc(kt('recChar'))}</p><div class="kp-big">${chars}</div><p class="kp-h">${esc(kt('recTop'))}</p>${top}<p class="kp-h">${esc(kt('recMedal'))}${nx ? '　<small>' + esc(kt('recNext', fmt(nx[0]))) + '</small>' : ''}</p><div class="kp-medals">${medals}</div></div>`);
+  SFX.ui(); const k = kp(), nm = { r: tr('モチ', 'Mochi'), j: tr('ユズ', 'Yuzu'), p: tr('クリ', 'Kuri') }, avg = k.h.length ? Math.round(k.h.reduce((a, b) => a + b, 0) / k.h.length) : 0, best = SV.best || 0;
+  /* [ミッション 20] 記録の画面：数の札に絵（王冠・太陽・グラフ）と色 */
+  const tile = (ic, c, lbl, v) => `<span class="rt" style="--mc:${c}"><i>${msvg(ic)}</i><small>${esc(lbl)}</small><b>${fmt(v)}</b></span>`;
+  const last = k.h.length ? k.h[k.h.length - 1] : 0, prev2 = k.h.length > 1 ? k.h[k.h.length - 2] : 0, diff = last - prev2; /* [ミッション 25] 前の回とくらべて、上がったか下がったか */
+  const trend = k.h.length > 1 ? `<div class="rtrend ${diff >= 0 ? 'up' : 'dn'}">${msvg(diff >= 0 ? 'jump' : 'slide', 'sm')}${tr('前の回より', 'vs. the run before')} <b>${diff >= 0 ? '+' : '−'}${fmt(Math.abs(diff))}</b></div>` : '';
+  const tiles = `<div class="rtiles">${tile('crown', '#D6A23C', t('best'), best)}${tile('sun', '#E8A82E', kt('nextToday'), k.db)}${tile('chart', '#4E77A0', kt('recAvg'), avg)}</div>`;
+  /* [ミッション 21] 最近 10 回の点数のぼうグラフ（平均の点線・いちばん高い回は金色） */
+  let chart = ''; if (k.h.length) { const mx = Math.max(1, ...k.h), Wc = 300, Hc = 92, bw = Wc / 10, ay = Hc - avg / mx * (Hc - 14), hi = k.h.indexOf(mx);
+    chart = `<div class="rchart"><p class="kp-h">${msvg('chart', 'sm')}${tr('最近の点数', 'Recent runs')}</p><svg viewBox="0 0 ${Wc} ${Hc + 14}" aria-hidden="true">${k.h.map((v, i) => { const h = Math.max(3, v / mx * (Hc - 14)), x = i * bw + bw * .18; return `<rect x="${x.toFixed(1)}" y="${(Hc - h).toFixed(1)}" width="${(bw * .64).toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${i === hi ? '#D6A23C' : i === k.h.length - 1 ? '#7FB23F' : '#C9B79F'}"/>`; }).join('')}<path d="M0 ${ay.toFixed(1)} H${Wc}" stroke="#4E77A0" stroke-width="1.5" stroke-dasharray="5 4"/><text x="${Wc - 2}" y="${(ay - 4).toFixed(1)}" text-anchor="end" class="rcl">${tr('平均', 'avg')} ${fmt(avg)}</text><text x="${((k.h.length - 1) * bw + bw / 2).toFixed(1)}" y="${Hc + 12}" text-anchor="middle" class="rcl">${tr('今回', 'last')}</text></svg></div>`; }
+  /* [ミッション 22] キャラクターごとのベスト：ホーム画面の顔の絵と、いちばん高い人に対する帯 */
+  const who = ['ren', 'jill'].concat(SV.pomMet ? ['pom'] : []), cbMax = Math.max(1, ...who.map(w => kpN(k.cb[w]))), face = w => { try { const c = document.getElementById({ ren: 'cvRen', jill: 'cvJill', pom: 'cvPom' }[w]); return c && c.width ? c.toDataURL() : ''; } catch (e) { return ''; } }, wc = { ren: '#D6A23C', jill: '#C8463C', pom: '#E88A2E' };
+  const chars = who.map(w => { const v = kpN(k.cb[w]), f = face(w); return `<div class="rch" style="--mc:${wc[w]}">${f ? `<img src="${f}" alt="">` : `<i>${esc(nm[w[0]].slice(0, 1))}</i>`}<div><small>${esc(nm[w[0]])}</small><b>${fmt(v)}</b><span class="mbar"><i style="width:${(v / cbMax * 100).toFixed(0)}%"></i></span></div></div>`; }).join('');
+  /* [ミッション 23] ベスト 10：上の 3 つは金・銀・銅の表彰台の札、4 位からは小さな行（場所と日付） */
+  const md = ['#D6A23C', '#A9B4BF', '#C88A55'], row = (r, i) => { const th = THEMES[r[3]]; return `<li class="${i < 3 ? 'pod' : ''}" style="--mc:${md[i] || '#C9B79F'}"><span class="rrk">${i < 3 ? msvg('medal') : ''}<em>${i + 1}</em></span><b>${fmt(r[0])}</b><span class="rpl">${esc(nm[r[1]] || '')}${th ? ' · ' + esc(L(th)) : ''}</span><small>${esc(String(r[2] || '').split('-').slice(1).join('/'))}</small></li>`; };
+  const top = k.top.length ? `<ol class="rtop">${k.top.map(row).join('')}</ol>` : `<p class="note">${esc(kt('recNone'))}</p>`;
+  /* [ミッション 24] 点数の勲章：道の上に並んだメダル（取った物は金色）と、次の勲章までの帯 */
+  const nx = KP_MEDAL[k.md], prev = k.md ? KP_MEDAL[k.md - 1][0] : 0, kk = nx ? Math.max(0, Math.min(1, (best - prev) / (nx[0] - prev))) : 1;
+  const road = `<div class="rroad">${KP_MEDAL.map((m, i) => `<span class="${i < k.md ? 'got' : i === k.md ? 'nx' : ''}"><i>${msvg(i < k.md ? 'medal' : 'lock')}</i><small>${esc(tr(m[1], m[2]))}</small><em>${fmt(m[0])}</em></span>`).join('')}</div>${nx ? `<div class="rnx"><span>${esc(kt('recNext', fmt(nx[0])))}</span><span class="mbar"><i style="width:${(kk * 100).toFixed(0)}%"></i></span></div>` : ''}`;
+  openPanel('RECORDS', kt('recH'), `<div class="kp-rec rec2">${tiles}${trend}${chart}<p class="kp-h">${msvg('star', 'sm')}${esc(kt('recChar'))}</p><div class="rchs">${chars}</div><p class="kp-h">${msvg('crown', 'sm')}${esc(kt('recTop'))}</p>${top}<p class="kp-h">${msvg('medal', 'sm')}${esc(kt('recMedal'))}</p>${road}</div>`);
+  try { const r = document.querySelector('.rroad .nx'); if (r) r.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) { }
 }
 // back after three days or more away: a small gift, once
 function kpComeback() {
