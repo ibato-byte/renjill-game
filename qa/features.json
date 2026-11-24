@@ -2655,6 +2655,31 @@
       "name": "前の保存先で作った番号を見分ける（印 p と prevProjectId）2026-11-24",
       "file": "src/6c0_fsdb.js",
       "has": "cfg.prevProjectId"
+    },
+    {
+      "name": "着地：少し先の芝生にもきめ",
+      "file": "src/4g_aerial.js",
+      "has": "[着地 L3]"
+    },
+    {
+      "name": "着地：おりる最後の 60m の真下に着地の道",
+      "file": "src/3_world.js",
+      "has": "[着地 L4]"
+    },
+    {
+      "name": "塔：建物の外かべが近づいてもうすくならない",
+      "file": "src/4_render.js",
+      "has": "[塔 T216]"
+    },
+    {
+      "name": "塔：物の下のはしが欠けたりもどったりしない",
+      "file": "src/4_render.js",
+      "has": "[塔 T215]"
+    },
+    {
+      "name": "塔：階段の部屋で、低い天井の向こうの物が透けない",
+      "file": "src/4_render.js",
+      "has": "[塔 T217]"
     }
   ]
 }
