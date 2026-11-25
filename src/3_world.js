@@ -241,7 +241,7 @@ function buildRoom(seg, s0, lEnd, rEnd) {
       const b = Math.min(a + 3, a1);
       if (cUp && (cUp(a) > .01 || cUp(b) > .01)) { const lat = side * HW, ua = H + cUp(a), ub = H + cUp(b), pts = side < 0 ? [[a, lat, H], [b, lat, H], [b, lat, ub], [a, lat, ua]] : [[b, lat, H], [a, lat, H], [a, lat, ua], [b, lat, ub]], gl = glass && th.core !== side;
         seg.walls.push(Object.assign({ v: quad(seg, pts), c: gl ? wc : C(glass ? th.coreC || '#DCD8D0' : th.wall || '#E9EEF2'), n: [-side * seg.r[0], -side * seg.r[1]], sh: side < 0 ? .94 : .86 }, gl ? { glass: 1, gf: th.gframe } : {})); }
-      if (glass && th.core === side) { addWallQuad(seg, side, a, b, 0, H, C(th.coreC || '#DCD8D0'), {}); addWallQuad(seg, side, a, b, 0, .14, bc, { base: 1 }); } /* [T11] 展望台の内がわは、塔のまん中の柱（エレベーターや階段の入る、かべ）。窓は外がわだけ（本物の展望台は、ぐるりと 1 周する通路） */
+      if (glass && th.core === side) { addWallQuad(seg, side, a, b, 0, H, C(th.coreC || '#DCD8D0'), { pat: 'corep', ti: seg.walls.length }); /* [塔 T222] 展望台の内がわのかべに、板の目地と、天井ぎわの間接照明（wallPattern の corep） */ addWallQuad(seg, side, a, b, 0, .14, bc, { base: 1 }); } /* [T11] 展望台の内がわは、塔のまん中の柱（エレベーターや階段の入る、かべ）。窓は外がわだけ（本物の展望台は、ぐるりと 1 周する通路） */
       else if (glass) addWallQuad(seg, side, a, b, 0, H, wc, { glass: 1, gf: th.gframe });
       else if (side < 0 && th.leftWall === 'trainside') addWallQuad(seg, side, a, b, 0, H, C('#C9CDD2'), { pat: 'trainside', ta: a, tw: b - a });
       else { addWallQuad(seg, side, a, b, 0, H, wc, { pat: th.wpat || null }); addWallQuad(seg, side, a, b, 0, .14, bc, { base: 1 }); }
