@@ -730,3 +730,17 @@ html[data-in="ptr"] #sTitle.home .chars .char:focus-visible canvas{box-shadow:no
 #sTitle.home .hm-tap:active{transform:translateY(1.5px);filter:brightness(.96)}
 #sTitle.home .hm-tap:focus-visible{outline:3px solid #355F86;outline-offset:2px}
 @media (hover:hover){#sTitle.home .hm-tap:hover{filter:brightness(1.03)}}
+/* [スタート 第 5 回] 2026-11-26 いろいろな状態（はじめての人・3 匹・達成・大きな数・英語・韓国語）で見て直した所
+   [S38] 達成した時、数字のとなりの「✓」をやめる（丸い計器がチェックになるので二重。数字が小さくちぢんでいた） [S39] 達成した数字は緑がかった色に
+   [S40] えらんでいないキャラクターの名前がうすすぎた → 読める濃さに [S41] 下の白い札の上に、やわらかいかげ（うしろの畳と分かれて見える） [S42] スタートの字が、字の間の分だけ左に寄っていた → まん中に
+   [S43] 英語：昇進の名前（Deputy manager）が 2 行に折れていた → 1 行に [S44] 昇進の帯の「次の昇進まで」の数字を太く [S45] 今日の札：2 つとも達成したら、札の地が金がかった色に */
+#sTitle.home #tToday .ttok{display:none}
+#sTitle.home #tToday .tt-c.ok b{color:#2F6B4F}
+#sTitle.home .chars .char[aria-pressed="false"] .nm{color:#6E5848;opacity:.85}
+#sTitle.home .card::after{box-shadow:0 -8px 22px -6px rgba(59,42,32,.28)}
+#sTitle.home .card>#btnStart{text-indent:.12em}
+html[lang="en"] #sTitle.home #tCareer .career .cr-t{white-space:nowrap;font-size:13px;letter-spacing:-.01em}
+#sTitle.home #tCareer .career small{font-weight:900}
+#sTitle.home .card>#tToday:has(.tt-c.ok+.tt-c.ok){background-image:linear-gradient(180deg,#FFFBEA,#F8E7B4)}#sTitle.home #tToday:has(.tt-c.ok+.tt-c.ok)::after{background:#F8E7B4}
+/* [S46] スタート画面のお知らせのふきだしも、今日の札と同じ紙の色と金の細い輪に */
+.ttoast.hm{background-color:#FFFBF2!important;background-image:linear-gradient(180deg,#FFFDF8,#FAF1DE)!important;box-shadow:0 3px 0 rgba(59,42,32,.3),0 10px 18px -10px rgba(59,42,32,.45),inset 0 0 0 1.5px #fff,inset 0 0 0 2.6px rgba(233,180,76,.5)!important;color:#3B2A20!important}
