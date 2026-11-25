@@ -243,7 +243,7 @@
     },
     {
       "name": "走った場所の地図",
-      "file": "src/7_ui.js",
+      "file": "src/7d_tokyomap.js",
       "has": "function tokyoMapHTML()"
     },
     {
@@ -2745,6 +2745,26 @@
       "name": "ラリー：スマホでも札を読みやすく",
       "file": "src/head.html",
       "has": "[ラリー 103]"
+    },
+    {
+      "name": "ラリー2：名所ごとの絵のスタンプ（わく・インク・かすれ）",
+      "file": "src/4j_stampart.js",
+      "has": "[ラリー2 1]"
+    },
+    {
+      "name": "ラリー2：本物の東京の形の地図（海岸・川・線路・道路）",
+      "file": "src/7d_tokyomap.js",
+      "has": "[ラリー2 20]"
+    },
+    {
+      "name": "ラリー2：きっぷの札",
+      "file": "src/7_ui.js",
+      "has": "[ラリー2 40]"
+    },
+    {
+      "name": "ラリー2：台紙のます・路線図の進み具合",
+      "file": "src/7_ui.js",
+      "has": "[ラリー2 48]"
     }
   ]
 }
