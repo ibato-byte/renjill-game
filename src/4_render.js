@@ -848,7 +848,7 @@ function burst(x, y, color, n) { for (let i = 0; i < n; i++) FX.push({ x, y, vx:
 // They now rise from the floor below the runners, where nothing is coming at you; the old heights keep their order.
 function cheerY(k) { return H - Math.min(196, H * .28) - (k - .3) * 110; } // short landscape screens: lower, so the words stay below the runners
 /* 浮かぶ文字が重ならない（2026-11-16：新しい食べ物を続けて 2 つ取ると「NEW! 図鑑に…」が同じ場所に 2 つ重なって読めなかった）。先に出ている文字と近いときは、1 行ぶん下にずらす */
-function floatText(x, y, txt, color) { for (let k = 0; k < 4; k++) { if (!FX.some(p => p.txt && Math.abs(p.y - y) < 20 && Math.abs(p.x - x) < 150)) break; y += 22; } FX.push({ x, y, vx: 0, vy: -60, life: .9, t: 0, txt, c: color }); }
+function floatText(x, y, txt, color) { for (let k = 0; k < 6; k++) { if (!FX.some(p => p.txt && p.t < p.life && Math.abs(p.y - y) < 30 && Math.abs(p.x - x) < 220)) break; y += 30; } FX.push({ x, y, vx: 0, vy: -60, life: .9, t: 0, txt, c: color }); } /* [塔 T218] 2026-11-25：同じころに出た 2 つの文字（「NEW! 図鑑に…」が 2 つなど）が、ほぼ同じ高さで重なって読めなかった（文字の高さ 16 ドットに対して、ずらす幅が 22 ドットで、横はばの長い文は 150 ドットの判定の外だった）。30 ドットずつ、横 220 ドットの中ならずらす */
 let paper = [];
 // the title room's morning: sunlight through the shoji falls across the tatami, dust drifts in it, the mug steams, the boss snores
 function titleFX() {
