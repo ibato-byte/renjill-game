@@ -195,13 +195,10 @@ function openHow() {
   const demo = `<div class="howanim${OPT().calm ? ' still' : ''}" aria-hidden="true"><div class="ha-road"><i class="ha-l"></i><i class="ha-l r"></i></div><img class="ha-bun" src="${(() => { try { bunniesNow(); return bunFrame(SV.char === 'jill' ? 'jill' : 'ren', 'run0', false).toDataURL(); } catch (e) { return SPR_URL.hay; } })()}" alt=""><b class="ha-box"></b><span class="ha-finger"></span><em class="ha-cap"><span>${esc(t('howA1'))}</span><span>${esc(t('howA2'))}</span><span>${esc(t('howA3'))}</span></em></div>`;
   openPanel('HOW TO PLAY', t('how'), demo + `<div class="how">
     <kbd>← →</kbd><span>${t('howSwipeLR')}</span><kbd>↑</kbd><span>${t('howUp')}</span><kbd>↓</kbd><span>${t('howDown')}</span>${matchMedia('(hover:none) and (pointer:coarse)').matches ? '' : `<kbd>ESC</kbd><span>${t('howKeys')}</span>`}</div>
-    <div class="zdetail"><b>${lab('GOAL')}</b>${esc(t('howGoal'))}</div>
-    <div class="zdetail"><b>${lab('CORNERS')}</b>${esc(t('howTurn'))}</div>
-    <div class="zdetail"><b>${lab('♥ BUMPS')}</b>${esc(t('howBump'))}</div>
-    <div class="zdetail"><b>${lab('FEVER')}</b>${esc(t('howFever'))}</div>
+    ${[['GOAL', 'howGoal', 'g', '<path d="M6 21V3M6 4h11l-2.4 3.5L17 11H6" fill="#6DB36A"/>'], ['CORNERS', 'howTurn', 'c', '<path d="M5 20V11a4 4 0 0 1 4-4h9M14 3l4 4-4 4" fill="none"/>'], ['♥ BUMPS', 'howBump', 'b', '<path d="M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.600 12 20 12 20z" fill="#D9584C"/>'], ['FEVER', 'howFever', 'f', '<path d="M12 21c-3.600 0-6-2.400-6-5.600 0-2.600 1.600-4 2.800-5.800C10 7.800 10.400 5.800 10 3c3 1.400 5 4 5.200 6.800.9-.6 1.400-1.500 1.500-2.600C18.100 9 18.800 11.300 18.800 14.600 18.800 18.400 16 21 12 21z" fill="#E9B44C"/>']].map(([k, key, c, svg]) => `<div class="howc hc-${c}"><b><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#3B2A20" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${svg}</svg>${String(lab(k)).replace('♥ ', '')}</b><ul>${String(t(key)).split(/(?<=[。.!！])\s*/).filter(x => x.trim()).map(x => `<li>${esc(x.trim())}</li>`).join('')}</ul></div>`).join('')}
     <div class="how">${ic('carrot')}<span>${esc(L(POW.dash))}</span>${ic('papaya')}<span>${esc(L(POW.magnet))}</span>${ic('alfalfa')}<span>${esc(L(POW.jump))}</span>
     ${ic('plane')}<span>${esc(L(POW.fly))}</span>${ic('hanko')}<span>${esc(L(POW.x2))}</span>${ic('clover')}<span>${esc(L(ITEMS.clover))}</span>${ic('choco')}<span>${esc(t('howNG'))}</span></div>
-    <div class="zdetail"><b>${tr('クレジット・ご注意', 'CREDITS & NOTES')}</b>${esc(t('legal'))}</div>`);
+    <p class="howlegal"><b>${tr('クレジット・ご注意', 'CREDITS & NOTES')}</b>${esc(t('legal'))}</p>`); /* [スタート S47〜S51] あそびかた：こい色の文字のかたまり 4 つを、絵つきの明るい札と、1 文ずつの短い行に。クレジットは下の小さな字に */
 }
 // 文字の大きさ（C-29）：html に bigtext をつける
 function applyLook() { try { document.documentElement.classList.toggle('bigtext', !!OPT().big); document.documentElement.classList.toggle('calm', !!OPT().calm); } catch (e) { } }

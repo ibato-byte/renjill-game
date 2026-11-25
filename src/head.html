@@ -56,6 +56,11 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 /* 一時停止の下の3つのボタン（やめる・音・ユズに聞く）が320px幅で2行に折れていた */
 #sPause .btns .sub{white-space:normal;line-height:1.15;overflow-wrap:anywhere;text-wrap:balance;font-size:clamp(11px,3.5vw,15px);padding-left:6px;padding-right:6px;overflow:hidden;text-overflow:clip;min-height:44px}#sPause .btns .sub.danger{font-size:clamp(10px,3.2vw,14px);padding-top:6px;padding-bottom:6px} /* 2026-11-15：「…」で切らない。確かめの言葉は、入らなければ 2 行に */
 .langpick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}.langpick button{min-height:52px;font-size:17px}
+/* [スタート S52] ことばをえらぶ画面：今のことばに金の輪とチェック。えらんでいないことばは、明るい紙の札（こい色とうすい灰色の 2 色だけで、どれが今のか分かりにくかった） [S53] 押した時に少ししずむ */
+.langpick button{position:relative;border-radius:14px;transition:transform .08s}.langpick button:active{transform:translateY(2px)}
+.langpick button.off{background-color:#FFFBF2;color:#3B2A20;box-shadow:0 2px 0 rgba(59,42,32,.18),inset 0 0 0 1px #E4D8C2}
+.langpick button:not(.off){box-shadow:0 2px 0 rgba(59,42,32,.3),inset 0 0 0 2px #E9B44C}
+.langpick button:not(.off)::after{content:"";position:absolute;right:10px;top:50%;width:18px;height:18px;margin-top:-9px;border-radius:50%;background:#E9B44C url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233B2A20' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.500l4 4L18 8'/%3E%3C/svg%3E") center/12px no-repeat}
 #feverGlow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;box-shadow:inset 0 0 46px 8px rgba(242,194,48,.4)} /* フィーバー中の黄色いふちが太く、左右のレーンが見づらかった */
 #feverGlow.on{opacity:1}
 #sTitle .row2{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}#sTitle .row2 .sub{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:10px 6px;font-size:13px}
@@ -203,6 +208,13 @@ html[lang="ja"] .mini em{white-space:nowrap;font-size:10px;letter-spacing:-.02em
 .notelink{display:inline-block;margin-top:4px;padding:6px 12px;border-radius:999px;background:var(--ink);color:#fff;font-weight:800;text-decoration:none}
 .how{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;font-size:13px;font-weight:700}
 .how kbd{font-family:var(--f-display);font-size:13px;background:var(--cream);border-radius:8px;padding:6px 8px;text-align:center;min-width:64px}
+/* [スタート S47] あそびかたの札：こい茶色のかたまり → 明るい紙の札と色の帯 [S48] 見出しに絵（旗・曲がる矢印・ハート・炎） [S49] 文は 1 文ずつ、点つきの短い行 [S50] クレジットは下の小さな字 [S51] スワイプの札は、キーの形（下のふち）で矢印を大きく */
+.howc{flex:none;border-radius:12px;padding:10px 12px 10px 14px;background-color:#FFFBF2;box-shadow:0 2px 0 rgba(59,42,32,.14),inset 0 0 0 1px #E9DCC3,inset 4px 0 0 var(--hc,#E9B44C);color:var(--ink)}
+.howc.hc-g{--hc:#6DB36A}.howc.hc-c{--hc:#5B8DBF}.howc.hc-b{--hc:#D9584C}.howc.hc-f{--hc:#E9B44C}
+.howc b{display:flex;align-items:center;gap:6px;font-family:var(--f-display);font-weight:400;font-size:15px;color:var(--ink);margin-bottom:4px}.howc b svg{width:20px;height:20px;flex:none}
+.howc ul{margin:0;padding:0;list-style:none;display:grid;gap:3px}.howc li{position:relative;padding-left:12px;font-size:12.5px;line-height:1.55;font-weight:700;color:#4A382C}.howc li::before{content:"";position:absolute;left:1px;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--hc,#E9B44C)}
+.howlegal{flex:none;margin:6px 2px 2px;font-size:10.5px;line-height:1.6;color:#6E5848;font-weight:700}.howlegal b{display:block;font-size:11px;color:#4A382C}
+.how kbd{box-shadow:0 2px 0 rgba(59,42,32,.22),inset 0 0 0 1px rgba(59,42,32,.1);font-size:15px;background-color:#FFFBF2}
 .res-cap{text-align:center}
 .res-cap .en{font-family:var(--f-display);font-size:clamp(26px,8vw,40px);display:block;line-height:1.05;text-wrap:balance}
 .res-cap .ja{font-weight:900;font-size:14px;color:var(--ink-soft)}
