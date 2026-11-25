@@ -1062,16 +1062,7 @@ function litSprite(img, amb, force, full) {
   const px = c.width * c.height; LIT_LIST.push({ img, k, c, px }); LIT_PX += px; litEvict();
   m[k] = m.last = c; return c;
 }
-const STAMP_CACHE = {};
-function stampSprite(tid, big) {
-  const key = tid + (big ? 'B' : '') + LANG; if (STAMP_CACHE[key]) return STAMP_CACHE[key];
-  const th = THEMES[tid], st = th && th.stamp; const sz = big ? 256 : 128, c = mk(sz), g = c.getContext('2d') || noCtx(), s = sz / 128;
-  g.scale(s, s); g.fillStyle = '#FBF6EE'; g.beginPath(); g.arc(64, 64, 58, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = '#C8463C'; g.lineWidth = 6; g.beginPath(); g.arc(64, 64, 52, 0, Math.PI * 2); g.stroke(); g.lineWidth = 2; g.beginPath(); g.arc(64, 64, 44, 0, Math.PI * 2); g.stroke();
-  g.fillStyle = '#C8463C'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `900 ${st && st.k.length > 2 ? 30 : 38}px "Zen Maru Gothic","Hiragino Sans",sans-serif`; g.fillText(st ? st.k : '?', 64, 60);
-  g.font = '900 11px sans-serif'; g.fillText(LANG === 'ja' || !st || !st.en ? 'TOKYO' : st.en.toUpperCase(), 64, 92, 74);
-  STAMP_CACHE[key] = c; return c;
-}
+/* スタンプの絵は src/4j_stampart.js（[ラリー2]）へ移した */
 
 /* 2026-11-17 ホーム画面の第 2 段（オーナー「まだごわごわしてる」）：座布団は、横にのびた棒の絵に見えていた。本物（55×59cm・厚さ 10cm）の大きさの箱を 2 枚重ね、上の面に絵をのせる。
    [69] 本当の大きさと厚み [70] まん中のふくらみ（光とかげ） [71] まん中の糸のとじ（三方とじの房） [72] 4 すみの房 [73] 地紋（青海波） [74] ふちの縫い目 [75] 布の細かい織り目 */

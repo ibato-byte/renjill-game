@@ -22,6 +22,9 @@ IC = {
  'target': f'<circle cx="16" cy="16" r="11" fill="{CREAM}"/><circle cx="16" cy="16" r="7" fill="{RED}" stroke-width="1.6"/><circle cx="16" cy="16" r="3" fill="{CREAM}" stroke-width="1.4"/>',
  'leaf': f'<path d="M16 28V12" stroke="{GREEN}" stroke-width="2.4"/><path d="M16 14c-1-5 1-9 5-10 1 5-1 9-5 10zM16 19c-4-3-8-3-10-1 2 4 6 4 10 1zM16 22c3-3 7-4 10-2-2 4-6 4-10 2z" fill="{GREEN}" stroke="{INK}" stroke-width="1.4"/>',
  'hay': '',
+ 'check': f'<path d="M8 16.500l5.500 5.500L24.500 10.500" stroke="{CREAM}" stroke-width="4.200"/>',
+ 'bolt': f'<path d="M18.500 3.500 7.500 18h7l-2 10.500L24.500 14h-7z" fill="{GOLD}"/>',
+ 'hayb': f'<path d="M9 27c1-8 1.500-15 .5-22M16 27V4M23 27c-1-8-1.500-15-.5-22M12.500 27c.6-7 .8-13 .2-19M19.500 27c-.6-7-.8-13-.2-19" stroke="{GREEN}" stroke-width="2.200"/><rect x="6.500" y="16.500" width="19" height="5" rx="2.500" fill="{GOLD}"/>',
 }
 def uri(k): return "url(\"data:image/svg+xml," + urllib.parse.quote(svg(IC[k]), safe="/:=' ,.-") .replace('%20',' ') + "\")"
 css = open(HERE + '/home.css').read()
