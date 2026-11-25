@@ -195,14 +195,15 @@ function floorPattern(p, d) {
          本物の展望台の「ルックダウンウィンドウ」のように、窓ぎわ（片がわ）だけの、ステンレスの枠で囲んだ正方形 2 枚にする */
       const sv = p.ti % 2 ? [.08, .4] : [.6, .92];
       for (const [u0, u1] of [[.24, .5], [.5, .76]]) { ctx.globalAlpha = a * .95; bquad(u0 - .015, sv[0] - .03, u1 + .015, sv[1] + .03, T('#C9CDD2')); bquad(u0, sv[0], u1, sv[1], T(LT.night > .4 ? '#1E2433' : '#56626E'));
-        if (d < 26) { /* [塔 T219] 2026-11-25：ガラスの床から見下ろす町が、灰色の上にベージュの四角が 2〜5 つ散らばっただけで、横じまの板に見えた。真下 150m の町らしく、明るい道で区切った街区（3×4）に、色のちがう屋根・屋上の小さな箱・木の緑・道の車の点を並べる（夜は暗い町に窓と街灯の明かり） */
+        const wq0 = bil(u0, sv[0]), wq1 = bil(u1, sv[1]), wsz = Math.min(Math.abs(wq1[0] - wq0[0]), Math.abs(wq1[1] - wq0[1])); /* 窓が画面で小さい時（たて・横の短い方が 40 ドットより小さい）は、細かい町を描かない（遠くで小さな四角がちらつく） */
+        if (d < 26 && wsz > 40) { /* [塔 T219] 2026-11-25：ガラスの床から見下ろす町が、灰色の上にベージュの四角が 2〜5 つ散らばっただけで、横じまの板に見えた。真下 150m の町らしく、明るい道で区切った街区（3×4）に、色のちがう屋根・屋上の小さな箱・木の緑・道の車の点を並べる（夜は暗い町に窓と街灯の明かり） */
           const nt = LT.night > .4, du = (u1 - u0), dv = (sv[1] - sv[0]), rr = rnd(p.ti * 31 + (u0 > .4 ? 7 : 3)), stc = T(nt ? '#3A4258' : '#9EA3A6');
           bquad(u0, sv[0], u1, sv[1], stc);
           for (let i = 0; i < 3; i++) for (let j = 0; j < 4; j++) { const a0 = u0 + du * (i / 3 + .04), a1 = u0 + du * ((i + 1) / 3 - .04), b0 = sv[0] + dv * (j / 4 + .05), b1 = sv[0] + dv * ((j + 1) / 4 - .05), g = rr() < .14;
             bquad(a0, b0, a1, b1, T(nt ? (g ? '#141A22' : '#232A3A') : g ? '#6F8F58' : roof[(i * 4 + j + p.ti) % 5]));
-            if (!g && d < 18) { const c0 = a0 + (a1 - a0) * (.15 + rr() * .4), c1 = b0 + (b1 - b0) * (.15 + rr() * .4); bquad(c0, c1, c0 + (a1 - a0) * .3, c1 + (b1 - b0) * .3, T(nt ? (rr() < .5 ? '#E8C27A' : '#2E3648') : rr() < .5 ? '#C9C6BE' : '#5E5B55')); }
-            if (g && !nt && d < 18) bquad(a0 + (a1 - a0) * .2, b0 + (b1 - b0) * .2, a0 + (a1 - a0) * .55, b0 + (b1 - b0) * .55, T('#5A7A46')); }
-          if (d < 18) for (let k = 0; k < 3; k++) { const v = sv[0] + dv * ((1 + (k % 3)) / 4), u = u0 + du * (.1 + rr() * .8); bquad(u - du * .012, v - dv * .012, u + du * .012, v + dv * .012, nt ? '#FFE3A0' : ['#E9E4D8', '#C8463C', '#3A3C40'][k]); }
+            if (!g && d < 18 && wsz > 90) { const c0 = a0 + (a1 - a0) * (.15 + rr() * .4), c1 = b0 + (b1 - b0) * (.15 + rr() * .4); bquad(c0, c1, c0 + (a1 - a0) * .3, c1 + (b1 - b0) * .3, T(nt ? (rr() < .5 ? '#E8C27A' : '#2E3648') : rr() < .5 ? '#C9C6BE' : '#5E5B55')); }
+            if (g && !nt && d < 18 && wsz > 90) bquad(a0 + (a1 - a0) * .2, b0 + (b1 - b0) * .2, a0 + (a1 - a0) * .55, b0 + (b1 - b0) * .55, T('#5A7A46')); }
+          if (d < 18 && wsz > 90) for (let k = 0; k < 3; k++) { const v = sv[0] + dv * ((1 + (k % 3)) / 4), u = u0 + du * (.1 + rr() * .8); bquad(u - du * .012, v - dv * .012, u + du * .012, v + dv * .012, nt ? '#FFE3A0' : ['#E9E4D8', '#C8463C', '#3A3C40'][k]); }
           ctx.globalAlpha = a * .18; bquad(u0, sv[0], u1, sv[0] + dv * .35, nt ? '#20304A' : '#BFD6EA'); ctx.globalAlpha = a * .95; }
         else for (let k = 0; k < 2; k++) { const u = u0 + .03 + r2() * (u1 - u0 - .12), v = sv[0] + .03 + r2() * (sv[1] - sv[0] - .14); bquad(u, v, u + .03 + r2() * .06, v + .04 + r2() * .08, T(LT.night > .4 ? (k % 3 ? '#2A3044' : '#C9A15A') : roof[k % roof.length])); }
         ctx.globalAlpha = a * .22; bquad(u0 + .02, sv[0] + .02, u0 + .06, sv[1] - .02, '#FFFFFF'); ctx.globalAlpha = a * .95; }
@@ -257,6 +258,10 @@ function wallPattern(w, d) {
     if ((w.seed || 0) % 3 === 0) { bquad(.15, .25, .6, .8, tint('#1F2A44')); ctx.strokeStyle = 'rgba(200,210,230,.5)'; ctx.beginPath(); for (let k = 1; k < 4; k++) bline(.15 + k * .1125, .25, .15 + k * .1125, .8); bline(.15, .52, .6, .52); ctx.stroke(); } // [T72] 屋根の太陽光パネル（3 軒に 1 軒）
     bquad(0, 0, 1, .04, tint('#2B2B2B')); return; } // [T73] 屋根のてっぺんの棟がわら
   if (d > 60) return;
+  if (pat === 'corep') { /* [塔 T222] 2026-11-25：展望台の内がわ（塔のまん中の柱）のかべが、模様の無い 1 色の大きな板で、押上のデッキでは画面の左半分が黒い面になっていた。本物の展望台のかべのように、たての板の目地（1 枚 1.5m ほど）・腰の高さの横の目地・天井ぎわの間接照明の帯・床ぎわのかげ */
+    const dark = (w.c[0] + w.c[1] + w.c[2]) < 300, nt = LT.night > .4; ctx.lineWidth = 1; ctx.strokeStyle = dark ? 'rgba(255,255,255,.14)' : 'rgba(0,0,0,.12)'; ctx.beginPath(); bline(0, 0, 0, 1); bline(.5, 0, .5, .97); ctx.stroke();
+    ctx.strokeStyle = dark ? 'rgba(0,0,0,.35)' : 'rgba(0,0,0,.1)'; ctx.beginPath(); bline(0, .2, 1, .2); ctx.stroke();
+    const _g = ctx.globalAlpha; ctx.globalAlpha = _g * (nt ? .55 : .3); bquad(0, .955, 1, 1, '#FFE2B0'); ctx.globalAlpha = _g * (nt ? .22 : .1); bquad(0, .86, 1, .955, '#FFE2B0'); ctx.globalAlpha = _g * .25; bquad(0, 0, 1, .03, '#000000'); ctx.globalAlpha = _g; return; }
   if (pat === 'juraku') { /* 2026-11-17 ホーム画面の第 2 段：和室の壁（u＝横 3m、v＝下 0・上 1、高さ 3.0m）。前は、うすい黄色の平らな面だった
       [99] じゅらく壁の細かい砂のつぶ [100] うっすらした色むら [101] 長押（木の横木。高さ 2.0m） [102] 長押の下に落ちる細いかげ [103] 天井近くの小壁の明るさ [104] 畳寄せ（壁と畳の間の細い木） */
     const r = rnd(((w.v[0] * 13 + w.v[2] * 7) | 0) + 3), T = tint;
