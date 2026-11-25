@@ -56,6 +56,11 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 /* 一時停止の下の3つのボタン（やめる・音・ユズに聞く）が320px幅で2行に折れていた */
 #sPause .btns .sub{white-space:normal;line-height:1.15;overflow-wrap:anywhere;text-wrap:balance;font-size:clamp(11px,3.5vw,15px);padding-left:6px;padding-right:6px;overflow:hidden;text-overflow:clip;min-height:44px}#sPause .btns .sub.danger{font-size:clamp(10px,3.2vw,14px);padding-top:6px;padding-bottom:6px} /* 2026-11-15：「…」で切らない。確かめの言葉は、入らなければ 2 行に */
 .langpick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}.langpick button{min-height:52px;font-size:17px}
+/* [スタート S56・S57] 名前の入力：文字数と、ランキングの 1 行の見本。[S58] 入力のわくは、えらんだ時に金の輪 */
+.namebox{position:relative}.namecnt{position:absolute;right:12px;top:15px;font-size:11px;font-weight:900;color:#6E5848;font-variant-numeric:tabular-nums;pointer-events:none;background-color:#fff;padding:0 2px}.namecnt.full{color:#A8321F}
+.namebox #nameIn{padding-right:58px}.namebox #nameIn:focus{outline:none;box-shadow:0 0 0 3px rgba(233,180,76,.7)}
+.namepv{display:flex;align-items:center;gap:8px;margin:8px 0 2px;padding:7px 10px;border-radius:10px;background-color:#FFFBF2;box-shadow:inset 0 0 0 1px #E4D8C2;font-weight:900;font-size:13px;color:#3B2A20}
+.namepv i{flex:none;width:20px;height:20px;border-radius:50%;background-color:#E9B44C;color:#3B2A20;font-style:normal;font-size:11px;display:flex;align-items:center;justify-content:center;overflow:hidden}.namepv b{flex:1;min-width:0;overflow-wrap:anywhere;text-align:left}.namepv em{font-style:normal;font-variant-numeric:tabular-nums;color:#4A382C}.namepv b,.namepv em{font-size:14px!important;font-family:inherit!important;line-height:1.3;font-weight:900}.namepv.ph b{color:#6E5848;font-weight:700!important}
 /* [スタート S52] ことばをえらぶ画面：今のことばに金の輪とチェック。えらんでいないことばは、明るい紙の札（こい色とうすい灰色の 2 色だけで、どれが今のか分かりにくかった） [S53] 押した時に少ししずむ */
 .langpick button{position:relative;border-radius:14px;transition:transform .08s}.langpick button:active{transform:translateY(2px)}
 .langpick button.off{background-color:#FFFBF2;color:#3B2A20;box-shadow:0 2px 0 rgba(59,42,32,.18),inset 0 0 0 1px #E4D8C2}
