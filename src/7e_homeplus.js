@@ -20,6 +20,7 @@
      [スタート S90] スタンプ帳・えさ図鑑のボタンにマウスを乗せると、集めた数（30 / 85）が出る。読み上げにも数が入る */
   const say = () => { try { const td = st.querySelector('#tToday'); if (td && !td.hidden) { const parts = [...td.querySelectorAll('.tt-c')].filter(c => c.offsetParent).map(c => (c.querySelector('small') || {}).textContent + ' ' + ((c.querySelector('b') || {}).textContent || '').replace(/\s+/g, '') + (c.classList.contains('ok') ? ' ✓' : '')); const lb = parts.join('、') + '。' + tr('ミッションを開く', 'Open missions'); if (td.getAttribute('aria-label') !== lb) td.setAttribute('aria-label', lb); }
       const cr = st.querySelector('#tCareer .career'); if (cr) { const lb = [...cr.querySelectorAll('.cr-t,.cr-lv,small')].map(e => e.textContent.trim()).filter(Boolean).join(' ') + '。' + tr('きろくを開く', 'Open records'); if (cr.getAttribute('aria-label') !== lb) cr.setAttribute('aria-label', lb); }
+      { const sb = document.getElementById('btnStart'), ch = st.querySelector('.chars .char[aria-pressed="true"] .nm'); if (sb && ch) { const lb = ch.textContent.trim() + ' ' + sb.textContent.trim(); if (sb.getAttribute('aria-label') !== lb) sb.setAttribute('aria-label', lb); } } /* [スタート S100] 読み上げ：スタートのボタンは「モチ スタート」と、だれで走るかも読む */
       for (const [id, n, m] of [['btnStamps', STAMP_ORDER.filter(k => SV.stamps[k]).length, STAMP_ORDER.length], ['btnZukan', ZUKAN_ORDER.filter(k => SV.zukan[k]).length, ZUKAN_ORDER.length]]) { const b = document.getElementById(id); if (!b) continue; const nm = (b.querySelector('em') || {}).textContent || '', tt = nm + ' ' + n + ' / ' + m; if (b.title !== tt) { b.title = tt; b.setAttribute('aria-label', tt); } } } catch (e) { } };
   const tips = () => { for (const id of ['btnMute', 'btnSet']) { const b = document.getElementById(id); if (!b) continue; const n = (b.getAttribute('aria-label') || b.textContent || '').trim(); if (n && b.title !== n) b.title = n; } };
   /* [スタート S80] チモシーの数がふえた時（走った後・ごほうびを受け取った後）、札から「+123」が小さくうき上がる（数字そのものは、すぐに新しい数になる） [スタート S81] ベストがふえた時は、札が金色に光る */
@@ -30,5 +31,10 @@
   const ring = () => { try { const set = (id, k) => { const b = document.getElementById(id); if (!b) return; let r = b.querySelector('.hm-pg'); if (!r) { r = document.createElement('i'); r.className = 'hm-pg'; r.setAttribute('aria-hidden', 'true'); b.appendChild(r); } const w = parseFloat(getComputedStyle(b, '::before').width) || 50; const kk = Math.max(0, Math.min(1, k)).toFixed(3), key = w + '|' + kk; if (r.dataset.k === key) return; r.dataset.k = key; r.style.width = r.style.height = w + 'px'; r.style.setProperty('--pg', kk); r.classList.toggle('full', k >= 1); };
       set('btnStamps', STAMP_ORDER.filter(id => SV.stamps[id]).length / Math.max(1, STAMP_ORDER.length)); set('btnZukan', ZUKAN_ORDER.filter(id => SV.zukan[id]).length / Math.max(1, ZUKAN_ORDER.length)); } catch (e) { } };
   addEventListener('resize', () => setTimeout(ring, 60));
+  /* [スタート S98] ゲームを開いたまま別の画面へ行って、もどって来た時：スタート画面の数（今日の目標・今日のチモシー・チャレンジ）を読み直す（前は、もどっても開いた時のまま）
+     [スタート S99] スタート画面を開いたまま日付が変わった時：1 分以内に「今日」の数を新しい日に切りかえる（前は、前の日の「300/300 ✓」が出たままだった） */
+  const fresh = () => { try { if (st.hidden || typeof G === 'undefined' || G.mode !== 'title') return; for (const s2 of document.querySelectorAll('.screen')) if (s2 !== st && !s2.hidden) return; refreshTitle(); } catch (e) { } };
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) fresh(); });
+  { let day = ''; try { day = todayStr(); } catch (e) { } setInterval(() => { try { const d = todayStr(); if (d !== day) { day = d; fresh(); } } catch (e) { } }, 60000); }
   mark(); tips(); bump(); ring(); say(); try { new MutationObserver(() => { mark(); tips(); bump(); ring(); say(); }).observe(st, { childList: true, subtree: true, characterData: true }); } catch (e) { }
 })();
