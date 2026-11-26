@@ -365,7 +365,7 @@ addEventListener('keydown', e => {
   if (e.target && e.target.closest && e.target.closest('input,textarea,[contenteditable]') && e.code !== 'Escape') return; // typing a name or a code: letters are letters (P is not pause)
   if (e.code === 'KeyM' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) { toggleMute(); return; } /* M：音のオン・オフ */
   if (e.code === 'Escape' || e.code === 'KeyP') { if (G.mode === 'play') pause(); else if (G.mode === 'pause') resume(); else if (!$('#sPanel').hidden) closePanel(); return; }
-  if ((G.mode === 'title' || G.mode === 'result') && (e.code === 'Enter' || (e.code === 'Space' && G.mode === 'result')) && $('#sPanel').hidden && !e.target.closest('button,a,summary,input,textarea')) { hideAll(); startRun(); return; }
+  if ((G.mode === 'title' || G.mode === 'result') && (e.code === 'Enter' || e.code === 'Space') && $('#sPanel').hidden && !e.repeat && !e.target.closest('button,a,summary,input,textarea,[role="button"]')) { e.preventDefault(); hideAll(); startRun(); return; } /* [スタート S85] スタート画面でも、スペースキーで始まる（前は Enter だけ。結果の画面はスペースでも始まるのに、そろっていなかった）。押しっぱなしでは始まらない・押せる札の上では始まらない */
   const a = KEYMAP[e.code]; if (a && G.mode === 'play') { e.preventDefault(); if (!e.repeat) act(a); }
 });
 let tp = null;
