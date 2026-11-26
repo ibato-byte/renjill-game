@@ -15,5 +15,11 @@
   /* [スタート S68] キャラクターをえらんだ時・数字の札を押した時に、指に小さくコツッと返す（設定の「振動」に従う。弱め・オフもそのまま効く） [スタート S69] スタートを押した時は少し長めに */
   st.addEventListener('click', e => { try { if (typeof buzz !== 'function') return; const t = e.target; if (t.closest('#btnStart')) buzz(14); else if (t.closest('.chars .char') || t.closest('.hm-tap') || t.closest('.row .mini, .row2 .sub')) buzz(8); } catch (x) { } }, true);
   const mark = () => { for (const e of st.querySelectorAll('#tToday, #tCareer .career, .bank>span:not(.tog)')) if (!e.classList.contains('hm-tap')) { e.classList.add('hm-tap'); e.setAttribute('role', 'button'); e.tabIndex = 0; } };
-  mark(); try { new MutationObserver(mark).observe(st, { childList: true, subtree: true }); } catch (e) { }
+  /* [スタート S79] パソコン：絵だけの丸いボタン（音・設定）にマウスを乗せると、名前が出る */
+  const tips = () => { for (const id of ['btnMute', 'btnSet']) { const b = document.getElementById(id); if (!b) continue; const n = (b.getAttribute('aria-label') || b.textContent || '').trim(); if (n && b.title !== n) b.title = n; } };
+  /* [スタート S80] チモシーの数がふえた時（走った後・ごほうびを受け取った後）、札から「+123」が小さくうき上がる（数字そのものは、すぐに新しい数になる） [スタート S81] ベストがふえた時は、札が金色に光る */
+  const seen = { tBank: null, tBest: null }; const num = e => { const v = parseInt(String(e.textContent || '').replace(/[^0-9]/g, ''), 10); return isFinite(v) ? v : null; };
+  const bump = () => { for (const id of ['tBank', 'tBest']) { const e = document.getElementById(id); if (!e) continue; const v = num(e), p = seen[id]; seen[id] = v; if (v == null || p == null || v <= p || st.hidden) continue; const chip = e.closest('.bank>span'); if (!chip) continue;
+      if (id === 'tBank') { const f = document.createElement('i'); f.className = 'hm-plus'; f.setAttribute('aria-hidden', 'true'); f.textContent = '+' + (v - p).toLocaleString('en-US'); chip.appendChild(f); setTimeout(() => f.remove(), 1500); } else { chip.classList.remove('hm-up'); void chip.offsetWidth; chip.classList.add('hm-up'); setTimeout(() => chip.classList.remove('hm-up'), 2200); } } };
+  mark(); tips(); bump(); try { new MutationObserver(() => { mark(); tips(); bump(); }).observe(st, { childList: true, subtree: true, characterData: true }); } catch (e) { }
 })();
