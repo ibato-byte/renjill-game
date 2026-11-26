@@ -233,6 +233,9 @@ function openName(first) {
   openPanel('NAME', t('nameTitle'), `<div class="namebox"><input id="nameIn" maxlength="12" autocomplete="off" enterkeyhint="done" placeholder="${esc(t('namePh'))}" aria-label="${esc(t('nameTitle'))}"><p class="note">${esc(t('nameNote'))}</p>
     <div class="btns">${first ? `<button class="sub" id="nameLater">${esc(t('nameLater'))}</button>` : ''}<button class="big" id="nameOk">${esc(t('nameOk'))}</button></div></div>`);
   const i = $('#nameIn'); i.value = SV.nick || ''; setTimeout(() => { try { i.focus(); } catch (e) { } }, 50);
+  /* [スタート S56] 名前の入力：あと何文字入るかの小さな数（12 文字まで）。[スタート S57] 入れた名前で、ランキングの 1 行がどう見えるかの見本 */
+  { const c = document.createElement('span'); c.className = 'namecnt'; c.setAttribute('aria-hidden', 'true'); const pv = document.createElement('div'); pv.className = 'namepv'; pv.setAttribute('aria-hidden', 'true'); i.after(c); c.after(pv);
+    const up = () => { const n = [...i.value].length; c.textContent = n + ' / 12'; c.classList.toggle('full', n >= 12); const v = cleanName(i.value); pv.innerHTML = `<i>1</i><b>${esc(v || t('namePh').replace(/^[^：:]*[：:]\s*/, '').replace(/^e\.g\.\s*/i, ''))}</b><em>${fmt(SV.best || 0)}</em>`; pv.classList.toggle('ph', !v); }; i.addEventListener('input', up); up(); }
   i.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); nameDone(1); } };
 }
 // a small block list for public names (insults, slurs, adult words); names that hit it are not saved
