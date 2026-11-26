@@ -744,3 +744,32 @@ html[lang="en"] #sTitle.home #tCareer .career .cr-t{white-space:nowrap;font-size
 #sTitle.home .card>#tToday:has(.tt-c.ok+.tt-c.ok){background-image:linear-gradient(180deg,#FFFBEA,#F8E7B4)}#sTitle.home #tToday:has(.tt-c.ok+.tt-c.ok)::after{background:#F8E7B4}
 /* [S46] スタート画面のお知らせのふきだしも、今日の札と同じ紙の色と金の細い輪に */
 .ttoast.hm{background-color:#FFFBF2!important;background-image:linear-gradient(180deg,#FFFDF8,#FAF1DE)!important;box-shadow:0 3px 0 rgba(59,42,32,.3),0 10px 18px -10px rgba(59,42,32,.45),inset 0 0 0 1.5px #fff,inset 0 0 0 2.6px rgba(233,180,76,.5)!important;color:#3B2A20!important}
+/* [スタート 第 9 回] 2026-11-26
+   [S64] 大きなたて長のタブレット（1024x1366 など、幅 900・高さ 1200 以上）：ボタン・札・字が小さいタブレットと同じ大きさのままで、広い画面に小さく見えた → ひと回り大きい段を足す（zoom ではなく、1 つずつ大きさを決める）
+   [S65] 同：今日の札と計器も大きく [S66] 同：キャラクターの丸・名前・スタートのボタンも大きく [S67] 同：ロゴと上の数字の札も大きく */
+@media (max-aspect-ratio:4/5) and (min-width:900px) and (min-height:1200px){
+  #sTitle.home .card{grid-template-columns:150px minmax(0,1fr) 150px}
+  #sTitle.home .card>#tToday,#sTitle.home .card>.story,#sTitle.home .card>#tDaily{width:min(520px,100%)}
+  #sTitle.home #tToday .tt-c b{font-size:28px!important}#sTitle.home #tToday .tt-c small{font-size:13.5px}#sTitle.home #tToday .tt-ch{font-size:14.5px;padding:7px 12px}
+  #sTitle.home #tToday .tt-r{width:48px;height:48px}#sTitle.home #tToday .tt-c{--rw:58px;column-gap:10px}#sTitle.home #tToday .tt-r::before{inset:6px}#sTitle.home #tToday .tt-r::after{inset:13px}#sTitle.home #tToday .tt-c:nth-child(2) .tt-r::after{inset:11px}#sTitle.home #tToday .tt-c.ok .tt-r::after{inset:11px}
+  #sTitle.home #tToday .tt-ch::before{width:18px;height:18px}#sTitle.home #tToday .tt-ch em::before{width:15px;height:15px}
+  #sTitle.home .row .mini{width:132px}#sTitle.home .row .mini em,#sTitle.home .row2 .sub{max-width:140px;font-size:14px}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:80px;height:80px;background-size:46px,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:85px}#sTitle.home .row2 .sub::before{margin-left:-40px}
+  #sTitle.home .row .mini .dot{width:15px;height:15px;right:22px}
+  #sTitle.home .chars .char{width:124px}#sTitle.home .chars .char canvas{width:104px;height:104px}#sTitle.home .chars .char .nm{font-size:18px}#sTitle.home .chars .char .perk{font-size:13.5px}
+  #sTitle.home .card>#btnStart{font-size:36px;padding:20px;width:min(100% - 40px,580px)}
+  #sTitle.home .card::after,#sTitle.home .card>.chars{width:min(100%,700px)}
+  #sTitle.home .logo h1{font-size:50px}
+  #sTitle.home .bank>span:not(.tog){height:44px;font-size:13.5px;padding:0 16px 0 13px}#sTitle.home .bank b{font-size:21px}#sTitle.home .bank img{width:22px;height:22px}
+  #sTitle.home .bank .tog .sub{width:42px;height:42px;background-size:25px}
+  #sTitle.home .card>.bank{padding-left:300px}#sTitle.home .card>#tCareer{padding-left:300px}
+  #sTitle.home #tCareer .career .cr-t{font-size:17px}#sTitle.home #tCareer .career small{font-size:13px}#sTitle.home #tCareer .career .cr-bar{height:11px}
+}
+/* [S70] はじめての人（まだ 1 回も走っていない）：スタートのボタンのまわりに、ゆっくり広がる金の輪（どこを押せばいいか、ひと目で分かる） [S71] はじめての人への説明のふきだしも、今日の札と同じ紙の色と金の細い輪に
+   [S72] 下の小さなボタン（練習・きろく）も、同じ紙の色と金の細い輪に [S73] キャラクターの力の札も、紙の色と金の輪に（ここだけ水色で、ほかと色がそろっていなかった） */
+@keyframes hmFirst{0%{box-shadow:0 5px 0 #9A6F1C,0 12px 20px rgba(59,42,32,.22),inset 0 2px 0 rgba(255,255,255,.7),inset 0 -3px 0 rgba(154,111,28,.25),0 0 0 0 rgba(233,180,76,.75)}70%,100%{box-shadow:0 5px 0 #9A6F1C,0 12px 20px rgba(59,42,32,.22),inset 0 2px 0 rgba(255,255,255,.7),inset 0 -3px 0 rgba(154,111,28,.25),0 0 0 16px rgba(233,180,76,0)}}
+@media (prefers-reduced-motion:no-preference){#sTitle.home:not([hidden]) .card:not(.tgrid)>#btnStart{animation:hmShine 3.6s ease-in-out 1.2s infinite,hmFirst 1.8s ease-out infinite}}
+#sTitle.home .card>.story{background-color:#FFFBF2;background-image:linear-gradient(180deg,#FFFDF8,#FAF1DE);box-shadow:0 3px 0 rgba(59,42,32,.3),0 10px 18px -10px rgba(59,42,32,.45),inset 0 0 0 1.5px #fff,inset 0 0 0 2.6px rgba(233,180,76,.5)}
+#sTitle.home #tKeepBtns .sub{background-color:#FFFBF2;background-image:linear-gradient(180deg,#FFFFFF,#FBF3E6);box-shadow:inset 0 0 0 1px rgba(233,180,76,.5),0 2px 0 rgba(59,42,32,.16)}
+#sTitle.home .chars .char .perk{background-color:#FFF6DC;color:#6B4A0E;box-shadow:inset 0 0 0 1px rgba(233,180,76,.6)}
