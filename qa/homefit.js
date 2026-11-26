@@ -4,7 +4,7 @@ const { chromium } = require('playwright'); const path = require('path'); const 
 (async () => { const bad = [], log = []; const b = await chromium.launch({ executablePath: process.env.PW_EXEC || undefined });
   const src = fs.readFileSync(path.resolve(__dirname, '../dist/hay-dash.html'), 'utf8');
   for (const [w, h, top] of [[375, 600, 20], [360, 720, 24], [393, 797, 59], [402, 811, 62], [430, 870, 59], [1280, 800, 0]]) {
-    const tmp = path.resolve(__dirname, '../dist/_homefit_' + w + '.html'); fs.writeFileSync(tmp, src.replace(/env\(safe-area-inset-top(,\s*[^)]*)?\)/g, top + 'px'));
+    const tmp = path.resolve(__dirname, '../dist/_homefit_' + w + '.html'); fs.writeFileSync(tmp, '<meta charset="utf-8">' + src.replace(/env\(safe-area-inset-top(,\s*[^)]*)?\)/g, top + 'px')); /* 2026-11-26：dist/hay-dash.html は文字コードの指定の無い切れはしなので、ブラウザが中身から文字コードを当てる。当てそこなうと JS が文字化けして「Unexpected identifier」で止まった（本番の index.html・reltest は charset を付けている）。ここでも付ける */
     const p = await b.newPage({ viewport: { width: w, height: h } }); p.on('pageerror', e => bad.push('エラー: ' + e.message)); await p.route('**/fonts.googleapis.com/**', r => r.abort());
     await p.addInitScript(() => { localStorage.setItem('renjill-hay-dash-v1', JSON.stringify({ tutDone: 1, nickAsked: 1, runs: 40, lang: 'ja', best: 132028, bank: 1997, char: 'jill', pomMet: 1, pomTold: 1, bond: 50 })); });
     await p.goto('file://' + tmp); await p.waitForTimeout(2500);
