@@ -808,3 +808,10 @@ html[lang="en"] #sTitle.home #tCareer .career .cr-t{white-space:nowrap;font-size
   #sTitle.home .langtop{height:46px;font-size:16.5px}
   #sTitle.home .logo h1{font-size:78px}
 }
+/* [スタート 第 12 回] 2026-11-26 とても大きな数（ベスト 999,999,999・チモシー 1 億）と小さい画面で見て見つけた所
+   [S86] 小さい横長（667x375 など）：ベストが 9 けたの時、「ベスト」の札がのびてロゴの下にもぐった → この大きさでは「ベスト」の字を出さず、王冠の絵と数だけに。数の字も少し小さく
+   [S87] はば 300px までのとても細い画面で 3 匹そろっている時：スタートのボタンが 3 匹目（クリ）にかさなった → 丸とすき間を小さく、スタートの字を小さく */
+@media (orientation:landscape) and (max-height:559px) and (max-width:760px){#sTitle.home #tBestL{display:none}#sTitle.home .bank b{font-size:14px}#sTitle.home .bank>span:not(.tog){padding:0 9px 0 7px}}
+@media (orientation:portrait) and (max-width:300px){#sTitle.home .card>.chars{gap:3px;padding-left:6px}#sTitle.home .chars .char{width:42px}#sTitle.home .chars .char canvas{width:38px;height:38px}#sTitle.home .chars .char .nm{font-size:9.5px}#sTitle.home .card>#btnStart{font-size:16px;letter-spacing:.04em;padding-left:8px;padding-right:8px;margin-right:8px}}
+/* [S91] はば 340px までの小さいスマホ：長いお知らせ（伝説のうさぎ…など 5 行になる物）が、昇進の帯と今日の札をかくした → 字と行の間を少しつめて、行の数をへらす */
+@media (orientation:portrait) and (max-width:340px){.ttoast.hm.hmn{font-size:10px!important;line-height:1.25!important;padding:5px 8px!important;letter-spacing:-.01em}}
