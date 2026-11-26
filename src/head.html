@@ -56,6 +56,12 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 /* 一時停止の下の3つのボタン（やめる・音・ユズに聞く）が320px幅で2行に折れていた */
 #sPause .btns .sub{white-space:normal;line-height:1.15;overflow-wrap:anywhere;text-wrap:balance;font-size:clamp(11px,3.5vw,15px);padding-left:6px;padding-right:6px;overflow:hidden;text-overflow:clip;min-height:44px}#sPause .btns .sub.danger{font-size:clamp(10px,3.2vw,14px);padding-top:6px;padding-bottom:6px} /* 2026-11-15：「…」で切らない。確かめの言葉は、入らなければ 2 行に */
 .langpick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}.langpick button{min-height:52px;font-size:17px}
+/* [スタート S74] スタート画面から開く画面（ミッション・スタンプ帳・設定など）：ぱっと出るだけだった → 下から少しうき上がって出る（動きを減らす設定では出さない） [S75] 中身が上や下に続いている時、はしにうすいかげ（まだ続きがあると分かる）
+   [S76] 閉じるボタン：押せる所を見た目より広く（38 → 46）・押した時に少しちぢむ・キーボードの輪 */
+@keyframes pnlIn{from{transform:translateY(14px) scale(.985);opacity:0}}@keyframes pnlBg{from{background-color:rgba(59,42,32,0)}}
+@media (prefers-reduced-motion:no-preference){#sPanel:not([hidden])>.panel{animation:pnlIn .22s cubic-bezier(.2,.9,.3,1.1)}#sPanel:not([hidden]){animation:pnlBg .2s ease-out}}
+#pBody{background:linear-gradient(var(--paper) 30%,rgba(251,246,238,0)) top/100% 26px no-repeat local,linear-gradient(rgba(251,246,238,0),var(--paper) 70%) bottom/100% 26px no-repeat local,radial-gradient(farthest-side at 50% 0,rgba(59,42,32,.2),rgba(59,42,32,0)) top/100% 9px no-repeat scroll,radial-gradient(farthest-side at 50% 100%,rgba(59,42,32,.2),rgba(59,42,32,0)) bottom/100% 9px no-repeat scroll}
+.panel header .x{transition:transform .08s;width:46px;height:46px;margin:-4px;border:4px solid transparent;background-clip:padding-box;box-sizing:border-box}.panel header .x:active{transform:scale(.9)}.panel header .x:focus-visible{outline:3px solid #355F86;outline-offset:2px}
 /* [スタート S59] 設定：えらぶ札を、1 本のみぞに入ったつまみの形に（こい色とうすい灰色のボタンがばらばらに並んでいた） [S60] 今えらんでいる物に金の細い輪 [S61] 見出しの右に細い線（区切りが分かる） [S62] Language の地球は、絵文字をやめてほかと同じ線の絵に [S63] 行は、うすいふちの紙の札 */
 #pBody .m .seg{background-color:#EFE6D6;border-radius:12px;padding:3px;gap:2px;box-shadow:inset 0 1px 2px rgba(59,42,32,.14)}
 #pBody .m .seg .buy{border-radius:9px;box-shadow:none;transition:background-color .12s}
@@ -1535,5 +1541,15 @@ html[lang="en"] #sTitle.home #tCareer .career .cr-t{white-space:nowrap;font-size
 #sTitle.home .card>.story{background-color:#FFFBF2;background-image:linear-gradient(180deg,#FFFDF8,#FAF1DE);box-shadow:0 3px 0 rgba(59,42,32,.3),0 10px 18px -10px rgba(59,42,32,.45),inset 0 0 0 1.5px #fff,inset 0 0 0 2.6px rgba(233,180,76,.5)}
 #sTitle.home #tKeepBtns .sub{background-color:#FFFBF2;background-image:linear-gradient(180deg,#FFFFFF,#FBF3E6);box-shadow:inset 0 0 0 1px rgba(233,180,76,.5),0 2px 0 rgba(59,42,32,.16)}
 #sTitle.home .chars .char .perk{background-color:#FFF6DC;color:#6B4A0E;box-shadow:inset 0 0 0 1px rgba(233,180,76,.6)}
+/* [スタート 第 10 回] 2026-11-26
+   [S77] 「コントラストを上げる」設定の端末：札・ボタン・計器にこい色のふち [S78] 色を強制する設定（Windows のハイコントラストなど）：計器と押せる札にふち
+   [S80] チモシーがふえた時の「+123」 [S81] ベストがふえた時の金色の光 */
+@media (prefers-contrast:more){#sTitle.home .bank>span:not(.tog),#sTitle.home #tCareer .career,#sTitle.home .card>#tToday,#sTitle.home .langtop,#sTitle.home #tKeepBtns .sub{box-shadow:0 0 0 2px #3B2A20!important}#sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{box-shadow:0 0 0 2.5px #3B2A20}#sTitle.home #tToday .tt-r{box-shadow:0 0 0 1.5px #3B2A20}#sTitle.home #tToday .tt-c small,#sTitle.home .chars .char[aria-pressed="false"] .nm{color:#3B2A20;opacity:1}}
+@media (forced-colors:active){#sTitle.home #tToday .tt-r{border:2px solid ButtonText;forced-color-adjust:none}#sTitle.home .hm-tap{border:1px solid ButtonText}}
+#sTitle.home .bank>span:not(.tog){position:relative}
+#sTitle.home .hm-plus{position:absolute;right:8px;top:-4px;font-style:normal;font-size:12px;font-weight:900;color:#2F6B4F;background-color:#E3F0DC;border-radius:999px;padding:0 6px;line-height:16px;pointer-events:none;white-space:nowrap;overflow:hidden;animation:hmPlus 1.4s ease-out forwards}
+@keyframes hmPlus{0%{transform:translateY(8px);opacity:0}15%{transform:translateY(0);opacity:1}75%{transform:translateY(-10px);opacity:1}100%{transform:translateY(-16px);opacity:0}}
+#sTitle.home .bank>span.hm-up{animation:hmUp 2s ease-out}@keyframes hmUp{0%,60%{box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff,inset 0 0 0 2px #E9B44C,0 0 0 4px rgba(233,180,76,.55)}100%{box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff,inset 0 0 0 1px rgba(233,180,76,.38),0 0 0 0 rgba(233,180,76,0)}}
+@media (prefers-reduced-motion:reduce){#sTitle.home .hm-plus{animation:none;top:-12px}#sTitle.home .bank>span.hm-up{animation:none}}
 /* ==== HOME-V2 END ==== */
 </style>
