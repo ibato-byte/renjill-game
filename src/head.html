@@ -56,6 +56,14 @@ button:focus-visible{outline:3px solid var(--badge);outline-offset:2px}
 /* 一時停止の下の3つのボタン（やめる・音・ユズに聞く）が320px幅で2行に折れていた */
 #sPause .btns .sub{white-space:normal;line-height:1.15;overflow-wrap:anywhere;text-wrap:balance;font-size:clamp(11px,3.5vw,15px);padding-left:6px;padding-right:6px;overflow:hidden;text-overflow:clip;min-height:44px}#sPause .btns .sub.danger{font-size:clamp(10px,3.2vw,14px);padding-top:6px;padding-bottom:6px} /* 2026-11-15：「…」で切らない。確かめの言葉は、入らなければ 2 行に */
 .langpick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}.langpick button{min-height:52px;font-size:17px}
+/* [スタート S59] 設定：えらぶ札を、1 本のみぞに入ったつまみの形に（こい色とうすい灰色のボタンがばらばらに並んでいた） [S60] 今えらんでいる物に金の細い輪 [S61] 見出しの右に細い線（区切りが分かる） [S62] Language の地球は、絵文字をやめてほかと同じ線の絵に [S63] 行は、うすいふちの紙の札 */
+#pBody .m .seg{background-color:#EFE6D6;border-radius:12px;padding:3px;gap:2px;box-shadow:inset 0 1px 2px rgba(59,42,32,.14)}
+#pBody .m .seg .buy{border-radius:9px;box-shadow:none;transition:background-color .12s}
+#pBody .m .seg .buy.off{background-color:transparent;color:#5A4636}
+#pBody .m .seg .buy:not(.off){background-color:#3B2A20;color:#FBF6EE;box-shadow:inset 0 0 0 1.5px #E9B44C,0 1px 2px rgba(59,42,32,.3)}
+#pBody .seth{display:flex;align-items:center;gap:8px}#pBody .seth::after{content:"";flex:1;height:1px;background:rgba(59,42,32,.16)}
+.setglobe{width:16px;height:16px;vertical-align:-3px;margin-right:5px}
+#pBody .m:has(.seg){box-shadow:inset 0 0 0 1px rgba(59,42,32,.07)}
 /* [スタート S56・S57] 名前の入力：文字数と、ランキングの 1 行の見本。[S58] 入力のわくは、えらんだ時に金の輪 */
 .namebox{position:relative}.namecnt{position:absolute;right:12px;top:15px;font-size:11px;font-weight:900;color:#6E5848;font-variant-numeric:tabular-nums;pointer-events:none;background-color:#fff;padding:0 2px}.namecnt.full{color:#A8321F}
 .namebox #nameIn{padding-right:58px}.namebox #nameIn:focus{outline:none;box-shadow:0 0 0 3px rgba(233,180,76,.7)}
