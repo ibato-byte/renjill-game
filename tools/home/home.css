@@ -838,3 +838,9 @@ html[lang="en"] #sTitle.home #tCareer .career .cr-t{white-space:nowrap;font-size
 }
 /* [S96] 小さい横長（はば 700 まで）で数が大きい時（ベスト 8 けた・チモシー 7 けた）：数字の札がロゴにかさなった → 札の字とすき間をつめ、ロゴを少し小さく */
 @media (orientation:landscape) and (max-height:559px) and (max-width:700px){#sTitle.home .bank b{font-size:12.5px;letter-spacing:-.02em}#sTitle.home .bank>span:not(.tog){padding:0 7px 0 5px;gap:3px}#sTitle.home .card>.bank{gap:4px}#sTitle.home .bank .tog{gap:4px}#sTitle.home .bank .tog .sub{width:30px;height:30px}#sTitle.home .logo h1{font-size:14px}#sTitle.home .langtop{padding-left:8px;padding-right:9px}}
+/* [スタート 第 15 回] 2026-11-27 CI の homescan で見つかった物（金曜だけ出る「逆走デー」のボタンが、手元で調べた日には出ていなかった）
+[S101] 背の低い横長（高さ 420 まで）：「逆走デー」のボタンが 2 段目に落ちて、画面の下に 15〜60px はみ出した → 下のボタンを 1 段に並べ、字とすき間をつめる。はば 760 までの背の低い横長（568x320・740x360 など）は、逆走デーを月の絵だけの丸いボタンに（読み上げは今までどおり全文） */
+@media (orientation:landscape) and (max-height:420px){#sTitle.home .card>#tKeepBtns:not([hidden]){flex-wrap:nowrap;justify-content:center;gap:5px}#sTitle.home #tKeepBtns .sub{white-space:nowrap;font-size:10px;padding-left:6px;padding-right:9px;gap:4px;flex:none}}
+@media (orientation:landscape) and (max-height:420px) and (max-width:760px){#sTitle.home #tKeepBtns #btnRev{font-size:0;gap:0;padding:0;width:34px;justify-content:center}#sTitle.home #tKeepBtns .sub{padding-left:5px;padding-right:7px;letter-spacing:-.01em}#sTitle.home .card>#tKeepBtns:not([hidden]){gap:3px;padding-left:4px;padding-right:4px}}
+/* [S102] 英語の横長：左の「How to play」の字が、丸の幅より広くて画面の左はしから 3px 出ていた → 字の間を少しつめる */
+@media (orientation:landscape) and (max-height:559px){html[lang="en"] #sTitle.home #tHow{letter-spacing:-.04em;font-size:.94em}}
