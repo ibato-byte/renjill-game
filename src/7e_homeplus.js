@@ -12,6 +12,8 @@
     const cs = [...st.querySelectorAll('.chars .char')].filter(c => c.offsetParent && !c.hidden); if (cs.length < 2) return; const cur = cs.findIndex(c => c.getAttribute('aria-pressed') === 'true'); let to = -1;
     if (e.key === 'ArrowLeft') to = (cur - 1 + cs.length) % cs.length; else if (e.key === 'ArrowRight') to = (cur + 1) % cs.length; else if (/^[1-3]$/.test(e.key) && +e.key <= cs.length) to = +e.key - 1;
     if (to >= 0 && to !== cur) { e.preventDefault(); cs[to].click(); } });
+  /* [スタート S68] キャラクターをえらんだ時・数字の札を押した時に、指に小さくコツッと返す（設定の「振動」に従う。弱め・オフもそのまま効く） [スタート S69] スタートを押した時は少し長めに */
+  st.addEventListener('click', e => { try { if (typeof buzz !== 'function') return; const t = e.target; if (t.closest('#btnStart')) buzz(14); else if (t.closest('.chars .char') || t.closest('.hm-tap') || t.closest('.row .mini, .row2 .sub')) buzz(8); } catch (x) { } }, true);
   const mark = () => { for (const e of st.querySelectorAll('#tToday, #tCareer .career, .bank>span:not(.tog)')) if (!e.classList.contains('hm-tap')) { e.classList.add('hm-tap'); e.setAttribute('role', 'button'); e.tabIndex = 0; } };
   mark(); try { new MutationObserver(mark).observe(st, { childList: true, subtree: true }); } catch (e) { }
 })();
