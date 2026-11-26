@@ -783,3 +783,28 @@ html[lang="en"] #sTitle.home #tCareer .career .cr-t{white-space:nowrap;font-size
 @keyframes hmPlus{0%{transform:translateY(8px);opacity:0}15%{transform:translateY(0);opacity:1}75%{transform:translateY(-10px);opacity:1}100%{transform:translateY(-16px);opacity:0}}
 #sTitle.home .bank>span.hm-up{animation:hmUp 2s ease-out}@keyframes hmUp{0%,60%{box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff,inset 0 0 0 2px #E9B44C,0 0 0 4px rgba(233,180,76,.55)}100%{box-shadow:0 2px 0 rgba(59,42,32,.28),inset 0 1px 0 #fff,inset 0 0 0 1px rgba(233,180,76,.38),0 0 0 0 rgba(233,180,76,0)}}
 @media (prefers-reduced-motion:reduce){#sTitle.home .hm-plus{animation:none;top:-12px}#sTitle.home .bank>span.hm-up{animation:none}}
+/* [S82・S83] スタンプ帳・えさ図鑑のボタンのふちの、集めた割合の輪 */
+#sTitle.home .row .mini .hm-pg{position:absolute;top:0;left:50%;transform:translateX(-50%) rotate(-90deg);border-radius:50%;pointer-events:none;background:conic-gradient(from 90deg,var(--pc,#C4402F) calc(var(--pg,0)*360deg),rgba(59,42,32,.1) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3.4px));mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 3.4px));transition:transform .16s}
+#sTitle.home #btnZukan .hm-pg{--pc:#4F9A56}#sTitle.home .row .mini .hm-pg.full{--pc:#D6A23C}
+#sTitle.home .row .mini:active .hm-pg{transform:translateX(-50%) translateY(2px) rotate(-90deg) scale(.93)}
+/* [S84] とても大きな横長の画面（2560x1080・2560x1440 など、幅 2200・高さ 1000 以上）：ボタン・札・字が小さく見えた → ひと回り大きい段を足す */
+@media (min-aspect-ratio:5/4) and (min-width:2200px) and (min-height:1000px){
+  #sTitle.home .card{grid-template-columns:320px minmax(0,1fr) 320px}
+  #sTitle.home .row .mini{width:146px}#sTitle.home .row .mini em,#sTitle.home .row2 .sub{max-width:152px;font-size:16px}
+  #sTitle.home .row .mini::before,#sTitle.home .row2 .sub::before{width:92px;height:92px;background-size:54px,100% 100%}
+  #sTitle.home .row2 .sub{padding-top:97px}#sTitle.home .row2 .sub::before{margin-left:-46px}
+  #sTitle.home .card>.row,#sTitle.home .card>.row2{gap:20px}
+  #sTitle.home .row .mini .dot{width:16px;height:16px;right:24px}
+  #sTitle.home .card>#tToday{width:min(560px,100%);padding:12px 12px 11px}#sTitle.home #tToday .tt-c b{font-size:34px}#sTitle.home #tToday .tt-c small{font-size:15.5px}#sTitle.home #tToday .tt-ch{font-size:16.5px;padding:8px 13px}
+  #sTitle.home #tToday .tt-r{width:54px;height:54px}#sTitle.home #tToday .tt-c{--rw:66px;column-gap:12px}#sTitle.home #tToday .tt-r::before{inset:6.5px}#sTitle.home #tToday .tt-r::after{inset:14.5px}#sTitle.home #tToday .tt-c:nth-child(2) .tt-r::after{inset:12.5px}#sTitle.home #tToday .tt-c.ok .tt-r::after{inset:12px}
+  #sTitle.home #tToday .tt-ch::before{width:20px;height:20px}#sTitle.home #tToday .tt-ch em::before{width:16px;height:16px}
+  #sTitle.home .card::after,#sTitle.home .card>.chars{width:min(100%,720px)}
+  #sTitle.home .chars .char{width:128px}#sTitle.home .chars .char canvas{width:108px;height:108px}#sTitle.home .chars .char .nm{font-size:19px}#sTitle.home .chars .char .perk{font-size:14px}
+  #sTitle.home .card>#btnStart{width:min(100% - 40px,640px);font-size:38px;padding:20px}
+  #sTitle.home #tKeepBtns .sub{font-size:14px;padding:8px 16px 8px 11px}
+  #sTitle.home .bank>span:not(.tog){height:46px;font-size:14.5px;padding:0 17px 0 13px}#sTitle.home .bank b{font-size:22px}#sTitle.home .bank img{width:23px;height:23px}
+  #sTitle.home .bank .tog .sub{width:46px;height:46px;background-size:28px}
+  #sTitle.home .card>#tCareer{width:min(560px,34vw)}#sTitle.home #tCareer .career .cr-t{font-size:20px}#sTitle.home #tCareer .career small{font-size:14px}#sTitle.home #tCareer .career .cr-bar{height:12px}
+  #sTitle.home .langtop{height:46px;font-size:16.5px}
+  #sTitle.home .logo h1{font-size:78px}
+}
