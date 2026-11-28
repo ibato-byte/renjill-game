@@ -17,6 +17,7 @@ const has = (...w) => o => w.every(x => o.includes(x));
 const noErr = o => /no errors|no issues/.test(o) && !/pageerror|FAIL|Uncaught/.test(o);
 const T = [
   { n: 'dupcheck', why: '同じ名前の関数の二重定義（上書き事故）', ok: noErr },
+  { n: 'syntax', why: 'src のファイルが、どれも正しい書き方（2026-11-28 舞浜：消し残した 1 行でゲームが真っ白になった。build.py は気づかない）', ok: has('SYNTAX OK') },
   { n: 'rxnames', why: '1 行に並べて決めた名前（const A = …, B = …）もかぶっていない（2026-11-28 景色 1000 で BUS がかぶり、ゲームが動かなくなった）', ok: has('RXNAMES OK') },
   { n: 'brandname', why: '旧名が画面・検索向けの文に残っていない（2026-11-22 東京うさぎオフィスに改名）', ok: has('BRANDNAME OK') },
   { n: 'qa', why: '画面の流れ・言語切替', ok: noErr },
@@ -113,6 +114,7 @@ const T = [
   { n: 'floattext', why: '浮かぶ文字が重ならない（2026-11-16：新しい食べ物を続けて取ると「NEW! 図鑑に…」が重なって読めなかった）', ok: has('FLOATTEXT OK'), timeout: 60 },
   { n: 'trainplace', why: '電車は線路のある場所だけ（2026-11-16 の報告：公園で電車が通る。公園・水辺に線路の橋が出ない／高架の電車が高架からはみ出さない）', ok: has('TRAINPLACE OK'), timeout: 120 },
   { n: 'rxsky', why: 'オオタカと飛ぶ空に足した物（ヘリコプター・ツバメ・ムクドリ・ユリカモメ）が本当に画面に出ている（2026-11-28 景色 1000：1 回目のユリカモメは、空の上では 1 羽も見えていなかった。季節も合っている）', ok: has('RXSKY OK'), timeout: 180 },
+  { n: 'maihama', why: '舞浜の夢の遊園地（100 万点のコース）：板の無い道がずるくない（間が 11m 以上・牧草は板の上）・落ちると谷の底へ・続けると板の上へ戻る・跳んでいる間と無敵の間は落ちない・曲線で横へ飛ばない・トロッコは操作がきかず 1 列で、最後は地面の高さ・100 万点で始まる（2026-11-28 オーナー：おかしくならない・止まらない）', ok: has('MAIHAMA OK'), timeout: 300 },
   { n: 'wallsee', why: '建物の中から、壁の向こう（外・次の次の場所）が見えない（2026-11-15 の報告：壁が透けて次の次のステージが見える。曲がり角の奥の壁の左右と上に壁が無かった）', ok: has('WALLSEE OK'), timeout: 300 },
   { n: 'paperedge', why: '書類の山が画面の右の端まで届いている（2026-11-15 オーナー：スマホで右下にすき間）', ok: has('PAPEREDGE OK'), timeout: 180 },
   { n: 'titlemusic', why: 'はじめて開いて 1 回ふれたら、題名の曲が流れる（スマホのタップ・クリック・キー）（2026-11-15 オーナー）', ok: has('TITLEMUSIC OK'), timeout: 120 },
@@ -159,7 +161,7 @@ const T = [
 // 手元でのやり直し用：FROM=名前 でその試験から、ONLY=名前,名前 でその試験だけ（CI では使わない）
 if (process.env.FROM) { const i = T.findIndex(t => t.n === process.env.FROM); if (i > 0) T.splice(0, i); }
 if (process.env.ONLY) { const k = new Set(process.env.ONLY.split(',')); for (let i = T.length - 1; i >= 0; i--) if (!k.has(T[i].n)) T.splice(i, 1); }
-if (MODE === 'smoke') { const keep = new Set(['featureguard', 'dupcheck', 'rxnames', 'brandname', 'qa', 'reltest', 'apptest', 'seo', 'reach', 'soundcheck', 'vanish']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
+if (MODE === 'smoke') { const keep = new Set(['featureguard', 'dupcheck', 'syntax', 'rxnames', 'brandname', 'qa', 'reltest', 'apptest', 'seo', 'reach', 'soundcheck', 'vanish']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
 if (MODE === 'full') {
   for (let i = 0; i < 6; i++) T.push({ n: 'qa_stage', env: { NP: '6', PI: String(i) }, label: 'qa_stage#' + i, why: '全ステージ×5場面の表示（' + (i + 1) + '/6）', ok: has('bad 0'), timeout: 700 });
   T.push({ n: 'stuck', args: ['300'], env: { LATE: '0' }, label: 'stuck-long', why: 'とても長く走っても動けなくならない（5分×3人）', ok: has('NO STUCK'), timeout: 1200 });

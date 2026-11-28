@@ -334,7 +334,7 @@ function openSettings() { SFX.ui(); openPanel('SETTINGS', t('settings'), setting
 let rvTimer = null;
 // ぶつかった物の絵を、続ける画面と結果画面に（C-69）。絵のある物だけ。書類に追いつかれた・壁・時間切れのときも、最後にぶつかった物
 function showHit(pre) { const box = $('#' + pre + 'Hit'); if (!box) return; const o = G.lastHit; let url = '';
-  try { const an = o && (o.art || o.picArt); /* 立体にした障害物（車など）は、結果の画面では今までの絵で見せる */ if (an && G.cause !== 'time' && G.cause !== 'quit' && G.cause !== 'rescue' && G.cause !== 'fall' /* [塔 F12] 落ちて終わった時は「ぶつかった物」の絵を出さない（前に当たった物が出てしまう） */ && typeof ART !== 'undefined' && ART[an]) { const c = ART[an](o, false); url = c && c.toDataURL ? c.toDataURL() : ''; } } catch (e) { url = ''; }
+  try { const an = o && (o.art || o.picArt); /* 立体にした障害物（車など）は、結果の画面では今までの絵で見せる */ if (an && G.cause !== 'time' && G.cause !== 'quit' && G.cause !== 'rescue' && G.cause !== 'fall' && G.cause !== 'pit' /* [塔 F12] 落ちて終わった時は「ぶつかった物」の絵を出さない（前に当たった物が出てしまう） */ && typeof ART !== 'undefined' && ART[an]) { const c = ART[an](o, false); url = c && c.toDataURL ? c.toDataURL() : ''; } } catch (e) { url = ''; }
   box.hidden = !url; if (!url) return; $('#' + pre + 'HitImg').src = url; $('#' + pre + 'HitTxt').textContent = LANG === 'ja' && typeof OBS_JA !== 'undefined' && OBS_JA[o.type] ? t('hitWhatN', OBS_JA[o.type]) : t('hitWhat'); }
 function openRevive() {
   const c = reviveCost(), cap = (CAPS[G.cause] || CAPS.obstacle)[G.char];

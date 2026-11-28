@@ -29,7 +29,7 @@ function forkSide(last, list, turnIn, t0, after) {
 // again a moment later, so the route never loses a street and a fork is never half made.
 function ensureSegs(max) {
   let built = 0;
-  while (!G.fork && G.segs.length - G.ci < 4 && !(max && built >= max)) { // four ahead: a street is built well before it can come into view
+  while (!G.fork && (G.segs.length - G.ci < 4 || (typeof mvNeedMore === 'function' && mvNeedMore())) && !(max && built >= max)) { // four ahead（曲線・線路の短い道は、もっと先まで：mvNeedMore）: a street is built well before it can come into view
     const last = G.segs[G.segs.length - 1];
     courseStart(last);
     let step, fromQ = 0; try { if (G.courseQ && G.courseQ.length) { step = G.courseQ.shift(); fromQ = 1; } else step = nextStep(); } catch (e) { reportErr(e); G.segDue = Math.max(G.segDue || 0, .25); break; }
@@ -48,7 +48,7 @@ function ensureSegs(max) {
       G.distEst = G.dist + (G.segs.length - G.ci) * 90; G.speedEst = Math.min(MAXSPD + 1, G.speed + 1.2);
       // after a fork's own street only a fork can follow (it has no corner of its own); should a plain street ever come next, it turns
       const skyT = t2 => { const h = t2 && THEMES[t2.t]; return !!(h && h.sky); }, liftT = t2 => { const h = t2 && THEMES[t2.t]; return !!(h && h.lift); }, toSky = skyT(G.courseQ && G.courseQ[0]), straight = !nf && (skyT(step) || toSky || liftT(step) || !!step.straightOut); /* 2026-11-17 オーナー「高い所から飛ぶ瞬間が曲がり角でおかしい・着地で道が向きに合わせて動くのもおかしい」：空へ飛び出す展望台と、空の道は、角で曲がらずにまっすぐつなぐ */
-      const sg = newSeg(last, step, { t0, day: G.planDay, fork: nf || null, straight, toSky, turnIn: last && last.fork ? (Math.random() < .5 ? -1 : 1) : undefined });
+      const sg = newSeg(last, step, { t0, day: G.planDay, fork: nf || null, straight, toSky, turnIn: last && last.fork ? (Math.random() < .5 ? -1 : 1) : (step.bend && last && last.turn === 0 && !last.fork ? step.bend : undefined) }); /* [曲線 C1] bend：角の無いつなぎ目で、少しだけ向きを変える（短い道を何本もつないで、曲線の道にする） */
       if (nf) sg.forkLbl = forkLabels(nf, G.planDay);
       if (step.st) sg.stName = LANG === 'ja' || LANG === 'zh' ? step.st : stEn(step.st); // station names: kanji for Japanese/Chinese readers, romaji otherwise
       G.segs.push(sg); G.planClock = sg.t1; built++; if (sg.step && sg.step.co) segFace(sg); /* [塔 L2] 一つ前の道がまだあるうちに向きを決めておく */
@@ -277,6 +277,11 @@ function die(cause) {
     const seg = curSeg(), F = G.follow, M = G.pom; G.dyingT = 1.7; G.fallT = 0; G.fallVy = 1.6; G.fallV0 = Math.max(4, G.speed * .55); G.fallSeg = seg; G.fallCam = { x: CAM.x, y: CAM.y, z: CAM.z, pitch: CAM.pitch };
     G.fallF = { x: F.wx, y: F.wy, z: F.wz }; G.fallM = M && M.on ? { x: M.wx, y: M.wy, z: M.wz } : null; G.flashT = 0; G.shake = 0; buzz([30, 60, 30]);
     if (AU.ctx) { const t0 = AU.ctx.currentTime; for (let i = 0; i < 5; i++) tone(880 * Math.pow(.84, i), .16, 'sine', .04, t0 + i * .11); } musicStop('end'); }
+  else if (cause === 'pit') { /* [谷 P1] 2026-11-28 オーナー「どこかのレーン以外は、落ちたらゲームオーバーになって奈落の底まで落ちていくアニメーション」：板の無い所へ出ると、そのまま谷の底へ落ちていく。
+       ユズ・クリは板の上で止まって見送る。カメラはその場に残って、落ちていく先（谷の底の霧）を見下ろす */
+    const seg = curSeg(), F = G.follow, M = G.pom; G.dyingT = 2.5; G.fallT = 0; G.fallVy = 0; G.fallV0 = Math.min(2.4, G.speed * .2); G.fallSeg = seg; { const pp = segPos(seg, G.s, G.lat); G.fallP = { x: pp[0], y: pp[2], z: pp[1] }; const pt = (seg.pits || []).find(q => G.s >= q.a && G.s < q.b); G.fallMaxS = pt ? pt.b - .7 : G.s + 1; const cs = pt ? clamp(G.s + 1, pt.a + 2.2, Math.max(pt.a + 2.2, pt.b - 1.5)) : G.s, cp = segPos(seg, cs, G.lat); G.fallP = { x: cp[0], y: cp[2], z: cp[1] }; G.fallMaxS = Math.min(G.fallMaxS, cs + .4); } G.fallCam = { x: CAM.x, y: CAM.y, z: CAM.z, pitch: CAM.pitch };
+    G.fallF = { x: F.wx, y: F.wy, z: F.wz }; G.fallM = M && M.on ? { x: M.wx, y: M.wy, z: M.wz } : null; G.flashT = 0; G.shake = 0; buzz([30, 60, 30, 60, 30]);
+    if (AU.ctx) { const t0 = AU.ctx.currentTime; for (let i = 0; i < 9; i++) tone(988 * Math.pow(.86, i), .2, 'sine', .04 * (1 - i / 11), t0 + i * .13); } musicStop('end'); }
   else { SFX.crash(); buzz([60, 40, 120]); G.flashT = 1; G.shake = 1; musicStop('end'); }
   G.player.look = 0; G.follow.look = 0; G.pom.look = 0;
   if (cause === 'papers') G.chaseVis = 1;
@@ -302,7 +307,7 @@ const CP_NUM = ['t', 'speed', 'dist', 'distEst', 'speedEst', 'score', 'hay', 'sh
 function cpOK() { return G.mode === 'play' && !!SV.tutDone && !G.practice && !G.rev && !G.tut; }
 function cpSave() { try { if (!cpOK()) return false; const seg = curSeg(); if (!seg || !seg.tid || !THEMES[seg.tid]) return false;
   const same = G.segs.slice(G.ci + 1).filter(s => s.day === seg.day && s.step && !s.step.fork).map(s => s.step);
-  const o = { v: 1, at: Date.now(), char: G.char, easy: G.easy ? 1 : 0, tid: THEMES[seg.tid].course === 'tower' ? 'tland' : THEMES[seg.tid].course === 'skytree' ? 'sland' : seg.tid, t1: seg.t1, n: G.resumeN || 0, g: {}, stats: G.stats, plan: same.concat(G.planDay === seg.day ? G.plan : []) };
+  const o = { v: 1, at: Date.now(), char: G.char, easy: G.easy ? 1 : 0, tid: THEMES[seg.tid].course === 'tower' ? 'tland' : THEMES[seg.tid].course === 'skytree' ? 'sland' : THEMES[seg.tid].void ? 'mplaza' /* [谷 P3] つり橋・トロッコの途中で閉じたら、続きは手前の広場から（短い橋の 1 本だけから始めると、先がつながらない） */ : seg.tid, t1: seg.t1, n: G.resumeN || 0, g: {}, stats: G.stats, plan: same.concat(G.planDay === seg.day ? G.plan : []) };
   for (const k of CP_NUM) { const v = G[k]; if (typeof v === 'number' && Number.isFinite(v)) o.g[k] = v; else if (typeof v === 'boolean') o.g[k] = v ? 1 : 0; }
   localStorage.setItem(CP_KEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
 function cpClear() { try { localStorage.removeItem(CP_KEY); } catch (e) { } }
@@ -331,6 +336,7 @@ function doRevive(kind) {
   for (const o of seg.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001;
   { const nx = G.segs[G.ci + 1], left = 30 - Math.max(0, seg.len - G.s); if (nx && left > 0) for (const o of nx.obs) if (o.s0 < left) o.dead = .001; G.revClearN = left; } /* 曲がり角の手前で続けたとき、曲がった先の最初の障害物にすぐぶつかっていた */
   if (G.cause === 'fall') { G.y = 0; G.fallVy = 0; G.s = Math.min(G.s, seg.len + HW - .9); G.fallSeg = null; G.fallCam = null; G.player.fallHide = false; } /* [塔 F11] 落ちたあと続けるときは、へりの手前に戻して、曲がる */
+  if (G.cause === 'pit') { G.y = 0; G.fallVy = 0; G.fallSeg = null; G.fallCam = null; G.player.fallHide = false; G.pitFade = 0; G.s = Math.max(0, G.s - 2); G.lane = clamp(Math.round(G.lat / LANE) + 1, 0, 2); if (typeof mvSafeLane === 'function') mvSafeLane(seg); G.pow.fly = 0; G.air = false; } /* [谷 P1] 落ちたあと続けるときは、板のあるレーンへ戻す */
   if (G.cause === 'wall' || G.cause === 'fall') { if (seg.fork) G.turnQueued = G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || (Math.random() < .5 ? -1 : 1)); /* 分かれ道で続けるとき、行き先がでたらめだった → 寄っていた側・最後にスワイプした側へ */ try { doTurn(); } catch (e) { reportErr(e); } } // whatever happens here, the run goes on (the safety net puts the runner back if needed)
   { const cs = curSeg(); if (cs && cs !== seg) for (const o of cs.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001; } // 曲がった先の道も
   G.mode = 'play'; G.invT = 2.5; G.chaseT = 0; G.chaseVis = 0; G.player.tilt = 0; G.follow.tilt = 0; G.pom.tilt = 0; G.y = Math.max(G.y, 0); G.vy = 0; G.slideT = 0;
@@ -380,7 +386,7 @@ function turnWindow(seg) { return seg.len - Math.max(13, G.speed * 1.0); }
 function act(a) {
   if (G.mode !== 'play') return;
   const seg = curSeg();
-  if (seg && seg.th.sky) return; // オオタカに運ばれている間は、操作しない（ぐるっと見回す）
+  if (seg && (seg.th.sky || seg.th.ride)) return; // オオタカに運ばれている間・トロッコに乗っている間は、操作しない
   if (a === 'left' || a === 'right') {
     const d = a === 'left' ? -1 : 1;
     G.lastSwipe = d;
@@ -410,7 +416,8 @@ function goStraight() { /* 角の無いつなぎ目：向きも横の位置も�
   const seg = curSeg(); let next = G.segs[G.ci + 1]; if (!next) { ensureSegs(1); next = G.segs[G.ci + 1]; } if (!next) { G.s = Math.min(G.s, seg.len); G.segDue = Math.max(G.segDue || 0, .2); return; }
   try { onLeaveSeg(seg); } catch (e) { reportErr(e); }
   if (seg.th.lift) { G.camE = null; G.ey = null; G.liftDing = 1; try { tone(988, .14, 'bell', .04); tone(784, .2, 'bell', .035, AU.ctx && AU.ctx.currentTime + .14); } catch (e) { } } /* [H13] エレベーターが着いた：カメラは新しい高さへそのまま（ゆっくり追いかけると、350m の間を飛んで見えた）・着いた音 */
-  G.ci = G.segs.indexOf(next); G.s = Math.max(0, G.s - seg.len); G.turnQueued = 0; G.turnAuto = 0; G.turnQT = 0;
+  if (next.turnIn && Math.abs(next.turnIn) < 1) { const p = segPos(seg, G.s, G.lat), dx = p[0] - next.sx, dz = p[1] - next.sz; G.ci = G.segs.indexOf(next); G.s = Math.max(0, dx * next.f[0] + dz * next.f[1]); G.lat = clamp(dx * next.r[0] + dz * next.r[1], -ROAD, ROAD); } /* [曲線 C1] 少し向きの変わるつなぎ目：いる場所はそのまま、新しい道の向きで測りなおす（横へ飛ばない） */
+  else { G.ci = G.segs.indexOf(next); G.s = Math.max(0, G.s - seg.len); } G.turnQueued = 0; G.turnAuto = 0; G.turnQT = 0;
   if (G.segs.length - G.ci < 2 && !G.fork) ensureSegs(1); while (G.ci > 1) { G.segs.shift(); G.ci--; } G.segDue = .3;
   try { onEnterSeg(next); } catch (e) { reportErr(e); } }
 function doTurn() {
@@ -610,11 +617,13 @@ function update(dt) {
     G.dyingT -= dt; G.player.tilt = lerp(G.player.tilt || 0, G.cause === 'papers' ? .3 : -1.2, dt * 8); G.follow.tilt = lerp(G.follow.tilt || 0, .5, dt * 6); G.pom.tilt = lerp(G.pom.tilt || 0, -.5, dt * 6);
     if (G.cause === 'papers') G.chaseVis = Math.min(1.6, G.chaseVis + dt * 1.5);
     G.flashT = Math.max(0, G.flashT - dt * 2);
-    if (G.cause === 'fall' && G.fallCam) { /* [塔 F11] へりの先へ飛び出して落ちる */
-      G.fallT += dt; G.s += G.fallV0 * Math.max(0, 1 - G.fallT * .8) * dt; G.fallVy -= 16 * dt; G.y += G.fallVy * dt; G.player.tilt = lerp(G.player.tilt || 0, -.6, dt * 4); G.follow.tilt = lerp(G.follow.tilt || 0, 0, dt * 6); G.pom.tilt = lerp(G.pom.tilt || 0, 0, dt * 6);
+    if ((G.cause === 'fall' || G.cause === 'pit') && G.fallCam) { /* [塔 F11] へりの先へ飛び出して落ちる ／ [谷 P1] 板の無い所から谷の底へ落ちる */
+      const pit = G.cause === 'pit'; G.fallT += dt; G.s += G.fallV0 * Math.max(0, 1 - G.fallT * .8) * dt; if (pit) G.s = Math.min(G.s + dt * 2.2, G.fallMaxS); /* 穴のまん中あたりへ落ちる（カメラは穴の上から見下ろす） */ G.fallVy -= 16 * dt; if (pit) G.fallVy = Math.max(G.fallVy, -26); /* 空気の力で、速さは頭打ちになる */ G.y += G.fallVy * dt; G.player.tilt = lerp(G.player.tilt || 0, -.6, dt * 4); G.follow.tilt = lerp(G.follow.tilt || 0, 0, dt * 6); G.pom.tilt = lerp(G.pom.tilt || 0, 0, dt * 6);
       placeCamera(dt * .3); const P = G.player, F = G.follow, M = G.pom, fc = G.fallCam;
       F.wx = G.fallF.x; F.wy = G.fallF.y; F.wz = G.fallF.z; if (G.fallM && M.on) { M.wx = G.fallM.x; M.wy = G.fallM.y; M.wz = G.fallM.z; }
-      CAM.x = fc.x; CAM.y = fc.y; CAM.z = fc.z; CAM.pitch = fc.pitch + Math.min(.32, G.fallT * .45); camPrep(); G.vy = G.fallVy; P.air = true; P.fallHide = G.y < -1.3; /* へりより下へ落ちたら見えなくなる（床の上に重なって見えないように） */
+      CAM.x = fc.x; CAM.y = fc.y; CAM.z = fc.z; CAM.pitch = fc.pitch + Math.min(.32, G.fallT * .45);
+      if (pit && G.fallP) { const k = sstep(clamp(G.fallT / .7, 0, 1)), f = G.fallSeg.f, q = G.fallP; CAM.x = lerp(fc.x, q.x - f[0] * 1.1, k); CAM.z = lerp(fc.z, q.z - f[1] * 1.1, k); CAM.y = lerp(fc.y, q.y + 6, k); CAM.pitch = lerp(fc.pitch, 1.36, k); } /* [谷 P2] カメラは穴の真上へ動いて、谷の底をのぞきこむ（うしろから見たままだと、落ちていくモチが手前の板の上に重なって見えた） */
+      camPrep(); G.vy = G.fallVy; P.air = true; P.fallHide = pit ? G.y < -34 : G.y < -1.3; G.pitFade = pit ? clamp((-G.y - 4) / 26, 0, 1) : 0; /* 谷へ落ちる間は、小さくなりながら霧の中へ消えていく（となりに床が無いので、かくさなくてよい） */ /* へりより下へ落ちたら見えなくなる（床の上に重なって見えないように） */
       P.depth = (P.wx - CAM.x) * CAM.s + (P.wz - CAM.z) * CAM.c; F.depth = (F.wx - CAM.x) * CAM.s + (F.wz - CAM.z) * CAM.c; if (M.on) M.depth = (M.wx - CAM.x) * CAM.s + (M.wz - CAM.z) * CAM.c;
       if (G.dyingT <= 0) { G.mode = 'dead'; if (canRevive()) openRevive(); else endRun(); } return; }
     placeCamera(dt * .3);
@@ -630,7 +639,7 @@ function update(dt) {
   // speed rises gently and levels off (it used to reach 24 m/s mid-run, which got too hard)
   const base = Math.min(G.easy ? 12.6 : MAXSPD, (SV.tutDone ? 12.4 : 11) + G.dist * .0024 + (G.day - 1) * .7);
   { const tier = Math.floor((base - 12.4) / 1.8); if (tier > (G.spTier || 0) && SV.tutDone) { G.spTier = tier; banner('SPEED UP!', tr('少し速くなった！', 'A little faster now!'), 'good'); tone(523, .1, 'bell', .04); tone(784, .14, 'bell', .04, AU.ctx && AU.ctx.currentTime + .09); } } // so it never just 'gets hard' without a word (2026-11-08)
-  const target = base * (G.legend ? 1.15 : 1) * (G.pow.dash > 0 ? 1.4 : 1) * (G.fever > 0 ? 1.18 : 1) * (G.pow.fly > 0 ? 1.1 : 1) * (seg.th.sky ? .5 : 1); // 空の上はゆっくり（景色を見わたす時間）
+  const target = base * (G.legend ? 1.15 : 1) * (G.pow.dash > 0 ? 1.4 : 1) * (G.fever > 0 ? 1.18 : 1) * (G.pow.fly > 0 ? 1.1 : 1) * (seg.th.sky ? .5 : 1) * (seg.th.ride && typeof mvRideK === 'function' ? mvRideK(seg) : 1); // 空の上はゆっくり（景色を見わたす時間）。トロッコは、のぼりでおそく・くだりで速く
   G.speed = lerp(G.speed, target, 1 - Math.exp(-dt * 2.5));
   if (AU.music && OPT().music) { const cm = G.clock % 1440, night = cm >= 1200 || cm < 360, tg = musicLv() * (night ? .8 : 1); AU.music.gain.value += (tg - AU.music.gain.value) * Math.min(1, dt * .6); } // the music settles down at night (2026-11-08)
   const step = G.speed * dt, prevS = G.s, prevY = G.y;
@@ -780,14 +789,14 @@ function placeCamera(dt) {
   F.show = !F.off && (strIn || G.s - F.back > (seg.first ? -14 : seg.prevFork ? HW + .3 : -HW + .3)); /* 分かれ道（Y 字）の先は今までどおり */ /* [曲がり角 K1] 2026-11-23 オーナー「毎回曲がる瞬間に、一緒に走っているキャラクターが消える」：曲がった先の道の頭から 5m ほど（約 0.5 秒）、ユズを描いていなかった。曲がり角の四角は曲がった先の道の一部なので、角の中（道の頭より手前 4m まで）にいる時も描く */
   { const M = G.pom; if (M.on) { const mp = skyF ? segPos(seg, G.s + .2, G.lat + (G.lat > .5 ? 1.5 : -1.5) * (W < H ? .72 : 1)) /* [空 K6] 2026-11-21：たて長のスマホでは、横にならぶオオタカの間を 7 割にせまく（はしのオオタカが画面の右で切れた） */ /* [空 K2] 2026-11-20：クリのオオタカは、ユズと反対がわのモチの横に（前はモチのすぐうしろ・ユズと同じがわで、カメラから見るとモチの頭の上にクリのオオタカが重なった） */ : segPos(seg, G.s - M.back, M.lat); M.wx = mp[0]; M.wz = mp[1]; if (skyF) { const sv = skySide(seg), o = (G.lat > .5 ? 1.5 : -1.5) * (W < H ? .72 : 1); M.wx = P.wx + sv[0] * o; M.wz = P.wz + sv[1] * o; } M.wy = mp[2] + (M.y || 0) + (M.air ? 0 : Math.abs(Math.sin(M.ph)) * (M.who === 'pom' ? .012 : .05)); if (M.who === 'pom' && !M.air && !P.fly) M.lat += Math.sin(M.ph * .5) * .0035; /* ちょこまか：走りながら、ごく小さく左右にゆれる */ if (P.fly) M.wy = G.ey + G.y - .45; M.fly = P.fly; M.show = strIn || G.s - M.back > (seg.first ? -14 : HW + .3); } else M.show = false; }
   if (P.hawk && !(P.hawkRel > .2)) { const sw = k => .3 + Math.sin(G.t * 2.1 + k) * .07 * (1 + (P.hawkRel || 0) * 3); /* [D2] 着地の前は羽ばたきが強くなり、少し上下が大きい */ P.wy = G.ey + G.y + sw(0); F.wy = fp[2] + sw(1.3); if (G.pom.on) G.pom.wy += sw(2.1) - (G.pom.air ? 0 : Math.abs(Math.sin(G.pom.ph)) * .012); } // オオタカの羽ばたきで、ゆっくり上下
-  const ty = seg.dir * Math.PI / 2 + skySpin(seg); let dy = ty - G.camYaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
+  const ty = seg.dir * Math.PI / 2 + skySpin(seg) + (typeof mvYawLead === 'function' ? mvYawLead(seg) : 0); let dy = ty - G.camYaw; /* [曲線 C2] 曲線の道では、つなぎ目の前後でカメラの向きを少しずつ先へ回す（つなぎ目でかくっと回らない） */ while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
   G.camYaw += dy * Math.min(1, dt * 9);
   { const want = H / W > 1.6 && !seg.th.toriiTunnel ? 1 : 0; G.camTall = G.camTall == null ? want : lerp(G.camTall, want, Math.min(1, dt * 2.5)); } // under the rows of small gates the higher camera looked straight into their beams (2026-11-14「鳥居のゾーンで前が見えない」): there it comes back down, smoothly
   { const pv = G.segs[G.ci - 1]; G.tkoK = seg.th.sky && G.mode === 'play' && pv && pv.th.climb ? sstep(clamp(G.s / 6, 0, 1)) * (1 - sstep(clamp((G.s - 8) / 20, 0, 1))) : 0; } /* [飛び立ち D3] 2026-11-23：飛び立つ 3 秒ほどは、カメラが少しうしろ・上へ下がる（足もとの展望台のへりと手すりが、画面の下で、だんだん遠ざかるのが見える。前は、1 コマで床が消えた） */
   const tk = G.camTall, dist = 3.9 + .3 * tk + 3.2 * G.tkoK, fx = Math.sin(G.camYaw), fz = Math.cos(G.camYaw); // tall phones: the camera sits a little higher and further back, so the road ahead shows above the runners' heads (2026-11-14; measured: 108 → 133 px of road above their heads; the first, higher try (153 px) looked down too steeply and ran into overhead gates, so it was eased)
   const sh = G.shake > 0 ? Math.sin(G.t * 60) * .09 * G.shake : 0, sway = seg.th.kind === 'train' && !OPT().calm ? Math.sin(G.t * 1.7) * .05 + Math.sin(G.t * .63 + 1) * .025 + (G.jolt || 0) * Math.sin(G.t * 38) * .35 : 0; /* [85] 2 つの周期の重なった横ゆれ ＋ 継ぎ目の小さなガタン */
   CAM.x = G.rx - fx * dist + Math.cos(G.camYaw) * (sh + sway); CAM.z = G.rz - fz * dist - Math.sin(G.camYaw) * (sh + sway);
-  G.fovK = lerp(G.fovK || 0, (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : 0, Math.min(1, dt * 4)); G.skyK = lerp(G.skyK || 0, seg.th.sky && !(P.hawkRel > .3) ? 1 : 0, Math.min(1, dt * 1.5)); FOCAL = BASEF * (1 - .09 * G.fovK - .07 * G.skyK); /* [F10] 空へ飛び出すと、見える広さが少しずつ広がる（ひらけた感じ）。着地の前にもどる */
+  G.fovK = lerp(G.fovK || 0, (G.pow.dash > 0 || G.fever > 0 || G.pow.fly > 0) ? 1 : (G.mvDropK || 0), Math.min(1, dt * 4)); G.skyK = lerp(G.skyK || 0, seg.th.sky && !(P.hawkRel > .3) ? 1 : 0, Math.min(1, dt * 1.5)); FOCAL = BASEF * (1 - .09 * G.fovK - .07 * G.skyK); /* [F10] 空へ飛び出すと、見える広さが少しずつ広がる（ひらけた感じ）。着地の前にもどる */
   /* [降りる時 D4] 階段（段と踊り場がくり返す道）では、カメラの高さを前後 3m の平均の高さに合わせる。前は段ごとの高さの変わり目でカメラが小きざみに上下し、画面の道全体がガクガク動いて見えた */
   const flt = seg.hp && seg.hp.shape === 'flights', eAt = flt ? (q => (segE(seg, q - 1.5) + segE(seg, q - .75) + segE(seg, q) + segE(seg, q + .75) + segE(seg, q + 1.5)) / 5) : (q => segE(seg, q));
   /* [空 K1] 2026-11-20 オーナー「スカイツリーから飛び立った時に、スマホでもウェブでもキャラクターが画面から消えて下の方に行ってしまう」：
@@ -914,6 +923,7 @@ function snapBack() {
   for (const k of ['speed', 'dist', 'score', 'hay']) if (!Number.isFinite(G[k])) G[k] = k === 'speed' ? 12 : 0;
   G.speed = clamp(G.speed, 8, MAXSPD * 1.6);
   G.lane = clamp(Number.isFinite(G.lat) ? Math.round(G.lat / LANE) + 1 : 1, 0, 2); G.lat = LANES[G.lane]; G.prevLane = G.lane;
+  if (typeof mvSafeLane === 'function') mvSafeLane(curSeg()); /* [谷 P1] 穴のある道では、板のあるレーンに戻す */
   G.y = 0; G.vy = 0; G.air = false; G.slideT = 0; G.vault = 0; G.vaultDown = 0; G.jumpBuf = 0; G.pow.fly = 0;
   G.turnQueued = 0; G.turnAuto = 0; G.turnQT = 0; G.turnT = 0; G.hitStop = 0; G.shake = 0;
   for (const B of [G.follow, G.pom]) { B.y = 0; B.vy = 0; B.air = false; if (!Number.isFinite(B.lat)) B.lat = 0; if (!Number.isFinite(B.back)) B.back = 1; }
@@ -983,6 +993,7 @@ function buddyMove(F, dt, seg, tlat0, back0) {
     }
   }
   if (tuck) { tlat = G.lat; tback = back0 < .5 ? -.6 : .35; }
+  if (F.cart) { tlat = G.lat; tback = F === G.pom ? 4.1 : 2.2; } /* [乗り物 R1] トロッコは 1 列につながる（モチの後ろにユズ、その後ろにクリ） */
   F.lat += clamp(tlat - F.lat, -dt * 9, dt * 9);
   F.back = lerp(F.back, tback, 1 - Math.exp(-dt * 8));
   F.tuck = tuck && Math.abs(F.lat - G.lat) < .6;
@@ -1175,6 +1186,7 @@ const CAPS = {
   papers: { ren: ['BURIED IN PAPERS.', '書類に埋もれた'], jill: ['BURIED IN PAPERS.', '書類に埋もれた'], pom: ['BURIED IN PAPERS.', '書類に埋もれた'] },
   wall: { ren: ['THAT’S A WALL.', 'そっちは壁です'], jill: ['THAT’S A WALL.', 'そっちは壁です'], pom: ['THAT’S A WALL.', 'そっちは壁です'] },
   fall: { ren: ['OVER THE EDGE.', '曲がりそこねて、落ちました'], jill: ['OVER THE EDGE.', '曲がりそこねて、落ちました'], pom: ['OVER THE EDGE.', '曲がりそこねて、落ちました'] }, /* [塔 F11] */
+  pit: { ren: ['INTO THE VALLEY.', '板の無い所へ、落ちました'], jill: ['INTO THE VALLEY.', '板の無い所へ、落ちました'], pom: ['INTO THE VALLEY.', '板の無い所へ、落ちました'] }, /* [谷 P1] */
   quit: { ren: ['LEFT EARLY.', '早退しました'], jill: ['LEFT EARLY.', '早退しました'], pom: ['LEFT EARLY.', '早退しました'] },
   rescue: { ren: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'], jill: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'], pom: ['GOOD RUN!', 'ここで一区切り（記録は残ります）'] }, // 画面が動かなくなって安全網で終わったとき（自分でやめたのではない）
 };
