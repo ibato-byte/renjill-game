@@ -2832,6 +2832,36 @@
       "has": "[S101]"
     },
     {
+      "name": "よみやすさ：スマホのスタート画面の字を大きく（左右のボタンの名前 12px など）",
+      "file": "tools/home/home.css",
+      "has": "[よみ R1]"
+    },
+    {
+      "name": "よみやすさ：今日の札は、スマホでは見出し＋数＋進み具合の棒",
+      "file": "tools/home/home.css",
+      "has": "[よみ R25]"
+    },
+    {
+      "name": "よみやすさ：ホームから開く画面の小さな字を大きく",
+      "file": "tools/home/home.css",
+      "has": "[よみ R37]"
+    },
+    {
+      "name": "よみやすさ：スマホのホームでカメラを少し引き、左右の子がボタンの列にかくれない",
+      "file": "src/6_game.js",
+      "has": "function titleCamZ()"
+    },
+    {
+      "name": "よみやすさ：右の列の逆走デーは短い名前",
+      "file": "src/7_ui.js",
+      "has": "function revLabel()"
+    },
+    {
+      "name": "よみやすさ：字の大きさの下限を毎回見張る",
+      "file": "qa/homeread.js",
+      "has": "HOMEREAD OK"
+    },
+    {
       "name": "景色1000：本物の木の種類（カツラ・ヤナギ・庭の黒松など）",
       "file": "src/4k_rtree.js",
       "has": "katsura: () => rxCrown("
