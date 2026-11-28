@@ -53,7 +53,10 @@ function mvBuild(seg) { const th = seg.th, o = th.void, L = seg.len, rail = !!o.
   /* 橋・線路をささえる物：岩の柱（谷の底まで）と横木。線路は木を組んだやぐら */
   const yB = (seg.base != null ? seg.base : (seg.e0 || 0)) - (seg.e0 || 0); /* コースの地面の高さ（この道の始まりから見て）。谷の底・崖は、線路が上がり下がりしても同じ高さに */
   { const bx = []; for (let a = rail ? 3 : 6; a < L - 1; a += rail ? 6.5 : 12) { if (rail) { for (const q of [-.9, .9]) bx.push(B(q, a, .22, .22, MV_CD - 14, -.2, '#6B4E36')); bx.push(B(0, a, 2.2, .2, -3.2, -3, '#6B4E36'), B(0, a, 2.2, .2, -9, -8.8, '#6B4E36'), B(0, a, 2.2, .24, -.45, -.2, '#5A4230')); }
-      else { if ((seg.pits || []).some(q => a > q.a - 8 && a < q.b + 3)) continue; /* 板の無い所の下には柱を置かない（すき間から柱の頭が見えると、浅い穴に見える。谷の底が見えるように） */ bx.push(B(0, a, 1.7, 1.7, MV_CD, -.5, '#8A7663'), B(0, a - .2, 2.3, 2.1, -1.1, -.5, '#7A6654'), B(0, a + .55, ROAD * 2 + .5, .5, -.5, -.14, '#6B4E36')); } }
+      else { /* つり橋の塔：板の外がわに立つ丸太の塔（谷の底から）と、塔と塔の間にたるんだ太いなわ。板の下には何も置かない（床より下の箱は、床の上に重なって見えるため） */
+        for (const sd of [-1, 1]) { const lt = sd * (ROAD + .62); bx.push(B(lt, a, .46, .46, MV_CD, 3.5, '#6B4E36'), B(lt, a - .08, .62, .62, 3.5, 3.72, '#8A6444'));
+          const a2 = Math.min(a + 12, L + MV_EXT), n2 = 6; for (let j = 0; j < n2; j++) { const t0 = j / n2, t1 = (j + 1) / n2, y = t => 3.45 - 1.9 * Math.sin(Math.PI * t); seg.lines.push({ a: [lerp(a, a2, t0), lt, y(t0)], b: [lerp(a, a2, t1), lt, y(t1)], c: '#5A4230', w: .09 });
+            if (j > 0) { const sx = lerp(a, a2, t0), ed = mvEdge(mvOpenAt(seg, sx), sd); if (Math.abs(ed) > ROAD - .05) seg.lines.push({ a: [sx, lt, y(t0)], b: [sx, lt - sd * .5, 1.0], c: '#8A6A48', w: .04 }); } } } } }
     if (bx.length) seg.props.push(mkProp(seg, bx, { big: 1 })); }
   /* 谷：底（岩と、まん中の川）・両がわの崖（地層の線）・崖の上の木 */
   for (let a = -exF; a < L + exF - .01; a += 13) { const b = Math.min(a + 13, L + exF);

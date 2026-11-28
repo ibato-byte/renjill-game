@@ -12,18 +12,19 @@ function mvTower(g, cx, base, w, h, lit, win) { const gr = mvV(g, cx - w / 2, cx
   for (let k = 0; k < (win || 1); k++) { const wy = base - h + w * .5 + k * w * .95, ww = w * .24; g.fillStyle = lit ? '#FFE9A8' : '#5E7A92'; g.beginPath(); g.moveTo(cx - ww / 2, wy + ww * 1.5); g.lineTo(cx - ww / 2, wy + ww * .4); g.quadraticCurveTo(cx, wy - ww * .3, cx + ww / 2, wy + ww * .4); g.lineTo(cx + ww / 2, wy + ww * 1.5); g.closePath(); g.fill(); if (lit) rxGlowC(g, cx, wy + ww * .7, ww * 1.6, '255,230,160', .35); } }
 function mvFlag(g, x, y, s, c) { g.strokeStyle = '#8A7A5A'; g.lineWidth = Math.max(1, s * .08); g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - s * 1.5); g.stroke(); g.fillStyle = c; g.beginPath(); g.moveTo(x, y - s * 1.5); g.quadraticCurveTo(x + s * .6, y - s * 1.62, x + s * 1.1, y - s * 1.22); g.quadraticCurveTo(x + s * .55, y - s * 1.12, x, y - s * .95); g.closePath(); g.fill(); }
 /* お城：まん中の高い塔・左右の塔・門のあるかべ・時計。全部にんじんの塔。夜は窓に明かり・下からの明かり */
-function mvPaintCastle(g, W, H, n) { const cx = W / 2, by = H * .97;
+function mvPaintCastle(g, W, H, n) { const cx = W / 2, by = H * .97, G_CUT = [];
   rxShadowE(g, cx, by, W * .46, 12, .22);
   for (const [dx, tw, th2, sw, sh] of [[-.36, .1, .34, .15, .2], [.36, .1, .34, .15, .2]]) { mvTower(g, cx + dx * W, by, tw * W, th2 * H, n, 2); mvCarrotSpire(g, cx + dx * W, by - th2 * H - sh * H, sw * W, sh * H, n); }
   { const x0 = cx - W * .37, x1 = cx + W * .37, y0 = by - H * .24; g.fillStyle = mvV(g, x0, x1, shadeHex(MV.cream, .84), MV.cream, shadeHex(MV.cream, .72)); g.fillRect(x0, y0, x1 - x0, by - y0); /* 門のあるかべ */
     g.fillStyle = MV.cream2; for (let x = x0; x < x1 - 4; x += W * .045) g.fillRect(x, y0 - H * .022, W * .026, H * .024);
     g.strokeStyle = 'rgba(150,120,80,.2)'; g.lineWidth = 1; for (let y = y0 + 12; y < by; y += 14) { g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke(); }
     const gw = W * .13, gh = H * .17; g.fillStyle = n ? '#4A3424' : '#6B4A30'; g.beginPath(); g.moveTo(cx - gw / 2, by); g.lineTo(cx - gw / 2, by - gh * .55); g.quadraticCurveTo(cx, by - gh * 1.2, cx + gw / 2, by - gh * .55); g.lineTo(cx + gw / 2, by); g.closePath(); g.fill(); /* 門 */
-    g.strokeStyle = MV.hay; g.lineWidth = 4; g.stroke(); g.fillStyle = n ? '#FFE1A0' : '#2E2018'; g.beginPath(); g.moveTo(cx - gw * .34, by); g.lineTo(cx - gw * .34, by - gh * .5); g.quadraticCurveTo(cx, by - gh * .98, cx + gw * .34, by - gh * .5); g.lineTo(cx + gw * .34, by); g.closePath(); g.fill(); if (n) rxGlowC(g, cx, by - gh * .4, gw, '255,220,150', .5); }
+    g.strokeStyle = MV.hay; g.lineWidth = 4; g.stroke(); if (n) rxGlowC(g, cx, by - gh * .4, gw, '255,220,150', .5); G_CUT.push([cx, by, gw, gh]); }
   for (const [dx, tw, th2, sw, sh, wn] of [[-.19, .12, .46, .17, .2, 3], [.19, .12, .46, .17, .2, 3], [0, .17, .6, .23, .26, 4]]) { mvTower(g, cx + dx * W, by - H * .1, tw * W, th2 * H, n, wn); mvCarrotSpire(g, cx + dx * W, by - H * .1 - th2 * H - sh * H, sw * W, sh * H, n); }
   { const r = W * .05, y = by - H * .52; g.fillStyle = '#FFFDF4'; g.beginPath(); g.arc(cx, y, r, 0, 7); g.fill(); g.strokeStyle = MV.hay; g.lineWidth = 4; g.stroke(); g.strokeStyle = '#3B2A20'; g.lineWidth = 3; g.lineCap = 'round'; g.beginPath(); g.moveTo(cx, y); g.lineTo(cx, y - r * .7); g.moveTo(cx, y); g.lineTo(cx + r * .5, y + r * .2); g.stroke(); if (n) rxGlowC(g, cx, y, r * 2.2, '255,250,220', .45); } /* 時計 */
   mvFlag(g, cx - W * .36, by - H * .34 - H * .2, W * .035, MV.hay); mvFlag(g, cx + W * .36, by - H * .34 - H * .2, W * .035, MV.mint); mvFlag(g, cx, by - H * .1 - H * .6 - H * .3, W * .04, MV.rose);
-  if (n) { const gr = g.createLinearGradient(0, by - H * .5, 0, by); gr.addColorStop(0, 'rgba(255,220,160,0)'); gr.addColorStop(1, 'rgba(255,220,160,.22)'); g.fillStyle = gr; g.fillRect(cx - W * .4, by - H * .5, W * .8, H * .5); } }
+  if (n) { const gr = g.createLinearGradient(0, by - H * .5, 0, by); gr.addColorStop(0, 'rgba(255,220,160,0)'); gr.addColorStop(1, 'rgba(255,220,160,.22)'); g.fillStyle = gr; g.fillRect(cx - W * .4, by - H * .5, W * .8, H * .5); }
+  for (const [x, y, gw, gh] of G_CUT) { g.save(); g.globalCompositeOperation = 'destination-out'; g.beginPath(); g.moveTo(x - gw * .36, y + 30); g.lineTo(x - gw * .36, y - gh * .5); g.quadraticCurveTo(x, y - gh * 1.0, x + gw * .36, y - gh * .5); g.lineTo(x + gw * .36, y + 30); g.closePath(); g.fill(); g.restore(); } } /* 門のまん中はくりぬく（お城への橋では、ここをくぐって向こうへ出る） */
 /* ヤシ（舞浜の駅前の並木）：細く高い幹・うちわの形の葉・枯れ葉のスカート */
 function mvPaintPalm(g, W, H, n) { const x = W / 2; rxShadowE(g, x + 6, H - 5, 40, 6, .2);
   g.strokeStyle = mvV(g, x - 14, x + 14, '#6E5A46', '#A88E70', '#5A4838'); g.lineCap = 'round'; for (let k = 0; k < 24; k++) { const t0 = k / 24, t1 = (k + 1) / 24, xa = x + Math.sin(t0 * 2.2) * 9, xb = x + Math.sin(t1 * 2.2) * 9, ya = H - 6 - (H * .72) * t0, yb = H - 6 - (H * .72) * t1; g.lineWidth = 24 - t0 * 9; g.beginPath(); g.moveTo(xa, ya); g.lineTo(xb, yb); g.stroke(); }
@@ -88,7 +89,3 @@ function mvShopDraw(e, wide) { const k = (e.v2 || 0) % 4, wall = ['#F6D9C4', '#D
   for (let j = 0; j < 8; j++) bquad(j / 8, .47, (j + 1) / 8, .54, tint(j % 2 ? '#FFFDF4' : aw)); bquad(0, .455, 1, .475, tint(shadeHex(aw, .8))); /* しまのひさし */
   { const c = bil(wide ? .3 : .5, .595), rr = Math.max(2, Math.abs(bil((wide ? .3 : .5) + .05, .595)[0] - c[0])); ctx.fillStyle = tint('#FFFDF4'); ctx.beginPath(); ctx.arc(c[0], c[1], rr, 0, 7); ctx.fill(); ctx.fillStyle = tint([MV.carrot, MV.leaf, '#8A5E3A', MV.rose][k]); ctx.beginPath(); ctx.arc(c[0], c[1], rr * .55, 0, 7); ctx.fill(); } }
 Object.assign(DECO_DRAW, { mshop(e) { mvShopDraw(e, 1); }, mshopB(e) { mvShopDraw(e, 0); } });
-/* 場所ごとの見どころ（1c_real.js の表と同じ仕組み：th.rx） */
-THEMES.mplaza.rx = [['castle', -1, { lat: 38, s: .78, w: 50 }]];
-THEMES.mcastle.rx = [['castle', -1, { lat: 0, s: 1.42, w: 64 }], ['hanabi', 1, { n: 5 }], ['hanabi', -1, { n: 4 }]];
-THEMES.mgate.rx = [['castle', 1, { lat: 30, s: 1.5, w: 30 }]];

@@ -2930,6 +2930,31 @@
       "name": "景色1000（2回目）：数の少なかったステージの表",
       "file": "src/1c_real.js",
       "has": "const RX_MORE7 = {};"
+    },
+    {
+      "name": "舞浜の夢の遊園地：100 万点で行けるコース",
+      "file": "src/1d_park.js",
+      "has": "COURSES.maihama = { at: 1000000"
+    },
+    {
+      "name": "舞浜の夢の遊園地：板の無いレーンは谷へ落ちる（つり橋）",
+      "file": "src/6f_void.js",
+      "has": "die('pit'); }"
+    },
+    {
+      "name": "舞浜の夢の遊園地：曲線の道（少しずつ向きを変えてつなぐ）",
+      "file": "src/6_game.js",
+      "has": "(step.bend && last && last.turn === 0 && !last.fork ? step.bend : undefined)"
+    },
+    {
+      "name": "舞浜の夢の遊園地：トロッコ（乗り物）",
+      "file": "src/6f_void.js",
+      "has": "function mvDrawCart(b, part)"
+    },
+    {
+      "name": "舞浜の夢の遊園地：にんじんの塔のお城",
+      "file": "src/4v_park.js",
+      "has": "function mvPaintCastle(g, W, H, n)"
     }
   ]
 }

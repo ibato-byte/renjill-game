@@ -332,7 +332,7 @@ function doRevive(kind) {
   for (const o of seg.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001;
   { const nx = G.segs[G.ci + 1], left = 30 - Math.max(0, seg.len - G.s); if (nx && left > 0) for (const o of nx.obs) if (o.s0 < left) o.dead = .001; G.revClearN = left; } /* 曲がり角の手前で続けたとき、曲がった先の最初の障害物にすぐぶつかっていた */
   if (G.cause === 'fall') { G.y = 0; G.fallVy = 0; G.s = Math.min(G.s, seg.len + HW - .9); G.fallSeg = null; G.fallCam = null; G.player.fallHide = false; } /* [塔 F11] 落ちたあと続けるときは、へりの手前に戻して、曲がる */
-  if (G.cause === 'pit') { G.y = 0; G.fallVy = 0; G.fallSeg = null; G.fallCam = null; G.player.fallHide = false; G.pitFade = 0; G.s = Math.max(0, G.s - 2); } /* [谷 P1] 落ちたあと続けるときは、板の上へ戻す（下で、板のあるレーンへ） */
+  if (G.cause === 'pit') { G.y = 0; G.fallVy = 0; G.fallSeg = null; G.fallCam = null; G.player.fallHide = false; G.pitFade = 0; G.s = Math.max(0, G.s - 2); G.lane = clamp(Math.round(G.lat / LANE) + 1, 0, 2); if (typeof mvSafeLane === 'function') mvSafeLane(seg); G.pow.fly = 0; G.air = false; } /* [谷 P1] 落ちたあと続けるときは、板のあるレーンへ戻す */
   if (G.cause === 'wall' || G.cause === 'fall') { if (seg.fork) G.turnQueued = G.lane === 0 ? -1 : G.lane === 2 ? 1 : (G.lastSwipe || (Math.random() < .5 ? -1 : 1)); /* 分かれ道で続けるとき、行き先がでたらめだった → 寄っていた側・最後にスワイプした側へ */ try { doTurn(); } catch (e) { reportErr(e); } } // whatever happens here, the run goes on (the safety net puts the runner back if needed)
   { const cs = curSeg(); if (cs && cs !== seg) for (const o of cs.obs) if (o.s1 > G.s - 2 && o.s0 < G.s + 30) o.dead = .001; } // 曲がった先の道も
   G.mode = 'play'; G.invT = 2.5; G.chaseT = 0; G.chaseVis = 0; G.player.tilt = 0; G.follow.tilt = 0; G.pom.tilt = 0; G.y = Math.max(G.y, 0); G.vy = 0; G.slideT = 0;
