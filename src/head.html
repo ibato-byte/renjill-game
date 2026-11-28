@@ -1865,5 +1865,8 @@ html[lang="ja"] #sTitle.home .story .stp{word-break:keep-all;overflow-wrap:norma
   #sTitle.home #tToday .tt-c+.tt-c{padding-left:7px}
 }
 @media (orientation:portrait) and (max-width:380px){#sTitle.home #tToday .tt-c small{font-size:11px}#sTitle.home .card>#tToday{padding-left:7px;padding-right:7px}#sTitle.home #tToday .tt-c+.tt-c{padding-left:6px}}
+/* [よみ R124] 英語などの「How to play」はボタンの名前でいちばん長い。字の形によっては丸の幅（スマホ 80px・パソコン 96px）より広くなった（CI の en_audit・textfit）→ この 1 つだけ、スマホ 11px・パソコン 12.5px、字の間と左右の余白を少しつめる（日本語の「あそびかた」は 12px・13px のまま） */
+@media (orientation:portrait) and (max-width:599px){html:not([lang="ja"]) #sTitle.home #tHow{font-size:11px;letter-spacing:-.02em;padding-left:5px;padding-right:5px}}
+@media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){html:not([lang="ja"]) #sTitle.home #tHow{font-size:12.5px;letter-spacing:-.02em;padding-left:5px;padding-right:5px}}
 /* ==== HOME-V2 END ==== */
 </style>
