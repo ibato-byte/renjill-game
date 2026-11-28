@@ -1090,3 +1090,10 @@ html[lang="ja"] #sTitle.home .story .stp{word-break:keep-all;overflow-wrap:norma
 }
 /* [よみ R120] スマホ：今日のチャレンジの行のいなずまの絵 12 → 14px、力の札のいなずま 10 → 12px（字を大きくした分、絵も合わせる） */
 @media (orientation:portrait) and (max-width:599px){#sTitle.home #tToday .tt-ch::before{width:14px;height:14px}#sTitle.home .chars .char .perk::before{width:12px;height:12px}}
+/* [よみ R121] 2026-11-28 CI（字の形が手元とちがう機械）で、はば 390 の「今日のチモシー」が札の右はしで 4px 切れた → 見出しは札の幅に合わせて 11.5px から 11px まで自動で小さく（11px より小さくはしない）。札の内側の余白も少しつめる */
+@media (orientation:portrait) and (max-width:599px){
+  #sTitle.home #tToday .tt-c small{font-size:clamp(11px,calc((100cqw - 1px) / 7.2),11.5px)}
+  #sTitle.home .card>#tToday{padding-left:8px;padding-right:8px;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+  #sTitle.home #tToday .tt-c+.tt-c{padding-left:7px}
+}
+@media (orientation:portrait) and (max-width:380px){#sTitle.home #tToday .tt-c small{font-size:11px}#sTitle.home .card>#tToday{padding-left:7px;padding-right:7px}#sTitle.home #tToday .tt-c+.tt-c{padding-left:6px}}

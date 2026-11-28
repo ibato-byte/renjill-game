@@ -21,12 +21,12 @@ const texts = root => { const out = []; const walk = n => { for (const c of n.ch
     const r = await p.evaluate(([fn, h]) => { const texts = eval('(' + fn + ')'); const st = document.getElementById('sTitle'); const all = texts(st); const q = s => [...st.querySelectorAll(s)].filter(e => e.offsetParent && !e.hidden);
       const labels = q('.row .mini em, .row2 .sub:not(.tog .sub)').map(e => { const cs = getComputedStyle(e), r = e.getBoundingClientRect(); return { t: e.textContent.trim(), fs: parseFloat(cs.fontSize), lines: Math.round((r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)) / parseFloat(cs.lineHeight)) }; });
       const tt = q('#tToday .tt-c small').map(e => parseFloat(getComputedStyle(e).fontSize)), cr = q('#tCareer .career small').map(e => parseFloat(getComputedStyle(e).fontSize));
-      const btns = q('#btnMute, #btnSet, #btnLangTop').map(e => [e.id, Math.round(e.getBoundingClientRect().height)]);
+      const top = !!st.querySelector('.tog.toptog'), btns = q('#btnMute, #btnSet, #btnLangTop').map(e => [e.id, Math.round(e.getBoundingClientRect().height), e.id === 'btnLangTop' || top ? 40 : 34]); /* 音・設定の丸は、上の段に入った時は 40px。字の形で題字が広く、右の列に入った時は 34px 以上（右の列のはばに 2 つ並べる。2026-11-28 CI の字の形で 35px） */
       return { small: all.filter(x => x.fs < 11).slice(0, 5), labels, tt, cr, btns }; }, [texts.toString(), h]);
     for (const x of r.small) bad.push(tag + '11px より小さい字「' + x.t + '」' + x.fs + 'px ' + x.id);
     const lmin = h > 600 ? 12 : 11; for (const l of r.labels) { if (l.fs < lmin) bad.push(tag + 'ボタンの名前「' + l.t + '」が ' + l.fs + 'px（' + lmin + 'px 以上）'); if (l.lines > 1) bad.push(tag + 'ボタンの名前「' + l.t + '」が ' + l.lines + ' 行に折れている'); }
     for (const f of r.tt) if (f < 11) bad.push(tag + '今日の札の見出しが ' + f + 'px'); for (const f of r.cr) if (f < (w <= 340 ? 11 : 12)) bad.push(tag + '「次の昇進まで」が ' + f + 'px');
-    for (const [id, bh] of r.btns) if (bh < 40) bad.push(tag + id + ' の高さが ' + bh + 'px（40px 以上）');
+    for (const [id, bh, mn] of r.btns) if (bh < mn) bad.push(tag + id + ' の高さが ' + bh + 'px（' + mn + 'px 以上）');
     if (lang === 'ja' && h > 600) { const c = await p.evaluate(() => { const H = window.__hayDash; if (!H) return null; const G = H.ev('G'); const at = o => { const s = H.ev('spriteAt')(o.wx, o.wy, o.wz); return s ? { x: s.sx, k: s.k } : null; }; const box = s => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; };
         return { cs: [G.follow, G.pom && G.pom.show ? G.pom : null].filter(Boolean).map(at).filter(Boolean), L: box('#sTitle .row').right, R: box('#sTitle .row2').left }; });
       if (c) for (const q of c.cs) { const a = q.x - q.k * .45, z = q.x + q.k * .45, hid = q.x < w / 2 ? Math.max(0, Math.min(z, c.L) - a) : Math.max(0, z - Math.max(a, c.R)), k = hid / (z - a); log.push(tag + '左右の子のかくれ ' + Math.round(k * 100) + '%'); if (k > .3) bad.push(tag + '左右の子が、ボタンの列のうしろに ' + Math.round(k * 100) + '% かくれている（3 割まで）'); } }
