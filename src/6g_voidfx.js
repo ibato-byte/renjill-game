@@ -18,9 +18,9 @@ function mvxRide(seg, dt) { const L = seg.len, sl = (segE(seg, Math.min(L, G.s +
   if (sl > .12) { MVX.chainT -= dt; if (MVX.chainT <= 0) { MVX.chainT = .12; noise(.018, .03, 3200); tone(1250, .02, 'sine', .012); } }
   if (sl < -.2) { if (!MVX.inDrop) { MVX.inDrop = 1; whoosh(.8, .07, 500, 2600); buzz(25); } if (Math.random() < dt * 26) { const sd = Math.random() < .5 ? -1 : 1; FX.push({ x: W / 2 + sd * W * rand(.2, .5), y: H * rand(.25, .8), vx: sd * rand(300, 520), vy: rand(60, 160), life: .32, t: 0, c: 'rgba(255,255,255,.7)', r: rand(1.2, 2.4) }); } } else MVX.inDrop = 0;
   G.mvDropK = lerp(G.mvDropK || 0, clamp(-sl * 2.4, 0, .8), Math.min(1, dt * 3)); /* くだりでは視野が少し広がる（速さを感じる） */
-  if (!MVX.photo && sl < -.3 && (G.mvCartN | 0) >= 2) { MVX.photo = 1; MVX.frame = 1; G.stats.mvPhoto = 1; noise(.05, .1, 3000); tone(1900, .035, 'sine', .04); tone(1400, .05, 'sine', .03, auNow() + .06); floatText(W / 2, cheerY(.5), tr('パシャ！', 'Snap!'), '#FFFFFF'); } }
+  if (!MVX.photo && sl < -.3 && (G.mvCartN | 0) >= 2) { MVX.photo = 1; MVX.frame = 1; G.stats.mvPhoto = 1; noise(.05, .1, 3000); tone(880, .035, 'sine', .04); tone(660, .05, 'sine', .03, auNow() + .06); /* 高い音は使わない（qa/soundcheck.js：1300 より上は耳ざわり） */ floatText(W / 2, cheerY(.5), tr('パシャ！', 'Snap!'), '#FFFFFF'); } }
 /* [手 11・12] 谷の風の音と、遠くのトビの声（たまに） */
-function mvxAir(dt) { MVX.windT -= dt; if (MVX.windT <= 0) { MVX.windT = rand(4, 7); whoosh(1.4, .016, 240, 640); } MVX.birdT -= dt; if (MVX.birdT <= 0) { MVX.birdT = rand(11, 19); if (LT.night < .5) { const t = auNow(); tone(1500, .5, 'sine', .014, t, 1050); tone(1320, .4, 'sine', .01, t + .55, 980); } } }
+function mvxAir(dt) { MVX.windT -= dt; if (MVX.windT <= 0) { MVX.windT = rand(4, 7); whoosh(1.4, .016, 240, 640); } MVX.birdT -= dt; if (MVX.birdT <= 0) { MVX.birdT = rand(11, 19); if (LT.night < .5) { const t = auNow(); tone(1240, .5, 'sine', .014, t, 940); tone(1120, .4, 'sine', .01, t + .55, 880); } } }
 /* [手 13] 落ちる時、割れた板のかけらが、いっしょに散る */
 function mvxDebris() { const at = mvxAt(); burst(at[0], at[1], '#B9895A', 9); burst(at[0], at[1], '#8A6444', 5); thump(260, 120, .07, .1); }
 /* [手 14〜18] 動く物：気球はゆっくり上下し、白鳥のボートは水の上をすべり、間欠泉は 9 秒ごとに吹き上がり、チョウ・トンボ・ホタル・コウモリはふわふわ飛ぶ（絵の場所と大きさを、毎コマ少しずつ動かす） */
