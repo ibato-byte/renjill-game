@@ -143,13 +143,17 @@ function titleTallPitch(P, gy) {
   if (G.t - TITLE_DOCK.t > .5 || G.t < TITLE_DOCK.t) { TITLE_DOCK.t = G.t; const d = document.querySelector('#sTitle.home:not([hidden]) .card>.chars'), a = $('#app'); if (d && d.offsetParent && a) { const r = d.getBoundingClientRect(), ar = a.getBoundingClientRect(); TITLE_DOCK.y = r.top - ar.top; const td = $('#sTitle.home #tToday'), tr = td && td.offsetParent ? td.getBoundingClientRect() : null; TITLE_DOCK.top = tr && tr.height > 8 ? tr.bottom - ar.top : 0; } else TITLE_DOCK.y = 0; }
   let want = TITLE_DOCK.y - 10; /* [ホーム iPhone H27] 2026-11-20 オーナー「スマホの画面の時にキャラクターが中心に来るように」：今日の目標の札と下の台の間があいている背の高いスマホでは、
      3 人の体のまん中が、そのあいた所のまん中に来るように、足もとを少し上げる（モチの背の高さは、画面のはばの約 0.32） */
-  if (TITLE_DOCK.top > 0 && W < 600 && H > W * 1.25) { const mid = (TITLE_DOCK.top + TITLE_DOCK.y) / 2, feet = mid + W * .16 + 8; if (feet < want) want = Math.max(feet, TITLE_DOCK.top + W * .32 + 16); }
+  if (TITLE_DOCK.top > 0 && W < 600 && H > W * 1.25) { const ck = titleCamK(), mid = (TITLE_DOCK.top + TITLE_DOCK.y) / 2, feet = mid + W * .16 * ck + 8; if (feet < want) want = Math.max(feet, TITLE_DOCK.top + W * .32 * ck + 16); /* [よみ R31] カメラを引いた分、背の高さも小さく見積もる */ }
   TITLE_DOCK.feet = want; /* お知らせの置き場所（3 人の頭にかからないか）に使う */
   if (!(want > H * .45) || P.wx == null) return TITLE_PITCH; /* 台がない・台が上すぎる時は今までどおり */
   /* 足もと（地面の高さ）の点が、画面の want の高さに来る上下の向きを、その場で求める */
   const dx = P.wx - CAM.x, dz = P.wz - CAM.z, fw = dx * Math.sin(CAM.yaw) + dz * Math.cos(CAM.yaw), dy = (gy || 0) - CAM.y; /* はねる高さは入れない（カメラがはねに合わせてゆれない） */ if (!(fw > .5)) return TITLE_PITCH;
   const ang = Math.atan2(-dy, fw), off = Math.atan((want - HORIZON) / FOCAL); /* 足もとは目の高さより ang だけ下。画面で地平線より off だけ下に見せたい */
   const pt = clamp(ang - off, -.22, TITLE_PITCH); G.titlePitch = G.titlePitch == null ? pt : G.titlePitch + (pt - G.titlePitch) * .25; return G.titlePitch; }
+/* [よみ R31] 2026-11-28 たて長のスマホ：左右の子（クリ・ユズ）が、左右の丸いボタンの列のうしろに 4〜6 割かくれていた（ボタンの名前を大きくした分、列も広い）。
+   カメラを少し引いて 3 人をまとめて小さめに（せまい画面ほど引く）。左右の子が選んだ子に重ならない決まり（homelight）は、3 人とも同じ割合で小さくなるので変わらない */
+function titleCamZ() { return W < 600 && W < H ? clamp(8.8 + (390 - W) * .02, 8.4, 9.6) : 7.9; }
+function titleCamK() { return 4.2 / (titleCamZ() - 3.7); } /* 選んだ子の見た目の大きさ（カメラ 7.9 の時を 1） */
 let TITLE_FRONT = 3.7, TITLE_BACK = 2.7; // ホーム画面：選んだ子の位置（手前）と、ほかの 2 人の位置（奥）
 function titleFrame(dt) {
   const seg = G.segs[0], me = G.char, other = me === 'ren' ? 'jill' : 'ren', third = me === 'pom' ? 'jill' : 'pom';
@@ -171,7 +175,7 @@ function titleFrame(dt) {
   /* たて長の画面（スマホ）：3 人が画面の上半分のまん中に全員おさまるよう、カメラを引いて 3 人のまん中に寄せる（2026-11-15 ホーム画面の作り直し：前は 3 人が見切れ、しかもメニューの札の後ろに隠れていた） */
   const tall = W < H * .8, mid = 0;
   const wide = W > H * 1.25 && W >= 900; // 横長：札が右にあるので、3 人が左のまん中に来るようカメラを右へ
-  const cp = segPos(seg, (tall ? 7.9 : wide ? 6.9 : 6.6) - Math.sin(G.t * .11) * .2, (tall ? mid : wide ? TITLE_WIDE : 0) + Math.sin(G.t * .23) * (tall ? .18 : .3));
+  const cp = segPos(seg, (tall ? titleCamZ() : wide ? 6.9 : 6.6) - Math.sin(G.t * .11) * .2, (tall ? mid : wide ? TITLE_WIDE : 0) + Math.sin(G.t * .23) * (tall ? .18 : .3));
   CAM.x = cp[0]; CAM.z = cp[1]; CAM.y = (tall ? 1.02 : 1.1) + cp[2] + Math.sin(G.t * .7) * .015; CAM.yaw = Math.PI + Math.sin(G.t * .17) * .02; CAM.pitch = tall ? titleTallPitch(P, pR[2]) : .06;
   camPrep(); P.depth = 7.4 - TITLE_FRONT; F.depth = 7.4 - TITLE_BACK;
   // once you have met Kuri, the rookie peeks out on the title screen too, bouncing with excitement
