@@ -2860,6 +2860,106 @@
       "name": "よみやすさ：字の大きさの下限を毎回見張る",
       "file": "qa/homeread.js",
       "has": "HOMEREAD OK"
+    },
+    {
+      "name": "景色1000：本物の木の種類（カツラ・ヤナギ・庭の黒松など）",
+      "file": "src/4k_rtree.js",
+      "has": "katsura: () => rxCrown("
+    },
+    {
+      "name": "景色1000：町ごとの街灯（銀座のガス灯形・スズラン灯など）",
+      "file": "src/4l_rprop.js",
+      "has": "Object.assign(PROPS, { lampG: rxLampProp('ginza'"
+    },
+    {
+      "name": "景色1000：交差点の名前の板つき信号",
+      "file": "src/4l_rprop.js",
+      "has": "PROPS.sigN = "
+    },
+    {
+      "name": "景色1000：交番",
+      "file": "src/4l_rprop.js",
+      "has": "PROPS.koban = "
+    },
+    {
+      "name": "景色1000：神社の道具（狛犬・手水舎・絵馬）",
+      "file": "src/4m_rset.js",
+      "has": "komainu: rxOne('rxKomainu'"
+    },
+    {
+      "name": "景色1000：池・遠くの見どころ（rx）",
+      "file": "src/4m_rset.js",
+      "has": "{ const ce0 = courseExtras; courseExtras = function (seg) { ce0(seg); rxExtras(seg); }; }"
+    },
+    {
+      "name": "景色1000：家・会社・駅のかべの物",
+      "file": "src/4n_rroom.js",
+      "has": "rxRange(e) {"
+    },
+    {
+      "name": "景色1000：池の岸・自転車ナビマーク",
+      "file": "src/4o_rmore.js",
+      "has": "shore(seg, sd, o) {"
+    },
+    {
+      "name": "景色1000：蔵前橋の黄色",
+      "file": "src/4o_rmore.js",
+      "has": "if (b.c === '#E9D9BF') b.c = '#E8C547';"
+    },
+    {
+      "name": "景色1000：夏の花火・池の生き物",
+      "file": "src/4p_rmore2.js",
+      "has": "hanabi(seg, sd, o) {"
+    },
+    {
+      "name": "景色1000：遠くの見どころの建物・門の色",
+      "file": "src/4q_rland.js",
+      "has": "gateWood"
+    },
+    {
+      "name": "景色1000：消火栓・AED・発車標の続き",
+      "file": "src/4r_rroom2.js",
+      "has": "rxShokasen(e) {"
+    },
+    {
+      "name": "景色1000：あじさい・雪吊り・路地の鉢植え",
+      "file": "src/4s_rseason.js",
+      "has": "ajisai: rxOne('rxAjisai'"
+    },
+    {
+      "name": "景色1000：地下鉄の出入口・都バスの停留所の名前・電柱の住所",
+      "file": "src/4t_rsign.js",
+      "has": "subway: (sd, s, th) =>"
+    },
+    {
+      "name": "景色1000：場所ごとの表を当てる",
+      "file": "src/4z_rapply.js",
+      "has": "rxApplyReal();"
+    },
+    {
+      "name": "景色1000：場所ごとの表（銀座のカツラなど）",
+      "file": "src/1c_real.js",
+      "has": "ginza: { sw: { lampC: 'lampG' }"
+    },
+    {
+      "name": "景色1000（2回目）：空の上のヘリコプター・ツバメ・ムクドリの群れ",
+      "file": "src/4u_rround2.js",
+      "has": "function rxSkyLife(hz, seg)"
+    },
+    {
+      "name": "景色1000（2回目）：市ヶ谷の釣り堀（浮かぶ足場・小屋・竿をたらす人）",
+      "file": "src/4u_rround2.js",
+      "has": "tsuribori(seg, sd, o) {"
+    },
+    {
+      "name": "景色1000（2回目）：エレベーターの高さの表示・ボタン・やきとりの煙・消火器",
+      "file": "src/4u_rround2.js",
+      "has": "rxElevInd(e) {"
+    },
+    {
+      "name": "景色1000（2回目）：数の少なかったステージの表",
+      "file": "src/1c_real.js",
+      "has": "const RX_MORE7 = {};"
     }
   ]
 }
