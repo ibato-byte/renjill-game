@@ -17,6 +17,7 @@ const has = (...w) => o => w.every(x => o.includes(x));
 const noErr = o => /no errors|no issues/.test(o) && !/pageerror|FAIL|Uncaught/.test(o);
 const T = [
   { n: 'dupcheck', why: '同じ名前の関数の二重定義（上書き事故）', ok: noErr },
+  { n: 'rxnames', why: '1 行に並べて決めた名前（const A = …, B = …）もかぶっていない（2026-11-28 景色 1000 で BUS がかぶり、ゲームが動かなくなった）', ok: has('RXNAMES OK') },
   { n: 'brandname', why: '旧名が画面・検索向けの文に残っていない（2026-11-22 東京うさぎオフィスに改名）', ok: has('BRANDNAME OK') },
   { n: 'qa', why: '画面の流れ・言語切替', ok: noErr },
   { n: 'reltest', why: '公開版で起動して遊べる', ok: noErr },
@@ -156,7 +157,7 @@ const T = [
 // 手元でのやり直し用：FROM=名前 でその試験から、ONLY=名前,名前 でその試験だけ（CI では使わない）
 if (process.env.FROM) { const i = T.findIndex(t => t.n === process.env.FROM); if (i > 0) T.splice(0, i); }
 if (process.env.ONLY) { const k = new Set(process.env.ONLY.split(',')); for (let i = T.length - 1; i >= 0; i--) if (!k.has(T[i].n)) T.splice(i, 1); }
-if (MODE === 'smoke') { const keep = new Set(['featureguard', 'dupcheck', 'brandname', 'qa', 'reltest', 'apptest', 'seo', 'reach', 'soundcheck', 'vanish']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
+if (MODE === 'smoke') { const keep = new Set(['featureguard', 'dupcheck', 'rxnames', 'brandname', 'qa', 'reltest', 'apptest', 'seo', 'reach', 'soundcheck', 'vanish']); for (let i = T.length - 1; i >= 0; i--) if (!keep.has(T[i].n)) T.splice(i, 1); }
 if (MODE === 'full') {
   for (let i = 0; i < 6; i++) T.push({ n: 'qa_stage', env: { NP: '6', PI: String(i) }, label: 'qa_stage#' + i, why: '全ステージ×5場面の表示（' + (i + 1) + '/6）', ok: has('bad 0'), timeout: 700 });
   T.push({ n: 'stuck', args: ['300'], env: { LATE: '0' }, label: 'stuck-long', why: 'とても長く走っても動けなくならない（5分×3人）', ok: has('NO STUCK'), timeout: 1200 });
