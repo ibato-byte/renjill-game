@@ -36,5 +36,8 @@
   const fresh = () => { try { if (st.hidden || typeof G === 'undefined' || G.mode !== 'title') return; for (const s2 of document.querySelectorAll('.screen')) if (s2 !== st && !s2.hidden) return; refreshTitle(); } catch (e) { } };
   document.addEventListener('visibilitychange', () => { if (!document.hidden) fresh(); });
   { let day = ''; try { day = todayStr(); } catch (e) { } setInterval(() => { try { const d = todayStr(); if (d !== day) { day = d; fresh(); } } catch (e) { } }, 60000); }
-  mark(); tips(); bump(); ring(); say(); try { new MutationObserver(() => { mark(); tips(); bump(); ring(); say(); }).observe(st, { childList: true, subtree: true, characterData: true }); } catch (e) { }
+  /* [よみ R122] 2026-11-28 左の列のボタンの名前（英語の「How to play」など）が、字の形によっては丸より広く、画面の左はしから 2px 出た（CI の機械）。はしから出る時だけ、名前の札を内側へずらす（丸はそのまま） */
+  const keepIn = () => { try { for (const e of st.querySelectorAll('.row .mini em')) { if (e.style.transform) e.style.transform = ''; if (!e.offsetParent) continue; const r = e.getBoundingClientRect(), m = 3; let dx = 0; if (r.left < m) dx = m - r.left; else if (r.right > innerWidth - m) dx = innerWidth - m - r.right; if (dx) e.style.transform = 'translateX(' + dx.toFixed(1) + 'px)'; } } catch (e) { } };
+  addEventListener('resize', () => setTimeout(keepIn, 80)); try { document.fonts && document.fonts.ready.then(() => keepIn()); } catch (e) { }
+  mark(); tips(); bump(); ring(); say(); keepIn(); try { new MutationObserver(() => { mark(); tips(); bump(); ring(); say(); keepIn(); }).observe(st, { childList: true, subtree: true, characterData: true }); } catch (e) { }
 })();
