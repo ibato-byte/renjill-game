@@ -377,7 +377,7 @@ button:active,.shbtns a:active{transform:scale(.95)}
 @media (prefers-reduced-motion:reduce){.howanim *{animation:none!important}.howanim .ha-cap span:first-child{opacity:1}}
 #titleShare{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0}#titleShare[hidden]{display:none}#titleShare .tshare{margin:0;font-size:12px;padding:8px 12px}
 .plist{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:none}.plist .sub{margin:0;width:100%;font-size:13px;padding:10px 6px}
-.tmap{margin:6px 0 4px;flex:none}.tmap>svg{display:block;width:100%;max-width:420px;height:auto;margin:0 auto}.tmap .note{text-align:center;margin-top:4px}
+.tmap{margin:6px 0 4px;flex:none}.tmap .tmapw>svg{display:block;width:100%;max-width:420px;height:auto;margin:0 auto}.tmap .note{text-align:center;margin-top:4px}
 /* [ラリー] 2026-11-24 スタンプ帳（旅のパスポート）：輪・地図・エリアの札・棚・くわしい札・写真の帯 */
 .ric{width:15px;height:15px;vertical-align:-2px;margin-right:3px;flex:none}
 .rhero,.rchips,.rdet,.rshelf,.album.rstrip,.rph3{flex:none}
@@ -387,7 +387,7 @@ button:active,.shbtns a:active{transform:scale(.95)}
 .rhi{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}.rhi b{font-family:var(--f-display);font-weight:400;font-size:16px;color:var(--tie)}
 .rnum{font-size:13px;font-weight:900;opacity:.9}.rnum em{font-style:normal;font-size:26px;font-family:var(--f-display);color:#fff;margin-right:2px}
 .rnext{display:inline-flex;align-items:center;flex-wrap:wrap;gap:2px;font-size:11.5px;font-weight:900;background:rgba(251,246,238,.14);border-radius:12px;padding:3px 9px;align-self:flex-start;max-width:100%}.rnext em{font-style:normal;color:#F2C230;font-size:14px}.rnext.done{color:#F2C230}
-.tmap{margin:10px 0 6px}.tmap>svg{border-radius:14px;box-shadow:0 3px 0 rgba(59,42,32,.18);user-select:none;-webkit-user-select:none}
+.tmap{margin:10px 0 6px}.tmap .tmapw>svg{border-radius:14px;box-shadow:0 3px 0 rgba(59,42,32,.18);user-select:none;-webkit-user-select:none}
 .rview{display:flex;gap:6px;justify-content:center;margin-bottom:6px}.rview button{border:0;border-radius:999px;padding:6px 12px;font-weight:900;font-size:12px;background:var(--cream);color:var(--ink-soft);display:inline-flex;align-items:center}.rview button.on{background:var(--ink);color:var(--paper)}
 .tmap .mlb{font-size:9.5px;font-weight:900;letter-spacing:.06em;paint-order:stroke;stroke:#F3EBDD;stroke-width:3px;pointer-events:none}
 .tmap .mlbn{font-size:8px;fill:#6E5848}
@@ -553,7 +553,7 @@ div.rdet .rbig{width:84px;height:84px}
 .rline i.sel{box-shadow:0 0 0 2px #3B2A20}.rline i.nw{background:#F2C230;border-color:#3B2A20}
 .rtk.all{background-color:#F3E2A8;box-shadow:0 2px 0 rgba(59,42,32,.18),0 0 0 1px #D6A23C inset,0 0 0 3px #F8EDC6 inset}.rtk.all .rtk-c{background-color:#EBD48C}
 .album.rstrip figure{border-top:0;border-radius:3px;background-color:#fff;padding:6px 6px 9px;transform:rotate(-1.2deg);position:relative}.album.rstrip figure:nth-child(even){transform:rotate(1.4deg)}.album.rstrip figure::before{content:"";position:absolute;left:50%;top:-5px;width:34px;height:11px;margin-left:-17px;background:color-mix(in srgb,var(--ac,#D6A23C) 55%,#fff);opacity:.8;transform:rotate(-2deg)}.album.rstrip{padding-top:8px}
-.tmap>svg{border-radius:12px}
+.tmap .tmapw>svg{border-radius:12px}
 .tmap .msta text{stroke:#F6F0E2}.tmap .mnm{fill:#4F7CA3;stroke:rgba(241,234,219,.7)}
 .rlegend em{margin-right:10px}.rlegend .lg1{background:#C4402F;box-shadow:0 0 0 1.5px #FBF6EE inset,0 0 0 1px #C4402F}.rlegend .lg2{border:1.5px solid #4E77A0;background:#FBF6EE;width:8px;height:8px}
 .rlx{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:0;background:var(--paper);font-size:24px;font-weight:900;line-height:1;color:var(--ink)}
@@ -1868,5 +1868,45 @@ html[lang="ja"] #sTitle.home .story .stp{word-break:keep-all;overflow-wrap:norma
 /* [よみ R124] 英語などの「How to play」はボタンの名前でいちばん長い。字の形によっては丸の幅（スマホ 80px・パソコン 96px）より広くなった（CI の en_audit・textfit）→ この 1 つだけ、スマホ 11px・パソコン 12.5px、字の間と左右の余白を少しつめる（日本語の「あそびかた」は 12px・13px のまま） */
 @media (orientation:portrait) and (max-width:599px){html:not([lang="ja"]) #sTitle.home #tHow{font-size:11px;letter-spacing:-.02em;padding-left:5px;padding-right:5px}}
 @media (min-aspect-ratio:5/4) and (min-width:900px) and (min-height:560px){html:not([lang="ja"]) #sTitle.home #tHow{font-size:12.5px;letter-spacing:-.02em;padding-left:5px;padding-right:5px}}
+/* ==== [地図] 2026-11-28 オーナー「スタンプ帳の地図はまだ小さくて非常に見づらい」 ==== */
+/* [地図 M21] 小さな地図の字：駅の名前 7.5 → 9.5・川や湾の名前 8 → 9.5・ふき出しの名前 11 → 12・方位と縮尺 7 → 8.5（地図の目もりで。画面ではほぼ同じ px） */
+#sPanel .tmap .msta text{font-size:9.5px;stroke-width:2.8px}
+#sPanel .tmap .mnm{font-size:9.5px}
+#sPanel .tmap .mpn{font-size:12px}
+#sPanel .tmap .mcomp text,#sPanel .tmap .mscale text{font-size:8.5px}
+/* [地図 M22] スマホでは、小さな地図を札の左右いっぱいに（左右 8px ずつ広く） */
+@media (max-width:480px){#sPanel .tmap .tmapw{margin-left:-8px;margin-right:-8px}}
+/* [地図 M23] 地図の上では、指のマークが「虫めがね」（押すと大きくなる、と分かる） */
+#sPanel .tmap .tmapw{cursor:zoom-in;-webkit-tap-highlight-color:transparent}
+#sPanel .tmap .tmapw .mdot,#sPanel .tmap .tmapw .msug{cursor:pointer}
+/* [地図 M24] 「大きく」のボタン：目立つ金色（ほかの 2 つは、どちらの地図を見ているかの切りかえ） */
+#sPanel .rview{flex-wrap:wrap}
+#sPanel .rview button{min-height:36px;font-size:12.5px}
+#sPanel .rview .rbig{background:linear-gradient(180deg,#FFE08A,#F3C24F);color:#3B2A20;box-shadow:0 2px 0 #9A6F1C}
+#sPanel .rview .rbig:active{transform:translateY(2px);box-shadow:none}
+/* [地図 M6〜] 大きく見る画面 */
+.tmfull{position:fixed;inset:0;z-index:85;display:flex;flex-direction:column;background:#2E2119;color:#FBF6EE;animation:rfade .18s ease-out}
+.tmfull .tmf-h{flex:none;display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top,0px)) calc(10px + env(safe-area-inset-right,0px)) 8px calc(16px + env(safe-area-inset-left,0px))}
+.tmfull .tmf-h b{flex:1;min-width:0;font-family:var(--f-display);font-weight:400;font-size:17px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tmfull .tmf-n{flex:none;display:inline-flex;align-items:center;gap:6px;font-weight:900;font-size:14px;font-variant-numeric:tabular-nums}
+.tmfull .tmf-n .lg1{width:12px;height:12px;border-radius:50%;background:#C4402F;box-shadow:0 0 0 2px #FBF6EE}
+.tmfull .tmf-x{flex:none;width:44px;height:44px;border:0;border-radius:50%;background:#FBF6EE;color:#3B2A20;font-size:20px;font-weight:900;cursor:pointer}
+.tmfull .tmf-a{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none;background:#E9E0CE;cursor:grab;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.tmfull .tmf-a.drag{cursor:grabbing}
+.tmfull .tmf-m{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.tmfull .tmf-m>svg{display:block;width:100%;height:100%}
+.tmfull .tmf-m .mdot,.tmfull .tmf-m .msug{cursor:pointer}
+.tmfull .tmf-z{position:absolute;right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+.tmfull .tmf-z button{width:50px;height:50px;border:0;border-radius:50%;background:#FBF6EE;color:#3B2A20;font-size:26px;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(0,0,0,.28),0 6px 14px rgba(0,0,0,.18);cursor:pointer}
+.tmfull .tmf-z button .ric{width:22px;height:22px}
+.tmfull .tmf-z button:disabled{opacity:.4;cursor:default}
+.tmfull .tmf-z button:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+.tmfull .tmf-tip{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));margin:0;max-width:calc(100% - 96px);overflow:hidden;text-overflow:ellipsis;background:rgba(46,33,25,.88);color:#FBF6EE;padding:9px 16px;border-radius:999px;font-size:13px;font-weight:900;white-space:nowrap;pointer-events:none;transition:opacity .4s}
+.tmfull .tmf-tip.off{opacity:0}
+.tmfull :focus-visible{outline:3px solid #F3C24F;outline-offset:2px}
+html[data-in="ptr"] .tmfull :focus-visible{outline:none}
+@media (prefers-reduced-motion:reduce){.tmfull{animation:none}}
+/* [地図 M25] 大きく見る画面の、行った名所の名前（白いふちどりで、線の上でも読める） */
+.tmfull .mslb{font-weight:900;fill:#3B2A20;paint-order:stroke;stroke:#FBF6EE;stroke-linejoin:round;pointer-events:none}
 /* ==== HOME-V2 END ==== */
 </style>
