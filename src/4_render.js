@@ -743,7 +743,7 @@ function drawShadows(seg) {
   if (seg.th.sky) return; // 空の上：足もとに地面が無いので、かげも無い
   ctx.fillStyle = 'rgba(30,22,16,.22)';
   const sh = (s, lat, r, a) => { const p = segPos(seg, s, lat); const sp = spriteAt(p[0], p[2], p[1]); if (!sp) return; ctx.save(); ctx.globalAlpha = a; ctx.translate(sp.sx, sp.sy); ctx.scale(r * sp.k * 1.15, r * sp.k * .34); ctx.fillStyle = softShadow(); ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }; // a soft-edged pool, darkest under the feet
-  if (G.player.show && G.mode !== 'title') { if (!(G.mode === 'dying' && G.cause === 'fall')) sh(G.s, G.lat, .55, clamp(1 - G.y * .3, .25, 1)); if (G.follow.show) sh(G.s - G.follow.back, G.follow.lat, .46, .8); if (G.pom.on && G.pom.show) sh(G.s - G.pom.back, G.pom.lat, G.pom.who === 'pom' ? .32 : .46, .75); }
+  if (G.player.show && G.mode !== 'title') { if (!(G.mode === 'dying' && (G.cause === 'fall' || G.cause === 'pit'))) sh(G.s, G.lat, .55, clamp(1 - G.y * .3, .25, 1)); if (G.follow.show) sh(G.s - G.follow.back, G.follow.lat, .46, .8); if (G.pom.on && G.pom.show) sh(G.s - G.pom.back, G.pom.lat, G.pom.who === 'pom' ? .32 : .46, .75); }
   ctx.globalAlpha = 1;
 }
 /* うさぎに当たる夕方の色はひかえめに（赤むらさきに染まりすぎて、だれだか分からなくなっていた）。明るさは残して色味だけ弱める */
@@ -791,6 +791,7 @@ function drawBunnyWorld(b) {
   // しゃがむ・跳ぶが、ふり返り（look）より先（ふり返っている間に下スワイプしても、しゃがまなかった：2026-11-09 の報告）
   if (b.view === 'front') pose = 'front_' + (b.mood || 'open');
   else if (b.hawk && !(b.hawkRel > .2) && !(b.hawkIn < .85)) pose = b.hawkRel > .02 ? 'fall' : 'air'; /* オオタカにつかまれて、足をのばしてぶら下がる。[D3] 地面が近づくと、足を下へのばして着地の用意 */
+  else if (b.cart) pose = 'run0'; /* [乗り物 R1] トロッコに乗っている間は、足を止めて座る（下半分はトロッコにかくれる） */
   else if (b.fly) pose = 'run0'; /* 紙飛行機に乗っている間は、足を止めて座る（2026-11-17 オーナー：「紙飛行機に乗ってる時も走り続けてる動作をしてる」）。下半分は紙飛行機にかくれる */
   else if (b.slide) pose = 'slide'; else if (b.air) pose = !b.fly && (b === G.player ? G.vy : b.vy) < -2.5 ? 'fall' : 'air'; /* くだりは「落ちてくる絵」 */
   else if (b.look > 0) pose = 'look_' + (b.mood || 'happy');
