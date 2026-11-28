@@ -1,7 +1,11 @@
 /* ================= screens ================= */
 const SCREENS = ['sTitle', 'sPanel', 'sPause', 'sRevive', 'sResult', 'hud'];
 function hideAll() { SCREENS.forEach(id => { $('#' + id).hidden = true; }); }
-function show(id) { $('#' + id).hidden = false; }
+function show(id) { const e = $('#' + id); if (!e) return; const was = e.hidden; e.hidden = false; if (was) topScroll(e); }
+/* [スクロール] 2026-11-28 オーナー「ミッションをスクロールしてからスタンプ帳などを開くと、上からではなく途中から表示される」：
+   画面の中のスクロールする箱（#pBody など）は、閉じても前の位置を覚えていて、かくしている間に 0 にしても効かなかった（見えない箱にはスクロールの位置が入らない）。
+   画面を出した直後（見えるようになってから）に、画面とその中のスクロールする箱を一番上にもどす。会話の箱（.chatlog）は新しい言葉が下にあるので、そのまま */
+function topScroll(e) { try { e.scrollTop = 0; for (const s of e.querySelectorAll('.body, .card, .scroll, [data-scrolltop]')) if (!s.classList.contains('chatlog')) s.scrollTop = 0; } catch (x) { } }
 function goTitle() { hideAll(); setupTitle(); show('sTitle'); refreshTitle(); try { titleMusic(); } catch (e) { } }
 function applyLang() {
   { const a = $('#tGuide'); if (a) { a.textContent = tr('遊び方・キャラクター紹介', 'How to play & characters'); a.href = window.HAYDASH_APP ? (tr('./guide.html', './guide-en.html')) : 'https://hay-dash.coana.co.jp/' + (tr('guide', 'guide-en')); if (window.HAYDASH_APP) a.removeAttribute('target'); } }
@@ -47,8 +51,8 @@ function refreshTitle() {
   $('#dotMissions').hidden = !(SV.missions && SV.missions.slots.some(s => s.done));
 }
 let PANEL_FROM = null;
-function openPanel(title, sub, html) { if ($('#sPanel').hidden) { const a = document.activeElement; PANEL_FROM = a && a !== document.body && !a.closest('#sPanel') ? a : null; } if (LANG !== 'en' && sub) { title = esc(sub); sub = ''; } document.querySelectorAll('.toast').forEach(x => x.remove()); toastSubBack(); musicMuffle(true); /* メニューを開いている間、曲は少しこもらせる */ if (sub && sub.toUpperCase() === title) sub = ''; $('#pTitle').innerHTML = `${title}<small>${esc(sub)}</small>`; $('#pBody').innerHTML = html; $('#pBody').scrollTop = 0; show('sPanel'); { const lt = $('#btnLangTop'); if (lt) lt.hidden = true; } $('#pClose').focus(); } // 言語ボタンが閉じるボタンにかぶらないよう、パネル中はかくす
-function closePanel() { $('#sPanel').hidden = true; musicMuffle(false); { const lt = $('#btnLangTop'); if (lt) lt.hidden = false; } if (G.mode === 'title') refreshTitle(); const f = PANEL_FROM; PANEL_FROM = null; if (f && f.isConnected && !f.closest('[hidden]')) try { f.focus({ preventScroll: true }); } catch (e) { } }
+function openPanel(title, sub, html) { if ($('#sPanel').hidden) { const a = document.activeElement; PANEL_FROM = a && a !== document.body && !a.closest('#sPanel') ? a : null; } if (LANG !== 'en' && sub) { title = esc(sub); sub = ''; } document.querySelectorAll('.toast').forEach(x => x.remove()); toastSubBack(); musicMuffle(true); /* メニューを開いている間、曲は少しこもらせる */ if (sub && sub.toUpperCase() === title) sub = ''; $('#pTitle').innerHTML = `${title}<small>${esc(sub)}</small>`; $('#pBody').innerHTML = html; $('#pBody').scrollTop = 0; show('sPanel'); $('#pBody').scrollTop = 0; /* [スクロール] 出した後にもう一度 0（すでに開いている時にほかの画面へ切りかえた時も、一番上から） */ { const lt = $('#btnLangTop'); if (lt) lt.hidden = true; } $('#pClose').focus(); } // 言語ボタンが閉じるボタンにかぶらないよう、パネル中はかくす
+function closePanel() { try { tmFullClose(true); } catch (e) { } $('#sPanel').hidden = true; musicMuffle(false); { const lt = $('#btnLangTop'); if (lt) lt.hidden = false; } if (G.mode === 'title') refreshTitle(); const f = PANEL_FROM; PANEL_FROM = null; if (f && f.isConnected && !f.closest('[hidden]')) try { f.focus({ preventScroll: true }); } catch (e) { } }
 
 function missionsBody() { return `${mLevelHTML()}<h3 class="msec">${msvg('star')}${tr('いまのミッション', 'Missions')}</h3>${missionHTML(1)}<h3 class="msec">${msvg('sun')}${tr('今日と今週', 'Today & this week')}</h3>${mDailyHTML()}${mWeekHTML()}${calHTML()}${mAchHTML()}`; } /* [ミッション 8] 見出しの絵つきの 3 つのまとまり（いまのミッション・今日と今週・称号） */
 function openMissions() { SFX.ui(); ACH_SEL = ''; openPanel('MISSIONS', t('missions'), missionsBody()); }
@@ -134,6 +138,7 @@ const RALLY = { view: 'all', area: 'all', sel: '', sort: 'list' };
 /* [ラリー 16] 絵文字ではなく、ゲームの線の太さにそろえた小さな絵（足あと・カレンダー・カメラ・トロフィー・地図・虫めがね・プレゼント） */
 const RICO = { foot: '<path d="M7 13c-2 0-3-1.6-3-3.4S5.3 6 7 6s3 1.8 3 3.6S9 13 7 13zM4 5.2a1.3 1.6 0 1 0 0-.1M7 3.6a1.3 1.6 0 1 0 0-.1M10 5.2a1.3 1.6 0 1 0 0-.1" fill="currentColor"/>', cal: '<rect x="2.5" y="3.5" width="11" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 7h11M5.5 2v3M10.5 2v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
   cam: '<rect x="2" y="5" width="12" height="8.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="9.2" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 5l1.2-2h2.6l1.2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>', cup: '<path d="M4.5 2.5h7v3.5a3.5 3.5 0 0 1-7 0zM8 9.5v2.5M5.5 13.5h5M4.5 4H2.5a2 2 0 0 0 2 3M11.5 4h2a2 2 0 0 1-2 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  full: '<path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
   map: '<path d="M2 4l4-1.5 4 1.5 4-1.5v9.5l-4 1.5-4-1.5-4 1.5z M6 2.5v9.5M10 4v9.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>', zoom: '<circle cx="7" cy="7" r="4.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M10.2 10.2L14 14M5 7h4M7 5v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
   gift: '<rect x="2.5" y="6" width="11" height="7.5" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M2 6h12M8 6v7.5M8 6C6 2.5 3.5 3.5 5 5.4M8 6c2-3.5 4.5-2.5 3-.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' };
 const rico = (k, c) => `<svg class="ric${c ? ' ' + c : ''}" viewBox="0 0 16 16" aria-hidden="true">${RICO[k]}</svg>`;
@@ -435,8 +440,9 @@ $('#btnLangTop').onclick = () => { SFX.ui(); openPanel('LANGUAGE', t('langPick')
 /* 下の小さい言語ボタンはやめた：右上の地球ボタンだけ（2026-11-10 オーナーの判断） */
 $('#pClose').onclick = closePanel;
 $('#sPanel').addEventListener('click', e => {
-  const up = e.target.closest('[data-up]'), buy = e.target.closest('[data-buy]'), mg = e.target.closest('[data-mug]'), z = e.target.closest('[data-z]'), sst = e.target.closest('[data-s]');
+  const up = e.target.closest('[data-up]'), buy = e.target.closest('[data-buy]'), mg = e.target.closest('[data-mug]'), z = e.target.closest('[data-z]'), sst = tmapNear(e) || e.target.closest('[data-s]');
   if (e.target === $('#sPanel')) { closePanel(); return; }
+  { const rf = e.target.closest('[data-rfull]'); if (rf && !e.target.closest('[data-s],[data-rv],.msug') && !tmapNear(e)) { SFX.ui(); tmFullOpen(rf.closest('button') || $('#pBody .rbig')); return; } } /* [地図 M6] 「大きく」のボタンか、地図の印でない所を押すと、大きな地図 */
   { const rr = e.target.closest('[data-reroll]'); if (rr) { if (kpReroll(rr.dataset.reroll)) { SFX.ui(); const b = $('#pBody'), top = b.scrollTop; b.innerHTML = missionsBody(); b.scrollTop = top; refreshTitle(); } return; } } // ミッションの入れかえ（[ミッション 9] 入れかえても、見ていた所から動かない）
   { const af = e.target.closest('[data-achf]'); if (af) { SFX.ui(); ACH_F = af.dataset.achf; ACH_SEL = ''; const b = $('#pBody'), top = b.scrollTop; b.innerHTML = missionsBody(); b.scrollTop = top; return; } }
   { const ab = e.target.closest('[data-ach]'); if (ab) { SFX.ui(); ACH_SEL = ACH_SEL === ab.dataset.ach ? '' : ab.dataset.ach; const b = $('#pBody'), top = b.scrollTop; b.innerHTML = missionsBody(); b.scrollTop = top; const d = b.querySelector('.mach-d'); if (d) d.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; } } /* [ミッション 10] 称号のメダルを押すと、くわしい札（もう一度押すと閉じる） */

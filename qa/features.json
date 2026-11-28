@@ -2860,6 +2860,26 @@
       "name": "よみやすさ：字の大きさの下限を毎回見張る",
       "file": "qa/homeread.js",
       "has": "HOMEREAD OK"
+    },
+    {
+      "name": "画面を開いたら一番上から（スクロールの位置を残さない）",
+      "file": "src/7_ui.js",
+      "has": "function topScroll(e)"
+    },
+    {
+      "name": "スタンプ帳の大きく見る地図（ピンチ・ドラッグ・＋−）",
+      "file": "src/7d_tokyomap.js",
+      "has": "function tmFullOpen(from)"
+    },
+    {
+      "name": "地図は、押した所にいちばん近い印をえらぶ",
+      "file": "src/7d_tokyomap.js",
+      "has": "function tmapNear(e)"
+    },
+    {
+      "name": "スクロールと大きな地図の試験",
+      "file": "qa/mapbig.js",
+      "has": "MAPBIG OK"
     }
   ]
 }
