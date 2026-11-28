@@ -2955,6 +2955,46 @@
       "name": "舞浜の夢の遊園地：にんじんの塔のお城",
       "file": "src/4v_park.js",
       "has": "function mvPaintCastle(g, W, H, n)"
+    },
+    {
+      "name": "舞浜：クローバーの丘・にんじん畑の村・白鳥の湖（エリア 3 つ）",
+      "file": "src/1d_park.js",
+      "has": "mlake: { ja: 'チモシー王国・白鳥の湖のほとり'"
+    },
+    {
+      "name": "舞浜：板の無い所をこえるごほうび・橋をわたりきった・記念写真",
+      "file": "src/6g_voidfx.js",
+      "has": "function mvxPits(seg)"
+    },
+    {
+      "name": "舞浜：板の下にかくれる物は描かない（塔の足が板をつきぬけない）",
+      "file": "src/6g_voidfx.js",
+      "has": "function mvxHide()"
+    },
+    {
+      "name": "舞浜：夜は、残っている板のふちが光る",
+      "file": "src/6f_void.js",
+      "has": "glowN: 1, mvEdge: 1"
+    },
+    {
+      "name": "舞浜：「やさしい」の時は、いつも 2 レーン残す",
+      "file": "src/6f_void.js",
+      "has": "if ((easy && n === 0) || G.easy)"
+    },
+    {
+      "name": "舞浜：京葉線の窓の海の景色（観覧車・鉄橋・お城）",
+      "file": "src/4yd_park6.js",
+      "has": "THEMES.keiyo.winView = 'bay';"
+    },
+    {
+      "name": "舞浜：夜の電球の列・赤い布のめじるし・手すりのランタン",
+      "file": "src/4ye_park7.js",
+      "has": "  bulbs(seg, sd, o)"
+    },
+    {
+      "name": "舞浜：ブラッシュアップの置き場所の表（500 以上）",
+      "file": "src/4yb_parkdata.js",
+      "has": "ppk('mlake', {"
     }
   ]
 }

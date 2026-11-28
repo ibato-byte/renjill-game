@@ -17,7 +17,7 @@ function mvNear(open, lane) { let best = -1; for (let k = 0; k < 3; k++) if (ope
 function mvPattern(seg) { const L = seg.len, out = [], sp = Math.max(12, (G.speedEst || G.speed || 13)), rest = () => Math.max(11, sp * .85) + rand(0, 3); let s = (seg.first ? 26 : 13) + rand(0, 2), prev = -1, n = 0;
   const easy = !(seg.step && seg.step.cont); /* コースの最初の橋は、やさしく始める */
   while (s + 9 + 9 < L) { const len = rand(9, 12); let open;
-    if (easy && n === 0) { const miss = (Math.random() * 3) | 0; open = [1, 1, 1]; open[miss] = 0; prev = -1; }
+    if ((easy && n === 0) || G.easy) { const miss = (Math.random() * 3) | 0; open = [1, 1, 1]; open[miss] = 0; prev = -1; } /* 「やさしい」で遊んでいる時は、いつも 2 レーン残す */
     else { let k = (Math.random() * 3) | 0; if (k === prev) k = (k + 1 + ((Math.random() * 2) | 0)) % 3; open = [0, 0, 0]; open[k] = 1; prev = k; }
     out.push({ a: s, b: Math.min(s + len, L - 9), open }); s += len + rest(); n++; }
   return out.length ? out : null; }
@@ -43,7 +43,9 @@ function mvBuild(seg) { const th = seg.th, o = th.void, L = seg.len, rail = !!o.
       for (let j = 0; j < 3; j++) { const l0 = c0 - LANE / 2 + j * LANE / 3 + .03, l1 = l0 + LANE / 3 - .06, e1 = rand(.25, .95), e2 = rand(.2, .8);
         seg.floor.push({ v: quad(seg, [[st.a, l0, 0], [st.a + e1, l0, 0], [st.a + e1, l1, 0], [st.a, l1, 0]]), c: [150 - j * 8, 108 - j * 6, 70 - j * 4], pat: null, ti: j, a: st.a, b: st.a + e1, mid: 1 });
         seg.floor.push({ v: quad(seg, [[st.b - e2, l0, 0], [st.b, l0, 0], [st.b, l1, 0], [st.b - e2, l1, 0]]), c: [150 - j * 8, 108 - j * 6, 70 - j * 4], pat: null, ti: j, a: st.b - e2, b: st.b, mid: 1 }); }
-      for (let j = 0; j < 2; j++) { const s = st.a - 2.6 - j * 2.4; if (s < 1) break; seg.lines.push({ a: [s, c0 - dir * .3, .02], b: [s + .36, c0 + dir * .3, .02], c: '#F2C230', w: .07 }, { a: [s + .72, c0 - dir * .3, .02], b: [s + .36, c0 + dir * .3, .02], c: '#F2C230', w: .07 }); } }
+      for (let j = 0; j < 2; j++) { const s = st.a - 2.6 - j * 2.4; if (s < 1) break; seg.lines.push({ a: [s, c0 - dir * .3, .02], b: [s + .36, c0 + dir * .3, .02], c: '#F2C230', w: .07, glowN: 1 }, { a: [s + .72, c0 - dir * .3, .02], b: [s + .36, c0 + dir * .3, .02], c: '#F2C230', w: .07, glowN: 1 }); } }
+    /* 夜：残っている板のふちが、白く光る（2026-11-28：夜明け前は、板と谷の暗さがほとんど同じで、どこに板が無いのか見分けにくかった。明るさを測って分かった） */
+    if (st.open) for (let k = 0; k < 3; k++) if (st.open[k]) for (const e of [-1, 1]) { const nb = k + e; if (nb >= 0 && nb <= 2 && st.open[nb]) continue; const lt = LANES[k] + e * (LANE / 2 - .04); for (let s = st.a; s < st.b - .01; s += 3) seg.lines.push({ a: [s, lt, .03], b: [Math.min(st.b, s + 3), lt, .03], c: '#9C7448', w: .05, glowN: 1, mvEdge: 1 }); }
     for (const sd of [-1, 1]) { const e = mvEdge(st.open, sd) + sd * .08; /* 手すりのなわ（2 本）と、3m ごとの柱。板の無い所では、残った板のへりに沿う */
       seg.lines.push({ a: [st.a, e, .98], b: [st.b, e, .98], c: '#7A5A3A', w: .07 }, { a: [st.a, e, .52], b: [st.b, e, .52], c: '#8A6A48', w: .05 });
       for (let a = Math.ceil(st.a / 3) * 3; a < st.b - .01; a += 3) seg.lines.push({ a: [a, e, 0], b: [a, e, 1.05], c: '#5A4230', w: .1 }); } }
@@ -52,12 +54,15 @@ function mvBuild(seg) { const th = seg.th, o = th.void, L = seg.len, rail = !!o.
     seg.lines.push({ a: [L + HW, -HW, .98], b: [L + HW, HW, .98], c: '#7A5A3A', w: .07 }, { a: [L + HW, -HW, .52], b: [L + HW, HW, .52], c: '#8A6A48', w: .05 }); seg.fE = L + HW; }
   /* 橋・線路をささえる物：岩の柱（谷の底まで）と横木。線路は木を組んだやぐら */
   const yB = (seg.base != null ? seg.base : (seg.e0 || 0)) - (seg.e0 || 0); /* コースの地面の高さ（この道の始まりから見て）。谷の底・崖は、線路が上がり下がりしても同じ高さに */
-  { const bx = []; for (let a = rail ? 3 : 6; a < L - 1; a += rail ? 6.5 : 12) { if (rail) { for (const q of [-.9, .9]) bx.push(B(q, a, .22, .22, MV_CD - 14, -.2, '#6B4E36')); bx.push(B(0, a, 2.2, .2, -3.2, -3, '#6B4E36'), B(0, a, 2.2, .2, -9, -8.8, '#6B4E36'), B(0, a, 2.2, .24, -.45, -.2, '#5A4230')); }
+  { const bx = [], bxR = [], bxU = []; for (let a = rail ? 3 : 6; a < L - 1; a += rail ? 6.5 : 12) { if (rail) { const bx = bxR; for (const q of [-.9, .9]) bx.push(B(q, a, .22, .22, MV_CD - 14, -.2, '#6B4E36')); bx.push(B(0, a, 2.2, .2, -3.2, -3, '#6B4E36'), B(0, a, 2.2, .2, -9, -8.8, '#6B4E36'), B(0, a, 2.2, .24, -.45, -.2, '#5A4230')); }
       else { /* つり橋の塔：板の外がわに立つ丸太の塔（谷の底から）と、塔と塔の間にたるんだ太いなわ。板の下には何も置かない（床より下の箱は、床の上に重なって見えるため） */
-        for (const sd of [-1, 1]) { const lt = sd * (ROAD + .62); bx.push(B(lt, a, .46, .46, MV_CD, 3.5, '#6B4E36'), B(lt, a - .08, .62, .62, 3.5, 3.72, '#8A6444'));
+        for (const sd of [-1, 1]) { const lt = sd * (ROAD + .62); bxU.push(B(lt, a, .46, .46, MV_CD, -.5, '#6B4E36')); bx.push(B(lt, a, .46, .46, -.5, 3.5, '#6B4E36'), B(lt, a - .08, .62, .62, 3.5, 3.72, '#8A6444'));
           const a2 = Math.min(a + 12, L + MV_EXT), n2 = 6; for (let j = 0; j < n2; j++) { const t0 = j / n2, t1 = (j + 1) / n2, y = t => 3.45 - 1.9 * Math.sin(Math.PI * t); seg.lines.push({ a: [lerp(a, a2, t0), lt, y(t0)], b: [lerp(a, a2, t1), lt, y(t1)], c: '#5A4230', w: .09 });
             if (j > 0) { const sx = lerp(a, a2, t0), ed = mvEdge(mvOpenAt(seg, sx), sd); if (Math.abs(ed) > ROAD - .05) seg.lines.push({ a: [sx, lt, y(t0)], b: [sx, lt - sd * .5, 1.0], c: '#8A6A48', w: .04 }); } } } } }
-    if (bx.length) seg.props.push(mkProp(seg, bx, { big: 1 })); }
+    if (bx.length) seg.props.push(mkProp(seg, bx, { big: 1 }));
+    /* 板・まくら木より下の所（塔の足・線路のやぐら）は、別の物として持つ。真上を走っている間は、板にかくれて見えないはずなので描かない（6g_voidfx.js の mvxHide。
+       前は、床より下の物も床の上に重ねて描かれ、塔の足が板の上を画面の下までつきぬけて見えた。2026-11-28） */
+    for (const u of [bxR, bxU]) if (u.length) { const pu = mkProp(seg, u, { big: 1 }); pu.mvBelow = 1; seg.props.push(pu); } }
   /* 谷：底（岩と、まん中の川）・両がわの崖（地層の線）・崖の上の木 */
   for (let a = -exF; a < L + exF - .01; a += 13) { const b = Math.min(a + 13, L + exF);
     const D = MV_CD + yB, T = 16 + yB;

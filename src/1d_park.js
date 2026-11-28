@@ -21,6 +21,16 @@ Object.assign(THEMES, {
   mplaza: { ja: 'チモシー王国・お城の広場', lbl: 'お城の広場', lblEn: 'Castle plaza', en: 'Hay Kingdom, castle plaza', kind: 'street', len: [100, 110], road: ['#E9D9C8', '#E2D0BE'], rpat: 'plaza', side: ['#8FBF6A', '#86B562'], spat: 'lawn', curb: '#F3E9DC',
     fac: { style: 'park' }, flat: 1, props: [['lampPk', 2], ['benchS', 1], ['fbed', 2], ['mwagon', 1], ['mballoon', 1], ['topiary', 1]], obs: ['stroller', 'bench', 'cone', 'suitcase'], tree: 'green', course: 'maihama', face: 180, noRail: 1, park: 1,
     arrive: { ja: 'まん中の広場。にんじんの塔のお城が見える', en: 'The central plaza, with the carrot-spired castle ahead' } },
+  /* 乗り物の丘・畑の村・湖：広場と谷の間、トロッコとお城の間をつなぐエリア */
+  mhill: { ja: 'チモシー王国・クローバーの丘', lbl: 'クローバーの丘', lblEn: 'Clover hill', en: 'Hay Kingdom, clover hill rides', kind: 'street', len: [98, 108], road: ['#E9D9C8', '#E2D0BE'], rpat: 'plaza', side: ['#8FBF6A', '#86B562'], spat: 'lawn', curb: '#F3E9DC',
+    fac: { style: 'park' }, hill: .7, props: [['lampPk', 2], ['benchS', 1], ['mwait', 1], ['mstanch', 1], ['mcartI', 1], ['mballoon', 1], ['mtrash', .6], ['fbed', 1]], obs: ['stroller', 'bench', 'cone', 'suitcase'], tree: 'green', course: 'maihama', face: 180, noRail: 1, park: 1,
+    arrive: { ja: '乗り物の丘。野菜のカップと空中ブランコ', en: 'The ride hill: veggie cups and a swing ride' } },
+  mfarm: { ja: 'チモシー王国・にんじん畑の村', lbl: 'にんじん畑の村', lblEn: 'Carrot farm', en: 'Hay Kingdom, carrot farm village', kind: 'street', len: [98, 108], road: ['#D9C29A', '#D1B990'], rpat: 'gravel', side: ['#9AC46E', '#90BA66'], spat: 'lawn', curb: '#B9A27A',
+    fac: { style: 'park' }, flat: 1, props: [['mhayb', 2], ['mscare', 1], ['mfence', 2], ['mplanter', 1], ['lampW', 1], ['benchS', 1]], obs: ['bench', 'cone', 'stroller', 'leafpile'], tree: 'green', course: 'maihama', face: 180, noRail: 1, park: 1,
+    arrive: { ja: 'にんじんと牧草の畑。赤い納屋と風車', en: 'Carrot and hay fields, a red barn and a windmill' } },
+  mlake: { ja: 'チモシー王国・白鳥の湖のほとり', lbl: '白鳥の湖', lblEn: 'Swan lake', en: 'Hay Kingdom, swan lake shore', kind: 'street', len: [98, 108], road: ['#E3D8C6', '#DBCFBC'], rpat: 'plaza', side: ['#8FBF6A', '#86B562'], spat: 'lawn', curb: '#F3E9DC',
+    fac: { style: 'park' }, flat: 1, props: [['lampPk', 2], ['benchS', 2], ['mplanter', 1], ['mtrash', .5], ['fbed', 1]], obs: ['stroller', 'bench', 'cone'], tree: 'green', course: 'maihama', face: 180, noRail: 1, park: 1,
+    arrive: { ja: '湖のほとり。うさぎの耳の白鳥のボート', en: 'By the lake, with bunny-eared swan boats' } },
   /* 冒険の谷のつり橋：板の無いレーンは、落ちると谷の底へ。短い道を少しずつ向きを変えてつなぎ、曲線で曲がる（void：ふつうの床・かべを作らず、src/6f_void.js が板の橋を作る） */
   mvalley: { ja: 'チモシー王国・冒険の谷のつり橋', lbl: '冒険の谷', lblEn: 'Adventure valley', en: 'Hay Kingdom, valley rope bridge', kind: 'deck', len: [58, 64], road: ['#B9895A', '#AF8052'], rpat: 'boards', side: ['#B9895A', '#AF8052'], spat: 'boards',
     props: [], obs: [], noObs: 1, course: 'maihama', face: 180, void: { pits: 1 }, park: 1, noRail: 1,
@@ -38,8 +48,8 @@ Object.assign(THEMES, {
 /* 100 万点で始まる。曲線：mcurve を 6 本、15 度ずつ（bend 1/6 ＝ 90 度の 6 分の 1）つないで、90 度をなめらかに回る。straightOut＝角の無いつなぎ目 */
 { const B = (n, sg) => Array.from({ length: n }, () => ({ t: 'mcurve', d: .4, straightOut: 1, bend: sg / 6, cont: 1 })), CART = (n, sg) => Array.from({ length: n }, (_, i) => ({ t: 'mcart', d: .5, straightOut: 1, bend: sg ? sg / 6 : 0, cont: i > 0 ? 1 : 0 }));
   COURSES.maihama = { at: 1000000, ja: '舞浜の夢の遊園地へ！', en: 'To the dream park in Maihama!', steps: [
-    { t: 'keiyo', d: 8, line: ['八丁堀', '新木場', '葛西臨海公園', '舞浜'] }, { t: 'mstation', d: 6, turn: 1 }, { t: 'mgate', d: 6, turn: -1 }, { t: 'marcade', d: 7, straightOut: 1 }, { t: 'mplaza', d: 8, straightOut: 1 },
+    { t: 'keiyo', d: 8, line: ['八丁堀', '新木場', '葛西臨海公園', '舞浜'] }, { t: 'mstation', d: 6, turn: 1 }, { t: 'mgate', d: 6, turn: -1 }, { t: 'marcade', d: 7, straightOut: 1 }, { t: 'mplaza', d: 8, straightOut: 1 }, { t: 'mhill', d: 6 }, { t: 'mfarm', d: 6, straightOut: 1 },
     { t: 'mvalley', d: 5, straightOut: 1 }, ...B(6, 1), { t: 'mvalley', d: 5, straightOut: 1, cont: 1 }, ...B(6, -1), { t: 'mvalley', d: 5, straightOut: 1, cont: 1 },
     ...[...CART(3, 0), ...CART(6, -1), ...CART(3, 0), ...CART(6, 1), ...CART(2, 0)].map((x, i) => Object.assign(x, { cont: i > 0 ? 1 : 0 })), /* トロッコは 20 本でひと続き（高さの表 MV_CART_H の 20 個と同じ数。最後は地面の高さ） */
-    { t: 'mcastle', d: 8, straightOut: 1 }, { t: 'mplaza', d: 6 }, { t: 'mstation', d: 5 }, { t: 'keiyo', d: 8, line: ['葛西臨海公園', '新木場', '八丁堀', '東京'] }] }; }
+    { t: 'mlake', d: 6 }, { t: 'mcastle', d: 8, straightOut: 1 }, { t: 'mplaza', d: 6 }, { t: 'mstation', d: 5 }, { t: 'keiyo', d: 8, line: ['葛西臨海公園', '新木場', '八丁堀', '東京'] }] }; }
 Object.assign(STATION_EN, { '八丁堀': 'Hatchobori', '新木場': 'Shin-Kiba', '葛西臨海公園': 'Kasai-Rinkai Park', '舞浜': 'Maihama', '東京': 'Tokyo' });

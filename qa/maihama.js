@@ -39,17 +39,26 @@ const { chromium } = require('playwright'); const path = require('path');
   /* (3)(4) */
   const fallSetup = `G.jumpTo('mvalley', 720, 1); G.invT = 0; G.pow.fly = 0; G.pow.dash = 0; G.fever = 0; window.__frameErr = 0; const sg = G.segs[0], pt = sg.pits[0], badL = pt.open.indexOf(0);`;
   await ev(`(() => { ${fallSetup} G.s = pt.a - 6; G.lane = badL; G.lat = LANES[badL]; G.prevLane = badL; })()`);
-  await p.waitForTimeout(1500);
-  const r3 = await ev(`({ mode: G.mode, cause: G.cause, y: G.y, pitch: CAM.pitch, fe: window.__frameErr || 0, msg: window.__frameErrMsg || '' })`);
-  if (r3.mode !== 'dying' || r3.cause !== 'pit') bad.push('板の無いレーンに立っても落ちない: ' + JSON.stringify(r3));
-  if (!(r3.y < -3)) bad.push('落ちていかない（高さ ' + r3.y + '）'); if (!(r3.pitch > .9)) bad.push('落ちる時、カメラが穴を見下ろしていない（' + r3.pitch + '）'); if (r3.fe) bad.push('落ちる間の絵のエラー: ' + r3.msg);
-  await p.waitForTimeout(2200);
+  let r3 = null; for (let i = 0; i < 40; i++) { await p.waitForTimeout(200); r3 = await ev(`({ mode: G.mode, cause: G.cause, y: G.y, pitch: CAM.pitch, fe: window.__frameErr || 0, msg: window.__frameErrMsg || '' })`); if (r3.mode !== 'play' && (r3.y < -6 || r3.mode === 'dead')) break; } /* 遅い機械でも待つ（時間ではなく、落ち始めて 6m 下がるまで） */
+  if ((r3.mode !== 'dying' && r3.mode !== 'dead') || r3.cause !== 'pit') bad.push('板の無いレーンに立っても落ちない: ' + JSON.stringify(r3));
+  if (!(r3.y < -3)) bad.push('落ちていかない（高さ ' + r3.y + '）'); if (r3.mode === 'dying' && !(r3.pitch > .9)) bad.push('落ちる時、カメラが穴を見下ろしていない（' + r3.pitch + '）'); if (r3.fe) bad.push('落ちる間の絵のエラー: ' + r3.msg);
+  for (let i = 0; i < 50; i++) { await p.waitForTimeout(200); if ((await ev('G.mode')) === 'dead') break; }
   const r3b = await ev(`(() => { const o = { mode: G.mode, y: G.y }; G.hay = 99999; SV.clovers = 9; try { doRevive('clover'); G.mode = 'play'; } catch (e) { o.err = e.message; } const sg = curSeg(), op = mvOpenAt(sg, G.s); o.after = G.mode; o.y2 = G.y; o.onPlank = !op || !!op[G.lane]; o.lat = G.lat; o.lane = G.lane; o.fe = window.__frameErr || 0; return o; })()`);
   if (r3b.mode !== 'dead') bad.push('落ちたあと、終わりの画面にならない: ' + r3b.mode); if (r3b.y > -30) bad.push('谷の底まで落ちていない: ' + r3b.y);
   if (r3b.err || !r3b.onPlank || r3b.y2 !== 0) bad.push('続けた時、板のあるレーンに戻らない: ' + JSON.stringify(r3b));
   const r4 = await ev(`(() => { ${fallSetup} const o = {}; G.s = pt.a - 3; G.lane = badL; G.lat = LANES[badL]; G.prevLane = badL; G.y = 1.4; G.vy = 3; G.air = true; for (let i = 0; i < 8; i++) update(1 / 60); o.air = G.mode;
     G.jumpTo('mvalley', 720, 1); const s2 = G.segs[0], p2 = s2.pits[0], b2 = p2.open.indexOf(0); G.invT = 99; G.s = p2.a - 9; G.lane = b2; G.lat = LANES[b2]; G.prevLane = b2; let fell = 0, off = 0; for (let i = 0; i < 900 && curSeg() === s2; i++) { G.invT = 99; update(1 / 60); if (G.mode !== 'play') { fell = 1; break; } const op = mvOpenAt(s2, G.s); if (op && !op[mvLaneOf(G.lat)] && G.y < .05) off++; } o.fell = fell; o.off = off; o.fe = window.__frameErr || 0; return o; })()`);
   if (r4.air !== 'play') bad.push('跳んでいる間に落ちた'); if (r4.fell) bad.push('無敵の間に落ちた'); if (r4.off > 2) bad.push('無敵の間、板の無い所を走っている（' + r4.off + ' コマ）');
+  /* (4a) 夜でも見分けられる：板の無い所ごとに、残った板のふちの「夜に光る線」がある（2026-11-28：夜明け前は板と谷の明るさがほぼ同じだった） */
+  const r4a = await ev(`(() => { G.jumpTo('mvalley', 300, 1); const sg = G.segs[0]; let miss = 0; for (const q of sg.pits) { const n = sg.lines.filter(l => l.mvEdge && l.glowN && l.a[0] >= q.a - .01 && l.b[0] <= q.b + .01).length; if (n < 2) miss++; } return { pits: sg.pits.length, miss }; })()`);
+  if (!r4a.pits || r4a.miss) bad.push('夜に光るふちの線が無い、板の無い所がある（' + r4a.miss + '/' + r4a.pits + '）');
+  /* (4a2) 橋の真上を走っている間、板より下の物（塔の足・谷の底の物）は描かれない（2026-11-28：塔の足が、板の上を画面の下までつきぬけて見えた） */
+  const r4c = await ev(`(() => { G.jumpTo('mvalley', 720, 1); for (let i = 0; i < 30; i++) { G.invT = 99; update(1 / 60); } const sg = curSeg(); return { below: sg.props.filter(q => q.mvBelow).length, shown: sg.props.filter(q => q.mvBelow && !q.nodraw).length, deep: sg.spr.filter(q => q.y + (q.h || 0) < -1 && !q.under).length, tall: sg.props.filter(q => !q.mvBelow && (q.bx || []).some(b => b.y0 < -1.5)).length }; })()`);
+  if (!r4c.below || r4c.shown || r4c.deep || r4c.tall) bad.push('板より下の物が、板の上に重なって描かれる（' + JSON.stringify(r4c) + '）');
+  /* (4b) 助けなしで、板の残っているレーンを走って 1 つこえると、ごほうびが出る（[手 1]）。「やさしい」の時は、いつも 2 レーン残る */
+  let r4b = null; for (let k = 0; k < 4; k++) { r4b = await ev(`(() => { G.jumpTo('mvalley', 720, 1); const s2 = G.segs[0], p2 = s2.pits[0], ok = p2.open.indexOf(1), b0 = G.bumps || 0; G.stats.pitPass = 0; const sc0 = G.score; G.s = Math.max(1, p2.a - 4); G.lane = ok; G.prevLane = ok; G.lat = LANES[ok]; for (const o of s2.obs || []) o.dead = 1; for (let i = 0; i < 600 && curSeg() === s2 && G.s < p2.b + 2; i++) { G.invT = 0; G.fever = 0; update(1 / 60); if (G.mode !== 'play') break; } const r = { mode: G.mode, pass: G.stats.pitPass || 0, up: G.score - sc0, bump: (G.bumps || 0) - b0 };
+    G.easy = true; let two = 0, n = 0; const base = G.segs[0]; for (let i = 0; i < 60; i++) { const sg = newSeg(base, { t: 'mvalley', d: 5, straightOut: 1, cont: 1, co: 'maihama' }, { straight: true }); for (const q of sg.pits || []) { n++; if (q.open[0] + q.open[1] + q.open[2] >= 2) two++; } } G.easy = false; r.easyN = n; r.easyTwo = two; return r; })()`); if (r4b.mode === 'play' && !r4b.bump) break; }
+  if (r4b.mode === 'play' && !r4b.bump && !(r4b.pass >= 1)) bad.push('板の無い所をこえても、ごほうびが出ない（' + JSON.stringify(r4b) + '）'); if (!r4b.easyN || r4b.easyTwo !== r4b.easyN) bad.push('「やさしい」なのに、1 レーンしか残らない所がある（' + r4b.easyTwo + '/' + r4b.easyN + '）');
   /* (5) */
   const r5 = await ev(`(() => { const st = COURSES.maihama.steps.map((x, i) => Object.assign({ co: 'maihama', co0: i === 0 }, x)), i0 = st.findIndex(x => x.t === 'mplaza'); G.jumpTo('mplaza', 720, 1); G.segs[0].step = st[i0]; G.segs[0].turn = 0; G.segs[0].straight = true; G.courseQ = st.slice(i0 + 1); G.segs.length = 1; G.plan = dayPlan(1).filter(x => !x.fork); ensureSegs(); window.__frameErr = 0;
     const o = { seen: {}, jump: 0, yawMax: 0, stuck: 0, cartLane: 0, cartRow: 0, kMin: 9, kMax: 0, e: [], frames: 0, died: '', bends: 0 }; let px = null, pz = null, pyaw = null, lastS = -1, same = 0, cartT = 0;
@@ -59,9 +68,10 @@ const { chromium } = require('playwright'); const path = require('path');
       if (sg.th.ride) { cartT++; if (G.lane !== 1 && cartT > 20) o.cartLane++; if (cartT > 90 && (Math.abs(G.follow.lat - G.lat) > .4 || G.follow.back < 1.2)) o.cartRow++; const k = mvRideK(sg); o.kMin = Math.min(o.kMin, k); o.kMax = Math.max(o.kMax, k); if (!G.player.cart) o.cartLane += 100; }
       if (Math.abs(G.s - lastS) < 1e-4) { if (++same > 240) { o.stuck = 1; break; } } else same = 0; lastS = G.s;
       if (sg.tid === 'mcastle' && G.s > 30) { o.e = [segE(sg, G.s) - (sg.base != null ? sg.base : 0), sg.dir]; break; } }
-    o.fe = window.__frameErr || 0; o.msg = (window.__frameErrMsg || '') + ' @ ' + (window.__frameErrAt || ''); return o; })()`);
+    o.fe = window.__frameErr || 0; o.msg = (window.__frameErrMsg || '') + ' @ ' + (window.__frameErrAt || ''); o.st = [G.stats.mvCart | 0, G.stats.mvPhoto | 0, G.stats.mvCastle | 0]; return o; })()`);
+  if (r5.st.join('') !== '111') bad.push('トロッコ・記念写真・お城の到着のどれかが起きていない（' + r5.st.join('') + '）');
   if (r5.died) bad.push('コースの途中で終わった: ' + r5.died); if (r5.stuck) bad.push('コースの途中で止まった'); if (r5.fe) bad.push('コースの絵・動きのエラー: ' + r5.msg);
-  for (const t of ['mvalley', 'mcurve', 'mcart', 'mcastle']) if (!r5.seen[t]) bad.push('通らなかった場所: ' + t + '（' + Object.keys(r5.seen).join(',') + '）');
+  for (const t of ['mhill', 'mfarm', 'mvalley', 'mcurve', 'mcart', 'mlake', 'mcastle']) if (!r5.seen[t]) bad.push('通らなかった場所: ' + t + '（' + Object.keys(r5.seen).join(',') + '）');
   if (r5.jump) bad.push('1 コマで横へ飛んだ（' + r5.jump + 'm）'); if (r5.yawMax > .05) bad.push('曲線でカメラがかくっと回る（1 コマ ' + r5.yawMax + '）');
   if (r5.cartLane) bad.push('トロッコの間に、操作がきいた・乗っていない（' + r5.cartLane + '）'); if (r5.cartRow > 30) bad.push('トロッコが 1 列になっていない（' + r5.cartRow + ' コマ）');
   if (!(r5.kMin < .9 && r5.kMax > 1.2)) bad.push('トロッコの速さが、のぼりでおそく・くだりで速くなっていない（' + r5.kMin + '〜' + r5.kMax + '）');
