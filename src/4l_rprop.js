@@ -1,6 +1,10 @@
 /* ================= 2026-11-28 景色 1000：町ごとの本物の道具（街灯・信号の交差点名・交番・神社の道具など） =================
    前は、どの町の街灯も同じ黒い柱の丸い灯り（lampC）だった。調べた本物の形で描き分ける：銀座のガス灯の形の街灯、商店街のスズラン灯、公園の緑の柱の灯り、
    日本橋の青銅の灯り、オフィス街の細い LED 灯、和風の木の灯り など。docs/SCENERY-1000-2026-11-28.md */
+/* 2026-11-28：景色 1000 の絵は、スマホでは 5 割ほどの大きさの画用紙に描く（絵の合計のメモリを上限の中に。qa/memlong） */
+const RXS = FAC_PHONE ? .52 : .85;
+function rxArtC(key, w, h, fn) { const W2 = Math.max(8, Math.round(w * RXS)), H2 = Math.max(8, Math.round(h * RXS)); return artCanvas(key, W2, H2, (g) => { g.scale(W2 / w, H2 / h); fn(g, w, h); }); }
+
 function rxShadowE(g, x, y, rx, ry, a) { g.fillStyle = `rgba(0,0,0,${a == null ? .25 : a})`; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 7); g.fill(); }
 function rxCylG(g, x0, x1, c0, c1, c2) { const gr = g.createLinearGradient(x0, 0, x1, 0); gr.addColorStop(0, c0); gr.addColorStop(.38, c1); gr.addColorStop(1, c2); return gr; }
 function rxGlowC(g, x, y, R, col, a) { const gl = g.createRadialGradient(x, y, 1, x, y, R); gl.addColorStop(0, `rgba(${col},${a == null ? .9 : a})`); gl.addColorStop(1, `rgba(${col},0)`); g.fillStyle = gl; g.fillRect(x - R, y - R, R * 2, R * 2); }
@@ -70,7 +74,7 @@ const RX_LAMP = {
     g.fillStyle = n ? '#FFF2CC' : '#EAF0F3'; rrect(g, x - 14, 40, 28, 40, 4); g.fill(); g.strokeStyle = '#B9C0C6'; g.lineWidth = 2; g.stroke(); g.fillStyle = '#3E5E7A'; g.beginPath(); g.moveTo(x - 20, 42); g.lineTo(x, 26); g.lineTo(x + 20, 42); g.closePath(); g.fill();
     if (n) rxGlowC(g, x, 60, 42, '255,230,170', .55); },
 };
-function rxLampArt(kind) { return (n, v) => artCanvas('rxl|' + kind + '|' + v + '|' + (n ? 1 : 0), 120, 560, (g, w, h) => RX_LAMP[kind](g, w, h, n, rxV(v))); }
+function rxLampArt(kind) { return (n, v) => rxArtC('rxl|' + kind + '|' + v + '|' + (n ? 1 : 0), 120, 560, (g, w, h) => RX_LAMP[kind](g, w, h, n, rxV(v))); }
 for (const k in RX_LAMP) PROP_ART['rxl_' + k] = rxLampArt(k);
 /* 街灯の道具：PROPS の 'lampG' など。th.flag が [町の名前, 色] なら、たての旗を付ける */
 function rxPaintKey(type, v, night) { const key = 'pa|' + type + '|' + v; if (!SPR[key] && !SPR_PEND[key]) { SPR_PEND[key] = () => PROP_ART[type](false, v); if (night) SPR_PEND[key + 'N'] = () => PROP_ART[type](true, v); } return key; }
@@ -88,8 +92,8 @@ function rxPaintSignal(g, W, H, n, v) { const o = rxV(v), sd = o.sd, x = sd > 0 
     g.fillStyle = '#FFFFFF'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = rxFont(18); g.fillText(o.t, px + pw / 2, 78, pw - 14); g.font = rxFont(10, 700); g.fillText(o.c || '', px + pw / 2, 96, pw - 14); } /* 交差点の名前の青い板（白いふち・上が日本語・下がローマ字） */
   g.fillStyle = '#3C4652'; rrect(g, x + sd * 8 - (sd < 0 ? 26 : 0), 150, 26, 52, 4); g.fill(); g.fillStyle = '#5CE0A8'; g.beginPath(); g.arc(x + sd * 8 + (sd < 0 ? -13 : 13), 186, 6, 0, 7); g.fill(); g.fillStyle = '#4A2420'; g.beginPath(); g.arc(x + sd * 8 + (sd < 0 ? -13 : 13), 164, 6, 0, 7); g.fill(); /* 歩行者の信号 */
   g.fillStyle = '#F2C230'; g.fillRect(x - 6, H - 130, 12, 20); g.fillStyle = '#2B2B2B'; for (let k = 0; k < 3; k++) g.fillRect(x - 6, H - 128 + k * 7, 12, 3); }
-PROP_ART.rxSig = (n, v) => artCanvas('rxsig|' + v + '|' + (n ? 1 : 0), 360, 560, (g, w, h) => rxPaintSignal(g, w, h, n, v));
-PROPS.sigN = (sd, s, th) => { const pl = th && th.plate ? pick(th.plate) : null, v = (sd < 0 ? 'R' : 'L') + '|' + (pl ? pl[0] + '|' + pl[1] : ''); return { w: 5, spr: [{ lat: sd * 2.3, s, y: 0, w: 3.6, h: 5.6, img: rxPaintKey('rxSig', v, 1), pn: 1, gnd: .3 }] }; };
+PROP_ART.rxSig = (n, v) => rxArtC('rxsig|' + v + '|' + (n ? 1 : 0), 360, 560, (g, w, h) => rxPaintSignal(g, w, h, n, v));
+PROPS.sigN = (sd, s, th) => { const pl = th && th.plate ? pick(th.plate) : null, v = (sd < 0 ? 'R' : 'L') + '|' + (pl ? pl[0] + '|' + pl[1] : ''); return { w: 5, spr: [{ lat: sd * 2.3, s, y: 0, w: 3.6, h: 5.6, img: rxPaintKey('rxSig', v), gnd: .3 }] }; }; /* 夜の絵は作らない（灯りはもともと光る色。絵の数を半分に） */
 
 /* ---------- [F2] 交番：小さな建物・赤い丸い灯り・「交番 KOBAN」の札・ガラスの戸・とめた自転車（東京のどの繁華街の駅前にもある） ---------- */
 function rxPaintKoban(g, W, H, n, v) { const o = rxV(v), base = o.c && o.c[0] === '#' ? o.c : '#B9B2A5'; rxShadowE(g, W / 2, H - 6, W * .48, 10, .3);
@@ -101,7 +105,7 @@ function rxPaintKoban(g, W, H, n, v) { const o = rxV(v), base = o.c && o.c[0] ==
   g.fillStyle = n ? '#FF3A2E' : '#C8362A'; g.beginPath(); g.arc(W / 2, 40, 11, 0, 7); g.fill(); g.fillStyle = '#5A5F66'; g.fillRect(W / 2 - 3, 46, 6, 8); if (n) rxGlowC(g, W / 2, 40, 40, '255,70,50', .7); else { g.fillStyle = 'rgba(255,255,255,.5)'; g.beginPath(); g.arc(W / 2 - 4, 36, 3, 0, 7); g.fill(); } /* 赤い丸い灯り */
   g.fillStyle = '#E8E8E8'; g.fillRect(W - 70, H - 46, 54, 4); g.strokeStyle = '#2B2B2B'; g.lineWidth = 3; for (const cx of [W - 62, W - 24]) { g.beginPath(); g.arc(cx, H - 18, 13, 0, 7); g.stroke(); } g.beginPath(); g.moveTo(W - 62, H - 18); g.lineTo(W - 44, H - 40); g.lineTo(W - 24, H - 18); g.stroke(); /* 白い自転車 */
   g.fillStyle = n ? '#FFF6DA' : '#C9D6DE'; g.fillRect(28, 118, W * .18, 40); g.strokeStyle = '#3B4048'; g.lineWidth = 3; g.strokeRect(28, 118, W * .18, 40); }
-PROP_ART.rxKoban = (n, v) => artCanvas('rxkoban|' + v + '|' + (n ? 1 : 0), 300, 280, (g, w, h) => rxPaintKoban(g, w, h, n, v));
+PROP_ART.rxKoban = (n, v) => rxArtC('rxkoban|' + v + '|' + (n ? 1 : 0), 300, 280, (g, w, h) => rxPaintKoban(g, w, h, n, v));
 PROPS.koban = (sd, s, th) => ({ w: 4, spr: [{ lat: sd * 4.2, s: s + 1.4, y: 0, w: 3.2, h: 3.0, img: rxPaintKey('rxKoban', (sd < 0 ? 'R' : 'L') + '||' + ((th && th.kobanC) || ''), 1), pn: 1, gnd: 1.2 }] });
 
 /* ---------- [F3] 緑の公衆電話のボックス（ガラスの箱・緑のわく・中の電話。夜は中が光る） ---------- */
@@ -109,7 +113,7 @@ function rxPaintPhone(g, W, H, n) { rxShadowE(g, W / 2, H - 4, W * .45, 6);
   g.fillStyle = n ? 'rgba(255,248,220,.85)' : 'rgba(190,215,225,.55)'; g.fillRect(12, 28, W - 24, H - 34); g.strokeStyle = '#2E8A55'; g.lineWidth = 7; g.strokeRect(12, 28, W - 24, H - 34); g.beginPath(); g.moveTo(W / 2, 28); g.lineTo(W / 2, H - 6); g.stroke();
   g.fillStyle = '#2E8A55'; rrect(g, 6, 8, W - 12, 24, 4); g.fill(); g.fillStyle = '#FFFFFF'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = rxFont(13); g.fillText('公衆電話', W / 2, 20, W - 20);
   g.fillStyle = '#7D868E'; rrect(g, W * .58, H * .38, W * .26, H * .2, 3); g.fill(); g.fillStyle = '#C8CDD2'; g.fillRect(W * .62, H * .42, W * .1, 4); if (!n) { g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(18, 34, 5, H - 50); } }
-PROP_ART.rxPhone = (n) => artCanvas('rxphone|' + (n ? 1 : 0), 110, 300, (g, w, h) => rxPaintPhone(g, w, h, n));
+PROP_ART.rxPhone = (n) => rxArtC('rxphone|' + (n ? 1 : 0), 110, 300, (g, w, h) => rxPaintPhone(g, w, h, n));
 PROPS.phoneBox = (sd, s) => ({ w: 1.6, spr: [{ lat: sd * 3.9, s: s + .4, y: 0, w: .9, h: 2.4, img: rxPaintKey('rxPhone', '', 1), pn: 1, gnd: .5 }] });
 
 /* ---------- [F4] キッチンカー（丸の内仲通りの昼休み・公園の広場）：白い車・横の窓が開き、ひさしと黒板のメニュー ---------- */
@@ -120,7 +124,7 @@ function rxPaintKCar(g, W, H, n, v) { const c = ['#F2C230', '#C8463C', '#3A7DB8'
   g.fillStyle = c; g.beginPath(); g.moveTo(30, 62); g.lineTo(36 + W * .48 + 6, 62); g.lineTo(36 + W * .48 + 16, 40); g.lineTo(20, 40); g.closePath(); g.fill(); g.fillStyle = 'rgba(255,255,255,.35)'; for (let k = 0; k < 6; k++) g.fillRect(24 + k * 26, 42, 12, 18); /* しまのひさし */
   for (const cx of [60, W - 60]) { g.fillStyle = '#1E1E22'; g.beginPath(); g.arc(cx, H - 26, 18, 0, 7); g.fill(); g.fillStyle = '#9AA0A6'; g.beginPath(); g.arc(cx, H - 26, 7, 0, 7); g.fill(); }
   g.fillStyle = '#2E2A27'; g.fillRect(W * .5 - 70, H - 80, 44, 56); g.fillStyle = '#FBF6EE'; g.font = rxFont(9, 700); g.textAlign = 'center'; for (let k = 0; k < 3; k++) g.fillRect(W * .5 - 64, H - 70 + k * 12, 32, 2); }
-PROP_ART.rxKCar = (n, v) => artCanvas('rxkcar|' + v + '|' + (n ? 1 : 0), 300, 200, (g, w, h) => rxPaintKCar(g, w, h, n, v));
+PROP_ART.rxKCar = (n, v) => rxArtC('rxkcar|' + v + '|' + (n ? 1 : 0), 300, 200, (g, w, h) => rxPaintKCar(g, w, h, n, v));
 PROPS.kcar = (sd, s) => ({ w: 6, spr: [{ lat: sd * 4.3, s: s + 2, y: 0, w: 4.6, h: 3.0, img: rxPaintKey('rxKCar', String((Math.random() * 5) | 0), 1), pn: 1, gnd: 1.6 }] });
 
 /* ---------- [F5] 通りのテラス席：丸いテーブルと 2 つのいす、生成り色のパラソル（丸の内仲通りのアーバンテラス・九品仏川緑道） ---------- */
@@ -128,7 +132,7 @@ function rxPaintTSet(g, W, H) { rxShadowE(g, W / 2, H - 6, W * .44, 9);
   g.fillStyle = '#5A5F66'; g.fillRect(W / 2 - 3, 40, 6, H - 46); const pg = g.createLinearGradient(0, 8, 0, 60); pg.addColorStop(0, '#FBF6EA'); pg.addColorStop(1, '#D9CFBC'); g.fillStyle = pg; g.beginPath(); g.moveTo(10, 56); g.quadraticCurveTo(W / 2, -6, W - 10, 56); g.closePath(); g.fill(); g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 1; for (let k = 1; k < 6; k++) { g.beginPath(); g.moveTo(W / 2, 12); g.lineTo(10 + (W - 20) * k / 6, 56); g.stroke(); }
   g.fillStyle = '#E9E4DA'; g.beginPath(); g.ellipse(W / 2, H - 60, 44, 9, 0, 0, 7); g.fill(); g.fillStyle = '#3B3F45'; g.fillRect(W / 2 - 3, H - 58, 6, 50);
   for (const k of [-1, 1]) { const cx = W / 2 + k * 70; g.fillStyle = '#3B3F45'; g.fillRect(cx - 18, H - 50, 36, 5); g.fillRect(cx - 18, H - 50, 3, 44); g.fillRect(cx + 15, H - 50, 3, 44); g.fillRect(cx + k * 15 - 1.5, H - 90, 3, 40); g.fillRect(cx + k * 15 - (k > 0 ? 18 : 0), H - 90, 18, 4); } }
-PROP_ART.rxTSet = () => artCanvas('rxtset', 220, 220, rxPaintTSet);
+PROP_ART.rxTSet = () => rxArtC('rxtset', 220, 220, rxPaintTSet);
 PROPS.tset = (sd, s) => ({ w: 3, spr: [{ lat: sd * 4.0, s: s + 1, y: 0, w: 2.4, h: 2.4, img: rxPaintKey('rxTSet', ''), gnd: 1 }] });
 
 /* ---------- [F6] 野外の彫刻（丸の内仲通り・六本木・西新宿・日比谷など、通りに置かれた芸術作品）：石の台の上の、なめらかなブロンズ・白い石の形 ---------- */
@@ -137,13 +141,13 @@ function rxPaintSculpt(g, W, H, n, v) { const k = (+v || 0) % 3; rxShadowE(g, W 
   if (k === 0) { const bg = g.createLinearGradient(W * .3, 0, W * .7, 0); bg.addColorStop(0, '#3E2E22'); bg.addColorStop(.4, '#A8805A'); bg.addColorStop(1, '#2E2219'); g.fillStyle = bg; g.beginPath(); g.moveTo(W * .36, H - 50); g.bezierCurveTo(W * .2, H * .5, W * .55, H * .35, W * .45, H * .1); g.bezierCurveTo(W * .72, H * .2, W * .7, H * .55, W * .62, H - 50); g.closePath(); g.fill(); } /* ブロンズの、人の形を思わせるなめらかな形 */
   else if (k === 1) { g.strokeStyle = '#E9E6DE'; g.lineWidth = 22; g.beginPath(); g.ellipse(W / 2, H * .45, W * .26, H * .3, .3, 0, 7); g.stroke(); g.strokeStyle = 'rgba(0,0,0,.15)'; g.lineWidth = 6; g.beginPath(); g.ellipse(W / 2 + 4, H * .47, W * .26, H * .3, .3, .3, 2.6); g.stroke(); } /* 白い石の輪 */
   else { for (let j = 0; j < 4; j++) { const c = ['#C8463C', '#2E6FAE', '#F2C230', '#2B2B2B'][j]; g.fillStyle = c; g.beginPath(); g.ellipse(W * (.36 + j * .09), H * (.62 - j * .13), W * .12, H * .06, -.3 + j * .2, 0, 7); g.fill(); } g.fillStyle = '#2B2B2B'; g.fillRect(W / 2 - 3, H * .2, 6, H * .6); } /* 色の玉が積み上がる形 */ }
-PROP_ART.rxSculpt = (n, v) => artCanvas('rxsculpt|' + v, 160, 260, (g, w, h) => rxPaintSculpt(g, w, h, n, v));
+PROP_ART.rxSculpt = (n, v) => rxArtC('rxsculpt|' + v, 160, 260, (g, w, h) => rxPaintSculpt(g, w, h, n, v));
 PROPS.sculpt = (sd, s) => ({ w: 3.4, spr: [{ lat: sd * 4.1, s: s + 1.2, y: 0, w: 1.6, h: 2.6, img: rxPaintKey('rxSculpt', String((Math.random() * 3) | 0)), gnd: .8 }] });
 
 /* ---------- [F7] 通りの名前の標識（青い板・白い字。日本語と英語。「中央通り Chuo-dori」など、東京の大通りの角に立つ） ---------- */
 function rxPaintSName(g, W, H, n, v) { const o = rxV(v); g.fillStyle = rxCylG(g, W / 2 - 4, W / 2 + 4, '#7C8288', '#D5DADE', '#5E646A'); g.fillRect(W / 2 - 4, 40, 8, H - 44); rxShadowE(g, W / 2, H - 4, 14, 3);
   g.fillStyle = '#1E4E9A'; rrect(g, 6, 14, W - 12, 64, 5); g.fill(); g.strokeStyle = '#FFFFFF'; g.lineWidth = 2.5; g.strokeRect(10, 18, W - 20, 56); g.fillStyle = '#FFFFFF'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = rxFont(22); g.fillText(o.t, W / 2, 38, W - 30); g.font = rxFont(12, 700); g.fillText(o.c, W / 2, 62, W - 30); }
-PROP_ART.rxSName = (n, v) => artCanvas('rxsname|' + v, 200, 300, (g, w, h) => rxPaintSName(g, w, h, n, v));
+PROP_ART.rxSName = (n, v) => rxArtC('rxsname|' + v, 200, 300, (g, w, h) => rxPaintSName(g, w, h, n, v));
 PROPS.sname = (sd, s, th) => { const st = th && th.sname; if (!st) return { w: 1 }; return { w: 2.4, spr: [{ lat: sd * 3.3, s: s + .3, y: 0, w: 1.4, h: 2.9, img: rxPaintKey('rxSName', 'L|' + st[0] + '|' + st[1]), gnd: .3 }] }; };
 
 /* ---------- [F8] 公園・庭園の入口の名前の石（みかげ石に、ほった名前）：日比谷公園・新宿御苑など ---------- */
@@ -152,5 +156,5 @@ function rxPaintPSign(g, W, H, n, v) { const o = rxV(v); rxShadowE(g, W / 2, H -
   g.fillStyle = 'rgba(0,0,0,.08)'; for (let k = 0; k < 40; k++) g.fillRect(10 + Math.random() * (W - 20), 20 + Math.random() * (H - 30), 2, 2);
   g.fillStyle = '#2E2A26'; g.textAlign = 'center'; g.textBaseline = 'middle'; const ch = [...o.t]; const fs = Math.min(28, (W - 30) / Math.max(1, ch.length)); g.font = `700 ${fs}px "Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif`; g.fillText(o.t, W / 2, H * .45, W - 24);
   g.fillStyle = 'rgba(255,255,255,.25)'; g.font = `700 ${fs}px "Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif`; g.fillText(o.t, W / 2 + 1, H * .45 + 1, W - 24); }
-PROP_ART.rxPSign = (n, v) => artCanvas('rxpsign|' + v, 260, 110, (g, w, h) => rxPaintPSign(g, w, h, n, v));
+PROP_ART.rxPSign = (n, v) => rxArtC('rxpsign|' + v, 260, 110, (g, w, h) => rxPaintPSign(g, w, h, n, v));
 PROPS.psign = (sd, s, th) => { const t = th && th.psign; if (!t) return { w: 1 }; return { w: 3.4, spr: [{ lat: sd * 4.0, s: s + 1.2, y: 0, w: 2.6, h: 1.1, img: rxPaintKey('rxPSign', 'L|' + t), gnd: 1 }] }; };

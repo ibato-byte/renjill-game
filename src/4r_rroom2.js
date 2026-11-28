@@ -66,5 +66,5 @@ PROPS.strapY = (sd, s) => ({ w: 3, ln: [{ a: [s, sd * 3.0, 2.55], b: [s + 3, sd 
 /* 竹下通りのクレープ屋の店先（見本のクレープがならぶ） */
 function rxPaintCrepe(g, W, H) { rxShadowE(g, W / 2, H - 4, W * .46, 6); g.fillStyle = '#FFE0EC'; g.fillRect(W * .05, H * .3, W * .9, H * .7 - 4); g.fillStyle = '#FF9ACF'; g.fillRect(0, H * .18, W, H * .14); g.fillStyle = '#FFFFFF'; g.font = rxFont(H * .1); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('CREPE', W / 2, H * .25);
   g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(W * .1, H * .38, W * .8, H * .34); for (let k = 0; k < 6; k++) { const x = W * (.17 + k * .13), y = H * .62; g.fillStyle = '#E8B878'; g.beginPath(); g.moveTo(x - 10, y - 18); g.lineTo(x + 10, y - 18); g.lineTo(x, y + 10); g.closePath(); g.fill(); g.fillStyle = ['#FFFFFF', '#F7C6D6', '#F2C230', '#C8463C', '#7A4A2E', '#9AD8FF'][k]; g.beginPath(); g.arc(x, y - 20, 9, Math.PI, 0); g.fill(); g.fillStyle = '#E8402E'; g.beginPath(); g.arc(x + 3, y - 26, 3, 0, 7); g.fill(); } }
-PROP_ART.rxCrepe = () => artCanvas('rxcrepe', 220, 200, rxPaintCrepe);
+PROP_ART.rxCrepe = () => rxArtC('rxcrepe', 220, 200, rxPaintCrepe);
 PROPS.crepe = rxOne('rxCrepe', 4.1, 2.2, 2.0, 2.8);

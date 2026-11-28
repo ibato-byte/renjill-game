@@ -67,7 +67,7 @@ const RX_REAL = {
   kaihin: { rx: [['boats', 1, { n: 3, kinds: ['yakata', 'yakata', 'bus'], l0: 30, l1: 70 }], ['gulls', 1, { n: 3 }], ['far', 1, { type: 'rxIsland', v: '3', lat: 120, w: 40, h: 20, s: .5, y: -.6 }]], lm: [{ t: 'rbridge', sc: .9, off: .05 }], set: { crowd: 1.2 } },
   odaiba: { rx: [['gulls', 1, { n: 3 }], ['boats', -1, { n: 2, kinds: ['bus', 'yakata'], l0: 40, l1: 90 }], ['cranes', 1, { n: 4, lat: 200 }], ['far', -1, { type: 'rxIsland', v: '5', lat: 110, w: 36, h: 18, s: .6, y: -.6 }]] },
   takeshiba: { rx: [['boats', 1, { n: 2, kinds: ['ferry', 'ferry'], l0: 24, l1: 40 }], ['boats', -1, { n: 1, kinds: ['bus'], l0: 40, l1: 70 }], ['gulls', 1, { n: 3 }]], add: [['lampT', 2]], lm: [{ t: 'rbridge', sc: .8, off: .25 }] },
-  tennozu: { rx: [['viaduct', 1, { lat: 34, col: '#1E5AA8', body: '#F4F6F8', y: 9, cars: 4 }], ['boats', -1, { n: 2, kinds: ['yakata', 'bus'], l0: 14, l1: 30 }], ['gulls', -1, { n: 2 }]], add: [['lampT', 2], ['tset', 1]] },
+  tennozu: { rx: [['boats', -1, { n: 2, kinds: ['yakata', 'bus'], l0: 14, l1: 30 }], ['gulls', -1, { n: 2 }]], add: [['lampT', 2], ['tset', 1]] },
   rooftop: { add: [['fbed', 1], ['tset', 1], ['azalea', 1]] },
   /* ---- 浅草・隅田川・押上 ---- */
   asakusa: { add: [['koban', .3], ['pigeons', .4], ['nodate', .4]], set: { crowd: 1.7 } },
@@ -79,7 +79,7 @@ const RX_REAL = {
   yakata: { rx: [['boats', 1, { n: 2, kinds: ['yakata', 'bus'], l0: 18, l1: 40 }], ['gulls', -1, { n: 2, seasons: ['autumn', 'winter', 'spring'] }]] },
   terrace: { sw: { lampC: 'lampT', planter: 'fbed' }, set: { wide: 100, crowd: .9 }, rx: [['bridges', 1, { list: [['#3A6FB0', 'arch'], ['#E8C547', 'under']], lat: 95, w: 70, h: 20 }], ['float', 1, { items: ['boat:bus', 'boat:yakata'] }], ['gulls', 1, { n: 2, seasons: ['autumn', 'winter', 'spring'] }]] },
   sumidakoen: { set: { wide: 100 }, rx: [['bridges', 1, { list: [['#C0392B', 'under']], lat: 95, w: 70, h: 20 }], ['float', 1, { items: ['boat:bus', 'boat:yakata'] }]], add: [['lampP', 1]] },
-  sfoot: { sw: { lampC: 'lampT' }, rx: [['viaduct', 1, { lat: 30, col: '#1E5AA8', body: '#F4F6F8', y: 7, cars: 4 }]], add: [['fbed', .6], ['tset', .5]] },
+  sfoot: { sw: { lampC: 'lampT' }, add: [['fbed', .6], ['tset', .5]] },
   sland: { sw: { lampC: 'lampP', flowers: 'fbed' }, rx: [['float', -1, { items: ['boat:bus', 'boat:yakata'] }], ['bridges', -1, { list: [['#C0392B', 'under']], lat: 120, w: 70, h: 20 }]], set: { psign: '隅田公園' }, add: [['psign', .4]] },
   slobby: { wd: ['rxFloorGuide'] },
   sdeck: { add: [['tset', .6]] },
@@ -103,8 +103,8 @@ const RX_REAL = {
   jimbocho: { add: [['sigN', 1]], set: { plate: PLATE('神保町/Jimbocho', '駿河台下/Surugadai-shita') }, sa: { autumn: [['bookcart', 3]] }, rx: [['bikelane', -1], ['bikelane', 1]] },
   koishikawa: { set: { tree: 'matsuN', crowd: .5 }, sw: { pinetree: 'niwaki', stoneLantern: 'yukimi' }, add: [['shidareT', .7], ['kaedeT', 1.2], ['kaki', .5]], rx: [['shore', 1, { trees: ['kaede', 'matsuN', 'mori'] }], ['float', 1, { items: ['bridge:engetsu', 'island', 'bridge:bridgeRed'] }]] },
   kagurazaka: { add: [['lampW', 1.5], ['sigN', .6], ['tset', .4], ['cat', .2]], set: { flag: ['神楽坂', '#8A2E2A'], plate: PLATE('神楽坂上/Kagurazaka-ue', '神楽坂下/Kagurazaka-shita'), crowd: 1.2 } },
-  yotsuya: { add: [['lampP', 1]], rx: [['viaduct', 1, { lat: 26, col: '#E8782E', y: .4, cars: 5 }]], set: { crowd: .8 } },
-  ichigaya: { sw: { lampC: 'lampP' }, rx: [['viaduct', -1, { lat: 42, col: '#F2C230', y: .4, cars: 5 }]], set: { crowd: .8 } },
+  yotsuya: { add: [['lampP', 1]], set: { crowd: .8 } },
+  ichigaya: { sw: { lampC: 'lampP' }, set: { crowd: .8 } },
   /* ---- 芝・赤い電波塔 ---- */
   tfoot: { sw: { lampC: 'lampP' }, set: { psign: '芝公園' }, add: [['psign', .5], ['fbed', .6]] },
   tlobby: { wd: ['rxFloorGuide'] },
