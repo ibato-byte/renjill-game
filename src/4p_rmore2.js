@@ -6,7 +6,7 @@ function rxPaintHanabi(g, W, H, n, v) { const r = rnd(90 + (+v || 0)), cols = [[
   rxGlowC(g, cx, cy, R * .5, cols[0], .35); } /* 夏の夜の隅田川花火大会：開いた大輪の花火（菊の形） */
 function rxPaintKoi(g, W, H) { const r = rnd(95); for (let i = 0; i < 7; i++) { const x = W * (.1 + r() * .8), y = H * (.3 + r() * .5), a = (r() - .5) * 1.2, L = 18 + r() * 10, c = [['#F07C2E', '#FBF6EE'], ['#FBF6EE', '#E8402E'], ['#F2C230', '#F2C230'], ['#2B2B2B', '#F07C2E']][(r() * 4) | 0];
   g.save(); g.translate(x, y); g.rotate(a); g.globalAlpha = .8; g.fillStyle = c[0]; g.beginPath(); g.ellipse(0, 0, L / 2, L / 6, 0, 0, 7); g.fill(); g.fillStyle = c[1]; g.beginPath(); g.ellipse(-L * .1, 0, L / 5, L / 8, 0, 0, 7); g.fill(); g.fillStyle = c[0]; g.beginPath(); g.moveTo(-L / 2, 0); g.lineTo(-L * .75, -L / 5); g.lineTo(-L * .75, L / 5); g.closePath(); g.fill(); g.restore(); }
-  g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1; for (let i = 0; i < 5; i++) { g.beginPath(); g.ellipse(W * r(), H * (.2 + r() * .6), 10 + r() * 10, 2, 0, 0, 7); g.stroke(); } } /* 池の錦鯉（水面の下に赤・白・黄の鯉と、波紋） */
+  g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1; for (let i = 0; i < 5; i++) { g.beginPath(); g.ellipse(W * r(), H * (.2 + r() * .6), 10 + r() * 10, 2, 0, 0, 7); g.stroke(); } } /* 池の錦鯉（水面の下に赤・白・黄の鯉と、波紋）。上から見た絵なので、立てると空中の魚に見える：うすく（高さ .42）して水面にねかせて見せる */
 function rxPaintKamo(g, W, H) { const r = rnd(97); for (let i = 0; i < 5; i++) { const x = W * (.1 + r() * .8), y = H * (.45 + r() * .4), s = 10 + r() * 3, sd = r() < .5 ? -1 : 1;
   g.strokeStyle = 'rgba(255,255,255,.4)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x - sd * s * 2.4, y + s * .4); g.lineTo(x - sd * s * .8, y + s * .2); g.stroke();
   g.fillStyle = '#6B5440'; g.beginPath(); g.ellipse(x, y, s, s * .45, 0, 0, 7); g.fill(); g.fillStyle = '#8A7058'; g.beginPath(); g.ellipse(x - sd * s * .2, y - s * .1, s * .6, s * .25, 0, 0, 7); g.fill();
@@ -26,7 +26,7 @@ Object.assign(RX_SET, {
   /* 夏の夜の花火（隅田川花火大会は 7 月の最後の土曜日）：夜だけ・夏だけ、空に大輪 */
   hanabi(seg, sd, o) { const L = seg.len; for (let k = 0; k < (o.n || 4); k++) seg.spr.push({ lat: sd * rand(22, 45), s: L * rand(.7, 1.15), y: rand(14, 26), w: rand(26, 40), h: rand(26, 40), img: rxPaintKey('rxHanabi', String(k % 4)), far: 1, keep: 1, night: 1, glow: 1 }); },
   /* 池の生き物（錦鯉・カルガモ） */
-  life(seg, sd, o) { const L = seg.len, FW = o.fw || seg.th.wide || 38; for (const t of o.items || []) for (let k = 0; k < (o.n || 2); k++) rxSpr(seg, t === 'koi' ? 'rxKoi' : 'rxKamo', '', sd * (HW + rand(3, Math.min(FW - 4, 18))), L * rand(.1, .9), t === 'koi' ? 3.4 : 3, t === 'koi' ? 1.1 : 1.0, { sp: { y: o.y != null ? o.y : -.88 } }); },
+  life(seg, sd, o) { const L = seg.len, FW = o.fw || seg.th.wide || 38; for (const t of o.items || []) for (let k = 0; k < (o.n || 2); k++) rxSpr(seg, t === 'koi' ? 'rxKoi' : 'rxKamo', '', sd * (HW + rand(3, Math.min(FW - 4, 18))), L * rand(.1, .9), t === 'koi' ? 3.4 : 3, t === 'koi' ? .42 : 1.0, { sp: { y: o.y != null ? o.y : -.88 } }); },
   /* 季節の物を、道ばたに直接置く（部屋の、冬のこたつ・夏の扇風機・秋のお月見など） */
   put(seg, sd, o) { const L = seg.len, P = PROPS[o.type]; if (!P) return; for (let k = 0; k < (o.n || 1); k++) { const sdd = k % 2 ? -sd : sd, p = P(sdd, L * (k + .5) / (o.n || 1) + rand(-2, 2), seg.th); for (const q of p.spr || []) seg.spr.push(Object.assign(q, { keep: 1 })); if (p.bx && p.bx.length) seg.props.push(mkProp(seg, p.bx, { big: 1 })); } },
   /* 羽田へおりる飛行機（湾岸の空をゆっくり横切る） */

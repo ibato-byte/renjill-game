@@ -338,9 +338,28 @@ rx6(['chidori'], { set: { sname: ['千鳥ヶ淵緑道', 'Chidorigafuchi Path'] }
 rx6(['kokyo'], { set: { sname: ['内堀通り', 'Uchibori-dori'] }, add: [['sname', .4]] });
 rx6(['tokyoeki'], { set: { subway: ['東京駅', 'Tokyo Sta.', RXL.M] }, add: [['subway', .5]] });
 rx6(['yanaka'], { set: { subway: ['千駄木駅', 'Sendagi Sta.', RXL.C] }, add: [['subway', .4]] });
+/* ---- 2 回目：数の少なかったステージ（空の上・電波塔・エレベーター・ガード下と横丁・外堀・屋形船）を、本物を調べて足す（src/4u_rround2.js） ----
+   方角（真北から時計回り）：芝公園から押上の電波塔は約 46 度・お台場の吊り橋は約 147 度・筑波山は約 27 度・新宿の都庁は約 305 度。押上から芝公園は約 226 度・両国の国技館は約 227 度・浅草の五重塔は約 292 度・お台場は約 208 度 */
+const RX_MORE7 = {};
+const rx7 = (ts, part) => { for (const t of ts) { RX_MORE7[t] = RX_MORE7[t] || {}; rxMerge(RX_MORE7[t], JSON.parse(JSON.stringify(part))); } };
+const SW_SS = ['spring', 'summer'], ST_AW = ['autumn', 'winter'];
+rx7(['hawk'], { lm: [{ t: 'skytree', brg: 46, sc: .6 }, { t: 'rbridge', brg: 147, sc: .6 }, { t: 'tsukuba', brg: 27, sc: .8 }, { t: 'tocho', brg: 305, sc: .6 }] });
+rx7(['hawk2'], { lm: [{ t: 'tower', brg: 226, sc: .5 }] });
+rx7(['hawk', 'hawk2'], { rx: [['heli', -1, { n: 1 }], ['flock', 1, { kind: 'sw', n: 2, seasons: SW_SS }], ['flock', -1, { kind: 'st', n: 1, seasons: ST_AW }]] }); /* 空の上：ヘリ・ツバメ（春夏）・ムクドリの群れ（秋冬）。空の絵として描く（src/4u_rround2.js rxSkyLife） */
+rx7(['skytree'], { lm: [{ t: 'rbridge', brg: 208, sc: .6 }, { t: 'pagoda', brg: 292, sc: .8 }, { t: 'kokugikan', brg: 227, sc: .9 }], rx: [['heli', -1, { n: 1, y: 6 }]] }); /* 地上 450m：ガラスの向こうの、同じくらいの高さを飛ぶヘリ（床より下に置くと、床の上に乗って見える） */
+rx7(['tower', 'tstair'], { lm: [{ t: 'rbridge', brg: 147, sc: .6 }, { t: 'tsukuba', brg: 27, sc: .7 }], rx: [['heli', -1, { n: 1 }], ['flock', 1, { kind: 'sw', n: 1, seasons: SW_SS }]] });
+rx7(['troof'], { lm: [{ t: 'rbridge', brg: 147, sc: .6 }], add: [['vending', .5]], rx: [['flock', 1, { kind: 'sw', n: 1, seasons: SW_SS }]] });
+rx7(['tpass'], { wd: ['rxExting', 'rxFloorGuide'], rx: [['staff', -1, { n: 1 }]] }); /* 外階段の上：係の人（のぼった人に認定証のカードをわたす） */
+rx7(['selev', 'selev2'], { wd: ['rxElevInd', 'rxElevBtn', 'rxRailH'] });
+rx7(['yurakucho', 'yokocho'], { rx: [['smoke', 1, { gap: 11 }]], wd: ['rxExting'] });
+rx7(['yakata'], { rx: [['bridges', 1, { list: [['#3A6FB0', 'arch'], ['#E9EDF0', 'stay'], ['#C0392B', 'under']], lat: 95, w: 70, h: 20 }]] }); /* 隅田川の橋（永代橋の青・清洲橋の白・吾妻橋の赤の明かり） */
+rx7(['ichigaya'], { se: { spring: { tree: 'sakura', petals: 1 } } }); /* 外濠公園の土手は桜の名所。市ヶ谷の側も、春は花（四谷は前から春は桜） */
+rx7(['yotsuya', 'ichigaya'], { se: { winter: { tree: 'bare' } } }); /* 冬は葉を落として枝だけ */
+rx7(['yotsuya'], { add: [['crows', .3]] });
+rx7(['ichigaya'], { rx: [['tsuribori', -1, { a: .25, b: .8 }]] }); /* 駅の前のお堀の釣り堀（浮かぶ足場・小屋・竿をたらす人） */
 /* 表をテーマへ当てる（1 回だけ）。季節の木：新しい木の種類は、季節に合わせて色をかえる（カツラは秋に黄色、冬は葉を落とす など） */
 function rxMerge(a, b) { for (const k in b) { const v = b[k]; if (Array.isArray(v)) a[k] = (a[k] || []).concat(v); else if (v && typeof v === 'object' && !Array.isArray(v) && k !== 'set' && k !== 'sw' && k !== 'fac' && k !== 'se' && k !== 'sa') a[k] = Object.assign({}, a[k] || {}, v); else if (v && typeof v === 'object' && (k === 'se' || k === 'sa')) { a[k] = Object.assign({}, a[k] || {}); for (const q in v) a[k][q] = Array.isArray(v[q]) ? (a[k][q] || []).concat(v[q]) : Object.assign({}, a[k][q] || {}, v[q]); } else if (v && typeof v === 'object') a[k] = Object.assign({}, a[k] || {}, v); else a[k] = v; } }
-function rxApplyReal() { for (const M of [RX_MORE, RX_MORE3, RX_MORE4, RX_MORE5, RX_MORE6]) for (const tid in M) { RX_REAL[tid] = RX_REAL[tid] || {}; rxMerge(RX_REAL[tid], M[tid]); }
+function rxApplyReal() { for (const M of [RX_MORE, RX_MORE3, RX_MORE4, RX_MORE5, RX_MORE6, RX_MORE7]) for (const tid in M) { RX_REAL[tid] = RX_REAL[tid] || {}; rxMerge(RX_REAL[tid], M[tid]); }
   for (const tid in RX_REAL) { const th = THEMES[tid], r = RX_REAL[tid]; if (!th) continue;
   if (r.sw && th.props) th.props = th.props.map(([t, n]) => [r.sw[t] || t, n]);
   if (r.drop && th.props) th.props = th.props.filter(([t]) => !r.drop.includes(t));

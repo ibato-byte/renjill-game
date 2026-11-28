@@ -2910,6 +2910,26 @@
       "name": "景色1000：場所ごとの表（銀座のカツラなど）",
       "file": "src/1c_real.js",
       "has": "ginza: { sw: { lampC: 'lampG' }"
+    },
+    {
+      "name": "景色1000（2回目）：空の上のヘリコプター・ツバメ・ムクドリの群れ",
+      "file": "src/4u_rround2.js",
+      "has": "function rxSkyLife(hz, seg)"
+    },
+    {
+      "name": "景色1000（2回目）：市ヶ谷の釣り堀（浮かぶ足場・小屋・竿をたらす人）",
+      "file": "src/4u_rround2.js",
+      "has": "tsuribori(seg, sd, o) {"
+    },
+    {
+      "name": "景色1000（2回目）：エレベーターの高さの表示・ボタン・やきとりの煙・消火器",
+      "file": "src/4u_rround2.js",
+      "has": "rxElevInd(e) {"
+    },
+    {
+      "name": "景色1000（2回目）：数の少なかったステージの表",
+      "file": "src/1c_real.js",
+      "has": "const RX_MORE7 = {};"
     }
   ]
 }
